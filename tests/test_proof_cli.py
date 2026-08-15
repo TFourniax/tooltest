@@ -20,6 +20,25 @@ def git(*args: str, cwd: Path) -> str:
     return proc.stdout
 
 
+def init_repo(repo: Path, source: str) -> None:
+    git("init", "-q", cwd=repo)
+    git("config", "user.email", "guard@example.com", cwd=repo)
+    git("config", "user.name", "Guard Test", cwd=repo)
+    (repo / "calc.py").write_text(source, encoding="utf-8")
+    git("add", "calc.py", cwd=repo)
+    git("commit", "-q", "-m", "buggy baseline", cwd=repo)
+
+
+def regression_agent_script(source: str) -> str:
+    return (
+        "from pathlib import Path; "
+        f"Path('calc.py').write_text({source!r}, encoding='utf-8'); "
+        "Path('tests').mkdir(exist_ok=True); "
+        "Path('tests/test_calc.py').write_text("
+        "\"import unittest\\nfrom calc import add\\n\\nclass T(unittest.TestCase):\\n    def test_add(self):\\n        self.assertEqual(add(2, 3), 5)\\n\", encoding='utf-8')"
+    )
+
+
 class ProofCliTests(unittest.TestCase):
     def test_balanced_and_strict_policies_are_distinct(self) -> None:
         report = {
@@ -51,22 +70,8 @@ class ProofCliTests(unittest.TestCase):
     def test_guard_captures_pre_agent_state_and_accepts_proven_fix(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
-            git("init", "-q", cwd=repo)
-            git("config", "user.email", "guard@example.com", cwd=repo)
-            git("config", "user.name", "Guard Test", cwd=repo)
-            (repo / "calc.py").write_text(
-                "def add(a, b):\n    return a - b\n", encoding="utf-8"
-            )
-            git("add", "calc.py", cwd=repo)
-            git("commit", "-q", "-m", "buggy baseline", cwd=repo)
-
-            agent_script = (
-                "from pathlib import Path; "
-                "Path('calc.py').write_text('def add(a, b):\\n    return a + b\\n', encoding='utf-8'); "
-                "Path('tests').mkdir(exist_ok=True); "
-                "Path('tests/test_calc.py').write_text("
-                "\"import unittest\\nfrom calc import add\\n\\nclass T(unittest.TestCase):\\n    def test_add(self):\\n        self.assertEqual(add(2, 3), 5)\\n\", encoding='utf-8')"
-            )
+            init_repo(repo, "def add(a, b):\n    return a - b\n")
+            agent_script = regression_agent_script("def add(a, b):\n    return a + b\n")
             test_command = f'"{sys.executable}" -m unittest discover -s tests -q'
             rc = main(
                 [
@@ -91,24 +96,16 @@ class ProofCliTests(unittest.TestCase):
     def test_guard_rejects_scope_creep_under_strict_policy(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
-            git("init", "-q", cwd=repo)
-            git("config", "user.email", "guard@example.com", cwd=repo)
-            git("config", "user.name", "Guard Test", cwd=repo)
-            (repo / "calc.py").write_text(
-                "def add(a, b):\n    return a - b\n\n\n\n\n\n\n\n\ndef label():\n    return 'calc'\n",
-                encoding="utf-8",
+            baseline = (
+                "def add(a, b):\n    return a - b\n\n\n\n\n\n\n\n\n"
+                "def label():\n    return 'calc'\n"
             )
-            git("add", "calc.py", cwd=repo)
-            git("commit", "-q", "-m", "buggy baseline", cwd=repo)
-
-            agent_script = (
-                "from pathlib import Path; "
-                "Path('calc.py').write_text("
-                "\"def add(a, b):\\n    return a + b\\n\\n\\n\\n\\n\\n\\n\\n\\ndef label():\\n    return 'calculator'\\n\", encoding='utf-8'); "
-                "Path('tests').mkdir(exist_ok=True); "
-                "Path('tests/test_calc.py').write_text("
-                "\"import unittest\\nfrom calc import add\\n\\nclass T(unittest.TestCase):\\n    def test_add(self):\\n        self.assertEqual(add(2, 3), 5)\\n\", encoding='utf-8')"
+            candidate = (
+                "def add(a, b):\n    return a + b\n\n\n\n\n\n\n\n\n"
+                "def label():\n    return 'calculator'\n"
             )
+            init_repo(repo, baseline)
+            agent_script = regression_agent_script(candidate)
             test_command = f'"{sys.executable}" -m unittest discover -s tests -q'
             rc = main(
                 [
@@ -119,6 +116,72 @@ class ProofCliTests(unittest.TestCase):
                     test_command,
                     "--policy",
                     "strict",
+                    "--stability-runs",
+                    "1",
+                    "--",
+                    sys.executable,
+                    "-c",
+                    agent_script,
+                ]
+            )
+            self.assertEqual(rc, 1)
+
+    def test_guard_adaptive_accepts_one_hunk_proven_fix(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            init_repo(repo, "def add(a, b):\n    return a - b\n")
+            agent_script = regression_agent_script("def add(a, b):\n    return a + b\n")
+            test_command = f'"{sys.executable}" -m unittest discover -s tests -q'
+            rc = main(
+                [
+                    "guard",
+                    "--repo",
+                    str(repo),
+                    "--test",
+                    test_command,
+                    "--policy",
+                    "strict",
+                    "--strategy",
+                    "adaptive",
+                    "--stability-runs",
+                    "1",
+                    "--",
+                    sys.executable,
+                    "-c",
+                    agent_script,
+                ]
+            )
+            self.assertEqual(rc, 0)
+
+    def test_guard_auto_routes_large_enough_patch_to_adaptive_and_rejects_surplus(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            baseline = (
+                "def add(a, b):\n    return a - b\n\n\n\n\n\n\n\n\n"
+                "def label():\n    return 'calc'\n"
+            )
+            candidate = (
+                "def add(a, b):\n    return a + b\n\n\n\n\n\n\n\n\n"
+                "def label():\n    return 'calculator'\n"
+            )
+            init_repo(repo, baseline)
+            agent_script = regression_agent_script(candidate)
+            test_command = f'"{sys.executable}" -m unittest discover -s tests -q'
+            rc = main(
+                [
+                    "guard",
+                    "--repo",
+                    str(repo),
+                    "--test",
+                    test_command,
+                    "--policy",
+                    "balanced",
+                    "--strategy",
+                    "auto",
+                    "--adaptive-threshold",
+                    "1",
+                    "--adaptive-budget",
+                    "10",
                     "--stability-runs",
                     "1",
                     "--",
