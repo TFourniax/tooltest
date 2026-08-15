@@ -38,6 +38,7 @@ class ProofCliTests(unittest.TestCase):
     def test_doctor_explains_default_detection(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
+            git("init", "-q", cwd=repo)
             (repo / "tests").mkdir()
             out = io.StringIO()
             with redirect_stdout(out):
