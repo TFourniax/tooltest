@@ -213,7 +213,8 @@ def run_analysis(
                     max_order = min(max_subset_order, len(production_mutations))
                     budget_exhausted = False
                     for order in range(1, max_order + 1):
-                        combos = list(itertools.combinations(production_mutations, order))
+                        combo_count = math.comb(len(production_mutations), order)
+                        combos = itertools.combinations(production_mutations, order)
                         completed_this_order = 0
                         found_this_order: list[SubsetResult] = []
                         for combo in combos:
@@ -265,7 +266,7 @@ def run_analysis(
                         if found_this_order:
                             sufficient.found_order = order
                             sufficient.results.extend(found_this_order)
-                            sufficient.exhaustive_at_found_order = completed_this_order == len(combos)
+                            sufficient.exhaustive_at_found_order = completed_this_order == combo_count
                             break
                         if budget_exhausted:
                             break
@@ -284,15 +285,17 @@ def run_analysis(
             # Hidden redundancy: A and B can each look unwitnessed alone, yet removing
             # both can break the evidence. Surface those mutual-backup pairs explicitly.
             if search_interactions:
+                production_ids = {mutation.id for mutation in production_mutations}
                 unwitnessed = [
                     result.mutation
                     for result in mutation_results
-                    if result.status == "unwitnessed" and result.mutation in production_mutations
+                    if result.status == "unwitnessed" and result.mutation.id in production_ids
                 ]
                 if len(unwitnessed) < 2:
                     interactions.note = "No pair search needed: fewer than two unwitnessed production hunks."
                 else:
-                    pairs = list(itertools.combinations(unwitnessed, 2))
+                    pair_count = math.comb(len(unwitnessed), 2)
+                    pairs = itertools.combinations(unwitnessed, 2)
                     completed = 0
                     for pair in pairs:
                         if interactions.attempted >= max_interaction_runs:
@@ -335,7 +338,7 @@ def run_analysis(
                                     runs=runs,
                                 )
                             )
-                    interactions.exhaustive_at_found_order = completed == len(pairs)
+                    interactions.exhaustive_at_found_order = completed == pair_count
                     interactions.found_order = 2 if interactions.results else None
                     if not interactions.results:
                         interactions.note = (
