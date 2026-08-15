@@ -124,7 +124,7 @@ def _write_init_workflow(repo: Path, *, force: bool) -> Path:
         raise FileExistsError(f"{path} already exists; use --force to replace it")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        """name: DiffWitness\n\non:\n  pull_request:\n\npermissions:\n  contents: read\n\njobs:\n  evidence:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n      - name: Prove patch evidence\n        uses: TFourniax/tooltest@main\n        with:\n          base: ${{ github.event.pull_request.base.sha }}\n          candidate: ${{ github.event.pull_request.head.sha }}\n          strict: false\n""",
+        """name: DiffWitness\n\non:\n  pull_request:\n\npermissions:\n  contents: read\n\njobs:\n  evidence:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n      - name: Prove patch evidence\n        uses: TFourniax/tooltest@main\n        with:\n          base: ${{ github.event.pull_request.base.sha }}\n          candidate: ${{ github.event.pull_request.head.sha }}\n          policy: balanced\n          strategy: auto\n""",
         encoding="utf-8",
     )
     return path
@@ -176,12 +176,12 @@ def _prove(args: argparse.Namespace) -> int:
     mutations = make_mutations(files, include_tests=args.include_test_changes, ignore_globs=ignore)
     ignored_count = len(all_mutations) - len(mutations)
     if not mutations:
-        print("DiffWitness: no analyzable changes remain after test/ignore filtering.", file=sys.stderr)
+        print("DiffWitness: no analyzable changes remain after test/documentation/ignore filtering.", file=sys.stderr)
         return 2
     if args.reduction_patch and not args.minimize:
         raise AnalysisError("--reduction-patch requires --minimize")
 
-    print("DiffWitness 0.2 - counterfactual patch evidence")
+    print(f"DiffWitness {__version__} - counterfactual patch evidence")
     print(f"repo:      {repo}")
     print(f"base:      {args.base} ({base_sha[:12]})")
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
