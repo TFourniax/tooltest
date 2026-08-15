@@ -55,6 +55,25 @@ def _values(args: list[str], name: str) -> list[str]:
     return values
 
 
+def _inject_explicit_config_test(args: list[str]) -> list[str]:
+    """Honor --config test=... even in zero-config frontends.
+
+    Gate/Guard normally auto-detect evidence. When a caller explicitly selects a non-default config
+    file, its evidence command must win just like the default .diffwitness.toml would.
+    """
+    if _value(args, "--test"):
+        return args
+    explicit = _value(args, "--config")
+    if not explicit:
+        return args
+    repo = repo_root(_value(args, "--repo", ".") or ".")
+    config = load_config(repo, explicit)
+    test = config.get("test")
+    if isinstance(test, str) and test.strip():
+        return [*args, "--test", test]
+    return args
+
+
 def _write_github_noop(report: dict[str, Any]) -> None:
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
@@ -179,19 +198,31 @@ def main(argv: list[str] | None = None) -> int:
         return verify_cli(args[1:])
     if args[0] == "note":
         return note_cli(args[1:])
+    if args[0] == "guard":
+        from .guard import guard_cli
+
+        try:
+            return guard_cli(_inject_explicit_config_test(args[1:]))
+        except Exception as exc:
+            print(f"DiffWitness: {exc}", file=sys.stderr)
+            return 2
     if args[0] in {"prove", "gate"}:
         try:
-            noop = _noop_prove_if_applicable(args[1:])
+            prepared = _inject_explicit_config_test(args[1:]) if args[0] == "gate" else args[1:]
+            noop = _noop_prove_if_applicable(prepared)
         except Exception:
             # The full parser/engine owns normal error reporting. The preflight must never mask it.
             noop = None
+            prepared = args[1:]
         if noop is not None:
             return noop
+    else:
+        prepared = args[1:]
     if args[0] == "gate":
         from .gate import gate_cli
 
         try:
-            return gate_cli(args[1:])
+            return gate_cli(prepared)
         except Exception as exc:
             print(f"DiffWitness: {exc}", file=sys.stderr)
             return 2
