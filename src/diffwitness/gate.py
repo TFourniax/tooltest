@@ -4,26 +4,37 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
+from .adaptive import find_adaptive_core
 from .analysis import AnalysisError
+from .cli import main as core_main
+from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
 from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
 from .proof_cli import (
+    _adaptive_document,
     _adaptive_policy,
     _candidate_sha,
+    _policy_passes,
     _print_adaptive,
     _resolve_evidence,
-    _run_adaptive,
-    _run_proof,
 )
 from .reporting import render_markdown
 
 
 def _escape_workflow(value: str) -> str:
     return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def _list_setting(cli: list[str] | None, config: dict[str, Any], key: str) -> list[str]:
+    if cli is not None:
+        return list(cli)
+    value = config.get(key, [])
+    return list(value) if isinstance(value, list) else []
 
 
 def _adaptive_markdown(doc: dict[str, Any]) -> str:
@@ -103,20 +114,98 @@ def _emit_adaptive_github(doc: dict[str, Any]) -> None:
             handle.write("proof_mode=adaptive-core\n")
 
 
+def _run_exhaustive_gate(
+    *,
+    repo: Path,
+    base_sha: str,
+    candidate_sha: str,
+    test: str,
+    policy: str,
+    stability_runs: int,
+    prepare: str | None,
+    timeout: float,
+    shared: list[str],
+    test_globs: list[str],
+    ignore: list[str],
+    overlay_tests: bool,
+    certificate: Path | None,
+) -> tuple[int, dict[str, Any] | None, str]:
+    temporary: Path | None = None
+    cert = certificate
+    if cert is None:
+        fd, raw = tempfile.mkstemp(prefix="diffwitness-gate-", suffix=".json")
+        os.close(fd)
+        temporary = Path(raw)
+        cert = temporary
+    argv = [
+        "prove",
+        "--repo",
+        str(repo),
+        "--base",
+        base_sha,
+        "--candidate",
+        candidate_sha,
+        "--test",
+        test,
+        "--stability-runs",
+        str(stability_runs),
+        "--timeout",
+        str(timeout),
+        "--certificate",
+        str(cert),
+        "--no-github-actions",
+    ]
+    if prepare:
+        argv += ["--prepare", prepare]
+    for path in shared:
+        argv += ["--share", path]
+    for pattern in test_globs:
+        argv += ["--test-glob", pattern]
+    for pattern in ignore:
+        argv += ["--ignore", pattern]
+    if not overlay_tests:
+        argv.append("--no-test-overlay")
+    rc = core_main(argv)
+    report: dict[str, Any] | None = None
+    if cert.exists():
+        try:
+            loaded = json.loads(cert.read_text(encoding="utf-8"))
+            report = loaded if isinstance(loaded, dict) else None
+        except (OSError, json.JSONDecodeError):
+            report = None
+    if temporary is not None:
+        try:
+            temporary.unlink()
+        except OSError:
+            pass
+    if rc != 0:
+        return rc, report, "exhaustive evidence engine failed"
+    if report is None:
+        return 2, None, "exhaustive engine produced no readable certificate"
+    ok, reason = _policy_passes(report, policy)
+    return (0 if ok else 1), report, reason
+
+
 def gate_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw gate",
         description="Validate an existing Git diff with exhaustive or budgeted adaptive causal evidence.",
     )
     parser.add_argument("--repo", default=".")
+    parser.add_argument("--config")
     parser.add_argument("--base", required=True)
     parser.add_argument("--candidate", default="HEAD")
     parser.add_argument("--test", help="Evidence command; auto-detected when omitted")
-    parser.add_argument("--policy", choices=["observe", "balanced", "strict"], default="balanced")
-    parser.add_argument("--strategy", choices=["auto", "exhaustive", "adaptive"], default="auto")
-    parser.add_argument("--adaptive-threshold", type=int, default=16)
-    parser.add_argument("--adaptive-budget", type=int, default=40)
-    parser.add_argument("--stability-runs", type=int, default=2)
+    parser.add_argument("--prepare")
+    parser.add_argument("--timeout", type=float)
+    parser.add_argument("--share", action="append", default=None)
+    parser.add_argument("--test-glob", action="append", default=None)
+    parser.add_argument("--ignore", action="append", default=None)
+    parser.add_argument("--policy", choices=["observe", "balanced", "strict"], default=None)
+    parser.add_argument("--strategy", choices=["auto", "exhaustive", "adaptive"], default=None)
+    parser.add_argument("--adaptive-threshold", type=int, default=None)
+    parser.add_argument("--adaptive-budget", type=int, default=None)
+    parser.add_argument("--stability-runs", type=int, default=None)
     parser.add_argument("--certificate", type=Path)
     parser.add_argument("--report", type=Path)
     parser.add_argument(
@@ -126,43 +215,107 @@ def gate_cli(argv: list[str]) -> int:
         help="Emit GitHub annotations, outputs and job summary",
     )
     args = parser.parse_args(argv)
-    if args.adaptive_threshold < 1:
-        raise AnalysisError("--adaptive-threshold must be >= 1")
 
     repo = repo_root(args.repo)
+    config = load_config(repo, args.config)
     test = _resolve_evidence(repo, args.test)
+    prepare = args.prepare if args.prepare is not None else config.get("prepare")
+    timeout = float(args.timeout if args.timeout is not None else config.get("timeout", 300.0))
+    shared = _list_setting(args.share, config, "share")
+    test_globs = _list_setting(args.test_glob, config, "test_glob")
+    ignore = _list_setting(args.ignore, config, "ignore")
+    policy = str(args.policy or config.get("policy", "balanced"))
+    strategy = str(args.strategy or config.get("strategy", "auto"))
+    adaptive_threshold = int(
+        args.adaptive_threshold
+        if args.adaptive_threshold is not None
+        else config.get("adaptive_threshold", 16)
+    )
+    adaptive_budget = int(
+        args.adaptive_budget
+        if args.adaptive_budget is not None
+        else config.get("adaptive_budget", 40)
+    )
+    stability_runs = int(
+        args.stability_runs
+        if args.stability_runs is not None
+        else config.get("stability_runs", 2)
+    )
+    overlay_tests = bool(config.get("test_overlay", True))
+    if adaptive_threshold < 1:
+        raise AnalysisError("adaptive threshold must be >= 1")
+    if adaptive_budget < 1:
+        raise AnalysisError("adaptive budget must be >= 1")
+    if stability_runs < 1:
+        raise AnalysisError("stability runs must be >= 1")
+
     base_sha = resolve_ref(repo, args.base)
     candidate_sha, candidate_ref = _candidate_sha(repo, args.candidate)
-    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
-    mutations = make_mutations(files)
+    files = parse_file_patches(
+        diff_text(repo, base_sha, candidate_sha), test_globs=test_globs
+    )
+    mutations = make_mutations(files, ignore_globs=ignore)
     if not mutations:
         # The outer `dw` entrypoint normally turns this into a formal no-op certificate.
         print("DiffWitness Gate: no executable causal mutation detected.")
         return 0
 
-    strategy = args.strategy
-    if strategy == "auto":
-        strategy = "adaptive" if len(mutations) > args.adaptive_threshold else "exhaustive"
+    selected = strategy
+    if selected == "auto":
+        selected = "adaptive" if len(mutations) > adaptive_threshold else "exhaustive"
     print(
-        f"DiffWitness Gate: {strategy} strategy for {len(mutations)} production mutation(s) "
-        f"under {args.policy} policy"
+        f"DiffWitness Gate: {selected} strategy for {len(mutations)} production mutation(s) "
+        f"under {policy} policy"
     )
 
     github_mode = is_github_actions() if args.github_actions is None else args.github_actions
 
-    if strategy == "adaptive":
+    if selected == "adaptive":
         try:
-            result, doc = _run_adaptive(
-                repo,
+            result = find_adaptive_core(
+                source_repo=repo,
                 base_sha=base_sha,
                 candidate_sha=candidate_sha,
                 files=files,
                 mutations=mutations,
-                test=test,
-                stability_runs=args.stability_runs,
-                budget=args.adaptive_budget,
-                certificate=args.certificate,
+                test_command=test,
+                timeout=timeout,
+                prepare_command=str(prepare) if prepare else None,
+                shared_paths=shared,
+                overlay_candidate_tests=overlay_tests,
+                stability_runs=stability_runs,
+                budget=adaptive_budget,
             )
+            doc = _adaptive_document(
+                result,
+                repo=repo,
+                base_sha=base_sha,
+                candidate_sha=candidate_sha,
+                test=test,
+                mutations=mutations,
+            )
+            doc["execution"] = {
+                "prepare": prepare,
+                "timeout": timeout,
+                "share": shared,
+                "test_glob": test_globs,
+                "ignore": ignore,
+                "test_overlay": overlay_tests,
+                "stability_runs": stability_runs,
+            }
+            # Recompute the content address after adding execution metadata.
+            stable = {key: value for key, value in doc.items() if key != "certificate_id"}
+            import hashlib
+
+            encoded = json.dumps(
+                stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")
+            doc["certificate_id"] = "dwac1_" + hashlib.sha256(encoded).hexdigest()[:20]
+            if args.certificate:
+                args.certificate.parent.mkdir(parents=True, exist_ok=True)
+                args.certificate.write_text(
+                    json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+                )
         except AnalysisError as exc:
             message = f"adaptive proof inconclusive: {exc}"
             if github_mode:
@@ -171,7 +324,7 @@ def gate_cli(argv: list[str]) -> int:
                 if summary_path:
                     with Path(summary_path).open("a", encoding="utf-8") as handle:
                         handle.write(f"## DiffWitness Adaptive Core — inconclusive\n\n{message}\n")
-            if args.policy == "observe":
+            if policy == "observe":
                 print(f"DiffWitness Gate: {message}")
                 return 0
             print(f"DiffWitness Gate rejected: {message}", file=sys.stderr)
@@ -182,20 +335,26 @@ def gate_cli(argv: list[str]) -> int:
             args.report.write_text(_adaptive_markdown(doc), encoding="utf-8")
         if github_mode:
             _emit_adaptive_github(doc)
-        ok, reason = _adaptive_policy(result, args.policy)
+        ok, reason = _adaptive_policy(result, policy)
         if ok:
             print(f"DiffWitness Gate accepted ({doc['certificate_id']})")
             return 0
         print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
         return 1
 
-    rc, report, reason = _run_proof(
-        repo,
-        base=base_sha,
-        candidate=candidate_sha,
+    rc, report, reason = _run_exhaustive_gate(
+        repo=repo,
+        base_sha=base_sha,
+        candidate_sha=candidate_sha,
         test=test,
-        policy=args.policy,
-        stability_runs=args.stability_runs,
+        policy=policy,
+        stability_runs=stability_runs,
+        prepare=str(prepare) if prepare else None,
+        timeout=timeout,
+        shared=shared,
+        test_globs=test_globs,
+        ignore=ignore,
+        overlay_tests=overlay_tests,
         certificate=args.certificate,
     )
     if report is not None:
