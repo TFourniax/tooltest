@@ -33,6 +33,20 @@ def expected_certificate_id(report: dict[str, Any]) -> str:
     if certificate.startswith("dwac1_"):
         stable = {key: value for key, value in report.items() if key != "certificate_id"}
         return _hash_payload(stable, "dwac1_")
+    if certificate.startswith("dwv1_"):
+        execution = report.get("execution") or {}
+        stable = {
+            "base_sha": report.get("base", {}).get("sha"),
+            "candidate_sha": report.get("candidate", {}).get("sha"),
+            "test_command": report.get("test_command"),
+            "test_files": sorted(report.get("changed_test_files") or []),
+            "runs": report.get("candidate_run"),
+            "prepare": execution.get("prepare"),
+            "timeout": execution.get("timeout"),
+            "stability_runs": execution.get("stability_runs"),
+            "shared_paths": sorted(execution.get("share") or []),
+        }
+        return _hash_payload(stable, "dwv1_")
     if certificate.startswith("dw0_"):
         stable = {
             "base": report.get("base", {}).get("sha"),
