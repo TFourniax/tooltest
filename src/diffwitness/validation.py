@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .analysis import _prepare_sandbox
-from .gitops import detached_worktree
+from .gitops import detached_worktree, git
 from .runner import run_repeated
 
 
@@ -23,6 +23,11 @@ def build_validation_only(
     prepare_command: str | None,
     shared_paths: list[str],
 ) -> dict[str, Any]:
+    base_tree = git(source_repo, "rev-parse", "--verify", f"{base_sha}^{{tree}}").strip()
+    candidate_tree = git(
+        source_repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}"
+    ).strip()
+
     with detached_worktree(source_repo, candidate_sha, "validation-only") as worktree:
         _prepare_sandbox(
             source_repo=source_repo,
@@ -41,7 +46,9 @@ def build_validation_only(
 
     stable = {
         "base_sha": base_sha,
+        "base_tree": base_tree,
         "candidate_sha": candidate_sha,
+        "candidate_tree": candidate_tree,
         "test_command": test_command,
         "test_files": sorted(test_files),
         "runs": runs.to_dict(),
@@ -59,8 +66,8 @@ def build_validation_only(
         "tool": "diffwitness",
         "certificate_id": certificate_id,
         "outcome": "validation-only",
-        "base": {"sha": base_sha},
-        "candidate": {"ref": candidate_ref, "sha": candidate_sha},
+        "base": {"sha": base_sha, "tree": base_tree},
+        "candidate": {"ref": candidate_ref, "sha": candidate_sha, "tree": candidate_tree},
         "test_command": test_command,
         "changed_test_files": sorted(test_files),
         "candidate_run": runs.to_dict(),
@@ -93,7 +100,7 @@ def render_validation_markdown(report: dict[str, Any]) -> str:
     return (
         "# DiffWitness validation-only certificate\n\n"
         f"**Certificate:** `{report['certificate_id']}`  \n"
-        f"**Candidate:** `{report['candidate']['sha']}`  \n"
+        f"**Candidate tree:** `{report['candidate'].get('tree', 'unknown')}`  \n"
         f"**Evidence:** `{report['test_command']}`  \n"
         f"**Classification:** `{run['classification']}`\n\n"
         "## Changed test files\n\n"
