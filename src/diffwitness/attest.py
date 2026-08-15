@@ -35,9 +35,11 @@ def expected_certificate_id(report: dict[str, Any]) -> str:
         return _hash_payload(stable, "dwac1_")
     if certificate.startswith("dwv1_"):
         execution = report.get("execution") or {}
+        base = report.get("base") or {}
+        candidate = report.get("candidate") or {}
         stable = {
-            "base_sha": report.get("base", {}).get("sha"),
-            "candidate_sha": report.get("candidate", {}).get("sha"),
+            "base_sha": base.get("sha"),
+            "candidate_sha": candidate.get("sha"),
             "test_command": report.get("test_command"),
             "test_files": sorted(report.get("changed_test_files") or []),
             "runs": report.get("candidate_run"),
@@ -46,14 +48,24 @@ def expected_certificate_id(report: dict[str, Any]) -> str:
             "stability_runs": execution.get("stability_runs"),
             "shared_paths": sorted(execution.get("share") or []),
         }
+        # validation-1 certificates created by 0.3+ bind directly to content trees. Preserve
+        # compatibility with early development certificates that did not yet carry these fields.
+        if base.get("tree") or candidate.get("tree"):
+            stable["base_tree"] = base.get("tree")
+            stable["candidate_tree"] = candidate.get("tree")
         return _hash_payload(stable, "dwv1_")
     if certificate.startswith("dw0_"):
+        base = report.get("base") or {}
+        candidate = report.get("candidate") or {}
         stable = {
-            "base": report.get("base", {}).get("sha"),
-            "candidate": report.get("candidate", {}).get("sha"),
+            "base": base.get("sha"),
+            "candidate": candidate.get("sha"),
             "changed_files": sorted(report.get("changed_files") or []),
             "ignored": sorted(report.get("ignored") or []),
         }
+        if base.get("tree") or candidate.get("tree"):
+            stable["base_tree"] = base.get("tree")
+            stable["candidate_tree"] = candidate.get("tree")
         return _hash_payload(stable, "dw0_")
     raise AttestationError(f"unsupported or missing DiffWitness certificate id: {certificate!r}")
 
@@ -71,14 +83,12 @@ def _tree(repo: Path, commit: str) -> str:
     return value
 
 
-def _candidate_sha(report: dict[str, Any]) -> str:
+def _candidate_sha(report: dict[str, Any]) -> str | None:
     if "candidate" in report and isinstance(report["candidate"], dict):
         value = report["candidate"].get("sha")
     else:
         value = report.get("candidate_sha")
-    if not isinstance(value, str) or not value:
-        raise AttestationError("certificate has no candidate SHA")
-    return value
+    return value if isinstance(value, str) and value else None
 
 
 def _base_sha(report: dict[str, Any]) -> str | None:
@@ -86,6 +96,26 @@ def _base_sha(report: dict[str, Any]) -> str | None:
         value = report["base"].get("sha")
     else:
         value = report.get("base_sha")
+    return value if isinstance(value, str) and value else None
+
+
+def _candidate_tree(report: dict[str, Any]) -> str | None:
+    candidate = report.get("candidate")
+    if isinstance(candidate, dict):
+        value = candidate.get("tree")
+        if isinstance(value, str) and value:
+            return value
+    value = report.get("candidate_tree")
+    return value if isinstance(value, str) and value else None
+
+
+def _base_tree(report: dict[str, Any]) -> str | None:
+    base = report.get("base")
+    if isinstance(base, dict):
+        value = base.get("tree")
+        if isinstance(value, str) and value:
+            return value
+    value = report.get("base_tree")
     return value if isinstance(value, str) and value else None
 
 
@@ -97,8 +127,15 @@ def verify_against_repo(
     ignore_artifacts: list[str] | None = None,
 ) -> dict[str, Any]:
     integrity, actual_id, expected_id = verify_integrity(report)
+
     candidate_sha = _candidate_sha(report)
-    expected_tree = _tree(repo, candidate_sha)
+    expected_tree = _candidate_tree(report)
+    candidate_binding = "embedded-tree" if expected_tree else "resolvable-sha"
+    if expected_tree is None:
+        if candidate_sha is None:
+            raise AttestationError("certificate has neither candidate tree nor candidate SHA")
+        expected_tree = _tree(repo, candidate_sha)
+
     if against.upper() == "WORKTREE":
         current_sha = snapshot_worktree(repo, exclude_paths=ignore_artifacts or [])
         current_label = "WORKTREE"
@@ -106,13 +143,24 @@ def verify_against_repo(
         current_sha = resolve_ref(repo, against)
         current_label = against
     current_tree = _tree(repo, current_sha)
+
+    base_tree = _base_tree(report)
     base_sha = _base_sha(report)
-    base_resolvable = True
-    if base_sha:
+    if base_tree:
+        base_binding = "embedded-tree"
+        base_bound = True
+    elif base_sha:
         try:
-            _tree(repo, base_sha)
+            base_tree = _tree(repo, base_sha)
+            base_binding = "resolvable-sha"
+            base_bound = True
         except (GitError, AttestationError):
-            base_resolvable = False
+            base_binding = "missing"
+            base_bound = False
+    else:
+        base_binding = "missing"
+        base_bound = False
+
     fresh = expected_tree == current_tree
     return {
         "certificate_id": actual_id,
@@ -120,13 +168,20 @@ def verify_against_repo(
         "expected_certificate_id": expected_id,
         "freshness": "fresh" if fresh else "stale",
         "against": current_label,
+        "candidate_binding": candidate_binding,
         "certificate_candidate_sha": candidate_sha,
         "certificate_candidate_tree": expected_tree,
         "current_sha": current_sha,
         "current_tree": current_tree,
-        "base_resolvable": base_resolvable,
+        "base_binding": base_binding,
+        "certificate_base_sha": base_sha,
+        "certificate_base_tree": base_tree,
+        "base_bound": base_bound,
+        # Kept for backwards-compatible machine consumers. Embedded tree binding is stronger than
+        # requiring the original commit object to remain in the local object database.
+        "base_resolvable": base_bound,
         "ignored_artifacts": list(ignore_artifacts or []),
-        "valid": integrity and fresh and base_resolvable,
+        "valid": integrity and fresh and base_bound,
     }
 
 
@@ -145,14 +200,15 @@ def _artifact_relpath(repo: Path, path: Path) -> str | None:
         rel = path.resolve().relative_to(repo.resolve()).as_posix()
     except ValueError:
         return None
-    # Only auto-ignore an untracked artifact. A tracked certificate/report path is real repo
-    # content and changing it must invalidate freshness like any other tracked file.
     tracked = git(repo, "ls-files", "--", rel).strip()
     return None if tracked else rel
 
 
 def verify_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw verify", description="Verify proof integrity and whether it still matches repository content.")
+    parser = argparse.ArgumentParser(
+        prog="dw verify",
+        description="Verify proof integrity and whether it still matches repository content.",
+    )
     parser.add_argument("certificate", type=Path)
     parser.add_argument("--repo", default=".")
     parser.add_argument("--against", default="WORKTREE", help="WORKTREE or Git ref (default: WORKTREE)")
@@ -181,7 +237,8 @@ def verify_cli(argv: list[str]) -> int:
         print(f"certificate: {result['certificate_id']}")
         print(f"integrity:   {result['integrity']}")
         print(f"freshness:   {result['freshness']} against {result['against']}")
-        print(f"base:        {'resolvable' if result['base_resolvable'] else 'missing'}")
+        print(f"candidate:   {result['candidate_binding']}")
+        print(f"base:        {result['base_binding']}")
         if result["ignored_artifacts"]:
             print(f"artifacts:   ignored {', '.join(result['ignored_artifacts'])}")
         print(f"verdict:     {'VALID' if result['valid'] else 'INVALID'}")
@@ -189,7 +246,10 @@ def verify_cli(argv: list[str]) -> int:
 
 
 def note_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw note", description="Attach a verified DiffWitness proof reference to a Git commit using git notes.")
+    parser = argparse.ArgumentParser(
+        prog="dw note",
+        description="Attach a verified DiffWitness proof reference to a Git commit using git notes.",
+    )
     parser.add_argument("certificate", type=Path)
     parser.add_argument("--repo", default=".")
     parser.add_argument("--commit", default="HEAD")
@@ -232,6 +292,9 @@ def note_cli(argv: list[str]) -> int:
     except GitError as exc:
         print(f"DiffWitness: could not attach git note: {exc}", file=sys.stderr)
         return 2
-    print(f"DiffWitness proof {report['certificate_id']} attached to {commit_sha[:12]} via refs/notes/{args.notes_ref}.")
+    print(
+        f"DiffWitness proof {report['certificate_id']} attached to {commit_sha[:12]} "
+        f"via refs/notes/{args.notes_ref}."
+    )
     print(f"Publish it with: git push origin refs/notes/{args.notes_ref}")
     return 0
