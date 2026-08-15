@@ -43,7 +43,7 @@ def _parser() -> argparse.ArgumentParser:
     prove.add_argument("--no-test-overlay", action="store_true", help="Do not overlay candidate tests onto base")
     prove.add_argument("--share", action="append", default=None, metavar="PATH", help="Symlink a repo-relative cache/dependency path into sandboxes")
     prove.add_argument("--minimize", action="store_true", help="Greedily remove production hunks while evidence stays stably green")
-    prove.add_argument("--reduction-patch", type=Path, help="Write candidate→reduced patch (requires --minimize)")
+    prove.add_argument("--reduction-patch", type=Path, help="Write candidate-to-reduced patch (requires --minimize)")
     prove.add_argument("--json", dest="json_path", type=Path, help="Write schema-v2 JSON evidence certificate")
     prove.add_argument("--certificate", type=Path, help="Alias for --json, emphasizing reusable evidence output")
     prove.add_argument("--report", type=Path, help="Write Markdown evidence report")
@@ -181,7 +181,7 @@ def _prove(args: argparse.Namespace) -> int:
     if args.reduction_patch and not args.minimize:
         raise AnalysisError("--reduction-patch requires --minimize")
 
-    print("DiffWitness 0.2 — counterfactual patch evidence")
+    print("DiffWitness 0.2 - counterfactual patch evidence")
     print(f"repo:      {repo}")
     print(f"base:      {args.base} ({base_sha[:12]})")
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
@@ -237,9 +237,9 @@ def _prove(args: argparse.Namespace) -> int:
     )
 
     contrast_label = {
-        "base-fail_candidate-pass": "BASE STABLE-FAIL → CANDIDATE STABLE-PASS",
-        "base-pass_candidate-pass": "BASE STABLE-PASS → CANDIDATE STABLE-PASS (no whole-patch contrast)",
-        "base-inconclusive_candidate-pass": "BASE UNSTABLE/TIMEOUT → CANDIDATE STABLE-PASS (contrast inconclusive)",
+        "base-fail_candidate-pass": "BASE STABLE-FAIL -> CANDIDATE STABLE-PASS",
+        "base-pass_candidate-pass": "BASE STABLE-PASS -> CANDIDATE STABLE-PASS (no whole-patch contrast)",
+        "base-inconclusive_candidate-pass": "BASE UNSTABLE/TIMEOUT -> CANDIDATE STABLE-PASS (contrast inconclusive)",
         "candidate-not-stable-green": "CANDIDATE NOT STABLY GREEN",
     }[report["contrast"]]
     print(f"contrast:  {contrast_label}")
@@ -285,7 +285,7 @@ def _prove(args: argparse.Namespace) -> int:
 
     failed = False
     if args.require_contrast and report["contrast"] != "base-fail_candidate-pass":
-        print("DiffWitness gate failed: evidence command does not provide stable base→candidate contrast.", file=sys.stderr)
+        print("DiffWitness gate failed: evidence command does not provide stable base->candidate contrast.", file=sys.stderr)
         failed = True
     if args.require_all_witnessed and (s["unwitnessed"] or s["inconclusive"]):
         print("DiffWitness gate failed: not every analyzed hunk is causally witnessed.", file=sys.stderr)
@@ -296,7 +296,25 @@ def _prove(args: argparse.Namespace) -> int:
     return 1 if failed else 0
 
 
+def _configure_stdio() -> None:
+    """Prefer UTF-8 terminal I/O without ever failing on legacy Windows consoles.
+
+    Reports are already written explicitly as UTF-8, but CLI output can contain
+    repository paths, hunk context, or rendered certificate Markdown with Unicode.
+    Python may otherwise inherit a legacy Windows code page and raise
+    UnicodeEncodeError after the analysis has successfully completed.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="backslashreplace")
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     args = _parser().parse_args(argv)
     try:
         if args.command == "suggest":
