@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .attest import note_cli, verify_cli
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
@@ -123,6 +124,7 @@ def _noop_prove_if_applicable(args: list[str]) -> int | None:
         "base": {"ref": base_ref, "sha": base_sha},
         "candidate": {"ref": candidate_ref, "sha": candidate_sha},
         "changed_files": changed_files,
+        "ignored": sorted(ignore),
         "summary": {
             "mutations": 0,
             "witnessed": 0,
@@ -145,6 +147,10 @@ def _noop_prove_if_applicable(args: list[str]) -> int | None:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == "verify":
+        return verify_cli(args[1:])
+    if args and args[0] == "note":
+        return note_cli(args[1:])
     if args and args[0] == "prove":
         try:
             noop = _noop_prove_if_applicable(args[1:])
