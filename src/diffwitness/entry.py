@@ -7,11 +7,32 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from . import __version__
 from .attest import note_cli, verify_cli
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
 from .proof_cli import main as proof_main
+
+
+TOP_HELP = """DiffWitness Proof Layer
+
+Usage:
+  dw guard [options] -- <agent>      Run a coding agent inside a before/after proof boundary
+  dw gate [options]                  Validate an existing Git diff / pull request
+  dw prove [options]                 Exhaustive hunk-level counterfactual evidence
+  dw core [options]                  Budgeted Adaptive Core / 1-minimal reduction search
+  dw verify <certificate> [options]  Verify certificate integrity and freshness
+  dw note <certificate> [options]    Attach a verified proof reference using git notes
+  dw doctor [options]                Explain zero-config evidence discovery
+
+Start here:
+  dw guard -- claude
+  dw guard -- codex
+  dw gate --base origin/main --candidate HEAD
+
+Use `dw <command> --help` for command-specific options.
+"""
 
 
 def _value(args: list[str], name: str, default: str | None = None) -> str | None:
@@ -46,6 +67,7 @@ def _write_github_noop(report: dict[str, Any]) -> None:
             handle.write("witness_ratio=\n")
             handle.write("minimal_sufficient_order=\n")
             handle.write("surplus_candidate_hunks=0\n")
+            handle.write("proof_mode=not-required\n")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with Path(summary).open("a", encoding="utf-8") as handle:
@@ -147,11 +169,17 @@ def _noop_prove_if_applicable(args: list[str]) -> int | None:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    if args and args[0] == "verify":
+    if not args or args[0] in {"-h", "--help"}:
+        print(TOP_HELP)
+        return 0
+    if args[0] in {"-V", "--version"}:
+        print(f"diffwitness {__version__}")
+        return 0
+    if args[0] == "verify":
         return verify_cli(args[1:])
-    if args and args[0] == "note":
+    if args[0] == "note":
         return note_cli(args[1:])
-    if args and args[0] == "prove":
+    if args[0] in {"prove", "gate"}:
         try:
             noop = _noop_prove_if_applicable(args[1:])
         except Exception:
@@ -159,6 +187,14 @@ def main(argv: list[str] | None = None) -> int:
             noop = None
         if noop is not None:
             return noop
+    if args[0] == "gate":
+        from .gate import gate_cli
+
+        try:
+            return gate_cli(args[1:])
+        except Exception as exc:
+            print(f"DiffWitness: {exc}", file=sys.stderr)
+            return 2
     return proof_main(args)
 
 
