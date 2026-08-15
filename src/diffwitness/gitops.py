@@ -72,9 +72,18 @@ def snapshot_worktree(repo: Path) -> str:
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
         tree = _run(["git", "write-tree"], cwd=repo, env=env).stdout.strip()
+        # `git commit-tree` normally requires a configured Git identity. The snapshot
+        # is an unreachable implementation detail, so give it an explicit local
+        # identity instead of failing on clean CI/dev machines with no user.name/email.
+        commit_env = env.copy()
+        commit_env.setdefault("GIT_AUTHOR_NAME", "DiffWitness")
+        commit_env.setdefault("GIT_AUTHOR_EMAIL", "diffwitness@localhost")
+        commit_env.setdefault("GIT_COMMITTER_NAME", "DiffWitness")
+        commit_env.setdefault("GIT_COMMITTER_EMAIL", "diffwitness@localhost")
         commit = _run(
             ["git", "commit-tree", tree, "-p", head],
             cwd=repo,
+            env=commit_env,
             input_text="DiffWitness ephemeral worktree snapshot\n",
         ).stdout.strip()
         return commit
