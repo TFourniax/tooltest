@@ -1,148 +1,73 @@
-# Research notes — why DiffWitness exists
+# Research notes: why counterfactual patch evidence
 
-Research snapshot: **2026-08-15**.
+Last updated: 2026-08-15.
 
-This document records the product-discovery sweep behind DiffWitness. The objective was not to find a fashionable AI wrapper; it was to find a repeated pain, reject ideas already served by free tools, and implement a missing primitive.
+This document records the public evidence that motivated DiffWitness. It is not a literature review and should not be read as a claim that passing tests are useless. The narrower claim is that **a positive test outcome and causal evidence about a particular patch are different things**.
 
-## 1. Repeated pain: “green” validation is weaker than developers think
+## 1. Positive validation often does not discriminate the bug
 
-The strongest recent signal came from software-repair research.
+Xu & Wu, *Validation Evidence in LLM Repair Agents: How Much of What Passes Actually Tests the Bug?* (arXiv:2607.28871, 2026) capture validation commands at their exact working-tree states and replay them on buggy, candidate, and gold-fix states. Across 3,730 validation events in 643 rollouts on 110 tasks, they report that **46.0% of positive comparable events carried no bug-discriminating information**.
 
-**Xu & Wu, “Validation Evidence in LLM Repair Agents: How Much of What Passes Actually Tests the Bug?” (2026-07-30)** studies 3,730 validation events in 643 repair-agent rollouts on 110 tasks. The authors report that **46.0% of positive comparable validation events carry no bug-discriminating information**, and that 23.8% of baseline rollouts can close with an entire positive evidence base of this kind.
+Source: https://arxiv.org/abs/2607.28871
 
-Primary source: <https://arxiv.org/abs/2607.28871>
+DiffWitness adopts the same broad counterfactual instinct, but applies it as a general-purpose developer tool around a real Git diff rather than as post-hoc repair-agent trajectory analysis.
 
-This is broader than “agents sometimes lie.” Even when a test *really ran and really passed*, the evidence can still be logically irrelevant to the claimed repair.
+## 2. Weak suites admit semantically wrong patches
 
-A second 2026 study, **STING**, finds that weak regression suites can admit semantically wrong patches in SWE-bench-style evaluation; strengthening tests lowers top-agent resolved rates by 4.2–9.0 percentage points.
+Li et al., *Probe to Generate: Program Variant-Guided Test Augmentation for Repository-Level Repair Benchmarks* (arXiv:2604.01518, ASE 2026) generate semantically modified program variants and find that **77% of SWE-bench Verified instances admit at least one surviving variant** under the original tests. Strengthening the suites reduces measured resolved rates of top repair agents.
 
-Primary source: <https://arxiv.org/abs/2604.01518>
+Source: https://arxiv.org/abs/2604.01518
 
-## 2. We rejected the obvious implementation
+This motivates treating “green” as one observation, not the end of the argument.
 
-The first idea was simply:
+## 3. Changed-code coverage targets a different gap
 
-> Run the same regression test on the base and the candidate; require base-fail / candidate-pass.
+Zhou et al., *Change And Cover: Last-Mile, Pull Request-Based Regression Test Augmentation* (arXiv:2601.10942, 2026) targets modified PR lines that remain uncovered and generates tests for them.
 
-That is useful, but it already exists.
+Source: https://arxiv.org/abs/2601.10942
 
-### Existing global patch proof
+ChaCo asks whether changed code is covered and helps generate tests. DiffWitness asks whether the selected evidence outcome changes when **the actual changed hunk is removed**, then searches which real hunk subsets are sufficient from the base.
 
-`@jayadityavetsa/patchproof` explicitly promises to “prove that changed regression tests distinguish a patch from its base revision.” It was published before this project.
+The approaches are complementary: patch coverage can improve the candidate evidence command; DiffWitness can then ask whether that evidence actually witnesses the patch.
 
-Package information: <https://socket.dev/npm/package/@jayadityavetsa/patchproof/overview/0.1.0-alpha.1>
+## 4. Agents can overfit the thing being checked
 
-AdaptOrch CEK likewise treats base-fail / patch-pass as strong evidence in an execution-backed patch verification system.
+Ma, Kereopa-Yorke & Schultz, *Building to the Test: Coding Agents Deliver What You Check, Not What You Requested* (arXiv:2606.28430, 2026), use mechanical audits and no-op ablations alongside a hidden test oracle and show a setting where agents reach near-perfect oracle scores while failing the intended reusable-library requirement.
 
-Source: <https://adaptorch.com/>
+Source: https://www.microsoft.com/en-us/research/publication/building-to-the-test-coding-agents-deliver-what-you-check-not-what-you-requested/
 
-So DiffWitness does **not** stop at global patch contrast.
+DiffWitness cannot solve specification incompleteness. It deliberately reports its scope as “under the selected evidence command” and preserves that command in the certificate.
 
-## 3. The missing question: which edits are actually witnessed?
+## 5. Flaky execution weakens causal interpretation
 
-Suppose a candidate has five hunks and the regression test does this:
+Ge & Zhang, *Understanding and Detecting Flaky Builds in GitHub Actions* (arXiv:2602.02307, 2026), study 1,960 open-source Java projects. Among rerun builds in their dataset, 67.73% exhibited flaky behavior, affecting 51.28% of projects studied.
 
-```text
-base      → FAIL
-candidate → PASS
-```
+Source: https://arxiv.org/abs/2602.02307
 
-That proves something important about the patch as a whole. It still does not tell a reviewer whether:
+DiffWitness v0.2 therefore has repeated evidence runs as a first-class feature. Mixed pass/fail outcomes are `flaky` and yield an inconclusive causal claim.
 
-- all five hunks are needed,
-- one hunk fixes the issue and four are opportunistic refactors,
-- two hunks are alternative/redundant implementations,
-- or one behavior change simply has no test evidence.
+## 6. Traceability remains a bottleneck
 
-DiffWitness therefore creates **counterfactual candidate states**:
+The 2026 ISSTA work *Understanding Automated Program Repair Agents Through the Lens of Traceability* analyzes repair-agent trajectories and reports that test generation and regression-test selection remain important bottlenecks, with agents often failing to reproduce issues or run relevant regression tests.
 
-```text
-candidate - hunk A
-candidate - hunk B
-candidate - hunk C
-...
-```
+Source: https://research.ibm.com/publications/understanding-automated-program-repair-agents-through-the-lens-of-traceability-an-empirical-study
 
-The chosen tests are replayed on each state. This produces a **change-necessity / witness map** over the actual patch.
+This is one reason DiffWitness is designed to emit a machine-readable, content-addressed evidence certificate rather than only terminal prose.
 
-That is a different question from conventional coverage.
+## 7. GitHub can surface evidence where review happens
 
-## 4. Why line/patch coverage is adjacent, not equivalent
+GitHub Actions supports file- and line-specific `notice`, `warning`, and `error` workflow commands plus a job-summary file. DiffWitness v0.2 uses these native interfaces to put unwitnessed/inconclusive hunk signals directly into CI review surfaces without a paid SaaS backend.
 
-**ChaCo — Change And Cover (2026)** targets PR-modified lines that are not exercised and uses an LLM to generate tests. It is explicitly designed to close a last-mile *patch coverage* gap.
+Source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands
 
-Primary source: <https://arxiv.org/abs/2601.10942>
+## Design hypothesis
 
-DiffWitness can complement this, but the metrics are different:
+The useful unit of review for AI-heavy development is shifting from:
 
-- Coverage: “was the changed code executed?”
-- DiffWitness: “does the selected evidence stop being green if this proposed change is absent?”
+> “Did the test suite pass?”
 
-A line can be executed without its changed behavior being necessary to the assertion. Conversely, a structural hunk can be necessary for compilation before line coverage is meaningful.
+toward:
 
-## 5. Why mutation testing is adjacent, not equivalent
+> “What evidence distinguishes the old behavior from the new one, which exact edits carry that evidence, what smaller edit-set is sufficient, and is the observation stable?”
 
-Mutation testing deliberately injects synthetic faults into the program and measures whether tests kill those mutants. It is a powerful way to measure test-suite strength.
-
-DiffWitness does not synthesize arbitrary mutants. Its counterfactuals are derived from the **actual candidate diff**. The unit of inquiry is review evidence:
-
-> “If this exact proposed edit were not present, would the evidence still be green?”
-
-That makes the output directly actionable during AI-assisted review.
-
-## 6. Other product directions rejected during discovery
-
-### Cross-LLM portable memory / handoff
-
-Pain is real: users repeatedly complain about re-explaining context when moving between ChatGPT, Claude, coding agents, and other tools. But the space now contains Mem0-style shared memory, handoff CLIs, session-history aggregators, context versioning, and several “Git for context” projects. A new generic memory layer would be a crowded copy.
-
-### Agent safety / command guards
-
-Real incidents include coding agents deleting unrelated files, over-broad staging, and permission/scope failures. But 2026 already has multiple runtime guards, policy layers, sandbox products, task-scoped capability research, and repository-scope monitors. Building another allow/deny wrapper would not satisfy the novelty bar.
-
-### Change budgets / task leases
-
-The concept is valuable, but it is no longer empty territory. Anthropic exposes granular file/tool permissions; “change budget” prompts are documented in the community; task-scoped capability systems such as PORTICO have appeared in research; practical guard tools increasingly implement scoped write policies.
-
-### Local CI debugger
-
-Developers explicitly ask for a CI environment they can step through locally. New tools such as PipeStep and ActDebug already target that workflow.
-
-### Environment fingerprint / “works on my machine” diff
-
-Repeated pain, but many current tools already snapshot and compare OS/runtime/package/environment state, including several new 2026 packages.
-
-### Physical sticky-note board → digital board
-
-A compelling human problem, but Post-it App, Pocket.Vision, BoardScan and other products already capture or synchronize physical boards.
-
-The selection process matters: most good-sounding “new” tools stop being new after twenty minutes of competitor research.
-
-## 7. Current novelty claim, carefully stated
-
-We searched for combinations of:
-
-- Git hunk ablation,
-- patch-hunk necessity,
-- counterfactual test evidence,
-- base/candidate test replay,
-- patch coverage,
-- mutation testing over diffs,
-- and free/open-source patch proof tools.
-
-As of **2026-08-15**, the sweep did not surface a general-purpose free tool that combines:
-
-1. a snapshot of committed or dirty/untracked candidate state without rewriting the user's index,
-2. candidate-side regression-test overlay onto the base,
-3. base/candidate contrast,
-4. automatic per-production-hunk reverse ablation,
-5. a hunk→test-witness map,
-6. optional greedy removal of surplus candidate edits.
-
-This should be read as an evidence-based product-positioning statement, not an assertion that no unpublished/private implementation exists.
-
-## 8. Design principle
-
-DiffWitness intentionally avoids an AI dependency.
-
-The interesting part of the product is not another model judgment; it is converting “tests passed” into reproducible execution evidence. The core should stay deterministic, local, cheap, and scriptable. An optional LLM can always explain a report later, but the proof primitive should not depend on one.
+DiffWitness is an experiment in making that second question cheap enough to run in ordinary repositories.

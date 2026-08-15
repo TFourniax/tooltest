@@ -1,8 +1,9 @@
 __pycache__/
 *.py[cod]
-.venv/
-dist/
-build/
 *.egg-info/
-.diffwitness-report.json
-.diffwitness-report.md
+build/
+dist/
+.venv/
+.pytest_cache/
+diffwitness-evidence.json
+diffwitness-evidence.md

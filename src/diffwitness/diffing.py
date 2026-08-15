@@ -21,6 +21,7 @@ STRUCTURAL_MARKERS = (
     "GIT binary patch",
     "Binary files ",
 )
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
 def is_test_path(path: str, extra_globs: list[str] | None = None) -> bool:
@@ -35,9 +36,7 @@ def is_test_path(path: str, extra_globs: list[str] | None = None) -> bool:
         return True
     if any(token in name for token in (".test.", ".spec.")):
         return True
-    if extra_globs and any(fnmatch.fnmatch(path, pattern) for pattern in extra_globs):
-        return True
-    return False
+    return bool(extra_globs and any(fnmatch.fnmatch(path, pattern) for pattern in extra_globs))
 
 
 def _parse_paths(first_line: str) -> tuple[str | None, str]:
@@ -60,6 +59,17 @@ def _count_hunk(lines: list[str]) -> tuple[int, int]:
     return additions, deletions
 
 
+def _hunk_range(header: str) -> tuple[int | None, int | None, int | None, int | None]:
+    match = HUNK_RE.match(header)
+    if not match:
+        return None, None, None, None
+    old_start = int(match.group(1))
+    old_count = int(match.group(2) or "1")
+    new_start = int(match.group(3))
+    new_count = int(match.group(4) or "1")
+    return old_start, old_count, new_start, new_count
+
+
 def parse_file_patches(diff: str, *, test_globs: list[str] | None = None) -> list[FilePatch]:
     if not diff.strip():
         return []
@@ -80,12 +90,18 @@ def parse_file_patches(diff: str, *, test_globs: list[str] | None = None) -> lis
             end = hunk_starts[n + 1] if n + 1 < len(hunk_starts) else len(lines)
             hunk_lines = lines[start:end]
             additions, deletions = _count_hunk(hunk_lines)
+            header_line = hunk_lines[0].rstrip("\n")
+            old_start, old_count, new_start, new_count = _hunk_range(header_line)
             hunks.append(
                 Hunk(
-                    header=hunk_lines[0].rstrip("\n"),
+                    header=header_line,
                     text="".join(hunk_lines),
                     additions=additions,
                     deletions=deletions,
+                    old_start=old_start,
+                    old_count=old_count,
+                    new_start=new_start,
+                    new_count=new_count,
                 )
             )
         files.append(
@@ -130,9 +146,11 @@ def make_mutations(
                     path=file.path,
                     label=f"{file.path} (file-level/structural)",
                     patch=patch,
-                    kind="structural" if not file.binary else "binary",
+                    kind="binary" if file.binary else "structural",
                     additions=adds,
                     deletions=dels,
+                    line=file.hunks[0].new_start if file.hunks else 1,
+                    end_line=(file.hunks[0].new_start or 1) if file.hunks else 1,
                 )
             )
             continue
@@ -140,6 +158,9 @@ def make_mutations(
             patch = file.header + hunk.text
             context = hunk.header.split("@@")[-1].strip()
             suffix = f" — {context}" if context else ""
+            start = hunk.new_start
+            count = hunk.new_count or 1
+            end = (start + max(count, 1) - 1) if start is not None else None
             mutations.append(
                 Mutation(
                     id=_mutation_id(file.path, patch),
@@ -149,6 +170,8 @@ def make_mutations(
                     kind="hunk",
                     additions=hunk.additions,
                     deletions=hunk.deletions,
+                    line=start,
+                    end_line=end,
                 )
             )
     return mutations

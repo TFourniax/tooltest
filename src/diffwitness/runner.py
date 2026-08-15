@@ -5,7 +5,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from .models import CommandResult
+from .models import CommandResult, RunSet
 
 
 TAIL_CHARS = 5000
@@ -57,3 +57,31 @@ def run_command(command: str, *, cwd: Path, source_repo: Path, timeout: float) -
             stderr_tail=_tail(exc.stderr if isinstance(exc.stderr, str) else ""),
             timed_out=True,
         )
+
+
+def classify_runs(runs: list[CommandResult]) -> str:
+    if any(run.timed_out for run in runs):
+        return "timeout"
+    passed = [run.passed for run in runs]
+    if all(passed):
+        return "stable-pass"
+    if not any(passed):
+        return "stable-fail"
+    return "flaky"
+
+
+def run_repeated(
+    command: str,
+    *,
+    cwd: Path,
+    source_repo: Path,
+    timeout: float,
+    repetitions: int,
+) -> RunSet:
+    if repetitions < 1:
+        raise ValueError("repetitions must be >= 1")
+    runs = [
+        run_command(command, cwd=cwd, source_repo=source_repo, timeout=timeout)
+        for _ in range(repetitions)
+    ]
+    return RunSet(runs=runs, classification=classify_runs(runs))

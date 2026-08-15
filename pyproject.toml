@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "diffwitness"
-version = "0.1.0"
-description = "Counterfactual test evidence for Git diffs: discover which patch hunks your tests actually witness."
+version = "0.2.0"
+description = "Counterfactual evidence for Git diffs: prove which real patch hunks are necessary, sufficient, redundant, or unstable."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Thomas Fournier"}]
-keywords = ["git", "testing", "ai-coding", "regression", "counterfactual", "code-review"]
+keywords = ["git", "testing", "ai-coding", "regression", "counterfactual", "code-review", "ci", "mutation-testing"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -19,6 +19,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Testing",
+  "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = []
 

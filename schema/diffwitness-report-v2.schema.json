@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TFourniax/tooltest/schema/diffwitness-report-v2.schema.json",
+  "title": "DiffWitness Evidence Certificate v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "certificate_id",
+    "base",
+    "candidate",
+    "test_command",
+    "contrast",
+    "summary",
+    "results",
+    "sufficient_search",
+    "interaction_search"
+  ],
+  "properties": {
+    "schema_version": {"const": 2},
+    "tool": {"const": "diffwitness"},
+    "certificate_id": {"type": "string", "pattern": "^dw2_[0-9a-f]{20}$"},
+    "base": {"$ref": "#/$defs/ref"},
+    "candidate": {"$ref": "#/$defs/ref"},
+    "test_command": {"type": "string"},
+    "contrast": {
+      "enum": [
+        "base-fail_candidate-pass",
+        "base-pass_candidate-pass",
+        "base-inconclusive_candidate-pass",
+        "candidate-not-stable-green"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["mutations", "witnessed", "unwitnessed", "inconclusive"],
+      "properties": {
+        "mutations": {"type": "integer", "minimum": 0},
+        "witnessed": {"type": "integer", "minimum": 0},
+        "unwitnessed": {"type": "integer", "minimum": 0},
+        "inconclusive": {"type": "integer", "minimum": 0},
+        "witness_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "minimal_sufficient_order": {"type": ["integer", "null"], "minimum": 1},
+        "minimal_sufficient_sets": {"type": "integer", "minimum": 0},
+        "mutual_backup_pairs": {"type": "integer", "minimum": 0},
+        "surplus_candidate_hunks": {"type": "integer", "minimum": 0}
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/mutationResult"}
+    },
+    "sufficient_search": {"$ref": "#/$defs/search"},
+    "interaction_search": {"$ref": "#/$defs/search"}
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "required": ["ref", "sha"],
+      "properties": {
+        "ref": {"type": "string"},
+        "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "runSet": {
+      "type": "object",
+      "required": ["classification", "runs"],
+      "properties": {
+        "classification": {"enum": ["stable-pass", "stable-fail", "flaky", "timeout"]},
+        "runs": {"type": "array"}
+      }
+    },
+    "mutation": {
+      "type": "object",
+      "required": ["id", "path", "label", "kind", "additions", "deletions"],
+      "properties": {
+        "id": {"type": "string"},
+        "path": {"type": "string"},
+        "label": {"type": "string"},
+        "kind": {"type": "string"},
+        "additions": {"type": "integer", "minimum": 0},
+        "deletions": {"type": "integer", "minimum": 0},
+        "line": {"type": ["integer", "null"], "minimum": 1},
+        "end_line": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "mutationResult": {
+      "type": "object",
+      "required": ["mutation", "status"],
+      "properties": {
+        "mutation": {"$ref": "#/$defs/mutation"},
+        "status": {"enum": ["witnessed", "unwitnessed", "inconclusive"]},
+        "runs": {"oneOf": [{"$ref": "#/$defs/runSet"}, {"type": "null"}]},
+        "apply_error": {"type": ["string", "null"]}
+      }
+    },
+    "search": {
+      "type": "object",
+      "required": ["enabled", "attempted", "budget", "results"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "attempted": {"type": "integer", "minimum": 0},
+        "budget": {"type": "integer", "minimum": 0},
+        "exhaustive_at_found_order": {"type": "boolean"},
+        "found_order": {"type": ["integer", "null"], "minimum": 1},
+        "results": {"type": "array"}
+      }
+    }
+  }
+}

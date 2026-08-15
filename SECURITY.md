@@ -1,36 +1,40 @@
 # Security
 
-DiffWitness executes the test command (and optional prepare command) supplied by the user. Those commands run with the **current user's operating-system permissions** inside disposable Git worktrees; a worktree is not an OS sandbox.
+DiffWitness is a developer/CI analysis tool that **executes repository code**. Its security boundary should be understood before running it on untrusted changes.
 
-## Trust boundary
+## Trust model
 
-Treat these inputs as executable code:
+`diffwitness prove --test "..."` executes the supplied shell command in detached Git worktrees representing base, candidate, and counterfactual variants. `--prepare` also executes a shell command.
 
-- the repository being tested,
-- `--test`,
-- `--prepare`,
-- package-manager lifecycle scripts invoked by either command.
+This means a malicious base or candidate revision can execute arbitrary code with the permissions of the DiffWitness process whenever your selected command imports, builds, tests, or otherwise runs that revision.
 
-Do not run untrusted repositories or commands merely because DiffWitness puts the checkout in a temporary worktree.
+Use the same isolation policy you would use for normal CI on untrusted pull requests: disposable runners/containers/VMs, least-privilege tokens, and no sensitive secrets.
 
-## What DiffWitness isolates
+## GitHub Actions
 
-DiffWitness is designed to keep experimental code states away from the user's active checkout. It does not intentionally edit the active working-tree files, staging index, branch refs, or commits.
+For pull requests from untrusted contributors:
 
-Git temporary objects and worktree metadata are created while analysis is running and cleaned/reclaimed through normal Git mechanisms.
+- prefer `pull_request`, not `pull_request_target`, for workflows that execute candidate code;
+- grant only the permissions required by the workflow (`contents: read` is enough for the provided action example);
+- do not expose write-capable repository tokens or deployment secrets to the evidence command;
+- use ephemeral hosted runners or equivalent isolation.
 
-## `--share` warning
+DiffWitness annotations and step summaries do not require a write-capable GitHub API token.
 
-`--share PATH` creates a symlink from the disposable worktree to the named path in the source repository. This improves performance for large dependency caches such as `node_modules`, but it deliberately weakens isolation: test code can mutate the shared target.
+## `--share`
 
-Prefer `--prepare` when strict separation is more important than speed.
+`--share PATH` creates a symlink from each sandbox to a path in the source checkout. It is intended for expensive dependency/cache directories such as `node_modules`.
 
-## Secrets
+Tests and build scripts in any analyzed revision can mutate that shared target. Never share credentials, source-of-truth data, or state that must remain isolated between counterfactual runs.
 
-Environment variables from the invoking process are inherited by test commands. DiffWitness does not redact them from child processes. Command output is captured and only its tail is placed in reports, but test output can still contain secrets.
+## Worktree snapshot
 
-Run sensitive projects with the same secret-minimization practices you would use for any local test runner.
+`WORKTREE` uses an alternate Git index to snapshot staged, unstaged and non-ignored untracked content into an unreachable commit. It does not intentionally modify the user's real index/staging area.
 
-## Reporting a vulnerability
+## Reports
 
-Please open a GitHub security advisory for the repository rather than publishing exploit details in a normal issue when possible.
+Evidence certificates include command strings, repository paths, output tails, environment metadata, and Git SHAs. Review them before publishing if those fields could reveal sensitive information.
+
+## Reporting vulnerabilities
+
+Please report security-sensitive issues privately to the repository owner rather than opening a public issue with exploit details.

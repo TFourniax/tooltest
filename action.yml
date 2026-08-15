@@ -1,0 +1,69 @@
+name: DiffWitness Evidence
+description: Prove which real Git hunks are necessary, sufficient, redundant or unstable under a selected test command.
+author: Thomas Fournier
+inputs:
+  base:
+    description: Base Git SHA/ref
+    required: true
+  candidate:
+    description: Candidate Git SHA/ref
+    required: false
+    default: HEAD
+  test:
+    description: Evidence command; optional when .diffwitness.toml contains test
+    required: false
+    default: ""
+  prepare:
+    description: Optional setup command
+    required: false
+    default: ""
+  stability-runs:
+    description: Repetitions per evidence variant
+    required: false
+    default: "2"
+  strict:
+    description: Require base→candidate contrast and every analyzed hunk to be witnessed
+    required: false
+    default: "false"
+outputs:
+  certificate_id:
+    description: Content-addressed DiffWitness evidence certificate id
+    value: ${{ steps.prove.outputs.certificate_id }}
+  witness_ratio:
+    description: Fraction of conclusive hunks individually witnessed
+    value: ${{ steps.prove.outputs.witness_ratio }}
+  minimal_sufficient_order:
+    description: Cardinality of the smallest sufficient real-hunk subset found
+    value: ${{ steps.prove.outputs.minimal_sufficient_order }}
+  surplus_candidate_hunks:
+    description: Strong surplus candidate count
+    value: ${{ steps.prove.outputs.surplus_candidate_hunks }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install DiffWitness
+      shell: bash
+      run: python -m pip install "$GITHUB_ACTION_PATH"
+    - name: Build patch evidence
+      id: prove
+      shell: bash
+      env:
+        DW_BASE: ${{ inputs.base }}
+        DW_CANDIDATE: ${{ inputs.candidate }}
+        DW_TEST: ${{ inputs.test }}
+        DW_PREPARE: ${{ inputs.prepare }}
+        DW_STABILITY: ${{ inputs.stability-runs }}
+        DW_STRICT: ${{ inputs.strict }}
+      run: |
+        set -euo pipefail
+        args=(prove --base "$DW_BASE" --candidate "$DW_CANDIDATE" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
+        if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
+        if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
+        if [[ "$DW_STRICT" == "true" ]]; then args+=(--require-contrast --require-all-witnessed); fi
+        diffwitness "${args[@]}"
+branding:
+  icon: check-circle
+  color: purple

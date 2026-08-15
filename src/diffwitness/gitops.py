@@ -31,9 +31,7 @@ def _run(
         stderr=subprocess.PIPE,
     )
     if check and proc.returncode != 0:
-        raise GitError(
-            f"command failed ({proc.returncode}): {' '.join(args)}\n{proc.stderr.strip()}"
-        )
+        raise GitError(f"command failed ({proc.returncode}): {' '.join(args)}\n{proc.stderr.strip()}")
     return proc
 
 
@@ -57,10 +55,10 @@ def resolve_ref(repo: Path, ref: str) -> str:
 
 
 def snapshot_worktree(repo: Path) -> str:
-    """Create an unreachable commit representing the full non-ignored worktree.
+    """Create an unreachable commit representing staged, unstaged and untracked files.
 
-    Uses an alternate index, so the user's real index/staging area is never changed.
-    Untracked (non-ignored) files are included, which is important for newly-written tests.
+    An alternate index is used, so the user's real staging area is untouched.
+    Ignored files are intentionally not captured.
     """
     head = resolve_ref(repo, "HEAD")
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
@@ -72,21 +70,17 @@ def snapshot_worktree(repo: Path) -> str:
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
         tree = _run(["git", "write-tree"], cwd=repo, env=env).stdout.strip()
-        # `git commit-tree` normally requires a configured Git identity. The snapshot
-        # is an unreachable implementation detail, so give it an explicit local
-        # identity instead of failing on clean CI/dev machines with no user.name/email.
         commit_env = env.copy()
         commit_env.setdefault("GIT_AUTHOR_NAME", "DiffWitness")
         commit_env.setdefault("GIT_AUTHOR_EMAIL", "diffwitness@localhost")
         commit_env.setdefault("GIT_COMMITTER_NAME", "DiffWitness")
         commit_env.setdefault("GIT_COMMITTER_EMAIL", "diffwitness@localhost")
-        commit = _run(
+        return _run(
             ["git", "commit-tree", tree, "-p", head],
             cwd=repo,
             env=commit_env,
             input_text="DiffWitness ephemeral worktree snapshot\n",
         ).stdout.strip()
-        return commit
     finally:
         try:
             os.unlink(index_name)
@@ -126,7 +120,6 @@ def detached_worktree(repo: Path, commit: str, label: str) -> Iterator[Path]:
 
 def hard_reset(worktree: Path, commit: str) -> None:
     git(worktree, "reset", "--hard", "--quiet", commit)
-    # Remove ordinary untracked test output, but preserve ignored dependency caches.
     git(worktree, "clean", "-fd", "--quiet", check=False)
 
 
@@ -134,12 +127,7 @@ def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[b
     args = ["apply", "--whitespace=nowarn"]
     if reverse:
         args.append("-R")
-    proc = _run(
-        ["git", *args, "-"],
-        cwd=worktree,
-        input_text=patch,
-        check=False,
-    )
+    proc = _run(["git", *args, "-"], cwd=worktree, input_text=patch, check=False)
     return proc.returncode == 0, proc.stderr.strip()
 
 
@@ -155,3 +143,7 @@ def candidate_delta(worktree: Path, candidate: str) -> str:
         candidate,
         "--",
     )
+
+
+def git_version(repo: Path) -> str:
+    return git(repo, "--version").strip()

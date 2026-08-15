@@ -1,23 +1,29 @@
 # Contributing
 
-DiffWitness is intentionally small and deterministic. Contributions are welcome when they preserve the core property: evidence should come from reproducible execution, not from an opaque model score.
+DiffWitness is deliberately small and standard-library-first. Contributions should preserve the ability to run the core engine without a hosted service or paid dependency.
 
-## Local checks
+## Development
 
 ```bash
-PYTHONPATH=src python -m unittest discover -s tests -v
-python -m compileall -q src tests
+python -m pip install -e .
+python -m unittest discover -s tests -v
 ```
 
-Integration tests create real temporary Git repositories and detached worktrees. Git must be installed and a usable `python` command must be available to child test processes.
+The integration suite creates real temporary Git repositories and exercises worktree snapshots, test overlay, reverse hunk ablation, sufficient-subset search and interaction detection.
 
-## Good contribution areas
+## Design rules
 
-- robust patch parsing for unusual Git diffs,
-- inline-test overlays (Rust/Go/etc.),
-- safe dependency-cache strategies,
-- parallel execution without cross-mutant contamination,
-- stronger minimization algorithms with explicit cost bounds,
-- adapters that convert common CI test reports into multiple targeted witness commands.
+- Prefer explicit `inconclusive` states to false certainty.
+- Never mutate the user's real Git index as part of analysis.
+- Keep core analysis language-agnostic; language-specific adapters may improve ergonomics but should not be required.
+- A new causal label needs a clear counterfactual definition and an integration test.
+- Search budgets must be bounded; exact combinatorial work should never appear accidentally on a large patch.
+- Do not silently weaken evidence because a command is expensive or flaky.
 
-Avoid adding an LLM dependency to the core verifier. Explanation layers can be optional; execution evidence should remain local and deterministic.
+## Before a PR
+
+```bash
+python -m compileall -q src tests
+python -m unittest discover -s tests -v
+python -m pip wheel . --no-deps
+```

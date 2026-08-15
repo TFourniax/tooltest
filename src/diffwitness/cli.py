@@ -2,55 +2,73 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import __version__
 from .analysis import AnalysisError, run_analysis
+from .config import load_config, write_config
 from .diffing import make_mutations, parse_file_patches
+from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
 from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree
-from .reporting import build_report, write_json, write_markdown
+from .reporting import build_report, render_markdown, write_json, write_markdown
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="diffwitness",
-        description="Counterfactual test evidence for Git diffs: find which patch hunks your tests actually witness.",
+        description="Counterfactual evidence for Git diffs: necessity, sufficiency, interactions and stability.",
     )
     parser.add_argument("--version", action="version", version=f"diffwitness {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    prove = sub.add_parser("prove", help="Replay tests against base, candidate, and candidate-minus-each-change")
+    prove = sub.add_parser("prove", help="Build a causal evidence map for a candidate Git diff")
     prove.add_argument("--repo", default=".", help="Git repository (default: current directory)")
+    prove.add_argument("--config", help="Config path (default: .diffwitness.toml when present)")
     prove.add_argument("--base", default="HEAD", help="Base Git ref (default: HEAD)")
     prove.add_argument(
         "--candidate",
         default="WORKTREE",
-        help="Candidate Git ref, or WORKTREE to snapshot staged/unstaged/untracked changes (default: WORKTREE)",
+        help="Candidate ref, or WORKTREE to snapshot staged/unstaged/untracked changes",
     )
-    prove.add_argument("--test", required=True, help="Test command to execute in disposable Git worktrees")
-    prove.add_argument("--prepare", help="Optional setup command run once in each isolated base/candidate worktree")
-    prove.add_argument("--timeout", type=float, default=300.0, help="Seconds per command (default: 300)")
-    prove.add_argument("--test-glob", action="append", default=[], help="Additional glob classied as test code; repeatable")
-    prove.add_argument("--ignore", action="append", default=[], help="Changed path glob to exclude from hunk witness analysis; repeatable")
-    prove.add_argument("--include-test-changes", action="store_true", help="Also mutate test-file hunks (off by default)")
-    prove.add_argument("--no-test-overlay", action="store_true", help="Do not overlay candidate test changes onto the base run")
-    prove.add_argument(
-        "--share",
-        action="append",
-        default=[],
-        metavar ="PATH",
-        help="Symlink a repo-relative dependency/cache path into sandboxes (e.g. node_modules); repeatable. Tests can mutate the shared target.",
-    )
-    prove.add_argument("--minimize", action="store_true", help="Greedily find a smaller candidate diff that still passes the selected tests")
+    prove.add_argument("--test", help="Evidence command. Can also be set in .diffwitness.toml")
+    prove.add_argument("--prepare", help="Setup command run inside each isolated worktree")
+    prove.add_argument("--timeout", type=float, help="Seconds per command")
+    prove.add_argument("--stability-runs", type=int, help="Repeat every evidence variant N times")
+    prove.add_argument("--test-glob", action="append", default=None, help="Additional test-file glob; repeatable")
+    prove.add_argument("--ignore", action="append", default=None, help="Changed path glob to exclude; repeatable")
+    prove.add_argument("--include-test-changes", action="store_true", help="Also ablate changed test hunks")
+    prove.add_argument("--no-test-overlay", action="store_true", help="Do not overlay candidate tests onto base")
+    prove.add_argument("--share", action="append", default=None, metavar="PATH", help="Symlink a repo-relative cache/dependency path into sandboxes")
+    prove.add_argument("--minimize", action="store_true", help="Greedily remove production hunks while evidence stays stably green")
     prove.add_argument("--reduction-patch", type=Path, help="Write candidateâ†’reduced patch (requires --minimize)")
-    prove.add_argument("--json", dest="json_path", type=Path, help="Write machine-readable JSON report")
-    prove.add_argument("--report", type=Path, help="Write Markdown report")
-    prove.add_argument("--require-contrast", action="store_true", help="Exit non-zero unless base+candidate-tests fails and candidate passes")
-    prove.add_argument("--require-all-witnessed", action="store_true", help="Exit non-zero if any conclusive production mutation is unwitnessed")
+    prove.add_argument("--json", dest="json_path", type=Path, help="Write schema-v2 JSON evidence certificate")
+    prove.add_argument("--certificate", type=Path, help="Alias for --json, emphasizing reusable evidence output")
+    prove.add_argument("--report", type=Path, help="Write Markdown evidence report")
+    prove.add_argument("--sufficient-search", action=argparse.BooleanOptionalAction, default=None, help="Search small real-hunk subsets that are sufficient from base")
+    prove.add_argument("--max-subset-order", type=int, help="Maximum cardinality for sufficient-subset search")
+    prove.add_argument("--max-subset-runs", type=int, help="Maximum subset variants evaluated")
+    prove.add_argument("--interaction-search", action=argparse.BooleanOptionalAction, default=None, help="Search unwitnessed hunk pairs for hidden mutual backup")
+    prove.add_argument("--max-interaction-runs", type=int, help="Maximum pair variants evaluated")
+    prove.add_argument("--github-actions", action=argparse.BooleanOptionalAction, default=None, help="Emit GitHub annotations, outputs and step summary")
+    prove.add_argument("--require-contrast", action="store_true", help="Fail unless base is stably red and candidate stably green")
+    prove.add_argument("--require-all-witnessed", action="store_true", help="Fail if any analyzed hunk is unwitnessed or inconclusive")
+    prove.add_argument("--require-no-surplus", action="store_true", help="Fail when exhaustive sufficient search identifies strong surplus candidates")
 
-    suggest = sub.add_parser("suggest", help="Suggest common test commands from repository files without executing them")
+    suggest = sub.add_parser("suggest", help="Suggest common test commands without executing them")
     suggest.add_argument("--repo", default=".")
+
+    init = sub.add_parser("init", help="Create .diffwitness.toml and an optional PR workflow")
+    init.add_argument("--repo", default=".")
+    init.add_argument("--test", required=True)
+    init.add_argument("--prepare")
+    init.add_argument("--force", action="store_true")
+    init.add_argument("--workflow", action=argparse.BooleanOptionalAction, default=True)
+
+    show = sub.add_parser("show", help="Render a JSON evidence certificate as Markdown")
+    show.add_argument("certificate", type=Path)
     return parser
 
 
@@ -81,16 +99,65 @@ def _suggest(repo: Path) -> list[str]:
     return [s for s in suggestions if not (s in seen or seen.add(s))]
 
 
+def _cfg(args: argparse.Namespace, config: dict[str, Any], name: str, default: Any) -> Any:
+    value = getattr(args, name)
+    if value is not None:
+        return value
+    return config.get(name, default)
+
+
+def _list_cfg(args: argparse.Namespace, config: dict[str, Any], arg_name: str, key: str) -> list[str]:
+    value = getattr(args, arg_name)
+    if value is not None:
+        return list(value)
+    configured = config.get(key, [])
+    return list(configured) if isinstance(configured, list) else []
+
+
 def _status_line(status: str) -> str:
-    return {
-        "witnessed": "WITNESSED   ",
-        "unwitnessed": "UNWITNESSED  ",
-        "inconclusive": "INCONCLUSIVE",
-    }[status]
+    return {"witnessed": "WITNESSED   ", "unwitnessed": "UNWITNESSED ", "inconclusive": "INCONCLUSIVE"}[status]
+
+
+def _write_init_workflow(repo: Path, *, force: bool) -> Path:
+    path = repo / ".github" / "workflows" / "diffwitness.yml"
+    if path.exists() and not force:
+        raise FileExistsError(f"{path} already exists; use --force to replace it")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        """name: DiffWitness\n\non:\n  pull_request:\n\npermissions:\n  contents: read\n\njobs:\n  evidence:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n      - name: Prove patch evidence\n        uses: TFourniax/tooltest@main\n        with:\n          base: ${{ github.event.pull_request.base.sha }}\n          candidate: ${{ github.event.pull_request.head.sha }}\n          strict: false\n""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _init(args: argparse.Namespace) -> int:
+    repo = repo_root(args.repo)
+    config_path = write_config(repo, test=args.test, prepare=args.prepare, force=args.force)
+    print(f"created {config_path.relative_to(repo)}")
+    if args.workflow:
+        workflow = _write_init_workflow(repo, force=args.force)
+        print(f"created {workflow.relative_to(repo)}")
+    return 0
 
 
 def _prove(args: argparse.Namespace) -> int:
     repo = repo_root(args.repo)
+    config = load_config(repo, args.config)
+    test_command = _cfg(args, config, "test", None)
+    if not test_command:
+        raise AnalysisError("no evidence command configured; pass --test or create .diffwitness.toml")
+    prepare_command = _cfg(args, config, "prepare", None)
+    timeout = float(_cfg(args, config, "timeout", 300.0))
+    stability_runs = int(_cfg(args, config, "stability_runs", 1))
+    search_sufficient = bool(_cfg(args, config, "sufficient_search", True))
+    max_subset_order = int(_cfg(args, config, "max_subset_order", 3))
+    max_subset_runs = int(_cfg(args, config, "max_subset_runs", 32))
+    search_interactions = bool(_cfg(args, config, "interaction_search", True))
+    max_interaction_runs = int(_cfg(args, config, "max_interaction_runs", 20))
+    test_globs = _list_cfg(args, config, "test_glob", "test_glob")
+    ignore = _list_cfg(args, config, "ignore", "ignore")
+    shared = _list_cfg(args, config, "share", "share")
+
     base_sha = resolve_ref(repo, args.base)
     if args.candidate.upper() == "WORKTREE":
         candidate_sha = snapshot_worktree(repo)
@@ -100,82 +167,155 @@ def _prove(args: argparse.Namespace) -> int:
         candidate_ref = args.candidate
 
     raw_diff = diff_text(repo, base_sha, candidate_sha)
-    files = parse_file_patches(raw_diff, test_globs=args.test_glob)
+    files = parse_file_patches(raw_diff, test_globs=test_globs)
     if not files:
         print("DiffWitness: no changes between base and candidate.", file=sys.stderr)
         return 2
 
     all_mutations = make_mutations(files, include_tests=args.include_test_changes, ignore_globs=[])
-    mutations = make_mutations(files, include_tests=args.include_test_changes, ignore_globs=args.ignore)
+    mutations = make_mutations(files, include_tests=args.include_test_changes, ignore_globs=ignore)
     ignored_count = len(all_mutations) - len(mutations)
     if not mutations:
         print("DiffWitness: no analyzable changes remain after test/ignore filtering.", file=sys.stderr)
         return 2
-
     if args.reduction_patch and not args.minimize:
-        print("DiffWitness: --reduction-patch requires --minimize.", file=sys.stderr)
-        return 2
+        raise AnalysisError("--reduction-patch requires --minimize")
 
-    print("DiffWitness â€” counterfactual patch evidence")
+    print("DiffWitness 0.2 â€” counterfactual patch evidence")
     print(f"repo:      {repo}")
     print(f"base:      {args.base} ({base_sha[:12]})")
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
-    print(f"test:      {args.test}")
-    print(f"changes:   {len(mutations)} production mutation(s); {sum(f.is_test for f in files)} changed test file(s)")
+    print(f"evidence:  {test_command}")
+    print(f"stability: {stability_runs} run(s) per variant")
+    print(f"changes:   {len(mutations)} analyzed mutation(s); {sum(f.is_test for f in files)} changed test file(s)")
     print()
 
-    candidate_result, baseline_result, results, test_files, minimized_removed, reduction_patch = run_analysis(
+    outcome = run_analysis(
         source_repo=repo,
         base_sha=base_sha,
         candidate_sha=candidate_sha,
         files=files,
         mutations=mutations,
-        test_command=args.test,
-        timeout=args.timeout,
-        prepare_command=args.prepare,
-        shared_paths=args.share,
+        test_command=str(test_command),
+        timeout=timeout,
+        prepare_command=prepare_command,
+        shared_paths=shared,
         overlay_candidate_tests=not args.no_test_overlay,
         minimize=args.minimize,
+        stability_runs=stability_runs,
+        search_sufficient=search_sufficient,
+        max_subset_order=max_subset_order,
+        max_subset_runs=max_subset_runs,
+        search_interactions=search_interactions,
+        max_interaction_runs=max_interaction_runs,
     )
 
-    contrast = not baseline_result.passed and candidate_result.passed
-    if contrast:
-        print("contrast:  BASE FAIL â†’ CANDIDATE PASS  [bug-discriminating command]")
-    else:
-        print("contrast:  BASE PASS â†’ CANDIDATE PASS  [command does not distinguish the whole patch from base]")
+    config_used = {
+        "prepare": prepare_command,
+        "timeout": timeout,
+        "stability_runs": stability_runs,
+        "sufficient_search": search_sufficient,
+        "max_subset_order": max_subset_order,
+        "max_subset_runs": max_subset_runs,
+        "interaction_search": search_interactions,
+        "max_interaction_runs": max_interaction_runs,
+        "test_glob": test_globs,
+        "ignore": ignore,
+        "share": shared,
+        "test_overlay": not args.no_test_overlay,
+    }
+    report = build_report(
+        repo=repo,
+        base_ref=args.base,
+        base_sha=base_sha,
+        candidate_ref=candidate_ref,
+        candidate_sha=candidate_sha,
+        test_command=str(test_command),
+        outcome=outcome,
+        ignored_count=ignored_count,
+        config=config_used,
+    )
+
+    contrast_label = {
+        "base-fail_candidate-pass": "BASE STABLE-FAIL â†’ CANDIDATE STABLE-PASS",
+        "base-pass_candidate-pass": "BASE STABLE-PASS â†’ CANDIDATE STABLE-PASS (no whole-patch contrast)",
+        "base-inconclusive_candidate-pass": "BASE UNSTABLE/TIMEOUT â†’ CANDIDATE STABLE-PASS (contrast inconclusive)",
+        "candidate-not-stable-green": "CANDIDATE NOT STABLY GREEN",
+    }[report["contrast"]]
+    print(f"contrast:  {contrast_label}")
     print()
-    for result in results:
-        delta = f"+{result.mutation.additions}/-{resu[›]]][Û‹™[][ÛœßH‚ˆš[
-ˆž×ÜÝ]\×Û[™J™\Ý[œÝ]\Ê_HÜ™\Ý[›]]][Û‹šYHÙ[NŽ_HÜ™\Ý[›]]][Û‹›X™[HŠBˆYˆ™\Ý[œÝ]\ÈOHš[˜ÛÛ˜Û\Ú]™Hˆ[™™\Ý[˜\WÙ\œ›ÜŽ‚ˆš[
-ˆˆ\NˆÜ™\Ý[˜\WÙ\œ›Ü‹œÜ][™\Ê
-VËLWVÎŒMŒ_HŠB‚ˆÚ]™\ÜÙYHÝ[J‹œÝ]\ÈOHÚ]™\ÜÙYˆ›Üˆˆ[ˆ™\Ý[ÊBˆ[Ú]™\ÜÙYHÝ[J‹œÝ]\ÈOH[Ú]™\ÜÙYˆ›Üˆˆ[ˆ™\Ý[ÊBˆÛÛ˜Û\Ú]™HHÚ]™\ÜÙY
-È[Ú]™\ÜÙYˆš[
+    for result in outcome.mutation_results:
+        delta = f"+{result.mutation.additions}/-{result.mutation.deletions}"
+        stability = result.runs.classification if result.runs else "apply-error"
+        print(f"{_status_line(result.status)}  {delta:>9}  {result.mutation.label}  [{stability}]")
 
-BˆYˆÛÛ˜Û\Ú]™N‚ˆš[
-ˆÚ]™\ÜÈX\ˆÝÚ]™\ÜÙYKÞØÛÛ˜Û\Ú]™_HÛÛ˜Û\Ú]™HÚ[™Ù\È\™H™XÙ\ÜØ\žH›Üˆ\È\ÝÛÛ[X[™ÈÝ^HÜ™Y[ˆŠBˆ[ÙN‚ˆš[
-Ú]™\ÜÈX\ˆ›ÈÛÛ˜Û\Ú]™H]]][ÛœÈŠBˆYˆ\™ÜË›Z[š[Z^™H[™™YXÝ[Û—Ü]Ú\È›Ý›Û™N‚ˆÈQÈ\™H™XÛÛ\]Y™[ÝÈœ›ÛH™\Ý[È]™XØ[YH™[[Ý˜X›H[ˆ™\Ü	ÜÈZ[š[Z^˜][Ûˆ]‚ˆš[
-›Z[š[Z^™NˆÛÛ\]YÜ™YYKÛØØ[™YXÝ[ÛˆÙX\˜ÚŠB‚ˆ™\ÜHZ[Ü™\Ü
-ˆ™\Ï\™\Ëˆ˜\ÙWÜ™YX\™ÜË˜˜\ÙKˆ˜\ÙWÜÚOX˜\ÙWÜÚKˆØ[™Y]WÜ™YXØ[™Y]WÜ™Y‹ˆØ[™Y]WÜÚOXØ[™Y]WÜÚKˆ\ÝØÛÛ[X[™X\™ÜË\ÝˆØ[™Y]WÜ™\Ý[XØ[™Y]WÜ™\Ý[ˆ˜\Ù[[™WÜ™\Ý[X˜\Ù[[™WÜ™\Ý[ˆ™\Ý[Ï\™\Ý[Ëˆ\ÝÙš[\Ï]\ÝÙš[\ËˆYÛ›Ü™YØÛÝ[ZYÛ›Ü™YØÛÝ[ˆZ[š[Z^™YÜ™[[Ý™Y[Z[š[Z^™YÜ™[[Ý™Yˆ
-BˆYˆ\™ÜËšœÛÛ—Ü]‚ˆÜš]WÚœÛÛŠ™\Ü\™ÜËšœÛÛ—Ü]
-Bˆš[
-ˆšœÛÛŽˆØ\™ÜËšœÛÛ—Ü]HŠBˆYˆ\™ÜËœ™\Ü‚ˆÜš]WÛX\šÙÝÛŠ™\Ü\™ÜËœ™\Ü
-Bˆš[
-ˆœ™\ÜˆØ\™ÜËœ™\ÜHŠBˆYˆ\™ÜËœ™YXÝ[Û—Ü]Ú\È›Ý›Û™N‚ˆ\™ÜËœ™YXÝ[Û—Ü]Úœ\™[›ZÙ\Š\™[ÏUYK^\ÝÛÚÏUYJBˆ\™ÜËœ™YXÝ[Û—Ü]ÚÜš]WÝ^
-™YXÝ[Û—Ü]ÚÜˆˆ‹[˜ÛÙ[™ÏH]‹NŠBˆš[
-ˆœ™YXÝ[ÛŽˆØ\™ÜËœ™YXÝ[Û—Ü]ÚHŠB‚ˆš[
+    s = report["summary"]
+    print()
+    print(
+        f"summary: {s['witnessed']} witnessed, {s['unwitnessed']} unwitnessed, "
+        f"{s['inconclusive']} inconclusive"
+    )
+    if s["minimal_sufficient_order"]:
+        print(
+            f"core:    {s['minimal_sufficient_sets']} minimal sufficient set(s) of "
+            f"{s['minimal_sufficient_order']} hunk(s)"
+        )
+    if s["mutual_backup_pairs"]:
+        print(f"backup:  {s['mutual_backup_pairs']} hidden mutual-backup pair(s)")
+    if s["surplus_candidate_hunks"]:
+        print(f"surplus: {s['surplus_candidate_hunks']} strong surplus candidate hunk(s)")
+    print(f"cert:    {report['certificate_id']}")
 
-BˆYˆ[Ú]™\ÜÙY‚ˆš[
-’[\œ™]][ÛŽˆS•ÒU‘TÔÑQHÙ\È›ÝYX[ˆ	ÝÜ›Û™ÉËˆ]YX[œÈHÙ[XÝY\ÝÛÛ[X[™Ý^\ÈÜ™Y[ˆÚ]Ý]]Ú[™ÙH8 %ÛÈ]Ú[™ÙHÝ\œ™[H\È›ÈÛÝ[\™˜XÝX[Ú]™\ÜÈ\™KˆŠBˆYˆ\ÝÙš[\È[™›Ý\™ÜË››×Ý\ÝÛÝ™\›^N‚ˆš[
-ˆ˜\Ù[[™H˜Z\›™\ÜÎˆÝ™\›ZYÛ[Š\ÝÙš[\Ê_HØ[™Y]K\ÚYH\Ýš[HÚ[™ÙJÊHÛÈH˜\ÙH™Y›Ü™H™\^KˆŠB‚ˆYˆ\™ÜËœ™\]Z\™WØÛÛ˜\Ý[™›ÝÛÛ˜\Ý‚ˆ™]\›ˆÂˆYˆ\™ÜËœ™\]Z\™WØ[ÝÚ]™\ÜÙY[™[Ú]™\ÜÙY‚ˆ™]\›ˆˆ™]\›ˆ‚‚™YˆXZ[Š\™ÝŽˆ\ÝÜÝ—H›Û™HH›Û™JHOˆ[‚ˆ\œÙ\ˆHÜ\œÙ\Š
-Bˆ\™ÜÈH\œÙ\‹œ\œÙWØ\™ÜÊ\™ÝŠBˆžN‚ˆYˆ\™ÜË˜ÛÛ[X[™OHœÝYÙÙ\ÝŽ‚ˆ™\ÈH™\×Ü›ÛÝ
-\™ÜËœ™\ÊBˆÝYÙÙ\Ý[ÛœÈHÜÝYÙÙ\Ý
-™\ÊBˆYˆÝYÙÙ\Ý[ÛœÎ‚ˆš[
-”ÝYÙÙ\ÝYÛÛ[X[™È
-›Ý^XÝ]Y
-NˆŠBˆ›ÜˆÝYÙÙ\Ý[Ûˆ[ˆÝYÙÙ\Ý[ÛœÎ‚ˆš[
-ˆˆÜÝYÙÙ\Ý[ÛŸHŠBˆ[ÙN‚ˆš[
-“›ÈÛÛ[[Ûˆ\ÝÛÛ[X[™]XÝYˆ\ÜÈ[ˆ^XÚ]ÛÛ[X[™ÈY™Ú]™\ÜÈ›Ý™HK]\Ý‹‹˜ˆŠBˆ™]\›ˆˆYˆ\™ÜË˜ÛÛ[X[™OHœ›Ý™HŽ‚ˆ™]\›ˆÜ›Ý™J\™ÜÊBˆ\œÙ\‹™\œ›ÜŠ[šÛ›ÝÛˆÛÛ[X[™ŠBˆ^Ù\
-Ú]\œ›Ü‹[˜[\Ú\Ñ\œ›ÜŠH\È^Î‚ˆš[
-ˆ‘Y™•Ú]™\ÜÈ\œ›ÜŽˆÙ^ßH‹š[O\Þ\ËœÝ\œŠBˆ™]\›ˆ‚ˆ™]\›ˆ‚‚‚šYˆ×Û˜[YW×ÈOH—×ÛXZ[—×ÈŽ‚ˆ˜Z\ÙHÞ\Ý[Q^]
-XZ[Š
-JB
+    json_path = args.certificate or args.json_path
+    if args.certificate and args.json_path and args.certificate != args.json_path:
+        raise AnalysisError("use either --certificate or --json, not two different paths")
+    if json_path:
+        write_json(report, json_path)
+    if args.report:
+        write_markdown(report, args.report)
+    if args.reduction_patch is not None:
+        args.reduction_patch.parent.mkdir(parents=True, exist_ok=True)
+        args.reduction_patch.write_text(outcome.reduction_patch or "", encoding="utf-8")
+
+    github_mode = is_github_actions() if args.github_actions is None else args.github_actions
+    if github_mode:
+        emit_annotations(report)
+        write_step_summary(report)
+        write_outputs(report)
+
+    failed = False
+    if args.require_contrast and report["contrast"] != "base-fail_candidate-pass":
+        print("DiffWitness gate failed: evidence command does not provide stable baseâ†’candidate contrast.", file=sys.stderr)
+        failed = True
+    if args.require_all_witnessed and (s["unwitnessed"] or s["inconclusive"]):
+        print("DiffWitness gate failed: not every analyzed hunk is causally witnessed.", file=sys.stderr)
+        failed = True
+    if args.require_no_surplus and s["surplus_candidate_hunks"]:
+        print("DiffWitness gate failed: exhaustive evidence-core search found surplus candidate hunks.", file=sys.stderr)
+        failed = True
+    return 1 if failed else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        if args.command == "suggest":
+            repo = repo_root(args.repo)
+            suggestions = _suggest(repo)
+            if suggestions:
+                print("\n".join(suggestions))
+                return 0
+            print("No common test command detected.", file=sys.stderr)
+            return 1
+        if args.command == "init":
+            return _init(args)
+        if args.command == "show":
+            report = json.loads(args.certificate.read_text(encoding="utf-8"))
+            print(render_markdown(report))
+            return 0
+        if args.command == "prove":
+            return _prove(args)
+    except (GitError, AnalysisError, ValueError, FileExistsError, OSError) as exc:
+        print(f"DiffWitness: {exc}", file=sys.stderr)
+        return 2
+    return 2

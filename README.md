@@ -1,254 +1,316 @@
 # DiffWitness
 
-> **Green is not proof. A passing test should be able to witness the change it claims to validate.**
+**Tests passing is an outcome. DiffWitness asks whether the patch actually caused it.**
 
-DiffWitness is a zero-runtime-dependency CLI that asks a question most test pipelines never ask:
+DiffWitness is a free, language-agnostic CLI and GitHub Action that builds **counterfactual evidence for a Git diff**. Instead of treating a green test command as proof that every change in a patch is justified, it reruns the same evidence against controlled variants of the *real patch*.
 
-**Which exact parts of this Git diff are actually necessary for the selected tests to stay green?**
+It answers four questions:
 
-It takes a base revision and a candidate patch, runs the chosen test command, then creates counterfactual versions of the candidate with each production hunk removed one at a time.
+1. **Contrast** — do the candidate's tests fail on the old code and pass on the candidate?
+2. **Necessity** — which exact Git hunks make the evidence fail when removed?
+3. **Sufficiency** — what smallest set of real hunks is enough to turn the old code green?
+4. **Interaction** — are apparently optional hunks secretly backing each other up?
 
-- If removing a hunk makes the tests fail, that hunk is **WITNESSED**.
-- If the tests still pass, that hunk is **UNWITNESSED** by this test command.
-- If the counterfactual cannot be constructed reliably, it is **INCONCLUSIVE**.
+With `--stability-runs N`, every claim must survive repeated execution, so a flaky pass/fail is reported as **inconclusive**, not causal evidence.
 
-This is deliberately different from line coverage. Coverage asks *“did a test execute this line?”* DiffWitness asks *“would the evidence still be green if this change had never been made?”*
+## Why
 
-## Why this exists
-
-AI coding agents have made patches faster to produce than they are to verify. The usual final signal is still some version of:
-
-```text
-Tests: 128 passed ✅
-```
-
-But a green test can be irrelevant to the claimed fix. A July 2026 study of validation events in LLM repair agents found that **46% of positive comparable validation events carried no bug-discriminating information**: they were green, but did not establish the claimed repair against the buggy state.
-
-DiffWitness turns verification into a counterfactual question at **hunk granularity**, not just patch granularity.
-
-## The core idea
+A normal CI result says:
 
 ```text
-                           selected test command
-                                   │
-                     ┌─────────────┴─────────────┐
-                     │                           │
-              base + new tests               candidate
-                 should fail                  must pass
-                     │                           │
-                     └─────────────┬─────────────┘
-                                   │
-                         candidate is green
-                                   │
-              ┌────────────────────┼────────────────────┐
-              │                    │                    │
-          remove hunk A        remove hunk B        remove hunk C
-              │                    │                    │
-          tests fail            tests pass           tests fail
-              │                    │                    │
-          WITNESSED           UNWITNESSED          WITNESSED
+128 tests passed ✅
 ```
 
-A useful side effect: the unwitnessed set is a high-signal place to look for agent scope creep, bonus refactors, dead changes, or missing regression tests.
+DiffWitness can say:
 
-## Quick start
+```text
+BASE + candidate tests       STABLE FAIL
+CANDIDATE                    STABLE PASS
+
+WITNESSED     src/auth.py hunk 1/3
+WITNESSED     src/auth.py hunk 2/3
+UNWITNESSED   src/auth.py hunk 3/3
+
+minimal sufficient set: {hunk 1, hunk 2}
+strong surplus candidate: hunk 3
+```
+
+That is a different primitive from coverage. A line can be executed without being necessary to the observed result. It is also different from classic mutation testing: DiffWitness does not invent synthetic mutants for its core analysis; **the submitted patch itself is the mutation surface**.
+
+## Install
 
 Requires Python 3.11+ and Git.
 
 ```bash
 pipx install .
-# or
-python -m pip install .
 ```
 
-From a repository with an agent's current uncommitted changes:
+During early development you can also clone the repository and run:
+
+```bash
+python -m pip install -e .
+```
+
+There are no runtime Python dependencies.
+
+## Fast start
+
+Inside a Git repository with local changes:
 
 ```bash
 diffwitness prove \
   --base HEAD \
   --candidate WORKTREE \
-  --test "python -m pytest -q"
+  --test "pytest -q"
 ```
 
-`WORKTREE` is special: DiffWitness snapshots staged, unstaged, and non-ignored untracked files using an **alternate Git index**. It does not rewrite your real index or working tree.
+`WORKTREE` snapshots staged, unstaged and non-ignored untracked files without touching your real Git index.
 
-For a committed branch:
+For a branch/PR:
 
 ```bash
 diffwitness prove \
   --base origin/main \
   --candidate HEAD \
-  --test "npm test"
+  --test "pytest -q" \
+  --stability-runs 2 \
+  --certificate diffwitness-evidence.json \
+  --report diffwitness-evidence.md
 ```
 
-### Example output
-
-```text
-DiffWitness — counterfactual patch evidence
-base:      HEAD (1ad1c5d53a13)
-candidate: WORKTREE (676c091d0b40)
-test:      python -m unittest discover -s tests -q
-changes:   2 production mutation(s); 1 changed test file(s)
-
-contrast:  BASE FAIL → CANDIDATE PASS  [bug-discriminating command]
-
-WITNESSED     c31290c4d8    +1/-1  calc.py hunk 1/2 — def add(a, b):
-UNWITNESSED   0d33715f1a    +1/-1  calc.py hunk 2/2 — def label():
-
-witness map: 1/2 conclusive changes are necessary for this test command to stay green
-```
-
-## A detail that matters: new tests are replayed on the old code
-
-A common bug-fix patch adds both production code and a new regression test. If you simply check out the base revision, that new test disappears — and a baseline run can become meaningless.
-
-By default DiffWitness detects changed test files and overlays **candidate-side test changes onto the base** before running the baseline command:
-
-```text
-base code + candidate regression tests → expected FAIL
-candidate code + candidate tests        → expected PASS
-```
-
-Test changes are excluded from hunk-ablation analysis by default. The goal is to ask whether the **production changes** are witnessed by the tests, not whether deleting the tests makes the suite easier to pass.
-
-Add project-specific test locations with:
+## One-command project setup
 
 ```bash
-diffwitness prove ... --test-glob "qa/**/*.py" --test-glob "checks/**"
+diffwitness init --test "pytest -q"
 ```
 
-Or disable the overlay for projects with inline tests:
+This creates:
+
+- `.diffwitness.toml` with sane evidence-search defaults;
+- `.github/workflows/diffwitness.yml` for PR analysis.
+
+Then ordinary use can be as short as:
 
 ```bash
-diffwitness prove ... --no-test-overlay
+diffwitness prove --base origin/main --candidate HEAD
 ```
 
-## Greedy patch minimization
+Example config:
 
-DiffWitness can go one step further and search for a smaller version of the candidate that still passes the selected test command:
+```toml
+[diffwitness]
+test = "pytest -q"
+stability_runs = 2
+sufficient_search = true
+max_subset_order = 3
+max_subset_runs = 32
+interaction_search = true
+max_interaction_runs = 20
+```
+
+## GitHub Action
+
+After `actions/checkout` with full history:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- name: DiffWitness
+  uses: TFourniax/tooltest@main
+  with:
+    base: ${{ github.event.pull_request.base.sha }}
+    candidate: ${{ github.event.pull_request.head.sha }}
+    stability-runs: 2
+```
+
+The Action automatically:
+
+- annotates unwitnessed/inconclusive hunks on their changed file/line;
+- writes a Markdown evidence certificate to the GitHub job summary;
+- exposes `certificate_id`, `witness_ratio`, `minimal_sufficient_order`, and `surplus_candidate_hunks` as outputs.
+
+To make the proof a hard gate:
+
+```yaml
+    strict: true
+```
+
+Strict mode requires stable base→candidate contrast and every analyzed hunk to be individually witnessed. Start non-strict if your evidence command is narrow, then ratchet once it represents the behavior you care about.
+
+## The evidence model
+
+### 1. Candidate-test overlay
+
+If a patch adds a regression test, DiffWitness copies the **test change only** onto the base before running the evidence command:
+
+```text
+old production code + new test     FAIL
+new production code + new test     PASS
+```
+
+This avoids the misleading comparison `old code without test` vs `new code with test`.
+
+Use `--no-test-overlay` for projects where tests and production changes cannot be separated cleanly. Add custom test locations with `--test-glob`.
+
+### 2. Necessity: reverse hunk ablation
+
+For each production hunk `H`, DiffWitness starts from the candidate and reverse-applies that exact Git hunk:
+
+```text
+candidate - H → run evidence
+```
+
+- **WITNESSED** — evidence becomes stably failing; `H` is necessary under this command/environment.
+- **UNWITNESSED** — evidence remains stably passing; the command does not currently justify `H`.
+- **INCONCLUSIVE** — patch application, timeout, or unstable executions prevent a causal claim.
+
+### 3. Sufficiency: build up from base
+
+When the base is stably failing and candidate stably passing, DiffWitness can search small subsets of real production hunks:
+
+```text
+base + candidate tests + {H1}       FAIL
+base + candidate tests + {H2}       FAIL
+base + candidate tests + {H1,H2}    PASS
+```
+
+The first passing cardinality is a **minimal-cardinality sufficient evidence core** within the configured search space.
+
+The search is intentionally budgeted:
+
+```bash
+--max-subset-order 3
+--max-subset-runs 32
+```
+
+DiffWitness reports whether it exhaustively enumerated the cardinality at which a core was found. It only labels a hunk a **strong surplus candidate** when that search was exhaustive and the hunk is both individually removable and absent from every minimal sufficient set found.
+
+### 4. Hidden redundancy: mutual backup
+
+Two candidate hunks can each look unnecessary in isolation:
+
+```text
+candidate - H1         PASS
+candidate - H2         PASS
+candidate - H1 - H2    FAIL
+```
+
+DiffWitness reports this pair as **mutual backup** rather than pretending both hunks are independently useless. This is common when a patch introduces overlapping fallbacks or duplicate ways of satisfying the same test.
+
+### 5. Stability before causality
+
+```bash
+--stability-runs 3
+```
+
+Each candidate/base/ablation/subset variant is executed repeatedly on the same isolated code state.
+
+- all pass → `stable-pass`
+- all fail → `stable-fail`
+- mixed outcomes → `flaky`
+- any timeout → `timeout`
+
+A flaky or timed-out variant never becomes a witnessed/unwitnessed causal claim.
+
+## Evidence certificates
 
 ```bash
 diffwitness prove \
   --base origin/main \
   --candidate HEAD \
-  --test "pytest tests/test_checkout.py -q" \
+  --test "pytest -q" \
+  --certificate evidence.json \
+  --report evidence.md
+```
+
+The JSON schema v2 contains:
+
+- exact base/candidate SHAs;
+- selected command and execution configuration;
+- repeated-run outcomes;
+- hunk locations and deltas;
+- necessity results;
+- sufficient subsets;
+- mutual-backup pairs;
+- minimization results;
+- environment metadata;
+- a content-addressed `dw2_...` certificate id.
+
+Render it later:
+
+```bash
+diffwitness show evidence.json
+```
+
+The schema is documented in `schema/diffwitness-report-v2.schema.json`.
+
+## Patch minimization
+
+DiffWitness can additionally attempt a greedy local reduction:
+
+```bash
+diffwitness prove \
+  --base origin/main \
+  --candidate HEAD \
+  --test "pytest -q" \
+  --stability-runs 2 \
   --minimize \
-  --reduction-patch /tmp/remove-surplus.patch
+  --reduction-patch remove-surplus.patch
 ```
 
-The minimizer removes candidate mutations one by one and keeps a removal only while the tests stay green. The result is a **local/greedy minimum**, not a mathematical guarantee of the globally smallest patch; removal order can matter.
+The algorithm only removes production hunks when the selected evidence stays stably green. This is a local/greedy reduction, not a proof of a globally smallest patch.
 
-DiffWitness never applies the reduction to your source repository. It only writes the patch if you explicitly request it.
+## Useful gates
 
-## CI gates
-
-The default command reports evidence but does not treat an unwitnessed hunk as an error — because an unwitnessed change can be legitimate behavior outside the selected test command.
-
-For stricter workflows:
+Require a genuine regression contrast:
 
 ```bash
-# Fail if the chosen command is already green on the base.
-diffwitness prove ... --require-contrast
-
-# Fail if any conclusive production mutation is unwitnessed.
-diffwitness prove ... --require-all-witnessed
+--require-contrast
 ```
 
-Reports:
+Require every analyzed hunk to have an individual witness:
 
 ```bash
-diffwitness prove ... \
-  --json .diffwitness-report.json \
-  --report .diffwitness-report.md
+--require-all-witnessed
 ```
 
-Exit codes:
-
-- `0` analysis completed and requested gates passed
-- `2` setup, Git, candidate-test, or analysis error
-- `3` `--require-contrast` failed
-- `4` `--require-all-witnessed` failed
-
-## Keeping dependency setup practical
-
-Each state is tested in a disposable Git worktree, so your source checkout is not used as a test sandbox.
-
-If setup is required:
+Reject strong surplus candidates discovered by exhaustive minimal-core search:
 
 ```bash
-diffwitness prove ... \
-  --prepare "npm ci" \
-  --test "npm test"
+--require-no-surplus
 ```
 
-For large local dependency folders you can explicitly share a path into the sandbox:
+These can be combined, but a broad “all hunks witnessed” policy is intentionally stricter than many teams will want for refactors or observability changes. The report is useful even when no gate is enabled.
 
-```bash
-diffwitness prove ... \
-  --share node_modules \
-  --test "npm test"
-```
+## Large repositories / expensive test suites
 
-**Warning:** a shared path is a symlink to the original path. A test or script can therefore mutate that shared target. Use `--prepare` instead when strict isolation matters more than speed.
+Counterfactual evidence costs test executions. Control it deliberately:
 
-When a root `node_modules` exists, DiffWitness also exposes its `.bin` directory on `PATH` and sets `NODE_PATH` for the sandbox process; this is a convenience, not a guarantee for every Node module-resolution mode.
+- use the narrowest command that still represents the requirement;
+- use `--prepare` for setup that must exist in isolated worktrees;
+- use `--share node_modules` or another safe cache path to avoid reinstalling large dependencies;
+- bound subset and interaction search;
+- start with `--stability-runs 1` locally and use 2+ for CI evidence that matters.
 
-## What DiffWitness is — and is not
+`--share` is a performance escape hatch: tests can mutate the shared target. Do not share stateful application data unless cross-variant contamination is acceptable.
 
-DiffWitness provides **counterfactual evidence**, not formal correctness proof.
+## Security model
 
-A `WITNESSED` hunk means removing that hunk caused the selected command to fail. It may be necessary because of behavior, compilation, imports, or interactions with another hunk.
+DiffWitness executes the command you provide and may execute code from the base and candidate revisions. Treat untrusted PR code accordingly. See `SECURITY.md`.
 
-An `UNWITNESSED` hunk means the selected command stayed green without it. That can indicate:
+## What DiffWitness does not claim
 
-- unrelated scope creep,
-- a valid change with no relevant regression test,
-- a redundant implementation path,
-- documentation or cleanup intentionally outside the test's concern,
-- or an alternative fix where another hunk can compensate.
+A witness is **relative to the selected evidence command and environment**. It does not prove the whole product requirement, security, performance, maintainability, or semantic correctness in general.
 
-That distinction is why DiffWitness reports evidence instead of pretending to produce a universal “safe/unsafe” score.
+An unwitnessed hunk is not automatically wrong. It may be required by a different test, a non-test requirement, a deployment concern, or a behavior outside the selected command. DiffWitness is designed to turn “trust me, tests pass” into a reviewable evidence map — not to replace engineering judgment.
 
-## How it stays out of your way
+## Why this direction exists now
 
-For `WORKTREE`, DiffWitness creates an ephemeral Git commit with an alternate index. It then uses disposable detached worktrees for all execution and cleans them up afterward.
+Recent work on coding-agent validation shows that a large fraction of positive validation events may carry no bug-discriminating information, while repository-level test suites can admit many semantically incorrect variants. DiffWitness operationalizes a practical response: replay evidence counterfactually against the actual patch and make uncertainty explicit.
 
-It does **not** intentionally modify:
-
-- your working-tree files,
-- your staging index,
-- your branch refs,
-- your commits.
-
-Git necessarily creates temporary objects/worktree metadata while the analysis runs; unreachable snapshot objects are eligible for normal Git garbage collection later.
-
-The test command is supplied by you and runs with your user permissions inside the disposable worktree. Read [SECURITY.md](SECURITY.md) before using untrusted commands or repositories.
-
-## Research / competitive landscape
-
-The idea was selected after rejecting several initially attractive directions that were already crowded: cross-LLM memory, agent command guards, local CI debuggers, environment diffing, and global patch proof tools.
-
-The closest adjacent work we found does **different jobs**:
-
-- **BSG-VA (Xu & Wu, 2026)** measures whether agent validation commands discriminate buggy/candidate/gold states and reports a large evidence-quality gap.
-- **PatchProof** checks the important global property “changed regression test fails on base, passes on patch.”
-- **AdaptOrch CEK** treats base-fail / patch-pass as strong patch evidence in a larger verification control plane.
-- **ChaCo** targets *coverage* of PR-modified lines by generating tests.
-- Traditional **mutation testing** mutates the program to assess test-suite strength; DiffWitness instead ablates the *actual proposed patch* to ask which candidate edits have a witness.
-
-As of **2026-08-15**, our web/GitHub research did not surface a general-purpose free tool with this exact workflow: candidate-test overlay on base + automatic per-hunk counterfactual ablation + a hunk-level witness map + optional candidate minimization. That is a research finding, not a patent-style claim that no implementation can exist anywhere.
-
-See [docs/RESEARCH.md](docs/RESEARCH.md) for sources and rejected ideas.
-
-## Development
-
-No runtime dependencies.
-
-```bash
-PYTHONPATH=src python -m unittest discover -s tests -v
-```
-
-The integration suite creates real temporary Git repositories/worktrees and verifies that DiffWitness can distinguish a bug-fixing hunk from an unrelated hunk while a newly-created, untracked regression test is overlaid onto the base.
+See `docs/RESEARCH.md` and `docs/COMPETITIVE_CHECK.md` for sources, nearby work, and the deliberately narrow novelty statement.
 
 ## License
 
