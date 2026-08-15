@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from .analysis import AnalysisError, _apply_many, _prepare_sandbox
 from .diffing import FilePatch, test_overlay
@@ -39,6 +40,30 @@ class AdaptiveCoreResult:
         total = len(self.original_mutation_ids)
         return (len(self.removable_mutation_ids) / total) if total else 0.0
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "strategy": "adaptive-core",
+            "candidate": self.candidate.to_dict(),
+            "baseline_with_candidate_tests": self.baseline.to_dict(),
+            "contrast": self.contrast,
+            "original_mutation_ids": self.original_mutation_ids,
+            "core_mutation_ids": self.core_mutation_ids,
+            "removable_mutation_ids": self.removable_mutation_ids,
+            "reduction_ratio": self.reduction_ratio,
+            "attempts": self.attempts,
+            "budget": self.budget,
+            "budget_exhausted": self.budget_exhausted,
+            "one_minimal": self.one_minimal,
+            "attempts_log": [asdict(attempt) for attempt in self.attempts_log],
+            "claim": (
+                "The returned core is 1-minimal under the selected stable, bug-discriminating evidence: "
+                "removing any one retained mutation loses the observed stable pass."
+                if self.one_minimal
+                else "The returned core is a budgeted reduction only; 1-minimality was not established."
+            ),
+            "non_claim": "Adaptive Core does not claim a globally minimum patch unless a future exhaustive mode explicitly proves one.",
+        }
+
 
 def _partition(items: list[Mutation], count: int) -> list[list[Mutation]]:
     count = max(1, min(count, len(items)))
@@ -69,10 +94,11 @@ def find_adaptive_core(
 ) -> AdaptiveCoreResult:
     """Find a small, 1-minimal passing subset of the real production patch.
 
-    This is a budgeted delta-debugging style search. It is deliberately not advertised as a
-    globally minimum subset. Its sound claim is narrower: every removed group was observed to be
-    unnecessary for at least one stable-passing candidate subset, and `one_minimal` is true only
-    when every single deletion from the returned core was checked and failed stably.
+    This is a budgeted delta-debugging style search, restricted to bug-discriminating evidence.
+    It is deliberately not advertised as a globally minimum subset. Its sound claim is narrower:
+    every removed group was observed to be unnecessary for at least one stable-passing candidate
+    subset, and `one_minimal` is true only when no single retained mutation can be removed while
+    preserving the selected stable pass.
     """
     if stability_runs < 1:
         raise AnalysisError("stability_runs must be >= 1")
@@ -126,6 +152,11 @@ def find_adaptive_core(
                 timeout=timeout,
                 repetitions=stability_runs,
             )
+            if not baseline_runs.failed:
+                raise AnalysisError(
+                    "adaptive causal-core search requires stable bug-discriminating contrast: "
+                    f"base+candidate-tests classified {baseline_runs.classification}, not stable-fail"
+                )
 
             attempts = 0
             log: list[AdaptiveAttempt] = []
@@ -215,6 +246,7 @@ def find_adaptive_core(
                 for mutation in list(core):
                     trial = [item for item in core if item.id != mutation.id]
                     if not trial:
+                        # Stable-failing baseline already proves a one-element core cannot be emptied.
                         continue
                     runs = evaluate(trial)
                     if runs is None:
