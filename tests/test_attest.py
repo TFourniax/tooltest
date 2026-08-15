@@ -50,15 +50,28 @@ class AttestationTests(unittest.TestCase):
                 0,
             )
             report = load_certificate(certificate)
-            fresh = verify_against_repo(report, repo=repo, against="WORKTREE")
+            fresh = verify_against_repo(
+                report,
+                repo=repo,
+                against="WORKTREE",
+                ignore_artifacts=["proof.json"],
+            )
             self.assertTrue(fresh["valid"])
             self.assertEqual(fresh["integrity"], "valid")
             self.assertEqual(fresh["freshness"], "fresh")
+            # CLI automatically excludes its own untracked certificate artifact.
+            self.assertEqual(main(["verify", str(certificate), "--repo", str(repo)]), 0)
 
             (repo / "README.md").write_text("changed-after-proof\n", encoding="utf-8")
-            stale = verify_against_repo(report, repo=repo, against="WORKTREE")
+            stale = verify_against_repo(
+                report,
+                repo=repo,
+                against="WORKTREE",
+                ignore_artifacts=["proof.json"],
+            )
             self.assertFalse(stale["valid"])
             self.assertEqual(stale["freshness"], "stale")
+            self.assertEqual(main(["verify", str(certificate), "--repo", str(repo)]), 1)
 
     def test_verified_worktree_proof_can_be_attached_after_identical_commit(self) -> None:
         with tempfile.TemporaryDirectory() as td:
