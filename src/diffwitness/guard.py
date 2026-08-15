@@ -23,11 +23,11 @@ def guard_cli(argv: list[str]) -> int:
     parser.add_argument("--share", action="append", default=[])
     parser.add_argument("--test-glob", action="append", default=[])
     parser.add_argument("--ignore", action="append", default=[])
-    parser.add_argument("--policy", choices=["observe", "balanced", "strict"], default="balanced")
-    parser.add_argument("--strategy", choices=["auto", "exhaustive", "adaptive"], default="auto")
-    parser.add_argument("--adaptive-threshold", type=int, default=16)
-    parser.add_argument("--adaptive-budget", type=int, default=40)
-    parser.add_argument("--stability-runs", type=int, default=2)
+    parser.add_argument("--policy", choices=["observe", "balanced", "strict"], default=None)
+    parser.add_argument("--strategy", choices=["auto", "exhaustive", "adaptive"], default=None)
+    parser.add_argument("--adaptive-threshold", type=int, default=None)
+    parser.add_argument("--adaptive-budget", type=int, default=None)
+    parser.add_argument("--stability-runs", type=int, default=None)
     parser.add_argument("--certificate", type=Path)
     parser.add_argument("--report", type=Path)
     parser.add_argument("agent", nargs=argparse.REMAINDER)
@@ -43,8 +43,8 @@ def guard_cli(argv: list[str]) -> int:
     baseline = snapshot_worktree(repo)
     print(f"DiffWitness Guard armed at {baseline[:12]}")
     print(f"Agent:    {' '.join(command)}")
-    print(f"Policy:   {args.policy}")
-    print(f"Strategy: {args.strategy}")
+    print(f"Policy:   {args.policy or 'config/default'}")
+    print(f"Strategy: {args.strategy or 'config/default'}")
     print()
 
     env = os.environ.copy()
@@ -83,16 +83,6 @@ def guard_cli(argv: list[str]) -> int:
         baseline,
         "--candidate",
         candidate,
-        "--policy",
-        args.policy,
-        "--strategy",
-        args.strategy,
-        "--adaptive-threshold",
-        str(args.adaptive_threshold),
-        "--adaptive-budget",
-        str(args.adaptive_budget),
-        "--stability-runs",
-        str(args.stability_runs),
         "--no-github-actions",
     ]
     if args.config:
@@ -103,6 +93,16 @@ def guard_cli(argv: list[str]) -> int:
         gate_args += ["--prepare", args.prepare]
     if args.timeout is not None:
         gate_args += ["--timeout", str(args.timeout)]
+    if args.policy is not None:
+        gate_args += ["--policy", args.policy]
+    if args.strategy is not None:
+        gate_args += ["--strategy", args.strategy]
+    if args.adaptive_threshold is not None:
+        gate_args += ["--adaptive-threshold", str(args.adaptive_threshold)]
+    if args.adaptive_budget is not None:
+        gate_args += ["--adaptive-budget", str(args.adaptive_budget)]
+    if args.stability_runs is not None:
+        gate_args += ["--stability-runs", str(args.stability_runs)]
     for path in args.share:
         gate_args += ["--share", path]
     for pattern in args.test_glob:
