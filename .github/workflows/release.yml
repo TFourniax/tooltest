@@ -1,0 +1,122 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to package (for dry runs leave empty)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and validate Python distributions
+        run: |
+          python -m pip install --upgrade build
+          python -m pip install -e .
+          python -m unittest discover -s tests -v
+          python benchmarks/proofbench.py
+          python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+
+  binary:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build standalone dw binary
+        shell: bash
+        run: |
+          python -m pip install . pyinstaller
+          pyinstaller --clean --onefile --name dw packaging/dw_entry.py
+          ./dist/dw --version || ./dist/dw.exe --version
+      - name: Package binary metadata
+        shell: bash
+        run: |
+          mkdir -p release-binary
+          if [[ -f dist/dw.exe ]]; then cp dist/dw.exe release-binary/dw.exe; else cp dist/dw release-binary/dw; fi
+          python - <<'PY'
+          import json, os, platform, pathlib, subprocess
+          binary = pathlib.Path('release-binary/dw.exe' if pathlib.Path('release-binary/dw.exe').exists() else 'release-binary/dw')
+          payload = {
+              'os': platform.system(),
+              'machine': platform.machine(),
+              'python_build': platform.python_version(),
+              'binary': binary.name,
+              'sha256': __import__('hashlib').sha256(binary.read_bytes()).hexdigest(),
+          }
+          pathlib.Path('release-binary/BUILD.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dw-${{ runner.os }}-${{ runner.arch }}
+          path: release-binary/*
+          if-no-files-found: error
+
+  github-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [source, binary]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: false
+      - name: Flatten uniquely named assets
+        shell: bash
+        run: |
+          mkdir publish
+          cp release-assets/python-distributions/* publish/
+          for dir in release-assets/dw-*; do
+            name="$(basename "$dir")"
+            if [[ -f "$dir/dw.exe" ]]; then cp "$dir/dw.exe" "publish/${name}.exe"; else cp "$dir/dw" "publish/${name}"; fi
+            cp "$dir/BUILD.json" "publish/${name}.BUILD.json"
+          done
+          sha256sum publish/* > publish/SHA256SUMS.txt
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" publish/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --generate-notes \
+            --title "DiffWitness $GITHUB_REF_NAME"
+
+  pypi:
+    if: startsWith(github.ref, 'refs/tags/v') && vars.DIFFWITNESS_PYPI_PUBLISH == 'true'
+    needs: source
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
