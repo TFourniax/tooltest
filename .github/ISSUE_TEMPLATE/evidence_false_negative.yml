@@ -1,0 +1,57 @@
+name: Evidence false negative
+description: DiffWitness accepted evidence that you can show was materially insufficient or misleading.
+title: "[evidence false-negative] "
+labels: ["evidence", "safety", "needs-reproduction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        False negatives are high-priority because DiffWitness exists to reduce unjustified trust. Please show the accepted certificate and an independent counterexample demonstrating what the selected evidence failed to discriminate.
+  - type: input
+    id: version
+    attributes:
+      label: DiffWitness version / certificate id
+      placeholder: "0.3.0 / dw2_..."
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Accepted evidence mode
+      options:
+        - exhaustive causal proof
+        - Adaptive Core
+        - preservation assurance
+        - validation-only
+        - proof-not-required
+        - unknown
+    validations:
+      required: true
+  - type: textarea
+    id: counterexample
+    attributes:
+      label: Counterexample
+      description: What behavior/regression/scope change existed despite the accepted evidence?
+    validations:
+      required: true
+  - type: textarea
+    id: certificate
+    attributes:
+      label: Certificate and evidence command
+      description: Paste the relevant non-sensitive fields or link a public artifact.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction / public repository
+      description: Prefer a small deterministic fixture that can become a ProofBench scenario.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Safety
+      options:
+        - label: I removed secrets, proprietary data, and credentials from the reproduction.
+          required: true
