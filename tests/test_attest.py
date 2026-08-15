@@ -162,9 +162,9 @@ class AttestationTests(unittest.TestCase):
             git("add", "tests/test_app.py", cwd=repo)
             git("commit", "-q", "-m", "tests", cwd=repo)
             clone = root / "clone"
-            git("clone", "-q", str(repo), str(clone), cwd=root)
+            git("clone", "--no-local", "-q", str(repo), str(clone), cwd=root)
 
-            # A normal clone receives reachable commits, not DiffWitness's unreachable snapshot.
+            # Non-local clone transport receives reachable objects, not the unreachable snapshot.
             missing = subprocess.run(
                 ["git", "cat-file", "-e", f"{ephemeral_sha}^{{commit}}"],
                 cwd=clone,
