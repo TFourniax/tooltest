@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/integrations/plugin_hook.py\" session-start",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/integrations/plugin_hook.py\" session-start",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/integrations/plugin_hook.py\" session-stop",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/integrations/plugin_hook.py\" session-stop",
             "timeout": 900
           }
         ]
