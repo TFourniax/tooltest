@@ -12,11 +12,13 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from .adaptive import AdaptiveCoreResult, find_adaptive_core
+from .analysis import AnalysisError
 from .autodetect import default_evidence, detect_evidence
 from .cli import main as core_main
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
-from .gitops import diff_text, repo_root, snapshot_worktree
+from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -35,7 +37,29 @@ def _parser() -> argparse.ArgumentParser:
     guard.add_argument("--policy", choices=["observe", "balanced", "strict"], default="balanced")
     guard.add_argument("--stability-runs", type=int, default=2)
     guard.add_argument("--certificate", type=Path)
+    guard.add_argument(
+        "--strategy",
+        choices=["auto", "exhaustive", "adaptive"],
+        default="auto",
+        help="auto uses exhaustive proof for small patches and Adaptive Core for large patches",
+    )
+    guard.add_argument(
+        "--adaptive-threshold",
+        type=int,
+        default=16,
+        help="production mutation count above which auto strategy uses Adaptive Core",
+    )
+    guard.add_argument("--adaptive-budget", type=int, default=40)
     guard.add_argument("agent", nargs=argparse.REMAINDER, help="Agent command after --, e.g. -- claude")
+
+    core = sub.add_parser("core", help="Find a budgeted 1-minimal causal core of a real patch")
+    core.add_argument("--repo", default=".")
+    core.add_argument("--base", default="HEAD")
+    core.add_argument("--candidate", default="WORKTREE")
+    core.add_argument("--test", help="Evidence command; auto-detected when omitted")
+    core.add_argument("--stability-runs", type=int, default=2)
+    core.add_argument("--budget", type=int, default=40)
+    core.add_argument("--json", dest="json_path", type=Path)
 
     doctor = sub.add_parser("doctor", help="Explain zero-config evidence detection for this repository")
     doctor.add_argument("--repo", default=".")
@@ -76,6 +100,19 @@ def _inject_test(raw: list[str]) -> list[str]:
     return [*raw, "--test", plan.command]
 
 
+def _resolve_evidence(repo: Path, explicit: str | None) -> str:
+    if explicit:
+        return explicit
+    config = load_config(repo, None)
+    configured = config.get("test")
+    if isinstance(configured, str) and configured.strip():
+        return configured
+    plan = default_evidence(repo)
+    if plan is None:
+        raise RuntimeError("No evidence command detected. Pass --test or run `dw doctor`.")
+    return plan.command
+
+
 def _policy_passes(report: dict[str, Any], policy: str) -> tuple[bool, str]:
     summary = report["summary"]
     if policy == "observe":
@@ -92,6 +129,21 @@ def _policy_passes(report: dict[str, Any], policy: str) -> tuple[bool, str]:
         if summary.get("unwitnessed", 0):
             return False, f"strict policy rejects {summary['unwitnessed']} unwitnessed hunk(s)"
     return True, "proof policy satisfied"
+
+
+def _adaptive_policy(result: AdaptiveCoreResult, policy: str) -> tuple[bool, str]:
+    if policy == "observe":
+        return True, "observe policy never blocks"
+    if not result.contrast:
+        return False, "Adaptive Core requires stable bug-discriminating contrast"
+    if not result.one_minimal:
+        return False, "adaptive budget ended before 1-minimality was established"
+    if result.removable_mutation_ids:
+        return False, (
+            f"Adaptive Core found {len(result.removable_mutation_ids)} mutation(s) removable "
+            "while preserving the selected stable evidence"
+        )
+    return True, "adaptive proof policy satisfied"
 
 
 def _run_proof(
@@ -126,6 +178,7 @@ def _run_proof(
         str(stability_runs),
         "--certificate",
         str(cert),
+        "--no-github-actions",
     ]
     out = io.StringIO()
     err = io.StringIO()
@@ -154,6 +207,106 @@ def _run_proof(
     return (0 if ok else 1), report, reason if not details else f"{reason}\n{details}"
 
 
+def _candidate_sha(repo: Path, candidate: str) -> tuple[str, str]:
+    if candidate.upper() == "WORKTREE":
+        return snapshot_worktree(repo), "WORKTREE"
+    return resolve_ref(repo, candidate), candidate
+
+
+def _adaptive_document(
+    result: AdaptiveCoreResult,
+    *,
+    repo: Path,
+    base_sha: str,
+    candidate_sha: str,
+    test: str,
+    mutations: list[Any],
+) -> dict[str, Any]:
+    by_id = {mutation.id: mutation for mutation in mutations}
+    payload = result.to_dict()
+    payload.update(
+        {
+            "tool": "diffwitness",
+            "proof_mode": "adaptive-core",
+            "repo": str(repo),
+            "base_sha": base_sha,
+            "candidate_sha": candidate_sha,
+            "test_command": test,
+            "mutations": {
+                mutation_id: {
+                    "path": by_id[mutation_id].path,
+                    "label": by_id[mutation_id].label,
+                    "additions": by_id[mutation_id].additions,
+                    "deletions": by_id[mutation_id].deletions,
+                }
+                for mutation_id in result.original_mutation_ids
+                if mutation_id in by_id
+            },
+        }
+    )
+    stable = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    payload["certificate_id"] = "dwac1_" + hashlib.sha256(stable.encode("utf-8")).hexdigest()[:20]
+    return payload
+
+
+def _run_adaptive(
+    repo: Path,
+    *,
+    base_sha: str,
+    candidate_sha: str,
+    files: list[Any],
+    mutations: list[Any],
+    test: str,
+    stability_runs: int,
+    budget: int,
+    certificate: Path | None = None,
+) -> tuple[AdaptiveCoreResult, dict[str, Any]]:
+    result = find_adaptive_core(
+        source_repo=repo,
+        base_sha=base_sha,
+        candidate_sha=candidate_sha,
+        files=files,
+        mutations=mutations,
+        test_command=test,
+        stability_runs=stability_runs,
+        budget=budget,
+    )
+    doc = _adaptive_document(
+        result,
+        repo=repo,
+        base_sha=base_sha,
+        candidate_sha=candidate_sha,
+        test=test,
+        mutations=mutations,
+    )
+    if certificate is not None:
+        certificate.parent.mkdir(parents=True, exist_ok=True)
+        certificate.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return result, doc
+
+
+def _print_adaptive(result: AdaptiveCoreResult, doc: dict[str, Any], mutations: list[Any]) -> None:
+    by_id = {mutation.id: mutation for mutation in mutations}
+    print("DiffWitness Adaptive Core")
+    print(f"contrast:    {'PROVEN' if result.contrast else 'INCONCLUSIVE'}")
+    print(f"mutations:   {len(result.original_mutation_ids)} original")
+    print(f"core:        {len(result.core_mutation_ids)} retained")
+    print(f"removable:   {len(result.removable_mutation_ids)} observed removable")
+    print(f"experiments: {result.attempts}/{result.budget}")
+    print(f"1-minimal:   {'yes' if result.one_minimal else 'no'}")
+    print(f"certificate: {doc['certificate_id']}")
+    if result.core_mutation_ids:
+        print("\nCausal core:")
+        for mutation_id in result.core_mutation_ids:
+            mutation = by_id.get(mutation_id)
+            print(f"  KEEP    {mutation.label if mutation else mutation_id}")
+    if result.removable_mutation_ids:
+        print("\nEvidence-removable surface:")
+        for mutation_id in result.removable_mutation_ids:
+            mutation = by_id.get(mutation_id)
+            print(f"  REVIEW  {mutation.label if mutation else mutation_id}")
+
+
 def _guard(args: argparse.Namespace) -> int:
     repo = repo_root(args.repo)
     command = list(args.agent)
@@ -161,16 +314,15 @@ def _guard(args: argparse.Namespace) -> int:
         command = command[1:]
     if not command:
         raise RuntimeError("guard requires an agent command, e.g. `dw guard -- claude` or `dw guard -- codex`")
+    if args.adaptive_threshold < 1:
+        raise RuntimeError("--adaptive-threshold must be >= 1")
 
-    plan = default_evidence(repo) if not args.test else None
-    test = args.test or (plan.command if plan else None)
-    if not test:
-        raise RuntimeError("No evidence command detected. Pass --test or run `dw doctor`.")
-
+    test = _resolve_evidence(repo, args.test)
     baseline = snapshot_worktree(repo)
     print(f"DiffWitness Guard armed at {baseline[:12]}")
     print(f"Evidence: {test}")
     print(f"Policy:   {args.policy}")
+    print(f"Strategy: {args.strategy}")
     print()
 
     env = os.environ.copy()
@@ -190,6 +342,39 @@ def _guard(args: argparse.Namespace) -> int:
         print("DiffWitness Guard: no production-code mutation detected; nothing causal to prove.")
         return 0
 
+    strategy = args.strategy
+    if strategy == "auto":
+        strategy = "adaptive" if len(mutations) > args.adaptive_threshold else "exhaustive"
+    print(f"DiffWitness Guard selected {strategy} proof for {len(mutations)} production mutation(s).")
+
+    if strategy == "adaptive":
+        try:
+            result, doc = _run_adaptive(
+                repo,
+                base_sha=baseline,
+                candidate_sha=candidate,
+                files=files,
+                mutations=mutations,
+                test=test,
+                stability_runs=args.stability_runs,
+                budget=args.adaptive_budget,
+                certificate=args.certificate,
+            )
+        except AnalysisError as exc:
+            message = f"adaptive proof inconclusive: {exc}"
+            if args.policy == "observe":
+                print(f"DiffWitness Guard: {message}")
+                return 0
+            print(f"DiffWitness Guard: PROOF REJECTED - {message}", file=sys.stderr)
+            return 1
+        _print_adaptive(result, doc, mutations)
+        ok, reason = _adaptive_policy(result, args.policy)
+        if ok:
+            print(f"\nDiffWitness Guard: PROOF ACCEPTED ({doc['certificate_id']})")
+            return 0
+        print(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", file=sys.stderr)
+        return 1
+
     rc, report, reason = _run_proof(
         repo,
         base=baseline,
@@ -205,6 +390,34 @@ def _guard(args: argparse.Namespace) -> int:
     else:
         print(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", file=sys.stderr)
     return rc
+
+
+def _core(args: argparse.Namespace) -> int:
+    repo = repo_root(args.repo)
+    test = _resolve_evidence(repo, args.test)
+    base_sha = resolve_ref(repo, args.base)
+    candidate_sha, candidate_ref = _candidate_sha(repo, args.candidate)
+    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
+    mutations = make_mutations(files)
+    if not mutations:
+        print("DiffWitness Adaptive Core: no production-code mutation detected.")
+        return 0
+    result, doc = _run_adaptive(
+        repo,
+        base_sha=base_sha,
+        candidate_sha=candidate_sha,
+        files=files,
+        mutations=mutations,
+        test=test,
+        stability_runs=args.stability_runs,
+        budget=args.budget,
+        certificate=args.json_path,
+    )
+    print(f"base:      {args.base} ({base_sha[:12]})")
+    print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
+    print(f"evidence:  {test}\n")
+    _print_adaptive(result, doc, mutations)
+    return 0 if result.one_minimal else 1
 
 
 def _doctor(args: argparse.Namespace) -> int:
@@ -281,14 +494,18 @@ def _session_stop(args: argparse.Namespace) -> int:
         print(json.dumps({"decision": "approve", "systemMessage": "DiffWitness: no production-code mutation to prove."}))
         return 0
 
-    plan = default_evidence(repo)
     config = load_config(repo, None)
-    test = config.get("test") or (plan.command if plan else None)
+    test = config.get("test")
+    if not test:
+        plan = default_evidence(repo)
+        test = plan.command if plan else None
     if not test:
         reason = "DiffWitness cannot find an evidence command. Add tests or configure [diffwitness].test before declaring the task complete."
         print(json.dumps({"decision": "block", "reason": reason, "systemMessage": reason}))
         return 0
 
+    # Hooks use the exhaustive engine for now because its feedback is hunk-specific and most
+    # interactive agent tasks are small. The process-level Guard handles adaptive routing.
     rc, report, reason = _run_proof(
         repo,
         base=base,
@@ -331,13 +548,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "guard":
             return _guard(args)
+        if args.command == "core":
+            return _core(args)
         if args.command == "doctor":
             return _doctor(args)
         if args.command == "session-start":
             return _session_start(args)
         if args.command == "session-stop":
             return _session_stop(args)
-    except (RuntimeError, OSError, ValueError) as exc:
+    except (RuntimeError, OSError, ValueError, AnalysisError) as exc:
         print(f"DiffWitness: {exc}", file=sys.stderr)
         return 2
     return 2
