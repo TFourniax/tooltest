@@ -6,7 +6,7 @@ from typing import Any
 
 from .analysis import AnalysisError, _apply_many, _prepare_sandbox
 from .diffing import FilePatch, test_overlay
-from .gitops import apply_patch, detached_worktree, hard_reset
+from .gitops import apply_patch, detached_worktree, git, hard_reset
 from .models import Mutation, RepeatedCommandResult
 from .runner import run_repeated
 
@@ -22,6 +22,8 @@ class AdaptiveAttempt:
 class AdaptiveCoreResult:
     candidate: RepeatedCommandResult
     baseline: RepeatedCommandResult
+    base_tree: str
+    candidate_tree: str
     original_mutation_ids: list[str]
     core_mutation_ids: list[str]
     removable_mutation_ids: list[str]
@@ -45,6 +47,8 @@ class AdaptiveCoreResult:
             "strategy": "adaptive-core",
             "candidate": self.candidate.to_dict(),
             "baseline_with_candidate_tests": self.baseline.to_dict(),
+            "base_tree": self.base_tree,
+            "candidate_tree": self.candidate_tree,
             "contrast": self.contrast,
             "original_mutation_ids": self.original_mutation_ids,
             "core_mutation_ids": self.core_mutation_ids,
@@ -112,6 +116,11 @@ def find_adaptive_core(
 
     if not production:
         raise AnalysisError("adaptive core search requires at least one production mutation")
+
+    base_tree = git(source_repo, "rev-parse", "--verify", f"{base_sha}^{{tree}}").strip()
+    candidate_tree = git(
+        source_repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}"
+    ).strip()
 
     with detached_worktree(source_repo, candidate_sha, "adaptive-candidate") as candidate_wt:
         _prepare_sandbox(
@@ -203,7 +212,6 @@ def find_adaptive_core(
                 )
                 return runs
 
-            # Confirm that rebuilding from base with every production mutation reproduces a pass.
             rebuilt = evaluate(list(production))
             if rebuilt is None or not rebuilt.passed:
                 raise AnalysisError(
@@ -214,7 +222,6 @@ def find_adaptive_core(
             core = list(production)
             granularity = 2
 
-            # ddmin-style coarse removal. Large removable regions disappear in a handful of runs.
             while len(core) >= 2 and attempts < budget:
                 chunks = _partition(core, granularity)
                 reduced = False
@@ -237,7 +244,6 @@ def find_adaptive_core(
                     break
                 granularity = min(len(core), granularity * 2)
 
-            # Greedy single-hunk cleanup and explicit 1-minimality verification.
             one_minimal = False
             changed = True
             while changed and core and attempts < budget:
@@ -246,7 +252,6 @@ def find_adaptive_core(
                 for mutation in list(core):
                     trial = [item for item in core if item.id != mutation.id]
                     if not trial:
-                        # Stable-failing baseline already proves a one-element core cannot be emptied.
                         continue
                     runs = evaluate(trial)
                     if runs is None:
@@ -272,6 +277,8 @@ def find_adaptive_core(
             return AdaptiveCoreResult(
                 candidate=candidate_runs,
                 baseline=baseline_runs,
+                base_tree=base_tree,
+                candidate_tree=candidate_tree,
                 original_mutation_ids=original_ids,
                 core_mutation_ids=core_ids,
                 removable_mutation_ids=removable_ids,
