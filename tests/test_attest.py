@@ -59,7 +59,6 @@ class AttestationTests(unittest.TestCase):
             self.assertTrue(fresh["valid"])
             self.assertEqual(fresh["integrity"], "valid")
             self.assertEqual(fresh["freshness"], "fresh")
-            # CLI automatically excludes its own untracked certificate artifact.
             self.assertEqual(main(["verify", str(certificate), "--repo", str(repo)]), 0)
 
             (repo / "README.md").write_text("changed-after-proof\n", encoding="utf-8")
@@ -113,6 +112,82 @@ class AttestationTests(unittest.TestCase):
             payload = json.loads(note)
             self.assertEqual(payload["protocol"], "DiffWitness")
             self.assertEqual(payload["certificate_id"], load_certificate(certificate)["certificate_id"])
+
+    def test_tree_bound_validation_proof_verifies_in_fresh_clone_without_snapshot_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = root / "source"
+            repo.mkdir()
+            git("init", "-q", cwd=repo)
+            git("config", "user.email", "attest@example.com", cwd=repo)
+            git("config", "user.name", "Attest Test", cwd=repo)
+            (repo / "app.py").write_text("VALUE = 1\n", encoding="utf-8")
+            git("add", "app.py", cwd=repo)
+            git("commit", "-q", "-m", "baseline", cwd=repo)
+            base = git("rev-parse", "HEAD", cwd=repo)
+
+            tests = repo / "tests"
+            tests.mkdir()
+            (tests / "test_app.py").write_text(
+                "import unittest\nfrom app import VALUE\n\n"
+                "class T(unittest.TestCase):\n"
+                "    def test_value(self):\n"
+                "        self.assertEqual(VALUE, 1)\n",
+                encoding="utf-8",
+            )
+            certificate = root / "portable-proof.json"
+            self.assertEqual(
+                main(
+                    [
+                        "gate",
+                        "--repo",
+                        str(repo),
+                        "--base",
+                        base,
+                        "--candidate",
+                        "WORKTREE",
+                        "--certificate",
+                        str(certificate),
+                        "--stability-runs",
+                        "1",
+                        "--no-github-actions",
+                    ]
+                ),
+                0,
+            )
+            report = load_certificate(certificate)
+            ephemeral_sha = report["candidate"]["sha"]
+            self.assertTrue(report["candidate"].get("tree"))
+
+            git("add", "tests/test_app.py", cwd=repo)
+            git("commit", "-q", "-m", "tests", cwd=repo)
+            clone = root / "clone"
+            git("clone", "-q", str(repo), str(clone), cwd=root)
+
+            # A normal clone receives reachable commits, not DiffWitness's unreachable snapshot.
+            missing = subprocess.run(
+                ["git", "cat-file", "-e", f"{ephemeral_sha}^{{commit}}"],
+                cwd=clone,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertEqual(
+                main(
+                    [
+                        "verify",
+                        str(certificate),
+                        "--repo",
+                        str(clone),
+                        "--against",
+                        "HEAD",
+                    ]
+                ),
+                0,
+            )
+            verification = verify_against_repo(report, repo=clone, against="HEAD")
+            self.assertEqual(verification["candidate_binding"], "embedded-tree")
+            self.assertTrue(verification["valid"])
 
 
 if __name__ == "__main__":
