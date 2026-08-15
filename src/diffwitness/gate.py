@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -10,11 +11,12 @@ from typing import Any
 
 from .adaptive import find_adaptive_core
 from .analysis import AnalysisError
+from .assurance import assurance_policy, build_assurance, render_assurance_markdown
 from .cli import main as core_main
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
-from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
+from .gitops import diff_text, repo_root, resolve_ref
 from .proof_cli import (
     _adaptive_document,
     _adaptive_policy,
@@ -114,6 +116,50 @@ def _emit_adaptive_github(doc: dict[str, Any]) -> None:
             handle.write("proof_mode=adaptive-core\n")
 
 
+def _emit_assurance_github(report: dict[str, Any], *, accepted: bool) -> None:
+    markdown = render_assurance_markdown(report)
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with Path(summary_path).open("a", encoding="utf-8") as handle:
+            handle.write(markdown)
+            handle.write("\n")
+    classification = str(report.get("classification"))
+    if classification == "non-discriminating-change":
+        level = "warning" if accepted else "error"
+        print(
+            f"::{level} title=DiffWitness non-discriminating evidence::"
+            "Candidate tests pass on the base as well as the candidate; they do not discriminate the production change."
+        )
+    elif classification in {"candidate-not-stable-green", "assurance-inconclusive"}:
+        level = "warning" if accepted else "error"
+        print(
+            f"::{level} title=DiffWitness assurance::{_escape_workflow(str(report.get('claim') or classification))}"
+        )
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with Path(output).open("a", encoding="utf-8") as handle:
+            handle.write(f"certificate_id={report['certificate_id']}\n")
+            handle.write("contrast=not-applicable\n")
+            handle.write("witnessed=0\n")
+            handle.write("unwitnessed=0\n")
+            handle.write(f"inconclusive={report['summary'].get('inconclusive', 0)}\n")
+            handle.write("witness_ratio=\n")
+            handle.write("minimal_sufficient_order=\n")
+            handle.write("surplus_candidate_hunks=0\n")
+            handle.write(f"proof_mode={classification}\n")
+
+
+def _write_assurance_artifacts(
+    report: dict[str, Any], *, certificate: Path | None, markdown_path: Path | None
+) -> None:
+    if certificate:
+        certificate.parent.mkdir(parents=True, exist_ok=True)
+        certificate.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if markdown_path:
+        markdown_path.parent.mkdir(parents=True, exist_ok=True)
+        markdown_path.write_text(render_assurance_markdown(report), encoding="utf-8")
+
+
 def _run_exhaustive_gate(
     *,
     repo: Path,
@@ -189,7 +235,7 @@ def _run_exhaustive_gate(
 def gate_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw gate",
-        description="Validate an existing Git diff with exhaustive or budgeted adaptive causal evidence.",
+        description="Validate an existing Git diff with semantic evidence routing and causal proof when applicable.",
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
@@ -256,19 +302,51 @@ def gate_cli(argv: list[str]) -> int:
     )
     mutations = make_mutations(files, ignore_globs=ignore)
     if not mutations:
-        # The outer `dw` entrypoint normally turns this into a formal no-op certificate.
         print("DiffWitness Gate: no executable causal mutation detected.")
         return 0
+
+    github_mode = is_github_actions() if args.github_actions is None else args.github_actions
+
+    # Semantic probe first. This prevents forcing repair-style hunk necessity onto preservation
+    # tasks and prevents large non-contrast patches from falling into Adaptive Core by accident.
+    assurance = build_assurance(
+        source_repo=repo,
+        base_sha=base_sha,
+        candidate_sha=candidate_sha,
+        candidate_ref=candidate_ref,
+        files=files,
+        test_command=test,
+        stability_runs=stability_runs,
+        timeout=timeout,
+        prepare_command=str(prepare) if prepare else None,
+        shared_paths=shared,
+        overlay_candidate_tests=overlay_tests,
+    )
+    classification = str(assurance["classification"])
+    if classification != "causal-contrast":
+        ok, reason = assurance_policy(assurance, policy)
+        _write_assurance_artifacts(
+            assurance, certificate=args.certificate, markdown_path=args.report
+        )
+        if github_mode:
+            _emit_assurance_github(assurance, accepted=ok)
+        print(
+            f"DiffWitness Gate: {classification} under {policy} policy "
+            f"({assurance['certificate_id']})"
+        )
+        if ok:
+            print(f"DiffWitness Gate accepted: {reason}")
+            return 0
+        print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
+        return 1
 
     selected = strategy
     if selected == "auto":
         selected = "adaptive" if len(mutations) > adaptive_threshold else "exhaustive"
     print(
-        f"DiffWitness Gate: {selected} strategy for {len(mutations)} production mutation(s) "
-        f"under {policy} policy"
+        f"DiffWitness Gate: causal contrast proven; {selected} strategy for "
+        f"{len(mutations)} production mutation(s) under {policy} policy"
     )
-
-    github_mode = is_github_actions() if args.github_actions is None else args.github_actions
 
     if selected == "adaptive":
         try:
@@ -303,10 +381,7 @@ def gate_cli(argv: list[str]) -> int:
                 "test_overlay": overlay_tests,
                 "stability_runs": stability_runs,
             }
-            # Recompute the content address after adding execution metadata.
             stable = {key: value for key, value in doc.items() if key != "certificate_id"}
-            import hashlib
-
             encoded = json.dumps(
                 stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False
             ).encode("utf-8")
