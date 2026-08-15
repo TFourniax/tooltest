@@ -1,5 +1,5 @@
-name: DiffWitness Evidence
-description: Prove which real Git hunks are necessary, sufficient, redundant or unstable under a selected test command.
+name: DiffWitness Proof Gate
+description: Independent causal proof for a Git patch — zero-config when the repository exposes a conventional test command.
 author: Thomas Fournier
 inputs:
   base:
@@ -10,7 +10,7 @@ inputs:
     required: false
     default: HEAD
   test:
-    description: Evidence command; optional when .diffwitness.toml contains test
+    description: Evidence command; auto-detected when omitted and not configured in .diffwitness.toml
     required: false
     default: ""
   prepare:
@@ -22,9 +22,13 @@ inputs:
     required: false
     default: "2"
   strict:
-    description: Require base→candidate contrast and every analyzed hunk to be witnessed
+    description: Require stable base-fail/candidate-pass contrast and every analyzed hunk to be witnessed
     required: false
     default: "false"
+  upload-certificate:
+    description: Preserve JSON + Markdown proof as a GitHub Actions artifact
+    required: false
+    default: "true"
 outputs:
   certificate_id:
     description: Content-addressed DiffWitness evidence certificate id
@@ -47,7 +51,7 @@ runs:
     - name: Install DiffWitness
       shell: bash
       run: python -m pip install "$GITHUB_ACTION_PATH"
-    - name: Build patch evidence
+    - name: Build patch proof
       id: prove
       shell: bash
       env:
@@ -63,7 +67,17 @@ runs:
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
         if [[ "$DW_STRICT" == "true" ]]; then args+=(--require-contrast --require-all-witnessed); fi
-        diffwitness "${args[@]}"
+        dw "${args[@]}"
+    - name: Preserve proof certificate
+      if: ${{ always() && inputs.upload-certificate == 'true' && hashFiles('diffwitness-evidence.json') != '' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: diffwitness-${{ steps.prove.outputs.certificate_id }}
+        path: |
+          diffwitness-evidence.json
+          diffwitness-evidence.md
+        if-no-files-found: ignore
+        retention-days: 30
 branding:
-  icon: check-circle
+  icon: shield
   color: purple
