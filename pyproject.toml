@@ -25,7 +25,7 @@ dependencies = []
 
 [project.scripts]
 diffwitness = "diffwitness.cli:main"
-dw = "diffwitness.proof_cli:main"
+dw = "diffwitness.entry:main"
 
 [project.urls]
 Homepage = "https://github.com/TFourniax/tooltest"
