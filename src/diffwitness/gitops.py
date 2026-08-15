@@ -54,11 +54,13 @@ def resolve_ref(repo: Path, ref: str) -> str:
     return value
 
 
-def snapshot_worktree(repo: Path) -> str:
+def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> str:
     """Create an unreachable commit representing staged, unstaged and untracked files.
 
-    An alternate index is used, so the user's real staging area is untouched.
-    Ignored files are intentionally not captured.
+    An alternate index is used, so the user's real staging area is untouched. Ignored files are
+    intentionally not captured. `exclude_paths` is reserved for verification-time generated
+    artifacts (for example the certificate being verified); exclusions affect only the ephemeral
+    alternate index and never mutate the user's real staging area or working files.
     """
     head = resolve_ref(repo, "HEAD")
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
@@ -69,6 +71,18 @@ def snapshot_worktree(repo: Path) -> str:
     try:
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
+        for raw in exclude_paths or []:
+            rel = Path(raw)
+            if rel.is_absolute() or ".." in rel.parts:
+                raise GitError(f"snapshot exclusion must be a repo-relative path: {raw}")
+            # Restore the HEAD version in the alternate index. For an untracked artifact this
+            # removes it from the snapshot; for a tracked path it deliberately restores HEAD.
+            _run(
+                ["git", "reset", "--quiet", head, "--", rel.as_posix()],
+                cwd=repo,
+                env=env,
+                check=False,
+            )
         tree = _run(["git", "write-tree"], cwd=repo, env=env).stdout.strip()
         commit_env = env.copy()
         commit_env.setdefault("GIT_AUTHOR_NAME", "DiffWitness")
