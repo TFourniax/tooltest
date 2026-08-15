@@ -158,13 +158,16 @@ class GateTests(unittest.TestCase):
 
     def test_explicit_nondefault_config_supplies_evidence_command(self) -> None:
         with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
+            root = Path(td)
+            repo = root / "repo"
+            repo.mkdir()
             base = init(repo, "def add(a, b):\n    return a - b\n")
             (repo / "calc.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
             add_regression(repo)
             command = f'"{sys.executable}" -m unittest discover -s tests -q'
             escaped = command.replace("\\", "\\\\").replace('"', '\\"')
-            (repo / "proof-config.toml").write_text(
+            config_path = root / "proof-config.toml"
+            config_path.write_text(
                 f'[diffwitness]\ntest = "{escaped}"\nstability_runs = 1\n',
                 encoding="utf-8",
             )
@@ -174,7 +177,7 @@ class GateTests(unittest.TestCase):
                     "--repo",
                     str(repo),
                     "--config",
-                    "proof-config.toml",
+                    str(config_path),
                     "--base",
                     base,
                     "--candidate",
