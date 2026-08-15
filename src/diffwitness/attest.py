@@ -76,13 +76,17 @@ def _base_sha(report: dict[str, Any]) -> str | None:
 
 
 def verify_against_repo(
-    report: dict[str, Any], *, repo: Path, against: str = "WORKTREE"
+    report: dict[str, Any],
+    *,
+    repo: Path,
+    against: str = "WORKTREE",
+    ignore_artifacts: list[str] | None = None,
 ) -> dict[str, Any]:
     integrity, actual_id, expected_id = verify_integrity(report)
     candidate_sha = _candidate_sha(report)
     expected_tree = _tree(repo, candidate_sha)
     if against.upper() == "WORKTREE":
-        current_sha = snapshot_worktree(repo)
+        current_sha = snapshot_worktree(repo, exclude_paths=ignore_artifacts or [])
         current_label = "WORKTREE"
     else:
         current_sha = resolve_ref(repo, against)
@@ -107,6 +111,7 @@ def verify_against_repo(
         "current_sha": current_sha,
         "current_tree": current_tree,
         "base_resolvable": base_resolvable,
+        "ignored_artifacts": list(ignore_artifacts or []),
         "valid": integrity and fresh and base_resolvable,
     }
 
@@ -121,15 +126,41 @@ def load_certificate(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _artifact_relpath(repo: Path, path: Path) -> str | None:
+    try:
+        rel = path.resolve().relative_to(repo.resolve()).as_posix()
+    except ValueError:
+        return None
+    # Only auto-ignore an untracked artifact. A tracked certificate/report path is real repo
+    # content and changing it must invalidate freshness like any other tracked file.
+    tracked = git(repo, "ls-files", "--", rel).strip()
+    return None if tracked else rel
+
+
 def verify_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="dw verify", description="Verify proof integrity and whether it still matches repository content.")
     parser.add_argument("certificate", type=Path)
     parser.add_argument("--repo", default=".")
     parser.add_argument("--against", default="WORKTREE", help="WORKTREE or Git ref (default: WORKTREE)")
+    parser.add_argument(
+        "--ignore-artifact",
+        action="append",
+        default=[],
+        help="Repo-relative generated artifact to exclude from WORKTREE freshness comparison; repeatable",
+    )
     parser.add_argument("--json", action="store_true", help="Print machine-readable verification result")
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)
-    result = verify_against_repo(load_certificate(args.certificate), repo=repo, against=args.against)
+    ignored = list(args.ignore_artifact)
+    own = _artifact_relpath(repo, args.certificate)
+    if own and own not in ignored:
+        ignored.append(own)
+    result = verify_against_repo(
+        load_certificate(args.certificate),
+        repo=repo,
+        against=args.against,
+        ignore_artifacts=ignored,
+    )
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
@@ -137,6 +168,8 @@ def verify_cli(argv: list[str]) -> int:
         print(f"integrity:   {result['integrity']}")
         print(f"freshness:   {result['freshness']} against {result['against']}")
         print(f"base:        {'resolvable' if result['base_resolvable'] else 'missing'}")
+        if result["ignored_artifacts"]:
+            print(f"artifacts:   ignored {', '.join(result['ignored_artifacts'])}")
         print(f"verdict:     {'VALID' if result['valid'] else 'INVALID'}")
     return 0 if result["valid"] else 1
 
