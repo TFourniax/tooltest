@@ -1,5 +1,5 @@
 name: DiffWitness Proof Gate
-description: Independent causal proof for a Git patch — zero-config when the repository exposes a conventional test command.
+description: Independent causal proof for a Git patch — exhaustive on small diffs, adaptive under a bounded budget on large ones.
 author: Thomas Fournier
 inputs:
   base:
@@ -14,17 +14,33 @@ inputs:
     required: false
     default: ""
   prepare:
-    description: Optional setup command
+    description: Optional setup command executed inside isolated proof worktrees
     required: false
     default: ""
   stability-runs:
     description: Repetitions per evidence variant
     required: false
     default: "2"
+  policy:
+    description: observe, balanced, or strict
+    required: false
+    default: balanced
   strict:
-    description: Require stable base-fail/candidate-pass contrast and every analyzed hunk to be witnessed
+    description: Backward-compatible shortcut that forces strict policy when true
     required: false
     default: "false"
+  strategy:
+    description: auto, exhaustive, or adaptive
+    required: false
+    default: auto
+  adaptive-threshold:
+    description: Production mutation count above which auto strategy switches to Adaptive Core
+    required: false
+    default: "16"
+  adaptive-budget:
+    description: Maximum Adaptive Core experiment count
+    required: false
+    default: "40"
   upload-certificate:
     description: Preserve JSON + Markdown proof as a GitHub Actions artifact
     required: false
@@ -33,14 +49,17 @@ outputs:
   certificate_id:
     description: Content-addressed DiffWitness evidence certificate id
     value: ${{ steps.prove.outputs.certificate_id }}
+  proof_mode:
+    description: exhaustive, adaptive-core, or not-required
+    value: ${{ steps.prove.outputs.proof_mode }}
   witness_ratio:
-    description: Fraction of conclusive hunks individually witnessed
+    description: Fraction of conclusive hunks individually witnessed when exhaustive mode is used
     value: ${{ steps.prove.outputs.witness_ratio }}
   minimal_sufficient_order:
-    description: Cardinality of the smallest sufficient real-hunk subset found
+    description: Smallest sufficient order found, or retained Adaptive Core size
     value: ${{ steps.prove.outputs.minimal_sufficient_order }}
   surplus_candidate_hunks:
-    description: Strong surplus candidate count
+    description: Strong surplus/removable candidate count
     value: ${{ steps.prove.outputs.surplus_candidate_hunks }}
 runs:
   using: composite
@@ -60,13 +79,18 @@ runs:
         DW_TEST: ${{ inputs.test }}
         DW_PREPARE: ${{ inputs.prepare }}
         DW_STABILITY: ${{ inputs.stability-runs }}
+        DW_POLICY: ${{ inputs.policy }}
         DW_STRICT: ${{ inputs.strict }}
+        DW_STRATEGY: ${{ inputs.strategy }}
+        DW_ADAPTIVE_THRESHOLD: ${{ inputs.adaptive-threshold }}
+        DW_ADAPTIVE_BUDGET: ${{ inputs.adaptive-budget }}
       run: |
         set -euo pipefail
-        args=(prove --base "$DW_BASE" --candidate "$DW_CANDIDATE" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
+        policy="$DW_POLICY"
+        if [[ "$DW_STRICT" == "true" ]]; then policy="strict"; fi
+        args=(gate --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
-        if [[ "$DW_STRICT" == "true" ]]; then args+=(--require-contrast --require-all-witnessed); fi
         dw "${args[@]}"
     - name: Preserve proof certificate
       if: ${{ always() && inputs.upload-certificate == 'true' && hashFiles('diffwitness-evidence.json') != '' }}
