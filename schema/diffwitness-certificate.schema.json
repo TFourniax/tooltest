@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TFourniax/tooltest/blob/main/schema/diffwitness-certificate.schema.json",
+  "title": "DiffWitness evidence certificate",
+  "description": "Unified envelope for causal, adaptive, assurance, validation-only, and proof-not-required DiffWitness evidence.",
+  "oneOf": [
+    { "$ref": "#/$defs/exhaustive" },
+    { "$ref": "#/$defs/adaptive" },
+    { "$ref": "#/$defs/assurance" },
+    { "$ref": "#/$defs/validation" },
+    { "$ref": "#/$defs/notRequired" }
+  ],
+  "$defs": {
+    "gitBinding": {
+      "type": "object",
+      "properties": {
+        "ref": { "type": "string" },
+        "sha": { "type": "string", "minLength": 7 },
+        "tree": { "type": "string", "minLength": 7 }
+      },
+      "required": ["sha"],
+      "additionalProperties": true
+    },
+    "runSet": {
+      "type": "object",
+      "properties": {
+        "classification": {
+          "enum": ["stable-pass", "stable-fail", "flaky", "timeout"]
+        },
+        "runs": { "type": "array" },
+        "total_duration_s": { "type": "number", "minimum": 0 }
+      },
+      "required": ["classification", "runs"],
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "mutations": { "type": "integer", "minimum": 0 },
+        "witnessed": { "type": "integer", "minimum": 0 },
+        "unwitnessed": { "type": "integer", "minimum": 0 },
+        "inconclusive": { "type": "integer", "minimum": 0 },
+        "surplus_candidate_hunks": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["mutations", "witnessed", "unwitnessed", "inconclusive"],
+      "additionalProperties": true
+    },
+    "exhaustive": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "const": 2 },
+        "tool": { "const": "diffwitness" },
+        "certificate_id": { "type": "string", "pattern": "^dw2_[0-9a-f]{20}$" },
+        "base": { "$ref": "#/$defs/gitBinding" },
+        "candidate": { "$ref": "#/$defs/gitBinding" },
+        "contrast": {
+          "enum": [
+            "base-fail_candidate-pass",
+            "base-pass_candidate-pass",
+            "base-inconclusive_candidate-pass",
+            "candidate-not-stable-green"
+          ]
+        },
+        "candidate_run": { "$ref": "#/$defs/runSet" },
+        "baseline_with_candidate_tests_run": { "$ref": "#/$defs/runSet" },
+        "summary": { "$ref": "#/$defs/summary" },
+        "results": { "type": "array" }
+      },
+      "required": [
+        "schema_version",
+        "tool",
+        "certificate_id",
+        "base",
+        "candidate",
+        "contrast",
+        "candidate_run",
+        "baseline_with_candidate_tests_run",
+        "summary",
+        "results"
+      ],
+      "additionalProperties": true
+    },
+    "adaptive": {
+      "type": "object",
+      "properties": {
+        "tool": { "const": "diffwitness" },
+        "proof_mode": { "const": "adaptive-core" },
+        "certificate_id": { "type": "string", "pattern": "^dwac1_[0-9a-f]{20}$" },
+        "base_sha": { "type": "string" },
+        "candidate_sha": { "type": "string" },
+        "base_tree": { "type": "string" },
+        "candidate_tree": { "type": "string" },
+        "contrast": { "const": true },
+        "one_minimal": { "type": "boolean" },
+        "original_mutation_ids": { "type": "array", "items": { "type": "string" } },
+        "core_mutation_ids": { "type": "array", "items": { "type": "string" } },
+        "removable_mutation_ids": { "type": "array", "items": { "type": "string" } },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "budget": { "type": "integer", "minimum": 1 }
+      },
+      "required": [
+        "tool",
+        "proof_mode",
+        "certificate_id",
+        "base_sha",
+        "candidate_sha",
+        "base_tree",
+        "candidate_tree",
+        "contrast",
+        "one_minimal",
+        "original_mutation_ids",
+        "core_mutation_ids",
+        "removable_mutation_ids",
+        "attempts",
+        "budget"
+      ],
+      "additionalProperties": true
+    },
+    "assurance": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "const": "assurance-1" },
+        "tool": { "const": "diffwitness" },
+        "certificate_id": { "type": "string", "pattern": "^dwa1_[0-9a-f]{20}$" },
+        "outcome": { "const": "assurance" },
+        "classification": {
+          "enum": [
+            "causal-contrast",
+            "preservation-evidence",
+            "non-discriminating-change",
+            "candidate-not-stable-green",
+            "assurance-inconclusive"
+          ]
+        },
+        "base": { "$ref": "#/$defs/gitBinding" },
+        "candidate": { "$ref": "#/$defs/gitBinding" },
+        "candidate_run": { "$ref": "#/$defs/runSet" },
+        "baseline_with_candidate_tests_run": { "$ref": "#/$defs/runSet" },
+        "summary": { "$ref": "#/$defs/summary" }
+      },
+      "required": [
+        "schema_version",
+        "tool",
+        "certificate_id",
+        "outcome",
+        "classification",
+        "base",
+        "candidate",
+        "candidate_run",
+        "baseline_with_candidate_tests_run",
+        "summary"
+      ],
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "const": "validation-1" },
+        "tool": { "const": "diffwitness" },
+        "certificate_id": { "type": "string", "pattern": "^dwv1_[0-9a-f]{20}$" },
+        "outcome": { "const": "validation-only" },
+        "base": { "$ref": "#/$defs/gitBinding" },
+        "candidate": { "$ref": "#/$defs/gitBinding" },
+        "candidate_run": { "$ref": "#/$defs/runSet" },
+        "changed_test_files": { "type": "array", "items": { "type": "string" } },
+        "valid": { "type": "boolean" },
+        "summary": { "$ref": "#/$defs/summary" }
+      },
+      "required": [
+        "schema_version",
+        "tool",
+        "certificate_id",
+        "outcome",
+        "base",
+        "candidate",
+        "candidate_run",
+        "changed_test_files",
+        "valid",
+        "summary"
+      ],
+      "additionalProperties": true
+    },
+    "notRequired": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "const": "noop-1" },
+        "tool": { "const": "diffwitness" },
+        "certificate_id": { "type": "string", "pattern": "^dw0_[0-9a-f]{20}$" },
+        "outcome": { "const": "proof-not-required" },
+        "base": { "$ref": "#/$defs/gitBinding" },
+        "candidate": { "$ref": "#/$defs/gitBinding" },
+        "changed_files": { "type": "array", "items": { "type": "string" } },
+        "summary": { "$ref": "#/$defs/summary" }
+      },
+      "required": [
+        "schema_version",
+        "tool",
+        "certificate_id",
+        "outcome",
+        "base",
+        "candidate",
+        "changed_files",
+        "summary"
+      ],
+      "additionalProperties": true
+    }
+  }
+}
