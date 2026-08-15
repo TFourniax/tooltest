@@ -57,6 +57,7 @@ class CliTests(unittest.TestCase):
             ]
             proc = run(cmd, cwd=repo, check=False)
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertIn("DiffWitness 0.3.0 - counterfactual patch evidence", proc.stdout)
             report = json.loads(cert.read_text(encoding="utf-8"))
             self.assertEqual(report["schema_version"], 2)
             self.assertEqual(report["summary"]["witnessed"], 1)
@@ -78,7 +79,8 @@ class CliTests(unittest.TestCase):
             self.assertIn('test = "pytest -q"', (repo / ".diffwitness.toml").read_text(encoding="utf-8"))
             workflow = (repo / ".github" / "workflows" / "diffwitness.yml").read_text(encoding="utf-8")
             self.assertIn("uses: TFourniax/tooltest@main", workflow)
-            self.assertIn("strict: false", workflow)
+            self.assertIn("policy: balanced", workflow)
+            self.assertIn("strategy: auto", workflow)
 
 
 if __name__ == "__main__":
