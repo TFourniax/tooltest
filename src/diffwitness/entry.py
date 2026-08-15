@@ -9,10 +9,12 @@ from typing import Any
 
 from . import __version__
 from .attest import note_cli, verify_cli
+from .autodetect import default_evidence
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
 from .proof_cli import main as proof_main
+from .validation import build_validation_only, render_validation_markdown
 
 
 TOP_HELP = """DiffWitness Proof Layer
@@ -56,11 +58,7 @@ def _values(args: list[str], name: str) -> list[str]:
 
 
 def _inject_explicit_config_test(args: list[str]) -> list[str]:
-    """Honor --config test=... even in zero-config frontends.
-
-    Gate/Guard normally auto-detect evidence. When a caller explicitly selects a non-default config
-    file, its evidence command must win just like the default .diffwitness.toml would.
-    """
+    """Honor --config test=... even in zero-config frontends."""
     if _value(args, "--test"):
         return args
     explicit = _value(args, "--config")
@@ -74,36 +72,40 @@ def _inject_explicit_config_test(args: list[str]) -> list[str]:
     return args
 
 
-def _write_github_noop(report: dict[str, Any]) -> None:
+def _github_mode(args: list[str]) -> bool:
+    return "--github-actions" in args or (
+        "--no-github-actions" not in args and os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+    )
+
+
+def _write_common_outputs(report: dict[str, Any], *, proof_mode: str) -> None:
     output = os.environ.get("GITHUB_OUTPUT")
-    if output:
-        with Path(output).open("a", encoding="utf-8") as handle:
-            handle.write(f"certificate_id={report['certificate_id']}\n")
-            handle.write("contrast=not-applicable\n")
-            handle.write("witnessed=0\n")
-            handle.write("unwitnessed=0\n")
-            handle.write("inconclusive=0\n")
-            handle.write("witness_ratio=\n")
-            handle.write("minimal_sufficient_order=\n")
-            handle.write("surplus_candidate_hunks=0\n")
-            handle.write("proof_mode=not-required\n")
-    summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary:
-        with Path(summary).open("a", encoding="utf-8") as handle:
-            handle.write("## DiffWitness — proof not required\n\n")
-            handle.write(
-                "No executable causal mutation remained after test/documentation/ignore filtering. "
-                "DiffWitness intentionally did not manufacture a test-based proof for this change.\n\n"
-            )
-            handle.write(f"Certificate: `{report['certificate_id']}`\n")
+    if not output:
+        return
+    summary = report.get("summary") or {}
+    with Path(output).open("a", encoding="utf-8") as handle:
+        handle.write(f"certificate_id={report['certificate_id']}\n")
+        handle.write("contrast=not-applicable\n")
+        handle.write(f"witnessed={summary.get('witnessed', 0)}\n")
+        handle.write(f"unwitnessed={summary.get('unwitnessed', 0)}\n")
+        handle.write(f"inconclusive={summary.get('inconclusive', 0)}\n")
+        handle.write("witness_ratio=\n")
+        handle.write("minimal_sufficient_order=\n")
+        handle.write(f"surplus_candidate_hunks={summary.get('surplus_candidate_hunks', 0)}\n")
+        handle.write(f"proof_mode={proof_mode}\n")
 
 
-def _write_noop_artifacts(args: list[str], report: dict[str, Any]) -> None:
+def _write_json_if_requested(args: list[str], report: dict[str, Any]) -> None:
     json_path = _value(args, "--certificate") or _value(args, "--json")
-    if json_path:
-        path = Path(json_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if not json_path:
+        return
+    path = Path(json_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _write_noop(report: dict[str, Any], args: list[str]) -> None:
+    _write_json_if_requested(args, report)
     markdown_path = _value(args, "--report")
     if markdown_path:
         path = Path(markdown_path)
@@ -118,10 +120,43 @@ def _write_noop_artifacts(args: list[str], report: dict[str, Any]) -> None:
             f"{changed}\n",
             encoding="utf-8",
         )
+    if _github_mode(args):
+        _write_common_outputs(report, proof_mode="not-required")
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            with Path(summary_path).open("a", encoding="utf-8") as handle:
+                handle.write("## DiffWitness — proof not required\n\n")
+                handle.write(
+                    "No executable causal mutation remained after test/documentation/ignore filtering. "
+                    "No test-based causal claim was manufactured for this change.\n\n"
+                )
+                handle.write(f"Certificate: `{report['certificate_id']}`\n")
 
 
-def _noop_prove_if_applicable(args: list[str]) -> int | None:
-    # If the caller explicitly asks to analyze tests themselves, let the full engine decide.
+def _write_validation(report: dict[str, Any], args: list[str]) -> None:
+    _write_json_if_requested(args, report)
+    markdown = render_validation_markdown(report)
+    markdown_path = _value(args, "--report")
+    if markdown_path:
+        path = Path(markdown_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(markdown, encoding="utf-8")
+    if _github_mode(args):
+        _write_common_outputs(report, proof_mode="validation-only")
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            with Path(summary_path).open("a", encoding="utf-8") as handle:
+                handle.write(markdown)
+                handle.write("\n")
+        if not report.get("valid"):
+            classification = report.get("candidate_run", {}).get("classification", "unknown")
+            print(
+                f"::error title=DiffWitness test-only validation::Changed tests are {classification} on the candidate"
+            )
+
+
+def _preflight_nonproduction(args: list[str]) -> int | None:
+    # If the caller explicitly asks to mutate test changes, the full engine owns the semantics.
     if "--include-test-changes" in args:
         return None
 
@@ -142,6 +177,43 @@ def _noop_prove_if_applicable(args: list[str]) -> int | None:
     mutations = make_mutations(files, ignore_globs=ignore)
     if mutations:
         return None
+
+    test_files = sorted(file.path for file in files if file.is_test)
+    if test_files:
+        explicit_test = _value(args, "--test")
+        configured_test = config.get("test")
+        plan = default_evidence(repo) if not explicit_test and not configured_test else None
+        test_command = explicit_test or configured_test or (plan.command if plan else None)
+        if not isinstance(test_command, str) or not test_command.strip():
+            raise ValueError(
+                "test-only change requires an evidence command; pass --test or configure [diffwitness].test"
+            )
+        prepare = _value(args, "--prepare") or config.get("prepare")
+        timeout_raw: Any = _value(args, "--timeout")
+        timeout = float(timeout_raw if timeout_raw is not None else config.get("timeout", 300.0))
+        stability_raw: Any = _value(args, "--stability-runs")
+        stability_runs = int(
+            stability_raw if stability_raw is not None else config.get("stability_runs", 2)
+        )
+        shared = _values(args, "--share") or list(config.get("share", []) or [])
+        report = build_validation_only(
+            source_repo=repo,
+            base_sha=base_sha,
+            candidate_sha=candidate_sha,
+            candidate_ref=candidate_ref,
+            test_command=test_command,
+            test_files=test_files,
+            stability_runs=stability_runs,
+            timeout=timeout,
+            prepare_command=str(prepare) if prepare else None,
+            shared_paths=shared,
+        )
+        _write_validation(report, args)
+        print(
+            f"DiffWitness: validation-only {report['candidate_run']['classification']} "
+            f"({report['certificate_id']})"
+        )
+        return 0 if report.get("valid") else 1
 
     changed_files = sorted(file.path for file in files)
     stable = json.dumps(
@@ -175,13 +247,7 @@ def _noop_prove_if_applicable(args: list[str]) -> int | None:
         },
         "non_claim": "No test-based causal claim was made because there was no executable production mutation to attribute.",
     }
-    _write_noop_artifacts(args, report)
-
-    github_mode = "--github-actions" in args or (
-        "--no-github-actions" not in args and os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
-    )
-    if github_mode:
-        _write_github_noop(report)
+    _write_noop(report, args)
     print(f"DiffWitness: proof not required ({certificate_id}); no executable causal mutation detected.")
     return 0
 
@@ -209,13 +275,13 @@ def main(argv: list[str] | None = None) -> int:
     if args[0] in {"prove", "gate"}:
         try:
             prepared = _inject_explicit_config_test(args[1:]) if args[0] == "gate" else args[1:]
-            noop = _noop_prove_if_applicable(prepared)
+            preflight = _preflight_nonproduction(prepared)
         except Exception:
-            # The full parser/engine owns normal error reporting. The preflight must never mask it.
-            noop = None
+            # The full parser/engine owns normal error reporting when preflight cannot decide.
+            preflight = None
             prepared = args[1:]
-        if noop is not None:
-            return noop
+        if preflight is not None:
+            return preflight
     else:
         prepared = args[1:]
     if args[0] == "gate":
