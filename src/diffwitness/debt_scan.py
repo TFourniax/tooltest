@@ -150,11 +150,16 @@ def _security_signals(files: Iterable[FilePatch], *, introduced_by: dict[str, An
         if file.is_test or is_documentation_path(file.path): continue
         for line_number, line in _added_lines(file):
             for rule_id, pattern, severity, title, explanation in SECURITY_PATTERNS:
-                if not pattern.search(line): continue
-                anchor = hashlib.sha256(f"{file.path}\0{rule_id}\0{line.strip()}".encode()).hexdigest()[:16]
+                match = pattern.search(line)
+                if not match: continue
+                anchor = hashlib.sha256(f"{file.path}\0{rule_id}\0{match.group(0)}".encode()).hexdigest()[:16]
                 signals.append(DebtSignal(category="security", rule_id=rule_id, title=title, severity=severity, measurement="deterministic", anchor=anchor, path=file.path, line=line_number,
-                    explanation=explanation, evidence={"added_line": line.strip()}, verification={"type": "project-rule", "rule_id": rule_id}, introduced_by=introduced_by))
+                    explanation=explanation, evidence={"added_line": line.strip(), "match": match.group(0)}, verification={"type": "project-rule", "rule_id": rule_id}, introduced_by=introduced_by))
     return signals
+
+
+def _change_review(rule_id: str, introduced_by: dict[str, Any]) -> dict[str, Any]:
+    return {"type": "change-review", "rule_id": rule_id, "origin_base_sha": introduced_by.get("base_sha"), "origin_candidate_sha": introduced_by.get("candidate_sha")}
 
 
 def _change_complexity_signals(files: list[FilePatch], *, introduced_by: dict[str, Any]) -> list[DebtSignal]:
@@ -162,15 +167,15 @@ def _change_complexity_signals(files: list[FilePatch], *, introduced_by: dict[st
     total_adds = sum(h.additions for f in production for h in f.hunks); total_dels = sum(h.deletions for f in production for h in f.hunks)
     if total_adds + total_dels >= 700:
         signals.append(DebtSignal(category="complexity", rule_id="change.large-surface", title="Very large implementation change", severity="medium", measurement="deterministic", anchor=f"change:{introduced_by.get('candidate_sha')}",
-            explanation=f"The executable production diff changes {total_adds + total_dels} lines. Large change surface raises review and rollback cost; this does not by itself mean the code is incorrect.", evidence={"additions": total_adds, "deletions": total_dels, "production_files": len(production)}, verification={"type": "project-rule", "rule_id": "change.large-surface"}, introduced_by=introduced_by))
+            explanation=f"The executable production diff changes {total_adds + total_dels} lines. Large change surface raises review and rollback cost; this does not by itself mean the code is incorrect.", evidence={"additions": total_adds, "deletions": total_dels, "production_files": len(production)}, verification=_change_review("change.large-surface", introduced_by), introduced_by=introduced_by))
     for file in production:
         adds = sum(h.additions for h in file.hunks); dels = sum(h.deletions for h in file.hunks); control = len(CONTROL_FLOW_RE.findall("\n".join(text for _, text in _added_lines(file))))
         if adds + dels >= 300:
             signals.append(DebtSignal(category="complexity", rule_id="change.concentrated-churn", title="Large change concentrated in one file", severity="medium", measurement="deterministic", anchor=file.path, path=file.path,
-                explanation=f"This file absorbs {adds + dels} changed lines in one change, concentrating review and rollback risk.", evidence={"additions": adds, "deletions": dels}, verification={"type": "project-rule", "rule_id": "change.concentrated-churn"}, introduced_by=introduced_by))
+                explanation=f"This file absorbs {adds + dels} changed lines in one change, concentrating review and rollback risk.", evidence={"additions": adds, "deletions": dels}, verification=_change_review("change.concentrated-churn", introduced_by), introduced_by=introduced_by))
         if control >= 14:
             signals.append(DebtSignal(category="complexity", rule_id="change.control-flow-growth", title="Control-flow surface grew sharply", severity="low" if control < 25 else "medium", measurement="heuristic", anchor=file.path, path=file.path,
-                explanation=f"The added lines contain {control} control-flow operators/keywords. This is a review heuristic, not a cyclomatic-complexity proof.", evidence={"control_flow_tokens_added": control}, verification={"type": "project-rule", "rule_id": "change.control-flow-growth"}, introduced_by=introduced_by))
+                explanation=f"The added lines contain {control} control-flow operators/keywords. This is a review heuristic, not a cyclomatic-complexity proof.", evidence={"control_flow_tokens_added": control}, verification=_change_review("change.control-flow-growth", introduced_by), introduced_by=introduced_by))
     return signals
 
 
@@ -184,7 +189,7 @@ def _manifest_dependency_signals(files: list[FilePatch], *, introduced_by: dict[
         if not depish: continue
         signals.append(DebtSignal(category="dependency", rule_id="dependency.surface-growth", title="Dependency surface expanded", severity="low" if len(depish) <= 2 else "medium", measurement="heuristic",
             anchor=file.path + ":" + hashlib.sha256("\n".join(depish).encode()).hexdigest()[:10], path=file.path,
-            explanation=f"The manifest adds {len(depish)} dependency-like declaration(s). DiffWitness does not claim they are unused; it records new external maintenance/supply-chain surface for review.", evidence={"lines": depish[:20], "count": len(depish)}, verification={"type": "project-rule", "rule_id": "dependency.surface-growth"}, introduced_by=introduced_by))
+            explanation=f"The manifest adds {len(depish)} dependency-like declaration(s). DiffWitness does not claim they are unused; it records new external maintenance/supply-chain surface for review.", evidence={"lines": depish[:20], "count": len(depish)}, verification=_change_review("dependency.surface-growth", introduced_by), introduced_by=introduced_by))
     return signals
 
 
@@ -196,7 +201,7 @@ def _architecture_change_signals(files: list[FilePatch], *, introduced_by: dict[
         imports = [v for v in imports if v.startswith((".", "../", "./"))]
         if len(imports) >= 6:
             signals.append(DebtSignal(category="architecture", rule_id="architecture.import-fanout-growth", title="Module coupling expanded sharply", severity="medium", measurement="heuristic", anchor=file.path, path=file.path,
-                explanation=f"The change adds {len(imports)} relative/local import edges to this module. It is a coupling heuristic, not proof of an architectural violation.", evidence={"imports": imports[:30]}, verification={"type": "project-rule", "rule_id": "architecture.import-fanout-growth"}, introduced_by=introduced_by))
+                explanation=f"The change adds {len(imports)} relative/local import edges to this module. It is a coupling heuristic, not proof of an architectural violation.", evidence={"imports": imports[:30]}, verification=_change_review("architecture.import-fanout-growth", introduced_by), introduced_by=introduced_by))
     return signals
 
 
@@ -207,7 +212,7 @@ def _migration_signals(files: list[FilePatch], *, introduced_by: dict[str, Any])
         text = file.raw.lower(); rollback_markers = ("downgrade", "down(", "rollback", "reverse", "revert", "undo")
         if any(marker in text for marker in rollback_markers): continue
         signals.append(DebtSignal(category="migration", rule_id="migration.no-obvious-rollback", title="Migration has no obvious rollback path", severity="high", measurement="heuristic", anchor=file.path, path=file.path,
-            explanation="This migration change contains no rollback/down/reverse marker recognized by DiffWitness. That does not prove rollback is impossible; it records an operational obligation to verify recovery explicitly.", verification={"type": "project-rule", "rule_id": "migration.no-obvious-rollback"}, introduced_by=introduced_by))
+            explanation="This migration change contains no rollback/down/reverse marker recognized by DiffWitness. That does not prove rollback is impossible; it records an operational obligation to verify recovery explicitly.", verification=_change_review("migration.no-obvious-rollback", introduced_by), introduced_by=introduced_by))
     return signals
 
 
@@ -227,11 +232,15 @@ def scan_change(*, repo: Path, base_sha: str, candidate_sha: str, certificate_pa
         churn = sum(h.additions + h.deletions for f in production_files for h in f.hunks)
         if churn >= 450:
             signals.append(DebtSignal(category="knowledge", rule_id="knowledge.large-change-no-doc-update", title="Large change without knowledge artifact update", severity="low", measurement="heuristic", anchor=f"{base_sha[:12]}..{candidate_sha[:12]}",
-                explanation=f"A {churn}-line production change does not include documentation/ADR-like files. This is a knowledge-transfer heuristic, not proof that documentation is required.", evidence={"changed_lines": churn}, verification={"type": "project-rule", "rule_id": "knowledge.large-change-no-doc-update"}, introduced_by=introduced_by))
-    if production_files and any(_sensitive(f.path) for f in production_files) and not behavior_backed:
+                explanation=f"A {churn}-line production change does not include documentation/ADR-like files. This is a knowledge-transfer heuristic, not proof that documentation is required.", evidence={"changed_lines": churn}, verification=_change_review("knowledge.large-change-no-doc-update", introduced_by), introduced_by=introduced_by))
+    if production_files and any(_sensitive(f.path) for f in production_files):
         paths = sorted(f.path for f in production_files if _sensitive(f.path))
-        signals.append(DebtSignal(category="security", rule_id="security.sensitive-surface-unproven", title="Sensitive surface changed without accepted behavioral evidence", severity="high", measurement="heuristic", anchor="|".join(paths),
-            explanation="Auth/billing/secret/permission-like paths changed without a supplied causal or preservation certificate. The path classifier is heuristic; the obligation is to make the behavioral claim explicit.", evidence={"paths": paths, "certificate_id": certificate_id}, verification={"type": "rerun-proof", "origin_base_sha": base_sha, "origin_candidate_sha": candidate_sha}, introduced_by=introduced_by))
+        if behavior_backed:
+            signals.append(DebtSignal(category="security", rule_id="security.sensitive-surface-change", title="Security-sensitive surface changed", severity="low", measurement="heuristic", anchor="|".join(paths),
+                explanation="Auth/billing/secret/permission-like paths changed. Behavioral evidence is present, so DiffWitness records only a light security-review obligation; the behavioral proof is not itself a security proof.", evidence={"paths": paths, "certificate_id": certificate_id}, verification=_change_review("security.sensitive-surface-change", introduced_by), introduced_by=introduced_by))
+        else:
+            signals.append(DebtSignal(category="security", rule_id="security.sensitive-surface-unproven", title="Sensitive surface changed without accepted behavioral evidence", severity="high", measurement="heuristic", anchor="|".join(paths),
+                explanation="Auth/billing/secret/permission-like paths changed without a supplied causal or preservation certificate. The path classifier is heuristic; the obligation is to make the behavioral claim explicit.", evidence={"paths": paths, "certificate_id": certificate_id}, verification={"type": "rerun-proof", "origin_base_sha": base_sha, "origin_candidate_sha": candidate_sha}, introduced_by=introduced_by))
     return DebtReport(scope="change", signals=dedupe_signals(signals), repo=str(repo), base_sha=base_sha, candidate_sha=candidate_sha, candidate_tree=candidate_tree, certificate_id=certificate_id,
         metadata={"changed_files": len(files), "production_files": len(production_files), "test_files": len(test_files), "production_mutations": len(mutations), "behavior_backed": behavior_backed})
 
