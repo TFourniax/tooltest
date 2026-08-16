@@ -159,9 +159,10 @@ def main(argv: list[str] | None = None) -> int:
     if args[0] == "verify": return verify_cli(args[1:])
     if args[0] == "note": return note_cli(args[1:])
     if args[0] in {"debt", "health", "plan", "repay", "recheck", "ledger"}:
-        from .debt_cli import debt_cli, health_cli, ledger_cli, plan_cli, recheck_cli, repay_cli
+        from .debt_cli import health_cli, ledger_cli, plan_cli, recheck_cli, repay_cli
+        from .debt_entry import debt_entry
         from .ledger import LedgerError
-        handlers = {"debt": debt_cli, "health": health_cli, "plan": plan_cli, "repay": repay_cli, "recheck": recheck_cli, "ledger": ledger_cli}
+        handlers = {"debt": debt_entry, "health": health_cli, "plan": plan_cli, "repay": repay_cli, "recheck": recheck_cli, "ledger": ledger_cli}
         try:
             return handlers[args[0]](args[1:])
         except (LedgerError, ValueError, OSError) as exc:
