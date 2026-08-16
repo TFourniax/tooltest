@@ -10,7 +10,7 @@ from pathlib import Path
 from diffwitness.assurance import assurance_policy, build_assurance
 from diffwitness.diffing import parse_file_patches
 from diffwitness.entry import main
-from diffwitness.gitops import diff_text, resolve_ref, snapshot_worktree
+from diffwitness.gitops import diff_text, snapshot_worktree
 
 
 def git(*args: str, cwd: Path) -> str:
@@ -74,7 +74,7 @@ class AssuranceTests(unittest.TestCase):
             self.assertTrue(assurance_policy(report, "balanced")[0])
             self.assertFalse(assurance_policy(report, "strict")[0])
 
-    def test_gate_balanced_accepts_preservation_but_strict_rejects_it(self) -> None:
+    def test_gate_balanced_accepts_and_public_verify_understands_assurance(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = root / "repo"
@@ -97,44 +97,26 @@ class AssuranceTests(unittest.TestCase):
             certificate = root / "assurance.json"
             balanced = main(
                 [
-                    "gate",
-                    "--repo",
-                    str(repo),
-                    "--base",
-                    base,
-                    "--candidate",
-                    "WORKTREE",
-                    "--test",
-                    command,
-                    "--policy",
-                    "balanced",
-                    "--stability-runs",
-                    "1",
-                    "--certificate",
-                    str(certificate),
-                    "--no-github-actions",
+                    "gate", "--repo", str(repo), "--base", base, "--candidate", "WORKTREE",
+                    "--test", command, "--policy", "balanced", "--stability-runs", "1",
+                    "--certificate", str(certificate), "--no-github-actions",
                 ]
             )
             self.assertEqual(balanced, 0)
             payload = json.loads(certificate.read_text(encoding="utf-8"))
             self.assertEqual(payload["classification"], "preservation-evidence")
             self.assertTrue(payload["certificate_id"].startswith("dwa1_"))
+            self.assertEqual(main(["verify", str(certificate), "--repo", str(repo)]), 0)
+
+            (repo / "calc.py").write_text(
+                "def add(a, b):\n    return a - b\n", encoding="utf-8"
+            )
+            self.assertEqual(main(["verify", str(certificate), "--repo", str(repo)]), 1)
 
             strict = main(
                 [
-                    "gate",
-                    "--repo",
-                    str(repo),
-                    "--base",
-                    base,
-                    "--candidate",
-                    "WORKTREE",
-                    "--test",
-                    command,
-                    "--policy",
-                    "strict",
-                    "--stability-runs",
-                    "1",
+                    "gate", "--repo", str(repo), "--base", base, "--candidate", "WORKTREE",
+                    "--test", command, "--policy", "strict", "--stability-runs", "1",
                     "--no-github-actions",
                 ]
             )
@@ -160,22 +142,9 @@ class AssuranceTests(unittest.TestCase):
             certificate = root / "weak-evidence.json"
             rc = main(
                 [
-                    "gate",
-                    "--repo",
-                    str(repo),
-                    "--base",
-                    base,
-                    "--candidate",
-                    "WORKTREE",
-                    "--test",
-                    command,
-                    "--policy",
-                    "balanced",
-                    "--stability-runs",
-                    "1",
-                    "--certificate",
-                    str(certificate),
-                    "--no-github-actions",
+                    "gate", "--repo", str(repo), "--base", base, "--candidate", "WORKTREE",
+                    "--test", command, "--policy", "balanced", "--stability-runs", "1",
+                    "--certificate", str(certificate), "--no-github-actions",
                 ]
             )
             self.assertEqual(rc, 1)
