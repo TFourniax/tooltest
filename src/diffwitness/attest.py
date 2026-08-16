@@ -33,6 +33,15 @@ def expected_certificate_id(report: dict[str, Any]) -> str:
     if certificate.startswith("dwac1_"):
         stable = {key: value for key, value in report.items() if key != "certificate_id"}
         return _hash_payload(stable, "dwac1_")
+    if certificate.startswith("dwa1_"):
+        # Assurance is part of the same public certificate protocol. Reuse the exact stable-field
+        # contract used by the Debt Ledger rather than maintaining a second subtly divergent hash.
+        from .debt_certificate import expected_id
+
+        try:
+            return expected_id(report)
+        except ValueError as exc:
+            raise AttestationError(str(exc)) from exc
     if certificate.startswith("dwv1_"):
         execution = report.get("execution") or {}
         base = report.get("base") or {}
