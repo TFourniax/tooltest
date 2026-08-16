@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 
 from .config import load_config
 from .debt_budget import evaluate_budget, ledger_path, merged_debt_config
+from .debt_certificate import validate_debt_certificate
 from .debt_scan import scan_change
 from .gitops import diff_text, git, repo_root, snapshot_worktree
 from .ledger import DebtLedger
@@ -41,8 +43,34 @@ def _print_change_debt(report, budget) -> None:
         print(f"  ! {violation}")
 
 
+def _validate_generated_certificate(path: Path, *, repo: Path, candidate_sha: str) -> None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Guard proof certificate cannot be read: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Guard proof certificate is not a JSON object")
+    validate_debt_certificate(payload, repo=repo, candidate_sha=candidate_sha)
+
+
+def _agent_provenance(command: list[str]) -> dict[str, str]:
+    """Persist only low-risk provenance by default: executable name, never prompts or secret-bearing args."""
+    executable = Path(command[0]).name if command else "unknown"
+    lowered = executable.lower()
+    if "claude" in lowered:
+        agent = "claude-code"
+    elif "codex" in lowered:
+        agent = "codex"
+    else:
+        agent = executable
+    return {"source": "guard", "agent": agent, "executable": executable}
+
+
 def guard_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw guard", description="Run a coding agent inside a before/after DiffWitness proof and debt boundary.")
+    parser = argparse.ArgumentParser(
+        prog="dw guard",
+        description="Run a coding agent inside a before/after DiffWitness proof and debt boundary.",
+    )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
     parser.add_argument("--test")
@@ -63,8 +91,10 @@ def guard_cli(argv: list[str]) -> int:
     args = parser.parse_args(argv)
 
     command = list(args.agent)
-    if command and command[0] == "--": command = command[1:]
-    if not command: parser.error("an agent command is required after -- (for example: dw guard -- claude)")
+    if command and command[0] == "--":
+        command = command[1:]
+    if not command:
+        parser.error("an agent command is required after -- (for example: dw guard -- claude)")
 
     repo = repo_root(args.repo)
     config = load_config(repo, args.config)
@@ -77,50 +107,81 @@ def guard_cli(argv: list[str]) -> int:
     print(f"Strategy: {args.strategy or 'config/default'}")
     print()
 
-    env = os.environ.copy(); env["DIFFWITNESS_BASE"] = baseline
+    env = os.environ.copy()
+    env["DIFFWITNESS_BASE"] = baseline
     try:
         proc = subprocess.run(command, cwd=repo, env=env)
     except FileNotFoundError as exc:
-        print(f"DiffWitness Guard: cannot start agent command: {exc}", file=sys.stderr); return 127
+        print(f"DiffWitness Guard: cannot start agent command: {exc}", file=sys.stderr)
+        return 127
     except OSError as exc:
-        print(f"DiffWitness Guard: agent process failed to start: {exc}", file=sys.stderr); return 126
+        print(f"DiffWitness Guard: agent process failed to start: {exc}", file=sys.stderr)
+        return 126
     if proc.returncode != 0:
-        print(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof was not attempted.", file=sys.stderr); return proc.returncode
+        print(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof was not attempted.", file=sys.stderr)
+        return proc.returncode
 
     candidate = snapshot_worktree(repo)
     if candidate == baseline or not diff_text(repo, baseline, candidate).strip():
-        print("DiffWitness Guard: agent produced no repository change; proof not required."); return 0
+        print("DiffWitness Guard: agent produced no repository change; proof not required.")
+        return 0
 
     gate_args = ["--repo", str(repo), "--base", baseline, "--candidate", candidate, "--no-github-actions"]
-    if args.config: gate_args += ["--config", args.config]
-    if args.test: gate_args += ["--test", args.test]
-    if args.prepare: gate_args += ["--prepare", args.prepare]
-    if args.timeout is not None: gate_args += ["--timeout", str(args.timeout)]
-    if args.policy is not None: gate_args += ["--policy", args.policy]
-    if args.strategy is not None: gate_args += ["--strategy", args.strategy]
-    if args.adaptive_threshold is not None: gate_args += ["--adaptive-threshold", str(args.adaptive_threshold)]
-    if args.adaptive_budget is not None: gate_args += ["--adaptive-budget", str(args.adaptive_budget)]
-    if args.stability_runs is not None: gate_args += ["--stability-runs", str(args.stability_runs)]
-    for path in args.share: gate_args += ["--share", path]
-    for pattern in args.test_glob: gate_args += ["--test-glob", pattern]
-    for pattern in args.ignore: gate_args += ["--ignore", pattern]
-    if args.report: gate_args += ["--report", str(args.report)]
+    if args.config:
+        gate_args += ["--config", args.config]
+    if args.test:
+        gate_args += ["--test", args.test]
+    if args.prepare:
+        gate_args += ["--prepare", args.prepare]
+    if args.timeout is not None:
+        gate_args += ["--timeout", str(args.timeout)]
+    if args.policy is not None:
+        gate_args += ["--policy", args.policy]
+    if args.strategy is not None:
+        gate_args += ["--strategy", args.strategy]
+    if args.adaptive_threshold is not None:
+        gate_args += ["--adaptive-threshold", str(args.adaptive_threshold)]
+    if args.adaptive_budget is not None:
+        gate_args += ["--adaptive-budget", str(args.adaptive_budget)]
+    if args.stability_runs is not None:
+        gate_args += ["--stability-runs", str(args.stability_runs)]
+    for path in args.share:
+        gate_args += ["--share", path]
+    for pattern in args.test_glob:
+        gate_args += ["--test-glob", pattern]
+    for pattern in args.ignore:
+        gate_args += ["--ignore", pattern]
+    if args.report:
+        gate_args += ["--report", str(args.report)]
 
     # Use the public entrypoint rather than gate_cli directly so Guard gets the exact same formal
     # docs-only/test-only preflight semantics as CI and `dw gate`.
     from .entry import main as entry_main
+
     with tempfile.TemporaryDirectory(prefix="diffwitness-guard-") as td:
         proof_path = args.certificate or (Path(td) / "guard-proof.json")
         gate_args += ["--certificate", str(proof_path)]
         rc = entry_main(["gate", *gate_args])
         if rc != 0:
-            print("\nDiffWitness Guard: PROOF REJECTED", file=sys.stderr); return rc
+            print("\nDiffWitness Guard: PROOF REJECTED", file=sys.stderr)
+            return rc
         print("\nDiffWitness Guard: PROOF ACCEPTED")
         if args.no_debt:
             return 0
-        report = scan_change(repo=repo, base_sha=baseline, candidate_sha=candidate,
-                             certificate_path=proof_path if proof_path.exists() else None,
-                             test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
+
+        _validate_generated_certificate(proof_path, repo=repo, candidate_sha=candidate)
+        report = scan_change(
+            repo=repo,
+            base_sha=baseline,
+            candidate_sha=candidate,
+            certificate_path=proof_path,
+            test_globs=list(config.get("test_glob") or []),
+            ignore_globs=list(config.get("ignore") or []),
+        )
+        provenance = _agent_provenance(command)
+        for signal in report.signals:
+            signal.introduced_by.update(provenance)
+        report.metadata["agent_provenance"] = provenance
         budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config)
         _print_change_debt(report, budget)
         if debt_config.get("auto_record", True):
@@ -130,5 +191,6 @@ def guard_cli(argv: list[str]) -> int:
                 stats = ledger.record_report(report, actor="diffwitness-guard")
                 print(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
         if not budget.passed:
-            print("DiffWitness Guard: DEBT BUDGET REJECTED", file=sys.stderr); return 1
+            print("DiffWitness Guard: DEBT BUDGET REJECTED", file=sys.stderr)
+            return 1
     return 0
