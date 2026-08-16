@@ -17,21 +17,29 @@ from .proof_cli import main as proof_main
 from .validation import build_validation_only, render_validation_markdown
 
 
-TOP_HELP = """DiffWitness Proof Layer
+TOP_HELP = """DiffWitness Proof + Debt Layer
 
 Usage:
   dw guard [options] -- <agent>      Run a coding agent inside a before/after proof boundary
   dw gate [options]                  Validate an existing Git diff / pull request
   dw prove [options]                 Exhaustive hunk-level counterfactual evidence
   dw core [options]                  Budgeted Adaptive Core / 1-minimal reduction search
+  dw debt [options]                  Measure and record debt introduced by a change
+  dw health [options]                Scan current project debt and reconcile the Debt Ledger
+  dw plan [options]                  Build an explainable debt-repayment plan
+  dw repay [options] -- <agent>      Run a constrained repayment mission, verify, and re-measure
+  dw recheck <DW-...> [options]      Replay verification for historical debt lineages
+  dw ledger <action> [options]       Inspect/accept/reopen/manage the event-sourced ledger
   dw verify <certificate> [options]  Verify certificate integrity and freshness
   dw note <certificate> [options]    Attach a verified proof reference using git notes
   dw doctor [options]                Explain zero-config evidence discovery
 
 Start here:
   dw guard -- claude
-  dw guard -- codex
-  dw gate --base origin/main --candidate HEAD
+  dw debt --base HEAD --candidate WORKTREE
+  dw health
+  dw plan
+  dw repay -- claude
 
 Use `dw <command> --help` for command-specific options.
 """
@@ -39,49 +47,38 @@ Use `dw <command> --help` for command-specific options.
 
 def _value(args: list[str], name: str, default: str | None = None) -> str | None:
     for index, token in enumerate(args):
-        if token == name and index + 1 < len(args):
-            return args[index + 1]
+        if token == name and index + 1 < len(args): return args[index + 1]
         prefix = name + "="
-        if token.startswith(prefix):
-            return token[len(prefix) :]
+        if token.startswith(prefix): return token[len(prefix):]
     return default
 
 
 def _values(args: list[str], name: str) -> list[str]:
     values: list[str] = []
     for index, token in enumerate(args):
-        if token == name and index + 1 < len(args):
-            values.append(args[index + 1])
-        elif token.startswith(name + "="):
-            values.append(token.split("=", 1)[1])
+        if token == name and index + 1 < len(args): values.append(args[index + 1])
+        elif token.startswith(name + "="): values.append(token.split("=", 1)[1])
     return values
 
 
 def _inject_explicit_config_test(args: list[str]) -> list[str]:
-    """Honor --config test=... even in zero-config frontends."""
-    if _value(args, "--test"):
-        return args
+    if _value(args, "--test"): return args
     explicit = _value(args, "--config")
-    if not explicit:
-        return args
+    if not explicit: return args
     repo = repo_root(_value(args, "--repo", ".") or ".")
     config = load_config(repo, explicit)
     test = config.get("test")
-    if isinstance(test, str) and test.strip():
-        return [*args, "--test", test]
+    if isinstance(test, str) and test.strip(): return [*args, "--test", test]
     return args
 
 
 def _github_mode(args: list[str]) -> bool:
-    return "--github-actions" in args or (
-        "--no-github-actions" not in args and os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
-    )
+    return "--github-actions" in args or ("--no-github-actions" not in args and os.environ.get("GITHUB_ACTIONS", "").lower() == "true")
 
 
 def _write_common_outputs(report: dict[str, Any], *, proof_mode: str) -> None:
     output = os.environ.get("GITHUB_OUTPUT")
-    if not output:
-        return
+    if not output: return
     summary = report.get("summary") or {}
     with Path(output).open("a", encoding="utf-8") as handle:
         handle.write(f"certificate_id={report['certificate_id']}\n")
@@ -89,18 +86,15 @@ def _write_common_outputs(report: dict[str, Any], *, proof_mode: str) -> None:
         handle.write(f"witnessed={summary.get('witnessed', 0)}\n")
         handle.write(f"unwitnessed={summary.get('unwitnessed', 0)}\n")
         handle.write(f"inconclusive={summary.get('inconclusive', 0)}\n")
-        handle.write("witness_ratio=\n")
-        handle.write("minimal_sufficient_order=\n")
+        handle.write("witness_ratio=\nminimal_sufficient_order=\n")
         handle.write(f"surplus_candidate_hunks={summary.get('surplus_candidate_hunks', 0)}\n")
         handle.write(f"proof_mode={proof_mode}\n")
 
 
 def _write_json_if_requested(args: list[str], report: dict[str, Any]) -> None:
     json_path = _value(args, "--certificate") or _value(args, "--json")
-    if not json_path:
-        return
-    path = Path(json_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    if not json_path: return
+    path = Path(json_path); path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -108,190 +102,91 @@ def _write_noop(report: dict[str, Any], args: list[str]) -> None:
     _write_json_if_requested(args, report)
     markdown_path = _value(args, "--report")
     if markdown_path:
-        path = Path(markdown_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        path = Path(markdown_path); path.parent.mkdir(parents=True, exist_ok=True)
         changed = "\n".join(f"- `{item}`" for item in report["changed_files"]) or "- none"
-        path.write_text(
-            "# DiffWitness — proof not required\n\n"
-            "No executable causal mutation remained after filtering. DiffWitness deliberately "
-            "does not turn unrelated green tests into a causal claim.\n\n"
-            f"Certificate: `{report['certificate_id']}`\n\n"
-            "## Changed files\n\n"
-            f"{changed}\n",
-            encoding="utf-8",
-        )
+        path.write_text("# DiffWitness — proof not required\n\nNo executable causal mutation remained after filtering. DiffWitness deliberately does not turn unrelated green tests into a causal claim.\n\n" + f"Certificate: `{report['certificate_id']}`\n\n## Changed files\n\n{changed}\n", encoding="utf-8")
     if _github_mode(args):
         _write_common_outputs(report, proof_mode="not-required")
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
             with Path(summary_path).open("a", encoding="utf-8") as handle:
-                handle.write("## DiffWitness — proof not required\n\n")
-                handle.write(
-                    "No executable causal mutation remained after test/documentation/ignore filtering. "
-                    "No test-based causal claim was manufactured for this change.\n\n"
-                )
+                handle.write("## DiffWitness — proof not required\n\nNo executable causal mutation remained after test/documentation/ignore filtering. No test-based causal claim was manufactured for this change.\n\n")
                 handle.write(f"Certificate: `{report['certificate_id']}`\n")
 
 
 def _write_validation(report: dict[str, Any], args: list[str]) -> None:
-    _write_json_if_requested(args, report)
-    markdown = render_validation_markdown(report)
-    markdown_path = _value(args, "--report")
+    _write_json_if_requested(args, report); markdown = render_validation_markdown(report); markdown_path = _value(args, "--report")
     if markdown_path:
-        path = Path(markdown_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(markdown, encoding="utf-8")
+        path = Path(markdown_path); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(markdown, encoding="utf-8")
     if _github_mode(args):
         _write_common_outputs(report, proof_mode="validation-only")
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
-            with Path(summary_path).open("a", encoding="utf-8") as handle:
-                handle.write(markdown)
-                handle.write("\n")
+            with Path(summary_path).open("a", encoding="utf-8") as handle: handle.write(markdown + "\n")
         if not report.get("valid"):
             classification = report.get("candidate_run", {}).get("classification", "unknown")
-            print(
-                f"::error title=DiffWitness test-only validation::Changed tests are {classification} on the candidate"
-            )
+            print(f"::error title=DiffWitness test-only validation::Changed tests are {classification} on the candidate")
 
 
 def _preflight_nonproduction(args: list[str]) -> int | None:
-    # If the caller explicitly asks to mutate test changes, the full engine owns the semantics.
-    if "--include-test-changes" in args:
-        return None
-
-    repo = repo_root(_value(args, "--repo", ".") or ".")
-    base_ref = _value(args, "--base", "HEAD") or "HEAD"
-    candidate_ref = _value(args, "--candidate", "WORKTREE") or "WORKTREE"
-    base_sha = resolve_ref(repo, base_ref)
-    candidate_sha = (
-        snapshot_worktree(repo)
-        if candidate_ref.upper() == "WORKTREE"
-        else resolve_ref(repo, candidate_ref)
-    )
-
-    config = load_config(repo, _value(args, "--config"))
-    test_globs = _values(args, "--test-glob") or list(config.get("test_glob", []) or [])
-    ignore = _values(args, "--ignore") or list(config.get("ignore", []) or [])
-    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha), test_globs=test_globs)
-    mutations = make_mutations(files, ignore_globs=ignore)
-    if mutations:
-        return None
-
+    if "--include-test-changes" in args: return None
+    repo = repo_root(_value(args, "--repo", ".") or "."); base_ref = _value(args, "--base", "HEAD") or "HEAD"; candidate_ref = _value(args, "--candidate", "WORKTREE") or "WORKTREE"
+    base_sha = resolve_ref(repo, base_ref); candidate_sha = snapshot_worktree(repo) if candidate_ref.upper() == "WORKTREE" else resolve_ref(repo, candidate_ref)
+    config = load_config(repo, _value(args, "--config")); test_globs = _values(args, "--test-glob") or list(config.get("test_glob", []) or []); ignore = _values(args, "--ignore") or list(config.get("ignore", []) or [])
+    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha), test_globs=test_globs); mutations = make_mutations(files, ignore_globs=ignore)
+    if mutations: return None
     test_files = sorted(file.path for file in files if file.is_test)
     if test_files:
-        explicit_test = _value(args, "--test")
-        configured_test = config.get("test")
-        plan = default_evidence(repo) if not explicit_test and not configured_test else None
+        explicit_test = _value(args, "--test"); configured_test = config.get("test"); plan = default_evidence(repo) if not explicit_test and not configured_test else None
         test_command = explicit_test or configured_test or (plan.command if plan else None)
         if not isinstance(test_command, str) or not test_command.strip():
-            raise ValueError(
-                "test-only change requires an evidence command; pass --test or configure [diffwitness].test"
-            )
-        prepare = _value(args, "--prepare") or config.get("prepare")
-        timeout_raw: Any = _value(args, "--timeout")
-        timeout = float(timeout_raw if timeout_raw is not None else config.get("timeout", 300.0))
-        stability_raw: Any = _value(args, "--stability-runs")
-        stability_runs = int(
-            stability_raw if stability_raw is not None else config.get("stability_runs", 2)
-        )
-        shared = _values(args, "--share") or list(config.get("share", []) or [])
-        report = build_validation_only(
-            source_repo=repo,
-            base_sha=base_sha,
-            candidate_sha=candidate_sha,
-            candidate_ref=candidate_ref,
-            test_command=test_command,
-            test_files=test_files,
-            stability_runs=stability_runs,
-            timeout=timeout,
-            prepare_command=str(prepare) if prepare else None,
-            shared_paths=shared,
-        )
-        _write_validation(report, args)
-        print(
-            f"DiffWitness: validation-only {report['candidate_run']['classification']} "
-            f"({report['certificate_id']})"
-        )
+            raise ValueError("test-only change requires an evidence command; pass --test or configure [diffwitness].test")
+        prepare = _value(args, "--prepare") or config.get("prepare"); timeout_raw: Any = _value(args, "--timeout"); timeout = float(timeout_raw if timeout_raw is not None else config.get("timeout", 300.0)); stability_raw: Any = _value(args, "--stability-runs"); stability_runs = int(stability_raw if stability_raw is not None else config.get("stability_runs", 2)); shared = _values(args, "--share") or list(config.get("share", []) or [])
+        report = build_validation_only(source_repo=repo, base_sha=base_sha, candidate_sha=candidate_sha, candidate_ref=candidate_ref, test_command=test_command, test_files=test_files, stability_runs=stability_runs, timeout=timeout, prepare_command=str(prepare) if prepare else None, shared_paths=shared)
+        _write_validation(report, args); print(f"DiffWitness: validation-only {report['candidate_run']['classification']} ({report['certificate_id']})")
         return 0 if report.get("valid") else 1
-
     changed_files = sorted(file.path for file in files)
-    stable = json.dumps(
-        {
-            "base": base_sha,
-            "candidate": candidate_sha,
-            "changed_files": changed_files,
-            "ignored": sorted(ignore),
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    )
+    stable = json.dumps({"base": base_sha, "candidate": candidate_sha, "changed_files": changed_files, "ignored": sorted(ignore)}, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     certificate_id = "dw0_" + hashlib.sha256(stable.encode("utf-8")).hexdigest()[:20]
-    report: dict[str, Any] = {
-        "schema_version": "noop-1",
-        "tool": "diffwitness",
-        "certificate_id": certificate_id,
-        "outcome": "proof-not-required",
-        "reason": "no executable causal mutation remained after test/documentation/ignore filtering",
-        "base": {"ref": base_ref, "sha": base_sha},
-        "candidate": {"ref": candidate_ref, "sha": candidate_sha},
-        "changed_files": changed_files,
-        "ignored": sorted(ignore),
-        "summary": {
-            "mutations": 0,
-            "witnessed": 0,
-            "unwitnessed": 0,
-            "inconclusive": 0,
-            "surplus_candidate_hunks": 0,
-        },
-        "non_claim": "No test-based causal claim was made because there was no executable production mutation to attribute.",
-    }
-    _write_noop(report, args)
-    print(f"DiffWitness: proof not required ({certificate_id}); no executable causal mutation detected.")
-    return 0
+    report: dict[str, Any] = {"schema_version": "noop-1", "tool": "diffwitness", "certificate_id": certificate_id, "outcome": "proof-not-required", "reason": "no executable causal mutation remained after test/documentation/ignore filtering", "base": {"ref": base_ref, "sha": base_sha}, "candidate": {"ref": candidate_ref, "sha": candidate_sha}, "changed_files": changed_files, "ignored": sorted(ignore), "summary": {"mutations": 0, "witnessed": 0, "unwitnessed": 0, "inconclusive": 0, "surplus_candidate_hunks": 0}, "non_claim": "No test-based causal claim was made because there was no executable production mutation to attribute."}
+    _write_noop(report, args); print(f"DiffWitness: proof not required ({certificate_id}); no executable causal mutation detected."); return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    if not args or args[0] in {"-h", "--help"}:
-        print(TOP_HELP)
-        return 0
-    if args[0] in {"-V", "--version"}:
-        print(f"diffwitness {__version__}")
-        return 0
-    if args[0] == "verify":
-        return verify_cli(args[1:])
-    if args[0] == "note":
-        return note_cli(args[1:])
+    if not args or args[0] in {"-h", "--help"}: print(TOP_HELP); return 0
+    if args[0] in {"-V", "--version"}: print(f"diffwitness {__version__}"); return 0
+    if args[0] == "verify": return verify_cli(args[1:])
+    if args[0] == "note": return note_cli(args[1:])
+    if args[0] in {"debt", "health", "plan", "repay", "recheck", "ledger"}:
+        from .debt_cli import debt_cli, health_cli, ledger_cli, plan_cli, recheck_cli, repay_cli
+        from .ledger import LedgerError
+        handlers = {"debt": debt_cli, "health": health_cli, "plan": plan_cli, "repay": repay_cli, "recheck": recheck_cli, "ledger": ledger_cli}
+        try:
+            return handlers[args[0]](args[1:])
+        except (LedgerError, ValueError, OSError) as exc:
+            print(f"DiffWitness: {exc}", file=sys.stderr); return 2
     if args[0] == "guard":
         from .guard import guard_cli
-
-        try:
-            return guard_cli(_inject_explicit_config_test(args[1:]))
+        try: return guard_cli(_inject_explicit_config_test(args[1:]))
         except Exception as exc:
-            print(f"DiffWitness: {exc}", file=sys.stderr)
-            return 2
+            print(f"DiffWitness: {exc}", file=sys.stderr); return 2
     if args[0] in {"prove", "gate"}:
         try:
             prepared = _inject_explicit_config_test(args[1:]) if args[0] == "gate" else args[1:]
             preflight = _preflight_nonproduction(prepared)
-        except Exception:
-            # The full parser/engine owns normal error reporting when preflight cannot decide.
-            preflight = None
-            prepared = args[1:]
-        if preflight is not None:
-            return preflight
+        except Exception as exc:
+            # Preflight is a proof boundary: never turn an inability to classify/validate into a
+            # silent fall-through success. This fixes the previous fail-open path for test-only diffs.
+            print(f"DiffWitness: preflight failed closed: {exc}", file=sys.stderr); return 2
+        if preflight is not None: return preflight
     else:
         prepared = args[1:]
     if args[0] == "gate":
         from .gate import gate_cli
-
-        try:
-            return gate_cli(prepared)
+        try: return gate_cli(prepared)
         except Exception as exc:
-            print(f"DiffWitness: {exc}", file=sys.stderr)
-            return 2
+            print(f"DiffWitness: {exc}", file=sys.stderr); return 2
     return proof_main(args)
 
 
