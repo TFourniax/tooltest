@@ -7,6 +7,7 @@ from typing import Any
 
 from .config import load_config
 from .debt_budget import ledger_path, merged_debt_config
+from .debt_verify import can_auto_recheck
 from .gitops import repo_root
 from .ledger import DebtLedger, LedgerError
 from .ledger_transport import (
@@ -25,9 +26,10 @@ def _context(repo: Path, explicit_config: str | None) -> tuple[dict[str, Any], D
 
 
 def _print_item(item: Any) -> None:
+    replay = "auto" if can_auto_recheck(item) else "manual"
     print(
         f"{item.debt_id} {item.status}{' accepted' if item.accepted else ''} "
-        f"+{item.points} {item.category}/{item.measurement} — {item.title}"
+        f"+{item.points} {item.category}/{item.measurement} [{replay}] — {item.title}"
     )
 
 
@@ -147,7 +149,15 @@ def ledger_cli(argv: list[str]) -> int:
             if item.accepted_reason:
                 print(f"Accepted because: {item.accepted_reason}")
             print(f"History:     {len(payload['history'])} event(s)")
-            print(f"Next action: run `dw recheck {item.debt_id}` or include it in `dw repay`.")
+            if item.status != "open":
+                print("Next action: no repayment action; this lineage is resolved unless it reopens.")
+            elif can_auto_recheck(item):
+                print(f"Next action: run `dw recheck {item.debt_id}` or include it in `dw repay`.")
+            else:
+                print(
+                    "Next action: this lineage has no automatic closure adapter. Verify it externally, "
+                    "then use `dw ledger resolve ... --force` only with an explicit evidence-backed reason."
+                )
         return 0
 
     if args.action == "history":
