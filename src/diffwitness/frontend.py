@@ -12,25 +12,34 @@ from .autodetect import default_evidence
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .gitops import GitError, diff_text, git, repo_root, resolve_ref, snapshot_worktree
+from .ledger import LedgerError
 from .proof_cli import main as proof_main
 from .validation import build_validation_only, render_validation_markdown
 
 
-TOP_HELP = """DiffWitness Proof Layer
+TOP_HELP = """DiffWitness Proof + Debt Layer
 
 Usage:
   dw guard [options] -- <agent>      Run a coding agent inside a before/after proof boundary
   dw gate [options]                  Validate an existing Git diff / pull request
   dw prove [options]                 Exhaustive hunk-level counterfactual evidence
   dw core [options]                  Budgeted Adaptive Core / 1-minimal reduction search
+  dw debt [options]                  Measure and record debt introduced by a change
+  dw health [options]                Scan current project debt and reconcile the Debt Ledger
+  dw plan [options]                  Build an automatically verifiable debt-repayment plan
+  dw repay [options] -- <agent>      Run a constrained repayment mission, verify, and re-measure
+  dw recheck <DW-...> [options]      Replay verification for historical debt lineages
+  dw ledger <action> [options]       Inspect, govern, checkpoint, and transport the Debt Ledger
   dw verify <certificate> [options]  Verify certificate integrity and freshness
   dw note <certificate> [options]    Attach a verified proof reference using git notes
   dw doctor [options]                Explain zero-config evidence discovery
 
 Start here:
   dw guard -- claude
-  dw guard -- codex
-  dw gate --base origin/main --candidate HEAD
+  dw debt --base HEAD --candidate WORKTREE
+  dw health
+  dw plan
+  dw repay -- claude
 
 Use `dw <command> --help` for command-specific options.
 """
@@ -295,6 +304,20 @@ def main(argv: list[str] | None = None) -> int:
             from .attestation import note_cli
 
             return note_cli(args[1:])
+        if args[0] in {"debt", "health", "plan", "repay", "recheck", "ledger"}:
+            from .debt_cli import health_cli, plan_cli, recheck_cli, repay_cli
+            from .debt_entry import debt_entry
+            from .ledger_cli import ledger_cli
+
+            handlers = {
+                "debt": debt_entry,
+                "health": health_cli,
+                "plan": plan_cli,
+                "repay": repay_cli,
+                "recheck": recheck_cli,
+                "ledger": ledger_cli,
+            }
+            return handlers[args[0]](args[1:])
         if args[0] == "guard":
             from .guard import guard_cli
 
@@ -313,7 +336,7 @@ def main(argv: list[str] | None = None) -> int:
 
             return gate_cli(prepared)
         return proof_main(args)
-    except (FrontendError, GitError, ValueError, OSError) as exc:
+    except (FrontendError, GitError, LedgerError, ValueError, OSError) as exc:
         print(f"DiffWitness: {exc}", file=sys.stderr)
         return 2
 
