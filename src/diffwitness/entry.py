@@ -12,7 +12,7 @@ from .attest import note_cli, verify_cli
 from .autodetect import default_evidence
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
-from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
+from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree
 from .proof_cli import main as proof_main
 from .validation import build_validation_only, render_validation_markdown
 
@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         handlers = {"debt": debt_entry, "health": health_cli, "plan": plan_cli, "repay": repay_cli, "recheck": recheck_cli, "ledger": ledger_cli}
         try:
             return handlers[args[0]](args[1:])
-        except (LedgerError, ValueError, OSError) as exc:
+        except (GitError, LedgerError, ValueError, OSError) as exc:
             print(f"DiffWitness: {exc}", file=sys.stderr); return 2
     if args[0] == "guard":
         from .guard import guard_cli
