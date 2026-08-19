@@ -28,7 +28,22 @@ jobs:
       - name: Compile package and integrations
         run: python -m compileall -q src integrations
       - name: Run unit and integration tests
-        run: python -m unittest discover -s tests -v
+        id: unittest
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -v 2>&1 | tee unittest.log
+          rc=${PIPESTATUS[0]}
+          echo "return_code=$rc" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+      - name: Preserve unittest diagnostics
+        if: ${{ always() && hashFiles('unittest.log') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unittest-${{ runner.os }}-py${{ matrix.python }}
+          path: unittest.log
+          if-no-files-found: error
+          retention-days: 7
       - name: Verify package/runtime version contract
         run: python -c "import diffwitness; from importlib.metadata import version; assert diffwitness.__version__ == version('diffwitness'), (diffwitness.__version__, version('diffwitness'))"
       - name: Smoke public CLIs
