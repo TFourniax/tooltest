@@ -12,6 +12,14 @@ from .project_scan import scan_project
 from .runner import run_repeated
 
 
+AUTO_RECHECK_TYPES = frozenset({"mutation-necessity", "historical-discrimination", "project-rule"})
+
+
+def can_auto_recheck(item: LedgerItem) -> bool:
+    """Whether DiffWitness currently has a positive automatic closure adapter for this lineage."""
+    return str(item.verification.get("type") or "") in AUTO_RECHECK_TYPES
+
+
 @dataclass(slots=True)
 class RecheckResult:
     debt_id: str
@@ -107,7 +115,7 @@ def recheck_project_rule(item: LedgerItem, *, repo: Path, duplicate_scan: bool, 
     report = scan_project(repo=repo, duplicate_scan=duplicate_scan, max_scan_files=max_scan_files, max_duplicate_signals=max_duplicate_signals)
     active = {signal.debt_id: signal for signal in report.signals}
     if item.debt_id not in active:
-        return RecheckResult(item.debt_id, "resolved", "the project rule no longer reproduces on current tracked source", {"type": "project-rule", "result": "absent", "current_sha": report.candidate_sha, "current_tree": report.candidate_tree})
+        return RecheckResult(item.debt_id, "resolved", "the project rule no longer reproduces on the current project snapshot", {"type": "project-rule", "result": "absent", "current_sha": report.candidate_sha, "current_tree": report.candidate_tree})
     return RecheckResult(item.debt_id, "open", "the project rule still reproduces", {"type": "project-rule", "result": "present", "current_sha": report.candidate_sha, "current_tree": report.candidate_tree, "signal": active[item.debt_id].to_dict()})
 
 
