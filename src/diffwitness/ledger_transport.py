@@ -143,6 +143,10 @@ def fetch_checkpoint(
     `pull_checkpoint` helper always fetches into a dedicated tracking ref for this reason.
     """
     target = target_ref or ref
+    # A failed fetch must not look successful merely because a previous attempt left a tracking
+    # ref behind. Dedicated tracking refs are disposable, so clear them before every fetch.
+    if target_ref is not None:
+        git(repo, "update-ref", "-d", target, check=False)
     proc = git(
         repo,
         "fetch",
