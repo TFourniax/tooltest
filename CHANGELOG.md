@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.4.0a1 — Proof + Debt Control Alpha
+
+DiffWitness extends the proof layer into a replayable software-debt control loop for agent-generated changes.
+
+### Added
+
+- Event-sourced Debt Ledger with stable `DW-...` lineages, explicit provenance, acceptance, resolution, reopening, history, and budget accounting.
+- `dw debt`, `dw health`, `dw plan`, `dw repay`, `dw recheck`, and public `dw ledger` lifecycle commands.
+- Causal, deterministic, historical, and explicitly bounded heuristic debt measurements.
+- Replay adapters for mutation necessity, historical test discrimination, and project-level rules.
+- Debt budgets for total debt, per-change debt, and category-specific ceilings.
+- Portable Debt Ledger checkpoints on `refs/diffwitness/debt-ledger` with safe pull/push semantics for ephemeral clones and CI.
+- GitHub Action debt outputs plus automatic read-only restoration of the cumulative ledger baseline.
+- Immutable worktree snapshots for project-health provenance.
+
+### Hardened
+
+- Local ledger writes are atomic, fsynced where supported, and protected by a dependency-free inter-process lock.
+- State decisions and event appends are transactional, preventing two agents from double-introducing a lineage or acting on stale debt state.
+- Hash-valid but semantically impossible ledger histories fail closed.
+- Remote checkpoint updates are fast-forward only; concurrent writers cannot force-overwrite another ledger history.
+- Failed Git transport cannot masquerade as a missing/empty cumulative ledger.
+- Proof certificates must pass integrity and candidate-content binding before debt accounting trusts their provenance.
+- Merely supplying a certificate file no longer suppresses `unverified_change`; only accepted behavioral evidence can do so.
+- Mutation rechecks reset test side effects before executing the counterfactual variant.
+- Health scans bind findings to the exact immutable tree that was actually inspected, including dirty-worktree content.
+
+### Alpha boundary
+
+- The 0.4 line is intentionally marked alpha while the public repository/distribution path and real-world adopter feedback are exercised.
+- Debt points are accounting weights over inspectable obligations, not bug probabilities, engineering-time estimates, or a universal maintainability score.
+- Hash chains are integrity mechanisms, not external signatures against a malicious repository owner.
+
 ## 0.3.0 — Proof Layer
 
 DiffWitness moves from a hunk-evidence CLI toward an agent-independent proof layer for code changes.
