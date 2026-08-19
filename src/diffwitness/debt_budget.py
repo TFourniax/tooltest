@@ -84,23 +84,26 @@ def evaluate_and_record(
     change: DebtReport,
     debt_config: dict[str, Any],
     actor: str = "diffwitness",
+    record: bool = True,
     record_if_budget_fails: bool = True,
 ) -> tuple[DebtBudgetResult, dict[str, int]]:
-    """Evaluate a change against the latest ledger and optionally append it in one transaction.
+    """Evaluate against the latest ledger and optionally append in one writer transaction.
 
     Budget checks are admission-control decisions. Evaluating on a stale in-memory ledger and only
     taking the ledger lock later during `record_report` lets two concurrent agents both observe spare
     budget and then exceed it together. This helper deliberately shares Debt Ledger's writer lock,
-    adopts the current disk history, evaluates against that state, and appends before releasing it.
+    adopts the current disk history, evaluates against that state, and (when requested) appends before
+    releasing it.
 
     Explicit accounting commands may record a real change even when its budget is already exceeded.
     Admission-control paths such as Guard should set `record_if_budget_fails=False` so a rejected
-    candidate is reported but not admitted into the durable ledger.
+    candidate is reported but not admitted into the durable ledger. `record=False` provides the same
+    fresh, serialized point-in-time check without mutating the ledger.
     """
     with _ledger_lock(ledger.path):
         ledger._adopt_disk_events()
         budget = evaluate_budget(ledger=ledger, change=change, debt_config=debt_config)
-        if budget.passed or record_if_budget_fails:
+        if record and (budget.passed or record_if_budget_fails):
             stats = ledger._record_report_unlocked(change, actor=actor)
         else:
             stats = {"introduced": 0, "reopened": 0, "refreshed": 0}
