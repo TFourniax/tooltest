@@ -15,10 +15,11 @@ from .debt_budget import evaluate_budget, ledger_path, merged_debt_config
 from .debt_certificate import validate_debt_certificate
 from .debt_history import trend
 from .debt_models import DebtReport, sort_signals
-from .debt_scan import scan_change, scan_project
+from .debt_scan import scan_change
 from .debt_verify import recheck_item
 from .gitops import repo_root, resolve_ref, snapshot_worktree
 from .ledger import DebtLedger, LedgerError, LedgerItem
+from .project_scan import scan_project
 
 
 def _resolve_debt_context(repo: Path, explicit_config: str | None) -> tuple[dict[str, Any], dict[str, Any], DebtLedger]:
@@ -246,37 +247,7 @@ def recheck_cli(argv: list[str]) -> int:
 
 
 def ledger_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw ledger", description="Inspect or explicitly manage Debt Ledger obligations."); parser.add_argument("--repo", default="."); parser.add_argument("--config"); sub = parser.add_subparsers(dest="action", required=True)
-    listing = sub.add_parser("list"); listing.add_argument("--all", action="store_true"); listing.add_argument("--json", action="store_true")
-    history = sub.add_parser("history"); history.add_argument("debt_id")
-    show = sub.add_parser("show", help="Explain one debt obligation, its provenance, and replay path"); show.add_argument("debt_id"); show.add_argument("--json", action="store_true")
-    accept = sub.add_parser("accept"); accept.add_argument("debt_id"); accept.add_argument("--reason", required=True)
-    unaccept = sub.add_parser("unaccept"); unaccept.add_argument("debt_id")
-    resolve = sub.add_parser("resolve"); resolve.add_argument("debt_id"); resolve.add_argument("--reason", required=True); resolve.add_argument("--force", action="store_true", help="Explicit manual override; automatic resolution always requires verification")
-    args = parser.parse_args(argv); repo = repo_root(args.repo); _, _, ledger = _resolve_debt_context(repo, args.config)
-    if args.action == "list":
-        values = list(ledger.items().values()) if args.all else ledger.active_items()
-        if args.json: print(json.dumps([item.to_dict() for item in values], indent=2, ensure_ascii=False))
-        else:
-            for item in sorted(values, key=lambda value: (value.status != "open", -value.points, value.debt_id)): print(f"{item.debt_id} {item.status}{' accepted' if item.accepted else ''} +{item.points} {item.category}/{item.measurement} — {item.title}")
-        return 0
-    if args.action == "show":
-        item = ledger.items().get(args.debt_id)
-        if item is None: raise LedgerError(f"unknown debt id: {args.debt_id}")
-        payload = {"item": item.to_dict(), "history": ledger.history(args.debt_id)}
-        if args.json: print(json.dumps(payload, indent=2, ensure_ascii=False))
-        else:
-            location = item.path or "project"; location += f":{item.line}" if item.line else ""
-            print(f"{item.debt_id} — {item.title}"); print(f"Status:      {item.status}{' (accepted)' if item.accepted else ''}"); print(f"Debt:        +{item.points} {item.category}/{item.measurement}"); print(f"Location:    {location}"); print(f"Why open:    {item.explanation}")
-            if item.introduced_by: print("Introduced:  " + json.dumps(item.introduced_by, sort_keys=True, ensure_ascii=False))
-            print("Verification: " + json.dumps(item.verification, sort_keys=True, ensure_ascii=False))
-            if item.accepted_reason: print(f"Accepted because: {item.accepted_reason}")
-            print(f"History:     {len(payload['history'])} event(s)"); print(f"Next action:  run `dw recheck {item.debt_id}` or include it in `dw repay`.")
-        return 0
-    if args.action == "history": print(json.dumps(ledger.history(args.debt_id), indent=2, ensure_ascii=False)); return 0
-    if args.action == "accept": ledger.accept(args.debt_id, reason=args.reason); print(f"Accepted {args.debt_id}: {args.reason}"); return 0
-    if args.action == "unaccept": ledger.unaccept(args.debt_id); print(f"Unaccepted {args.debt_id}"); return 0
-    if args.action == "resolve":
-        if not args.force: raise LedgerError("manual resolution requires --force; prefer `dw recheck` for evidence-backed closure")
-        ledger.resolve(args.debt_id, reason=args.reason, verification={"type": "manual-override"}, actor="user", force=True); print(f"Manually resolved {args.debt_id}"); return 0
-    return 2
+    """Backward-compatible import shim; the implementation lives in ledger_cli.py."""
+    from .ledger_cli import ledger_cli as implementation
+
+    return implementation(argv)
