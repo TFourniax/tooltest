@@ -5,9 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .analysis import _prepare_sandbox
+from .analysis import _run_variant_repeated
 from .gitops import detached_worktree, git
-from .runner import run_repeated
 
 
 def build_validation_only(
@@ -29,19 +28,14 @@ def build_validation_only(
     ).strip()
 
     with detached_worktree(source_repo, candidate_sha, "validation-only") as worktree:
-        _prepare_sandbox(
+        runs = _run_variant_repeated(
+            test_command,
             source_repo=source_repo,
             sandbox=worktree,
-            prepare_command=prepare_command,
-            timeout=timeout,
-            shared_paths=shared_paths,
-        )
-        runs = run_repeated(
-            test_command,
-            cwd=worktree,
-            source_repo=source_repo,
             timeout=timeout,
             repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared_paths,
         )
 
     stable = {
@@ -56,6 +50,7 @@ def build_validation_only(
         "timeout": timeout,
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
+        "filesystem_isolation": "reset-before-each-run",
     }
     encoded = json.dumps(
         stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -76,6 +71,7 @@ def build_validation_only(
             "timeout": timeout,
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
+            "filesystem_isolation": "reset-before-each-run",
         },
         "valid": runs.passed,
         "summary": {
