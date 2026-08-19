@@ -16,7 +16,7 @@ from .debt_certificate import validate_debt_certificate
 from .debt_history import trend
 from .debt_models import DebtReport, sort_signals
 from .debt_scan import scan_change
-from .debt_verify import recheck_item
+from .debt_verify import can_auto_recheck, recheck_item
 from .gitops import repo_root, resolve_ref, snapshot_worktree
 from .ledger import DebtLedger, LedgerError, LedgerItem
 from .project_scan import scan_project
@@ -84,7 +84,11 @@ def _print_health(project: DebtReport, ledger: DebtLedger) -> None:
     active = ledger.active_items(); print("DIFFWITNESS\nProject health / debt ledger"); print(f"Debt                     {ledger.active_points()}"); print("--------------------------------")
     for category, points in sorted(ledger.active_by_category().items(), key=lambda item: (-item[1], item[0])): print(f"{category:24} {points:>5}")
     accepted = sum(item.points for item in active if item.accepted)
+    replayable = sum(item.points for item in active if can_auto_recheck(item))
+    manual = sum(item.points for item in active if not can_auto_recheck(item))
     if accepted: print(f"accepted debt             {accepted:>5}")
+    if replayable: print(f"auto-replayable           {replayable:>5}")
+    if manual: print(f"manual/external review    {manual:>5}")
     print(f"\nCurrent project scan: {project.total_points} point(s), {len(project.signals)} signal(s)")
     hotspots: dict[str, int] = {}
     for item in active:
@@ -133,8 +137,9 @@ def health_cli(argv: list[str]) -> int:
 
 
 def _plan_items(items: list[LedgerItem], *, max_points: int, limit: int) -> list[LedgerItem]:
+    replayable = [item for item in items if can_auto_recheck(item)]
     chosen: list[LedgerItem] = []; points = 0
-    for item in sorted(items, key=lambda value: (-value.points, value.measurement != "causal", value.category, value.debt_id)):
+    for item in sorted(replayable, key=lambda value: (-value.points, value.measurement != "causal", value.category, value.debt_id)):
         if len(chosen) >= limit: break
         if chosen and points + item.points > max_points: continue
         chosen.append(item); points += item.points
@@ -142,17 +147,34 @@ def _plan_items(items: list[LedgerItem], *, max_points: int, limit: int) -> list
 
 
 def plan_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw plan", description="Build an explainable repayment plan from open Debt Ledger items.")
+    parser = argparse.ArgumentParser(prog="dw plan", description="Build an explainable automatically verifiable debt-repayment plan.")
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--max-points", type=int, default=30); parser.add_argument("--limit", type=int, default=8); parser.add_argument("--include-accepted", action="store_true"); parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     if args.max_points < 1 or args.limit < 1: parser.error("--max-points and --limit must be positive")
-    repo = repo_root(args.repo); _, _, ledger = _resolve_debt_context(repo, args.config); selected = _plan_items(ledger.active_items(include_accepted=args.include_accepted), max_points=args.max_points, limit=args.limit)
-    payload = {"selected_points": sum(item.points for item in selected), "selected": [item.to_dict() for item in selected], "non_claim": "This is a deterministic priority plan, not a forecast of engineering time or guaranteed point reduction."}
+    repo = repo_root(args.repo); _, _, ledger = _resolve_debt_context(repo, args.config)
+    available = ledger.active_items(include_accepted=args.include_accepted)
+    selected = _plan_items(available, max_points=args.max_points, limit=args.limit)
+    manual = [item for item in available if not can_auto_recheck(item)]
+    payload = {
+        "selected_points": sum(item.points for item in selected),
+        "selected": [item.to_dict() for item in selected],
+        "manual_review_points": sum(item.points for item in manual),
+        "manual_review": [item.to_dict() for item in manual],
+        "non_claim": "This is a deterministic priority plan over obligations with automatic replay adapters, not a forecast of engineering time or guaranteed point reduction.",
+    }
     if args.json: print(json.dumps(payload, indent=2, ensure_ascii=False)); return 0
-    if not selected: print("DiffWitness plan: no open debt selected."); return 0
-    print(f"Repayment plan — {payload['selected_points']} point(s), {len(selected)} obligation(s)")
-    for index, item in enumerate(selected, 1): print(f"{index}. {item.debt_id} [{item.category}/{item.measurement}] {item.title} (+{item.points})" + (f" — {item.path}" if item.path else ""))
-    print("\nThe point total is accounting weight, not an estimate of minutes or difficulty."); return 0
+    if not selected:
+        print("DiffWitness plan: no open automatically replayable debt selected.")
+    else:
+        print(f"Repayment plan — {payload['selected_points']} point(s), {len(selected)} automatically verifiable obligation(s)")
+        for index, item in enumerate(selected, 1): print(f"{index}. {item.debt_id} [{item.category}/{item.measurement}] {item.title} (+{item.points})" + (f" — {item.path}" if item.path else ""))
+    if manual:
+        print(f"\nManual/external-review backlog — {payload['manual_review_points']} point(s), {len(manual)} obligation(s)")
+        for item in sorted(manual, key=lambda value: (-value.points, value.category, value.debt_id))[:8]:
+            print(f"  {item.debt_id} [{item.category}/{item.measurement}] {item.title} (+{item.points})")
+        if len(manual) > 8: print(f"  … {len(manual) - 8} additional manual-review obligation(s)")
+        print("  Inspect with `dw ledger show DW-...`; close only after external verification using an explicit forced resolution when no automatic adapter exists.")
+    print("\nPoint totals are accounting weights, not estimates of minutes or difficulty."); return 0
 
 
 def _repayment_prompt(items: list[LedgerItem]) -> str:
@@ -177,7 +199,7 @@ def _command_with_prompt(command: list[str], prompt: str) -> list[str]:
 def repay_cli(argv: list[str]) -> int:
     parse_argv, agent_command = _split_agent(argv)
     parser = argparse.ArgumentParser(prog="dw repay", description="Run a constrained debt-repayment mission and independently verify the result.")
-    parser.add_argument("debt_ids", nargs="*"); parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--all", action="store_true"); parser.add_argument("--max-points", type=int, default=20); parser.add_argument("--limit", type=int, default=6); parser.add_argument("--test"); parser.add_argument("--allow-new-debt", action="store_true"); parser.add_argument("--prompt-only", action="store_true"); parser.add_argument("--json", type=Path)
+    parser.add_argument("debt_ids", nargs="*"); parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--all", action="store_true", help="select all open, unaccepted obligations that have automatic replay adapters"); parser.add_argument("--max-points", type=int, default=20); parser.add_argument("--limit", type=int, default=6); parser.add_argument("--test"); parser.add_argument("--allow-new-debt", action="store_true"); parser.add_argument("--prompt-only", action="store_true"); parser.add_argument("--json", type=Path)
     args = parser.parse_args(parse_argv)
     if args.debt_ids and args.all: parser.error("use explicit debt IDs or --all, not both")
     repo = repo_root(args.repo); config, debt_config, ledger = _resolve_debt_context(repo, args.config); state = ledger.items()
@@ -185,9 +207,22 @@ def repay_cli(argv: list[str]) -> int:
         missing = [debt_id for debt_id in args.debt_ids if debt_id not in state or not state[debt_id].active]
         if missing: raise LedgerError("unknown/non-open debt id(s): " + ", ".join(missing))
         selected = [state[debt_id] for debt_id in args.debt_ids]
+        unsupported = [item for item in selected if not can_auto_recheck(item)]
+        if unsupported:
+            details = ", ".join(f"{item.debt_id} ({item.verification.get('type') or 'unknown'})" for item in unsupported)
+            raise LedgerError(
+                "automatic repayment cannot prove closure for: " + details + ". "
+                "Inspect with `dw ledger show`; use external verification and `dw ledger resolve --force` only when justified."
+            )
     else:
-        available = ledger.active_items(include_accepted=False); selected = available if args.all else _plan_items(available, max_points=args.max_points, limit=args.limit)
-    if not selected: print("DiffWitness repay: no open unaccepted debt selected."); return 0
+        available = ledger.active_items(include_accepted=False)
+        replayable = [item for item in available if can_auto_recheck(item)]
+        selected = replayable if args.all else _plan_items(replayable, max_points=args.max_points, limit=args.limit)
+    if not selected:
+        manual_count = len([item for item in ledger.active_items(include_accepted=False) if not can_auto_recheck(item)])
+        print("DiffWitness repay: no open automatically replayable debt selected.")
+        if manual_count: print(f"{manual_count} open obligation(s) require manual/external verification; inspect them with `dw plan` or `dw ledger list`.")
+        return 0
     prompt = _repayment_prompt(selected)
     if args.prompt_only or not agent_command: print(prompt); return 0
     test_command = _resolve_test(repo, config, args.test)
