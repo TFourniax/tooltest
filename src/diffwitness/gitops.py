@@ -110,9 +110,6 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
     env = os.environ.copy()
     env["GIT_INDEX_FILE"] = index_name
     try:
-        # Determine transient untracked paths from the user's real index before switching Git to the
-        # alternate one. With an empty alternate index, `ls-files --others` would otherwise classify
-        # tracked project files as untracked as well.
         transient = _transient_untracked_paths(repo)
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
@@ -121,9 +118,6 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
             rel = Path(raw)
             if rel.is_absolute() or ".." in rel.parts:
                 raise GitError(f"snapshot exclusion must be a repo-relative path: {raw}")
-            # Restore the HEAD version in the alternate index. For an untracked artifact this
-            # removes it from the snapshot; for an explicit caller exclusion on a tracked path it
-            # deliberately restores HEAD.
             _run(
                 ["git", "reset", "--quiet", head, "--", rel.as_posix()],
                 cwd=repo,
@@ -179,9 +173,16 @@ def detached_worktree(repo: Path, commit: str, label: str) -> Iterator[Path]:
         shutil.rmtree(parent, ignore_errors=True)
 
 
-def hard_reset(worktree: Path, commit: str) -> None:
+def hard_reset(worktree: Path, commit: str, *, clean_ignored: bool = False) -> None:
+    """Restore a disposable worktree to an exact commit.
+
+    Normal callers preserve ignored dependency/cache state for speed. Stability isolation sets
+    `clean_ignored=True`, which is safe only for DiffWitness-owned disposable worktrees: ignored and
+    untracked state is removed before preparation is recreated for the next evidence repetition.
+    """
     git(worktree, "reset", "--hard", "--quiet", commit)
-    git(worktree, "clean", "-fd", "--quiet", check=False)
+    clean_flags = "-ffdx" if clean_ignored else "-fd"
+    git(worktree, "clean", clean_flags, "--quiet", check=False)
 
 
 def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[bool, str]:
