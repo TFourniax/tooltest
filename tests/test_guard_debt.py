@@ -80,17 +80,23 @@ class GuardDebtTests(unittest.TestCase):
             self.assertEqual(sensitive.introduced_by.get("agent"), Path(sys.executable).name)
             self.assertNotIn("-c", sensitive.introduced_by.values())
 
-    def test_guard_can_reject_a_proven_patch_that_exceeds_debt_budget(self) -> None:
+    def test_guard_rejects_over_budget_patch_without_admitting_rejected_debt(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
             init_repo(repo, max_per_change=0)
             rc = main(guard_args(repo))
             self.assertEqual(rc, 1)
+            # Guard is a verifier, not a destructive rollback tool: the agent's working-tree
+            # change remains inspectable even though it was rejected for admission.
             self.assertIn("return a + b", (repo / "auth/session.py").read_text(encoding="utf-8"))
 
             config = load_config(repo)
             ledger = DebtLedger.load(ledger_path(repo, merged_debt_config(config.get("debt") or {})))
-            self.assertGreaterEqual(ledger.active_points(), 1)
+            # A rejected candidate is not part of the accepted project history. Recording it as
+            # durable project debt would pollute budgets and let repeated rejected attempts ratchet
+            # the ledger upward even though none was admitted.
+            self.assertEqual(ledger.active_points(), 0)
+            self.assertEqual(ledger.events, [])
 
 
 if __name__ == "__main__":
