@@ -121,6 +121,74 @@ class DebtScanTests(unittest.TestCase):
             self.assertEqual(change.debt_id, project.debt_id)
             self.assertEqual(change.verification["type"], "project-rule")
 
+    def test_python_security_scan_ignores_signature_strings_and_comments(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            init_repo(
+                repo,
+                {
+                    "scanner.py": (
+                        "SIGNATURES = [\n"
+                        "    r'eval(',\n"
+                        "    r'shell=True',\n"
+                        "    r'verify=False',\n"
+                        "    r\"allow_origins=['*']\",\n"
+                        "    r'dangerouslySetInnerHTML',\n"
+                        "]\n"
+                        "# os.system(user_input) is documentation, not an execution site\n"
+                        "def explain():\n"
+                        "    return 'NODE_TLS_REJECT_UNAUTHORIZED=0'\n"
+                    ),
+                    "tests/test_fixture.py": (
+                        "def dangerous_fixture(user_input):\n"
+                        "    return eval(user_input)\n"
+                    ),
+                },
+            )
+            security = [
+                signal
+                for signal in scan_project(repo=repo).signals
+                if signal.category == "security"
+            ]
+            self.assertEqual(security, [])
+
+    def test_change_security_scan_ignores_added_python_string_literal(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            base = init_repo(repo, {"app.py": "MESSAGE = 'safe'\n"})
+            (repo / "app.py").write_text(
+                "MESSAGE = 'example: eval(user_input) with shell=True'\n",
+                encoding="utf-8",
+            )
+            git("add", "app.py", cwd=repo)
+            git("commit", "-q", "-m", "docs-in-code", cwd=repo)
+            candidate = git("rev-parse", "HEAD", cwd=repo)
+            rules = {
+                signal.rule_id
+                for signal in scan_change(repo=repo, base_sha=base, candidate_sha=candidate).signals
+            }
+            self.assertNotIn("security.dynamic-eval", rules)
+            self.assertNotIn("security.shell-true", rules)
+
+    def test_python_security_scan_detects_structural_call_keywords(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            init_repo(
+                repo,
+                {
+                    "app.py": (
+                        "import subprocess\n"
+                        "import requests\n"
+                        "def run(command, url):\n"
+                        "    subprocess.run(command, shell=True)\n"
+                        "    return requests.get(url, verify=False)\n"
+                    )
+                },
+            )
+            rules = {signal.rule_id for signal in scan_project(repo=repo).signals}
+            self.assertIn("security.shell-true", rules)
+            self.assertIn("security.tls-verify-disabled", rules)
+
     def test_change_only_rules_are_not_mislabeled_as_project_replay(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
