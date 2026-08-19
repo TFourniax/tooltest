@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "diffwitness"
-version = "0.3.0"
-description = "Proof layer for AI-generated code: causal evidence, agent guardrails, and portable patch certificates."
+version = "0.4.0a1"
+description = "Proof and debt-control layer for AI-generated code: causal evidence, replayable obligations, and agent guardrails."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Thomas Fournier"}]
-keywords = ["git", "testing", "ai-coding", "coding-agents", "regression", "counterfactual", "code-review", "ci", "mutation-testing", "claude-code", "codex"]
+keywords = ["git", "testing", "ai-coding", "coding-agents", "regression", "counterfactual", "code-review", "ci", "mutation-testing", "technical-debt", "claude-code", "codex"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
