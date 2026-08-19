@@ -10,6 +10,9 @@ from .diffing import FilePatch, test_overlay
 from .gitops import apply_patch, detached_worktree, git
 
 
+FILESYSTEM_ISOLATION = "reset-before-each-run"
+
+
 def build_assurance(
     *,
     source_repo: Path,
@@ -102,6 +105,7 @@ def build_assurance(
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
         "test_overlay": overlay_candidate_tests,
+        "filesystem_isolation": FILESYSTEM_ISOLATION,
     }
     encoded = json.dumps(
         stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -125,7 +129,7 @@ def build_assurance(
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "test_overlay": overlay_candidate_tests,
-            "filesystem_isolation": "reset-before-each-run",
+            "filesystem_isolation": FILESYSTEM_ISOLATION,
         },
         "claim": claim,
         "non_claim": "Assurance mode does not establish real-hunk necessity or global program correctness.",
