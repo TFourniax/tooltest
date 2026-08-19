@@ -4,11 +4,10 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .analysis import AnalysisError, _apply_many, _prepare_sandbox
+from .analysis import AnalysisError, _apply_many, _run_variant_repeated
 from .diffing import FilePatch, test_overlay
 from .gitops import apply_patch, detached_worktree, git, hard_reset
 from .models import Mutation, RepeatedCommandResult
-from .runner import run_repeated
 
 
 @dataclass(slots=True)
@@ -59,6 +58,7 @@ class AdaptiveCoreResult:
             "budget_exhausted": self.budget_exhausted,
             "one_minimal": self.one_minimal,
             "attempts_log": [asdict(attempt) for attempt in self.attempts_log],
+            "filesystem_isolation": "reset-before-each-run",
             "claim": (
                 "The returned core is 1-minimal under the selected stable, bug-discriminating evidence: "
                 "removing any one retained mutation loses the observed stable pass."
@@ -123,19 +123,14 @@ def find_adaptive_core(
     ).strip()
 
     with detached_worktree(source_repo, candidate_sha, "adaptive-candidate") as candidate_wt:
-        _prepare_sandbox(
+        candidate_runs = _run_variant_repeated(
+            test_command,
             source_repo=source_repo,
             sandbox=candidate_wt,
-            prepare_command=prepare_command,
-            timeout=timeout,
-            shared_paths=shared,
-        )
-        candidate_runs = run_repeated(
-            test_command,
-            cwd=candidate_wt,
-            source_repo=source_repo,
             timeout=timeout,
             repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared,
         )
         if not candidate_runs.passed:
             raise AnalysisError(
@@ -147,19 +142,14 @@ def find_adaptive_core(
                 ok, error = apply_patch(base_wt, overlay, reverse=False)
                 if not ok:
                     raise AnalysisError(f"candidate tests could not be overlaid onto base: {error}")
-            _prepare_sandbox(
+            baseline_runs = _run_variant_repeated(
+                test_command,
                 source_repo=source_repo,
                 sandbox=base_wt,
-                prepare_command=prepare_command,
-                timeout=timeout,
-                shared_paths=shared,
-            )
-            baseline_runs = run_repeated(
-                test_command,
-                cwd=base_wt,
-                source_repo=source_repo,
                 timeout=timeout,
                 repetitions=stability_runs,
+                prepare_command=prepare_command,
+                shared_paths=shared,
             )
             if not baseline_runs.failed:
                 raise AnalysisError(
@@ -175,7 +165,7 @@ def find_adaptive_core(
                 if attempts >= budget:
                     return None
                 attempts += 1
-                hard_reset(base_wt, base_sha)
+                hard_reset(base_wt, base_sha, clean_ignored=True)
                 if overlay:
                     ok, error = apply_patch(base_wt, overlay, reverse=False)
                     if not ok:
@@ -190,19 +180,14 @@ def find_adaptive_core(
                         )
                     )
                     return None
-                _prepare_sandbox(
+                runs = _run_variant_repeated(
+                    test_command,
                     source_repo=source_repo,
                     sandbox=base_wt,
-                    prepare_command=prepare_command,
-                    timeout=timeout,
-                    shared_paths=shared,
-                )
-                runs = run_repeated(
-                    test_command,
-                    cwd=base_wt,
-                    source_repo=source_repo,
                     timeout=timeout,
                     repetitions=stability_runs,
+                    prepare_command=prepare_command,
+                    shared_paths=shared,
                 )
                 log.append(
                     AdaptiveAttempt(
