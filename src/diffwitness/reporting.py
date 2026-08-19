@@ -12,6 +12,9 @@ from .gitops import git, git_version
 from .models import AnalysisOutcome
 
 
+FILESYSTEM_ISOLATION = "reset-before-each-run"
+
+
 def _certificate_id(report: dict[str, Any]) -> str:
     stable = {k: v for k, v in report.items() if k not in {"generated_at", "certificate_id"}}
     encoded = json.dumps(stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
@@ -82,6 +85,9 @@ def build_report(
         },
         "test_command": test_command,
         "config": config,
+        "execution": {
+            "filesystem_isolation": FILESYSTEM_ISOLATION,
+        },
         "contrast": outcome.contrast,
         "candidate_run": outcome.candidate.to_dict(),
         "baseline_with_candidate_tests_run": outcome.baseline.to_dict(),
@@ -134,7 +140,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"**Certificate:** `{report['certificate_id']}`  ",
         f"**Contrast:** `{report['contrast']}`  ",
         f"**Candidate stability:** `{report['candidate_run']['classification']}`  ",
-        f"**Baseline stability:** `{report['baseline_with_candidate_tests_run']['classification']}`",
+        f"**Baseline stability:** `{report['baseline_with_candidate_tests_run']['classification']}`  ",
+        f"**Filesystem isolation:** `{report.get('execution', {}).get('filesystem_isolation', 'unspecified')}`",
         "",
         "## Evidence summary",
         "",
