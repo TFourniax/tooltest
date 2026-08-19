@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import hashlib
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -36,14 +36,13 @@ def _ref_commit(repo: Path, ref: str) -> str | None:
     return value or None
 
 
-def _write_local_ledger(ledger: DebtLedger, events: list[dict[str, Any]]) -> None:
-    # Validate the complete hash chain before replacing the local file.
-    DebtLedger(ledger.path, events)
-    ledger.path.parent.mkdir(parents=True, exist_ok=True)
-    temp = ledger.path.with_name(ledger.path.name + ".restore.tmp")
-    temp.write_text(_serialize(events), encoding="utf-8")
-    os.replace(temp, ledger.path)
-    ledger.events = list(events)
+def _tracking_ref(remote: str, ref: str) -> str:
+    digest = hashlib.sha256(f"{remote}\0{ref}".encode("utf-8")).hexdigest()[:16]
+    return f"refs/diffwitness/remotes/{digest}"
+
+
+def _set_ref(repo: Path, ref: str, commit: str) -> None:
+    git(repo, "update-ref", ref, commit)
 
 
 def checkpoint_ledger(
@@ -62,11 +61,19 @@ def checkpoint_ledger(
     ).strip()
     parent = _ref_commit(repo, ref)
     args = [
-        "-c", "user.name=DiffWitness",
-        "-c", "user.email=diffwitness@localhost",
-        "commit-tree", tree,
+        "-c",
+        "user.name=DiffWitness",
+        "-c",
+        "user.email=diffwitness@localhost",
+        "commit-tree",
+        tree,
     ]
     if parent:
+        # Avoid producing a new checkpoint commit when the current ref already contains the
+        # exact same ledger bytes. This keeps repeated `dw ledger push` calls idempotent.
+        current = read_checkpoint(repo=repo, ledger_path=ledger.path, ref=ref)
+        if current is not None and current.events == ledger.events:
+            return parent
         args += ["-p", parent]
     message = (
         "DiffWitness debt ledger checkpoint\n\n"
@@ -113,7 +120,7 @@ def restore_checkpoint(
     if local_hashes == remote_hashes:
         return "equal"
     if local_hashes == remote_hashes[: len(local_hashes)]:
-        _write_local_ledger(ledger, checkpoint.events)
+        ledger.replace_events(checkpoint.events)
         return "restored"
     if remote_hashes == local_hashes[: len(remote_hashes)]:
         return "local-ahead"
@@ -127,10 +134,15 @@ def fetch_checkpoint(
     repo: Path,
     remote: str = "origin",
     ref: str = DEFAULT_LEDGER_REF,
+    target_ref: str | None = None,
     missing_ok: bool = True,
 ) -> bool:
-    """Fetch the portable ledger ref without touching code refs."""
-    target = ref
+    """Fetch a portable ledger ref without touching code refs.
+
+    Callers that need to preserve a local checkpoint should provide `target_ref`; the higher-level
+    `pull_checkpoint` helper always fetches into a dedicated tracking ref for this reason.
+    """
+    target = target_ref or ref
     proc = git(
         repo,
         "fetch",
@@ -139,8 +151,65 @@ def fetch_checkpoint(
         f"+{ref}:{target}",
         check=False,
     )
-    if _ref_commit(repo, ref):
+    if _ref_commit(repo, target):
         return True
     if missing_ok:
         return False
     raise LedgerError(f"could not fetch debt ledger checkpoint {ref} from {remote}: {proc.strip()}")
+
+
+def pull_checkpoint(
+    *,
+    repo: Path,
+    ledger: DebtLedger,
+    remote: str = "origin",
+    ref: str = DEFAULT_LEDGER_REF,
+    missing_ok: bool = True,
+) -> str:
+    """Fetch and fast-forward the local ledger from a remote checkpoint.
+
+    The remote ref is first fetched into a dedicated tracking ref, so a stale remote can never
+    overwrite a newer local checkpoint before ledger-history compatibility is checked.
+    """
+    tracking = _tracking_ref(remote, ref)
+    if not fetch_checkpoint(
+        repo=repo,
+        remote=remote,
+        ref=ref,
+        target_ref=tracking,
+        missing_ok=missing_ok,
+    ):
+        return "missing"
+    remote_commit = _ref_commit(repo, tracking)
+    if not remote_commit:
+        if missing_ok:
+            return "missing"
+        raise LedgerError(f"fetched debt ledger checkpoint has no commit: {ref}")
+
+    status = restore_checkpoint(repo=repo, ledger=ledger, ref=tracking, missing_ok=False)
+    if status in {"equal", "restored"}:
+        # Preserve the remote checkpoint's commit ancestry so a later push is a true fast-forward.
+        _set_ref(repo, ref, remote_commit)
+    elif status == "local-ahead":
+        # Re-parent a fresh local checkpoint onto the remote checkpoint. The event-chain prefix
+        # check above proves that the local ledger contains every remote event in order.
+        _set_ref(repo, ref, remote_commit)
+        checkpoint_ledger(repo=repo, ledger=ledger, ref=ref)
+    return status
+
+
+def push_checkpoint(
+    *,
+    repo: Path,
+    ledger: DebtLedger,
+    remote: str = "origin",
+    ref: str = DEFAULT_LEDGER_REF,
+) -> str:
+    """Checkpoint the current ledger and push it without force.
+
+    A concurrent remote update therefore fails as a non-fast-forward instead of silently losing
+    another writer's debt history. Run `dw ledger pull` and retry after reconciling.
+    """
+    commit = checkpoint_ledger(repo=repo, ledger=ledger, ref=ref)
+    output = git(repo, "push", remote, f"{ref}:{ref}")
+    return output.strip() or commit
