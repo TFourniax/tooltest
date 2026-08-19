@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 
 from .diffing import FilePatch, test_overlay
-from .gitops import apply_patch, candidate_delta, detached_worktree, hard_reset
+from .gitops import apply_patch, candidate_delta, detached_worktree, hard_reset, snapshot_worktree
 from .models import (
     AnalysisOutcome,
     CommandResult,
@@ -59,22 +59,42 @@ def _prepare_sandbox(
     return result
 
 
-def _reset_and_prepare(
+def _run_variant_repeated(
+    test_command: str,
     *,
     source_repo: Path,
     sandbox: Path,
-    commit: str,
-    prepare_command: str | None,
     timeout: float,
+    repetitions: int,
+    prepare_command: str | None,
     shared_paths: list[str],
-) -> None:
-    hard_reset(sandbox, commit)
-    _prepare_sandbox(
+):
+    """Run a variant repeatedly from identical disposable filesystem state.
+
+    The current sandbox content (including an applied counterfactual patch) is first captured as an
+    unreachable commit. Before every repetition we hard-reset to that exact variant, remove ignored
+    and untracked residue, recreate shared paths, rerun preparation, then execute evidence. This
+    prevents the previous repetition from making the next one pass/fail through caches or fixtures.
+    """
+    variant_sha = snapshot_worktree(sandbox)
+
+    def restore() -> None:
+        hard_reset(sandbox, variant_sha, clean_ignored=True)
+        _prepare_sandbox(
+            source_repo=source_repo,
+            sandbox=sandbox,
+            prepare_command=prepare_command,
+            timeout=timeout,
+            shared_paths=shared_paths,
+        )
+
+    return run_repeated(
+        test_command,
+        cwd=sandbox,
         source_repo=source_repo,
-        sandbox=sandbox,
-        prepare_command=prepare_command,
         timeout=timeout,
-        shared_paths=shared_paths,
+        repetitions=repetitions,
+        before_each=restore,
     )
 
 
@@ -128,19 +148,14 @@ def run_analysis(
     interactions = SearchSummary(enabled=search_interactions, budget=max_interaction_runs)
 
     with detached_worktree(source_repo, candidate_sha, "candidate") as candidate_wt:
-        _prepare_sandbox(
+        candidate_runs = _run_variant_repeated(
+            test_command,
             source_repo=source_repo,
             sandbox=candidate_wt,
-            prepare_command=prepare_command,
-            timeout=timeout,
-            shared_paths=shared_paths,
-        )
-        candidate_runs = run_repeated(
-            test_command,
-            cwd=candidate_wt,
-            source_repo=source_repo,
             timeout=timeout,
             repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared_paths,
         )
         if not candidate_runs.passed:
             raise AnalysisError(
@@ -157,51 +172,38 @@ def run_analysis(
                         "Retry with --no-test-overlay if this project keeps tests inline with production code.\n"
                         f"git apply: {error}"
                     )
-            _prepare_sandbox(
+            baseline_runs = _run_variant_repeated(
+                test_command,
                 source_repo=source_repo,
                 sandbox=base_wt,
-                prepare_command=prepare_command,
-                timeout=timeout,
-                shared_paths=shared_paths,
-            )
-            baseline_runs = run_repeated(
-                test_command,
-                cwd=base_wt,
-                source_repo=source_repo,
                 timeout=timeout,
                 repetitions=stability_runs,
+                prepare_command=prepare_command,
+                shared_paths=shared_paths,
             )
 
             mutation_results: list[MutationResult] = []
             for mutation in mutations:
-                _reset_and_prepare(
-                    source_repo=source_repo,
-                    sandbox=candidate_wt,
-                    commit=candidate_sha,
-                    prepare_command=prepare_command,
-                    timeout=timeout,
-                    shared_paths=shared_paths,
-                )
+                hard_reset(candidate_wt, candidate_sha, clean_ignored=True)
                 ok, error = apply_patch(candidate_wt, mutation.patch, reverse=True)
                 if not ok:
                     mutation_results.append(
                         MutationResult(mutation=mutation, status="inconclusive", apply_error=error)
                     )
                     continue
-                runs = run_repeated(
+                runs = _run_variant_repeated(
                     test_command,
-                    cwd=candidate_wt,
                     source_repo=source_repo,
+                    sandbox=candidate_wt,
                     timeout=timeout,
                     repetitions=stability_runs,
+                    prepare_command=prepare_command,
+                    shared_paths=shared_paths,
                 )
                 mutation_results.append(
                     MutationResult(mutation=mutation, status=_status_from_runs(runs), runs=runs)
                 )
 
-            # Counterfactual sufficiency: start from base+candidate-tests, then add small
-            # subsets of the real production hunks. The first cardinality that turns
-            # the baseline stably green is a minimal-cardinality evidence core.
             if search_sufficient:
                 if not baseline_runs.failed:
                     sufficient.note = (
@@ -223,7 +225,7 @@ def run_analysis(
                                 break
                             sufficient.attempted += 1
                             completed_this_order += 1
-                            hard_reset(base_wt, base_sha)
+                            hard_reset(base_wt, base_sha, clean_ignored=True)
                             if overlay:
                                 ok, error = apply_patch(base_wt, overlay, reverse=False)
                                 if not ok:
@@ -231,19 +233,14 @@ def run_analysis(
                             ok, error = _apply_many(base_wt, combo, reverse=False)
                             if not ok:
                                 continue
-                            _prepare_sandbox(
+                            runs = _run_variant_repeated(
+                                test_command,
                                 source_repo=source_repo,
                                 sandbox=base_wt,
-                                prepare_command=prepare_command,
-                                timeout=timeout,
-                                shared_paths=shared_paths,
-                            )
-                            runs = run_repeated(
-                                test_command,
-                                cwd=base_wt,
-                                source_repo=source_repo,
                                 timeout=timeout,
                                 repetitions=stability_runs,
+                                prepare_command=prepare_command,
+                                shared_paths=shared_paths,
                             )
                             if runs.passed:
                                 found_this_order.append(
@@ -282,8 +279,6 @@ def run_analysis(
                         else:
                             sufficient.note = "No sufficient subset found within the configured maximum order."
 
-            # Hidden redundancy: A and B can each look unwitnessed alone, yet removing
-            # both can break the evidence. Surface those mutual-backup pairs explicitly.
             if search_interactions:
                 production_ids = {mutation.id for mutation in production_mutations}
                 unwitnessed = [
@@ -302,23 +297,18 @@ def run_analysis(
                             break
                         interactions.attempted += 1
                         completed += 1
-                        hard_reset(candidate_wt, candidate_sha)
+                        hard_reset(candidate_wt, candidate_sha, clean_ignored=True)
                         ok, error = _apply_many(candidate_wt, pair, reverse=True)
                         if not ok:
                             continue
-                        _prepare_sandbox(
+                        runs = _run_variant_repeated(
+                            test_command,
                             source_repo=source_repo,
                             sandbox=candidate_wt,
-                            prepare_command=prepare_command,
-                            timeout=timeout,
-                            shared_paths=shared_paths,
-                        )
-                        runs = run_repeated(
-                            test_command,
-                            cwd=candidate_wt,
-                            source_repo=source_repo,
                             timeout=timeout,
                             repetitions=stability_runs,
+                            prepare_command=prepare_command,
+                            shared_paths=shared_paths,
                         )
                         if runs.failed:
                             interactions.results.append(
@@ -349,7 +339,6 @@ def run_analysis(
             reduction_patch: str | None = None
             if minimize:
                 removed: list[Mutation] = []
-                # Prefer hunks already shown to be individually unnecessary.
                 status_by_id = {r.mutation.id: r.status for r in mutation_results}
                 ordered = sorted(
                     production_mutations,
@@ -358,28 +347,23 @@ def run_analysis(
                     ),
                 )
                 for mutation in ordered:
-                    hard_reset(candidate_wt, candidate_sha)
+                    hard_reset(candidate_wt, candidate_sha, clean_ignored=True)
                     ok, _ = _apply_many(candidate_wt, [*removed, mutation], reverse=True)
                     if not ok:
                         continue
-                    _prepare_sandbox(
+                    runs = _run_variant_repeated(
+                        test_command,
                         source_repo=source_repo,
                         sandbox=candidate_wt,
-                        prepare_command=prepare_command,
-                        timeout=timeout,
-                        shared_paths=shared_paths,
-                    )
-                    runs = run_repeated(
-                        test_command,
-                        cwd=candidate_wt,
-                        source_repo=source_repo,
                         timeout=timeout,
                         repetitions=stability_runs,
+                        prepare_command=prepare_command,
+                        shared_paths=shared_paths,
                     )
                     if runs.passed:
                         removed.append(mutation)
 
-                hard_reset(candidate_wt, candidate_sha)
+                hard_reset(candidate_wt, candidate_sha, clean_ignored=True)
                 applied_removed: list[Mutation] = []
                 for mutation in removed:
                     ok, _ = apply_patch(candidate_wt, mutation.patch, reverse=True)
