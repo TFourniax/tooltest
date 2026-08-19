@@ -47,9 +47,15 @@ def expected_id(report: dict[str, Any]) -> str:
         }
         return _hash(stable, "dwa1_")
     if cid.startswith("dwv1_") or cid.startswith("dw0_"):
-        # These modes never waive production-debt obligations here; their full integrity remains
-        # owned by the canonical attestation implementation.
-        return cid
+        # Reuse the canonical attestation contract. These certificate classes do not waive
+        # production-debt obligations, but accepting a forged JSON object would still pollute
+        # provenance and make machine consumers believe it had been verified.
+        from .attest import AttestationError, expected_certificate_id
+
+        try:
+            return expected_certificate_id(report)
+        except AttestationError as exc:
+            raise DebtCertificateError(str(exc)) from exc
     raise DebtCertificateError(f"unsupported DiffWitness certificate for debt accounting: {cid!r}")
 
 
@@ -66,7 +72,9 @@ def validate_debt_certificate(report: dict[str, Any], *, repo: Path, candidate_s
             raise DebtCertificateError("certificate candidate tree does not match the debt measurement candidate")
     else:
         embedded_sha = candidate.get("sha") if isinstance(candidate, dict) else report.get("candidate_sha")
-        if embedded_sha and embedded_sha != candidate_sha:
+        if not isinstance(embedded_sha, str) or not embedded_sha:
+            raise DebtCertificateError("certificate has neither candidate tree nor candidate SHA binding")
+        if embedded_sha != candidate_sha:
             raise DebtCertificateError("certificate candidate SHA does not match the debt measurement candidate")
 
 
