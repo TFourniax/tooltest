@@ -69,7 +69,6 @@ def _atomic_write(path: Path, events: list[dict[str, Any]]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp, path)
-        # Persist the directory entry where the platform supports fsync on directories.
         try:
             directory_fd = os.open(path.parent, os.O_RDONLY)
         except OSError:
@@ -92,12 +91,7 @@ def _atomic_write(path: Path, events: list[dict[str, Any]]) -> None:
 
 @contextmanager
 def _ledger_lock(path: Path, *, timeout: float = _LOCK_TIMEOUT_SECONDS) -> Iterator[None]:
-    """Portable inter-process lock using atomic lock-file creation.
-
-    The lock is intentionally dependency-free so the core package remains stdlib-only. A stale
-    lock can be reclaimed after a conservative timeout, while a unique token prevents an old
-    process from deleting a lock that has since been reacquired by somebody else.
-    """
+    """Portable inter-process lock using atomic lock-file creation."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = path.with_name(path.name + ".lock")
     token = f"{os.getpid()}:{time.time_ns()}"
@@ -228,12 +222,13 @@ class LedgerItem:
 
 
 class DebtLedger:
-    """Append-only debt ledger with a hash chain; defaults under `.git/diffwitness`."""
+    """Append-only debt ledger with hash and semantic integrity checks."""
 
     def __init__(self, path: Path, events: list[dict[str, Any]] | None = None) -> None:
         self.path = path
         self.events = list(events or [])
         self._validate_chain()
+        self._reduce_items()
 
     @classmethod
     def load(cls, path: Path) -> "DebtLedger":
@@ -295,7 +290,7 @@ class DebtLedger:
             self._persist_unlocked(self.events)
 
     def replace_events(self, events: list[dict[str, Any]]) -> None:
-        """Replace the local file only when the replacement is a fast-forward of local history."""
+        """Replace the local file only when the replacement is a semantic fast-forward."""
         candidate = list(events)
         DebtLedger(self.path, candidate)
         with _ledger_lock(self.path):
@@ -306,6 +301,40 @@ class DebtLedger:
                 self._persist_unlocked(candidate)
             self.events = candidate
 
+    @staticmethod
+    def _validate_append(event_type: str, debt_id: str, payload: dict[str, Any]) -> None:
+        if event_type not in _EVENT_TYPES:
+            raise LedgerError(f"unknown debt ledger event type: {event_type}")
+        if not debt_id.strip():
+            raise LedgerError("debt id cannot be empty")
+        if not isinstance(payload, dict):
+            raise LedgerError("debt ledger payload must be an object")
+
+    def _append_unlocked(
+        self,
+        *,
+        event_type: str,
+        debt_id: str,
+        payload: dict[str, Any],
+        actor: str,
+        timestamp: str | None = None,
+    ) -> dict[str, Any]:
+        self._validate_append(event_type, debt_id, payload)
+        event = {
+            "schema_version": "debt-event-1",
+            "event_type": event_type,
+            "debt_id": debt_id,
+            "timestamp": timestamp or _now(),
+            "actor": actor,
+            "prev_hash": self.last_hash,
+            "payload": payload,
+        }
+        event["event_hash"] = _event_hash(event)
+        updated = [*self.events, event]
+        self._persist_unlocked(updated)
+        self.events = updated
+        return event
+
     def append(
         self,
         *,
@@ -315,28 +344,16 @@ class DebtLedger:
         actor: str = "diffwitness",
         timestamp: str | None = None,
     ) -> dict[str, Any]:
-        if event_type not in _EVENT_TYPES:
-            raise LedgerError(f"unknown debt ledger event type: {event_type}")
-        if not debt_id.strip():
-            raise LedgerError("debt id cannot be empty")
-        if not isinstance(payload, dict):
-            raise LedgerError("debt ledger payload must be an object")
+        self._validate_append(event_type, debt_id, payload)
         with _ledger_lock(self.path):
             self._adopt_disk_events()
-            event = {
-                "schema_version": "debt-event-1",
-                "event_type": event_type,
-                "debt_id": debt_id,
-                "timestamp": timestamp or _now(),
-                "actor": actor,
-                "prev_hash": self.last_hash,
-                "payload": payload,
-            }
-            event["event_hash"] = _event_hash(event)
-            updated = [*self.events, event]
-            self._persist_unlocked(updated)
-            self.events = updated
-            return event
+            return self._append_unlocked(
+                event_type=event_type,
+                debt_id=debt_id,
+                payload=payload,
+                actor=actor,
+                timestamp=timestamp,
+            )
 
     @staticmethod
     def _signal_from_payload(raw: Any, *, debt_id: str) -> DebtSignal:
@@ -369,57 +386,66 @@ class DebtLedger:
             raise LedgerError(f"signal identity mismatch for {debt_id}: stable identity is {signal.debt_id}")
         return signal
 
-    def items(self) -> dict[str, LedgerItem]:
+    def _reduce_items(self) -> dict[str, LedgerItem]:
         state: dict[str, LedgerItem] = {}
-        for event in self.events:
+        for index, event in enumerate(self.events, start=1):
             debt_id = str(event["debt_id"])
             payload = event.get("payload") or {}
             event_type = event.get("event_type")
             timestamp = str(event.get("timestamp") or "")
-            if event_type in {"introduced", "reopened"}:
+            current = state.get(debt_id)
+            if event_type == "introduced":
+                if current is not None:
+                    raise LedgerError(f"invalid introduced transition for existing debt {debt_id} at line {index}")
+                signal = self._signal_from_payload(payload.get("signal"), debt_id=debt_id)
+                state[debt_id] = LedgerItem.from_signal(signal, timestamp=timestamp)
+            elif event_type == "reopened":
+                if current is None or current.active:
+                    raise LedgerError(f"invalid reopened transition for {debt_id} at line {index}")
                 signal = self._signal_from_payload(payload.get("signal"), debt_id=debt_id)
                 item = LedgerItem.from_signal(signal, timestamp=timestamp)
-                old = state.get(debt_id)
-                if old and event_type == "reopened":
-                    item.introduced_at = old.introduced_at
-                    item.reopen_count = old.reopen_count + 1
+                item.introduced_at = current.introduced_at
+                item.reopen_count = current.reopen_count + 1
                 state[debt_id] = item
             elif event_type == "resolved":
-                item = state.get(debt_id)
-                if item:
-                    item.status = "resolved"
-                    item.resolved_at = timestamp
-                    item.updated_at = timestamp
-                    item.resolution = dict(payload)
+                if current is None or not current.active:
+                    raise LedgerError(f"invalid resolved transition for {debt_id} at line {index}")
+                current.status = "resolved"
+                current.resolved_at = timestamp
+                current.updated_at = timestamp
+                current.resolution = dict(payload)
             elif event_type == "accepted":
-                item = state.get(debt_id)
-                if item:
-                    item.accepted = True
-                    item.accepted_reason = str(payload.get("reason") or "") or None
-                    item.updated_at = timestamp
+                if current is None or not current.active:
+                    raise LedgerError(f"invalid accepted transition for {debt_id} at line {index}")
+                current.accepted = True
+                current.accepted_reason = str(payload.get("reason") or "") or None
+                current.updated_at = timestamp
             elif event_type == "unaccepted":
-                item = state.get(debt_id)
-                if item:
-                    item.accepted = False
-                    item.accepted_reason = None
-                    item.updated_at = timestamp
+                if current is None or not current.active:
+                    raise LedgerError(f"invalid unaccepted transition for {debt_id} at line {index}")
+                current.accepted = False
+                current.accepted_reason = None
+                current.updated_at = timestamp
             elif event_type == "refreshed":
-                item = state.get(debt_id)
-                if item:
-                    signal = self._signal_from_payload(payload.get("signal"), debt_id=debt_id)
-                    item.title = signal.title
-                    item.severity = signal.severity
-                    item.measurement = signal.measurement
-                    item.points = int(signal.points or 0)
-                    item.explanation = signal.explanation
-                    item.line = signal.line
-                    item.end_line = signal.end_line
-                    item.evidence = dict(signal.evidence)
-                    item.verification = dict(signal.verification)
-                    item.introduced_by = dict(signal.introduced_by)
-                    item.tags = list(signal.tags)
-                    item.updated_at = timestamp
+                if current is None or not current.active:
+                    raise LedgerError(f"invalid refreshed transition for {debt_id} at line {index}")
+                signal = self._signal_from_payload(payload.get("signal"), debt_id=debt_id)
+                current.title = signal.title
+                current.severity = signal.severity
+                current.measurement = signal.measurement
+                current.points = int(signal.points or 0)
+                current.explanation = signal.explanation
+                current.line = signal.line
+                current.end_line = signal.end_line
+                current.evidence = dict(signal.evidence)
+                current.verification = dict(signal.verification)
+                current.introduced_by = dict(signal.introduced_by)
+                current.tags = list(signal.tags)
+                current.updated_at = timestamp
         return state
+
+    def items(self) -> dict[str, LedgerItem]:
+        return self._reduce_items()
 
     def active_items(self, *, include_accepted: bool = True) -> list[LedgerItem]:
         items = [item for item in self.items().values() if item.active]
@@ -436,7 +462,39 @@ class DebtLedger:
             result[item.category] += item.points
         return {category: points for category, points in result.items() if points}
 
-    def record_report(self, report: DebtReport, *, actor: str = "diffwitness") -> dict[str, int]:
+    @staticmethod
+    def _signal_shape(signal: DebtSignal) -> dict[str, Any]:
+        return {
+            "title": signal.title,
+            "severity": signal.severity,
+            "measurement": signal.measurement,
+            "points": int(signal.points or 0),
+            "explanation": signal.explanation,
+            "line": signal.line,
+            "end_line": signal.end_line,
+            "evidence": signal.evidence,
+            "verification": signal.verification,
+            "introduced_by": signal.introduced_by,
+            "tags": signal.tags,
+        }
+
+    @staticmethod
+    def _item_shape(item: LedgerItem) -> dict[str, Any]:
+        return {
+            "title": item.title,
+            "severity": item.severity,
+            "measurement": item.measurement,
+            "points": item.points,
+            "explanation": item.explanation,
+            "line": item.line,
+            "end_line": item.end_line,
+            "evidence": item.evidence,
+            "verification": item.verification,
+            "introduced_by": item.introduced_by,
+            "tags": item.tags,
+        }
+
+    def _record_report_unlocked(self, report: DebtReport, *, actor: str) -> dict[str, int]:
         before = self.items()
         introduced = reopened = refreshed = 0
         for signal in dedupe_signals(report.signals):
@@ -452,59 +510,48 @@ class DebtLedger:
                 },
             }
             if current is None:
-                self.append(event_type="introduced", debt_id=signal.debt_id, payload=payload, actor=actor)
+                self._append_unlocked(event_type="introduced", debt_id=signal.debt_id, payload=payload, actor=actor)
+                before[signal.debt_id] = LedgerItem.from_signal(signal, timestamp=str(self.events[-1]["timestamp"]))
                 introduced += 1
             elif current.status == "resolved":
-                self.append(event_type="reopened", debt_id=signal.debt_id, payload=payload, actor=actor)
+                self._append_unlocked(event_type="reopened", debt_id=signal.debt_id, payload=payload, actor=actor)
+                reopened_item = LedgerItem.from_signal(signal, timestamp=str(self.events[-1]["timestamp"]))
+                reopened_item.introduced_at = current.introduced_at
+                reopened_item.reopen_count = current.reopen_count + 1
+                before[signal.debt_id] = reopened_item
                 reopened += 1
-            else:
-                current_shape = {
-                    "title": current.title,
-                    "severity": current.severity,
-                    "measurement": current.measurement,
-                    "points": current.points,
-                    "explanation": current.explanation,
-                    "line": current.line,
-                    "end_line": current.end_line,
-                    "evidence": current.evidence,
-                    "verification": current.verification,
-                    "introduced_by": current.introduced_by,
-                    "tags": current.tags,
-                }
-                signal_shape = {
-                    "title": signal.title,
-                    "severity": signal.severity,
-                    "measurement": signal.measurement,
-                    "points": int(signal.points or 0),
-                    "explanation": signal.explanation,
-                    "line": signal.line,
-                    "end_line": signal.end_line,
-                    "evidence": signal.evidence,
-                    "verification": signal.verification,
-                    "introduced_by": signal.introduced_by,
-                    "tags": signal.tags,
-                }
-                if current_shape != signal_shape:
-                    self.append(event_type="refreshed", debt_id=signal.debt_id, payload=payload, actor=actor)
-                    refreshed += 1
+            elif self._item_shape(current) != self._signal_shape(signal):
+                self._append_unlocked(event_type="refreshed", debt_id=signal.debt_id, payload=payload, actor=actor)
+                refreshed += 1
         return {"introduced": introduced, "reopened": reopened, "refreshed": refreshed}
 
+    def record_report(self, report: DebtReport, *, actor: str = "diffwitness") -> dict[str, int]:
+        with _ledger_lock(self.path):
+            self._adopt_disk_events()
+            return self._record_report_unlocked(report, actor=actor)
+
     def reconcile_project_report(self, report: DebtReport, *, actor: str = "diffwitness") -> dict[str, int]:
-        stats = self.record_report(report, actor=actor)
-        present = {signal.debt_id for signal in report.signals}
-        resolved = 0
-        for item in self.active_items():
-            if item.verification.get("type") != "project-rule" or item.debt_id in present:
-                continue
-            self.resolve(
-                item.debt_id,
-                reason="project rule no longer reproduces in current health scan",
-                verification={"type": "project-rule", "result": "absent"},
-                actor=actor,
-            )
-            resolved += 1
-        stats["resolved"] = resolved
-        return stats
+        with _ledger_lock(self.path):
+            self._adopt_disk_events()
+            stats = self._record_report_unlocked(report, actor=actor)
+            present = {signal.debt_id for signal in report.signals}
+            resolved = 0
+            for item in self.active_items():
+                if item.verification.get("type") != "project-rule" or item.debt_id in present:
+                    continue
+                self._append_unlocked(
+                    event_type="resolved",
+                    debt_id=item.debt_id,
+                    payload={
+                        "reason": "project rule no longer reproduces in current health scan",
+                        "verification": {"type": "project-rule", "result": "absent"},
+                        "forced": False,
+                    },
+                    actor=actor,
+                )
+                resolved += 1
+            stats["resolved"] = resolved
+            return stats
 
     def resolve(
         self,
@@ -515,33 +562,45 @@ class DebtLedger:
         actor: str = "diffwitness",
         force: bool = False,
     ) -> None:
-        item = self.items().get(debt_id)
-        if item is None:
-            raise LedgerError(f"unknown debt id: {debt_id}")
-        if item.status == "resolved":
-            return
+        if not reason.strip():
+            raise LedgerError("resolving debt requires a non-empty reason")
         if not force and not verification:
             raise LedgerError("resolving debt requires verification data; use force only for explicit manual override")
-        self.append(
-            event_type="resolved",
-            debt_id=debt_id,
-            payload={"reason": reason, "verification": verification or {}, "forced": force},
-            actor=actor,
-        )
+        with _ledger_lock(self.path):
+            self._adopt_disk_events()
+            item = self.items().get(debt_id)
+            if item is None:
+                raise LedgerError(f"unknown debt id: {debt_id}")
+            if item.status == "resolved":
+                return
+            self._append_unlocked(
+                event_type="resolved",
+                debt_id=debt_id,
+                payload={"reason": reason, "verification": verification or {}, "forced": force},
+                actor=actor,
+            )
 
     def accept(self, debt_id: str, *, reason: str, actor: str = "user") -> None:
-        item = self.items().get(debt_id)
-        if item is None or not item.active:
-            raise LedgerError(f"cannot accept non-open debt: {debt_id}")
         if not reason.strip():
             raise LedgerError("accepted debt requires an explicit reason")
-        self.append(event_type="accepted", debt_id=debt_id, payload={"reason": reason}, actor=actor)
+        with _ledger_lock(self.path):
+            self._adopt_disk_events()
+            item = self.items().get(debt_id)
+            if item is None or not item.active:
+                raise LedgerError(f"cannot accept non-open debt: {debt_id}")
+            if item.accepted and item.accepted_reason == reason:
+                return
+            self._append_unlocked(event_type="accepted", debt_id=debt_id, payload={"reason": reason}, actor=actor)
 
     def unaccept(self, debt_id: str, *, actor: str = "user") -> None:
-        item = self.items().get(debt_id)
-        if item is None or not item.active:
-            raise LedgerError(f"cannot unaccept non-open debt: {debt_id}")
-        self.append(event_type="unaccepted", debt_id=debt_id, payload={}, actor=actor)
+        with _ledger_lock(self.path):
+            self._adopt_disk_events()
+            item = self.items().get(debt_id)
+            if item is None or not item.active:
+                raise LedgerError(f"cannot unaccept non-open debt: {debt_id}")
+            if not item.accepted:
+                return
+            self._append_unlocked(event_type="unaccepted", debt_id=debt_id, payload={}, actor=actor)
 
     def points_delta_since(self, event_index: int) -> int:
         if event_index < 0 or event_index > len(self.events):
