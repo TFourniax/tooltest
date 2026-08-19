@@ -5,30 +5,64 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Existing version tag to package (for dry runs leave empty)
-        required: false
-        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   source:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build and validate Python distributions
+      - name: Install release tooling and editable package
         run: |
-          python -m pip install --upgrade build
+          python -m pip install --upgrade build twine
           python -m pip install -e .
+          python -m pip check
+      - name: Validate tag and runtime version contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from importlib.metadata import version
+          import diffwitness
+
+          package_version = version('diffwitness')
+          if diffwitness.__version__ != package_version:
+              raise SystemExit(
+                  f"runtime/package version mismatch: {diffwitness.__version__!r} != {package_version!r}"
+              )
+          if os.environ.get('GITHUB_REF_TYPE') == 'tag':
+              actual = os.environ['GITHUB_REF_NAME']
+              expected = f"v{package_version}"
+              if actual != expected:
+                  raise SystemExit(f"release tag/version mismatch: tag {actual!r}, expected {expected!r}")
+          print(f"validated DiffWitness {package_version}")
+          PY
+      - name: Compile and test source tree
+        run: |
+          python -m compileall -q src integrations
           python -m unittest discover -s tests -v
           python benchmarks/proofbench.py
+      - name: Build and validate Python distributions
+        run: |
           python -m build
+          python -m twine check dist/*
+      - name: Smoke installed wheel in clean environment
+        shell: bash
+        run: |
+          python -m venv release-wheel-smoke
+          release-wheel-smoke/bin/python -m pip install --no-deps dist/*.whl
+          release-wheel-smoke/bin/python -m pip check
+          release-wheel-smoke/bin/dw --version
+          release-wheel-smoke/bin/dw --help
+          release-wheel-smoke/bin/dw ledger --help
+          release-wheel-smoke/bin/diffwitness --version
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions
@@ -50,15 +84,18 @@ jobs:
         shell: bash
         run: |
           python -m pip install . pyinstaller
+          python -m pip check
           pyinstaller --clean --onefile --name dw packaging/dw_entry.py
           ./dist/dw --version || ./dist/dw.exe --version
+          ./dist/dw --help || ./dist/dw.exe --help
+          ./dist/dw ledger --help || ./dist/dw.exe ledger --help
       - name: Package binary metadata
         shell: bash
         run: |
           mkdir -p release-binary
           if [[ -f dist/dw.exe ]]; then cp dist/dw.exe release-binary/dw.exe; else cp dist/dw release-binary/dw; fi
           python - <<'PY'
-          import json, os, platform, pathlib, subprocess
+          import json, platform, pathlib
           binary = pathlib.Path('release-binary/dw.exe' if pathlib.Path('release-binary/dw.exe').exists() else 'release-binary/dw')
           payload = {
               'os': platform.system(),
@@ -79,6 +116,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [source, binary]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -100,11 +139,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          release_flags=()
+          case "$GITHUB_REF_NAME" in
+            *a*|*b*|*rc*) release_flags+=(--prerelease) ;;
+          esac
           gh release create "$GITHUB_REF_NAME" publish/* \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --generate-notes \
-            --title "DiffWitness $GITHUB_REF_NAME"
+            --title "DiffWitness $GITHUB_REF_NAME" \
+            "${release_flags[@]}"
 
   pypi:
     if: startsWith(github.ref, 'refs/tags/v') && vars.DIFFWITNESS_PYPI_PUBLISH == 'true'
