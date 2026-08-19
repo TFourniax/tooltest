@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Any
 
 from .analysis import AnalysisError, _prepare_sandbox
-from .debt_scan import scan_project
 from .diffing import parse_file_patches, test_overlay
 from .gitops import apply_patch, detached_worktree, diff_text, git, hard_reset, snapshot_worktree
 from .ledger import LedgerItem
+from .project_scan import scan_project
 from .runner import run_repeated
 
 
@@ -42,6 +42,11 @@ def recheck_mutation_necessity(item: LedgerItem, *, repo: Path, current_sha: str
         current_runs = run_repeated(test_command, cwd=worktree, source_repo=repo, timeout=timeout, repetitions=stability_runs)
         if not current_runs.passed:
             return RecheckResult(item.debt_id, "inconclusive", f"current candidate is {current_runs.classification}; necessity replay requires stable-pass", {"type": "mutation-necessity", "current": current_runs.to_dict()})
+
+        # Tests are allowed to mutate their sandbox. Never let generated files, caches, modified
+        # fixtures, or tracked side effects from the stable-green control run leak into the
+        # counterfactual. Restore the exact candidate before removing the stored mutation.
+        hard_reset(worktree, current_sha)
         reverse_ok, reverse_error = apply_patch(worktree, patch, reverse=True)
         if reverse_ok:
             _prepare_sandbox(source_repo=repo, sandbox=worktree, prepare_command=prepare_command, timeout=timeout, shared_paths=shared_paths)
@@ -102,8 +107,8 @@ def recheck_project_rule(item: LedgerItem, *, repo: Path, duplicate_scan: bool, 
     report = scan_project(repo=repo, duplicate_scan=duplicate_scan, max_scan_files=max_scan_files, max_duplicate_signals=max_duplicate_signals)
     active = {signal.debt_id: signal for signal in report.signals}
     if item.debt_id not in active:
-        return RecheckResult(item.debt_id, "resolved", "the project rule no longer reproduces on current tracked source", {"type": "project-rule", "result": "absent", "current_sha": report.candidate_sha})
-    return RecheckResult(item.debt_id, "open", "the project rule still reproduces", {"type": "project-rule", "result": "present", "signal": active[item.debt_id].to_dict()})
+        return RecheckResult(item.debt_id, "resolved", "the project rule no longer reproduces on current tracked source", {"type": "project-rule", "result": "absent", "current_sha": report.candidate_sha, "current_tree": report.candidate_tree})
+    return RecheckResult(item.debt_id, "open", "the project rule still reproduces", {"type": "project-rule", "result": "present", "current_sha": report.candidate_sha, "current_tree": report.candidate_tree, "signal": active[item.debt_id].to_dict()})
 
 
 def recheck_item(item: LedgerItem, *, repo: Path, current_sha: str | None = None, test_command: str | None = None,
