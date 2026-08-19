@@ -29,7 +29,7 @@ Usage:
   dw plan [options]                  Build an explainable debt-repayment plan
   dw repay [options] -- <agent>      Run a constrained repayment mission, verify, and re-measure
   dw recheck <DW-...> [options]      Replay verification for historical debt lineages
-  dw ledger <action> [options]       Inspect/accept/reopen/manage the event-sourced ledger
+  dw ledger <action> [options]       Inspect, govern, checkpoint, and transport the Debt Ledger
   dw verify <certificate> [options]  Verify certificate integrity and freshness
   dw note <certificate> [options]    Attach a verified proof reference using git notes
   dw doctor [options]                Explain zero-config evidence discovery
@@ -159,9 +159,10 @@ def main(argv: list[str] | None = None) -> int:
     if args[0] == "verify": return verify_cli(args[1:])
     if args[0] == "note": return note_cli(args[1:])
     if args[0] in {"debt", "health", "plan", "repay", "recheck", "ledger"}:
-        from .debt_cli import health_cli, ledger_cli, plan_cli, recheck_cli, repay_cli
+        from .debt_cli import health_cli, plan_cli, recheck_cli, repay_cli
         from .debt_entry import debt_entry
         from .ledger import LedgerError
+        from .ledger_cli import ledger_cli
         handlers = {"debt": debt_entry, "health": health_cli, "plan": plan_cli, "repay": repay_cli, "recheck": recheck_cli, "ledger": ledger_cli}
         try:
             return handlers[args[0]](args[1:])
