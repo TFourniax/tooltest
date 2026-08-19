@@ -35,6 +35,11 @@ def _run(
     return proc
 
 
+def git_result(repo: Path, *args: str, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
+    """Run Git without raising so callers can distinguish expected absence from transport failure."""
+    return _run(["git", *args], cwd=repo, check=False, input_text=input_text)
+
+
 def git(repo: Path, *args: str, check: bool = True, input_text: str | None = None) -> str:
     return _run(["git", *args], cwd=repo, check=check, input_text=input_text).stdout
 
