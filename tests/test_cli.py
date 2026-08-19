@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness import __version__
+
 
 SRC = str(Path(__file__).resolve().parents[1] / "src")
 
@@ -57,7 +59,7 @@ class CliTests(unittest.TestCase):
             ]
             proc = run(cmd, cwd=repo, check=False)
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
-            self.assertIn("DiffWitness 0.3.0 - counterfactual patch evidence", proc.stdout)
+            self.assertIn(f"DiffWitness {__version__} - counterfactual patch evidence", proc.stdout)
             report = json.loads(cert.read_text(encoding="utf-8"))
             self.assertEqual(report["schema_version"], 2)
             self.assertEqual(report["summary"]["witnessed"], 1)
