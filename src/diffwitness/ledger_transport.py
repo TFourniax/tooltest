@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .gitops import git
+from .gitops import GitError, git, git_result
 from .ledger import DebtLedger, LedgerError
 
 DEFAULT_LEDGER_REF = "refs/diffwitness/debt-ledger"
@@ -139,27 +139,31 @@ def fetch_checkpoint(
 ) -> bool:
     """Fetch a portable ledger ref without touching code refs.
 
-    Callers that need to preserve a local checkpoint should provide `target_ref`; the higher-level
-    `pull_checkpoint` helper always fetches into a dedicated tracking ref for this reason.
+    Missing refs are allowed only when `missing_ok` is true. Authentication, network, repository,
+    and other Git transport failures always fail closed so cumulative debt cannot silently reset.
     """
     target = target_ref or ref
     # A failed fetch must not look successful merely because a previous attempt left a tracking
     # ref behind. Dedicated tracking refs are disposable, so clear them before every fetch.
     if target_ref is not None:
         git(repo, "update-ref", "-d", target, check=False)
-    proc = git(
-        repo,
-        "fetch",
-        "--no-tags",
-        remote,
-        f"+{ref}:{target}",
-        check=False,
-    )
+
+    probe = git_result(repo, "ls-remote", "--exit-code", remote, ref)
+    if probe.returncode == 2:
+        if missing_ok:
+            return False
+        raise LedgerError(f"debt ledger checkpoint {ref} does not exist on remote {remote}")
+    if probe.returncode != 0:
+        detail = probe.stderr.strip() or probe.stdout.strip() or "unknown Git transport error"
+        raise LedgerError(f"cannot query debt ledger checkpoint {ref} on {remote}: {detail}")
+
+    fetched = git_result(repo, "fetch", "--no-tags", remote, f"+{ref}:{target}")
+    if fetched.returncode != 0:
+        detail = fetched.stderr.strip() or fetched.stdout.strip() or "unknown Git transport error"
+        raise LedgerError(f"could not fetch debt ledger checkpoint {ref} from {remote}: {detail}")
     if _ref_commit(repo, target):
         return True
-    if missing_ok:
-        return False
-    raise LedgerError(f"could not fetch debt ledger checkpoint {ref} from {remote}: {proc.strip()}")
+    raise LedgerError(f"Git reported a successful fetch but checkpoint {ref} is unavailable locally")
 
 
 def pull_checkpoint(
