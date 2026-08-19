@@ -45,6 +45,18 @@ inputs:
     description: Measure change debt and enforce [debt] budgets after proof
     required: false
     default: "true"
+  ledger-sync:
+    description: Restore the cumulative Debt Ledger checkpoint before evaluating debt budgets
+    required: false
+    default: "true"
+  ledger-remote:
+    description: Git remote containing the portable Debt Ledger checkpoint
+    required: false
+    default: origin
+  ledger-ref:
+    description: Git ref used for the portable Debt Ledger checkpoint
+    required: false
+    default: refs/diffwitness/debt-ledger
   upload-certificate:
     description: Preserve proof and debt JSON/Markdown as a GitHub Actions artifact
     required: false
@@ -69,7 +81,7 @@ outputs:
     description: New debt points attributed to this change
     value: ${{ steps.debt.outputs.debt_points }}
   debt_projected_total:
-    description: Projected total active debt after this change under the local ledger/config
+    description: Projected total active debt after this change under the restored ledger/config
     value: ${{ steps.debt.outputs.debt_projected_total }}
   debt_budget_passed:
     description: Whether configured debt budgets passed
@@ -105,6 +117,15 @@ runs:
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
         dw "${args[@]}"
+    - name: Restore cumulative Debt Ledger baseline
+      if: ${{ inputs.debt == 'true' && inputs.ledger-sync == 'true' }}
+      shell: bash
+      env:
+        DW_LEDGER_REMOTE: ${{ inputs.ledger-remote }}
+        DW_LEDGER_REF: ${{ inputs.ledger-ref }}
+      run: |
+        set -euo pipefail
+        dw ledger pull --remote "$DW_LEDGER_REMOTE" --ref "$DW_LEDGER_REF"
     - name: Measure change debt
       id: debt
       if: ${{ inputs.debt == 'true' }}
