@@ -5,12 +5,23 @@ import shutil
 import subprocess
 import tempfile
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterator
 
 
 class GitError(RuntimeError):
     pass
+
+
+_TRANSIENT_DIRS = {
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".hypothesis",
+}
+_TRANSIENT_SUFFIXES = {".pyc", ".pyo"}
+_TRANSIENT_FILES = {".coverage"}
 
 
 def _run(
@@ -59,13 +70,38 @@ def resolve_ref(repo: Path, ref: str) -> str:
     return value
 
 
-def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> str:
-    """Create an unreachable commit representing staged, unstaged and untracked files.
+def _is_transient_untracked(path: str) -> bool:
+    """Recognize narrow runtime/test cache artifacts that must not become proof surface.
 
-    An alternate index is used, so the user's real staging area is untouched. Ignored files are
-    intentionally not captured. `exclude_paths` is reserved for verification-time generated
-    artifacts (for example the certificate being verified); exclusions affect only the ephemeral
-    alternate index and never mutate the user's real staging area or working files.
+    This filter only applies to *untracked* files. If a repository deliberately tracks a matching
+    path, DiffWitness preserves it exactly like any other tracked content. The list is intentionally
+    conservative: it targets interpreter/test caches that are routinely created merely by running
+    evidence and have no stable source semantics.
+    """
+    posix = PurePosixPath(path)
+    if any(part in _TRANSIENT_DIRS for part in posix.parts):
+        return True
+    if posix.suffix.lower() in _TRANSIENT_SUFFIXES:
+        return True
+    return posix.name in _TRANSIENT_FILES
+
+
+def _transient_untracked_paths(repo: Path) -> list[str]:
+    raw = git(repo, "ls-files", "--others", "--exclude-standard", "-z")
+    return sorted(path for path in raw.split("\0") if path and _is_transient_untracked(path))
+
+
+def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> str:
+    """Create an unreachable commit representing meaningful worktree content.
+
+    An alternate index is used, so the user's real staging area is untouched. Git-ignored files are
+    not captured. Narrow, known *untracked* runtime/test cache artifacts are also omitted because a
+    preceding test run must not change the semantic candidate being proved. Deliberately tracked
+    files are never auto-excluded, even if their names resemble cache artifacts.
+
+    `exclude_paths` is reserved for caller-owned generated artifacts such as the certificate being
+    verified. All exclusions affect only the ephemeral alternate index and never mutate the user's
+    real staging area or working files.
     """
     head = resolve_ref(repo, "HEAD")
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
@@ -74,14 +110,20 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
     env = os.environ.copy()
     env["GIT_INDEX_FILE"] = index_name
     try:
+        # Determine transient untracked paths from the user's real index before switching Git to the
+        # alternate one. With an empty alternate index, `ls-files --others` would otherwise classify
+        # tracked project files as untracked as well.
+        transient = _transient_untracked_paths(repo)
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
-        for raw in exclude_paths or []:
+        exclusions = [*(exclude_paths or []), *transient]
+        for raw in dict.fromkeys(exclusions):
             rel = Path(raw)
             if rel.is_absolute() or ".." in rel.parts:
                 raise GitError(f"snapshot exclusion must be a repo-relative path: {raw}")
             # Restore the HEAD version in the alternate index. For an untracked artifact this
-            # removes it from the snapshot; for a tracked path it deliberately restores HEAD.
+            # removes it from the snapshot; for an explicit caller exclusion on a tracked path it
+            # deliberately restores HEAD.
             _run(
                 ["git", "reset", "--quiet", head, "--", rel.as_posix()],
                 cwd=repo,
