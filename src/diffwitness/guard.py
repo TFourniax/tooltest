@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 from .config import load_config
-from .debt_budget import evaluate_budget, ledger_path, merged_debt_config
+from .debt_budget import evaluate_and_record, ledger_path, merged_debt_config
 from .debt_certificate import validate_debt_certificate
 from .debt_scan import scan_change
 from .gitops import diff_text, git, repo_root, snapshot_worktree
@@ -182,14 +182,27 @@ def guard_cli(argv: list[str]) -> int:
         for signal in report.signals:
             signal.introduced_by.update(provenance)
         report.metadata["agent_provenance"] = provenance
-        budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config)
+
+        auto_record = bool(debt_config.get("auto_record", True))
+        tracked_ledger = _tracked_ledger(repo, ledger.path)
+        should_record = auto_record and not tracked_ledger
+        budget, stats = evaluate_and_record(
+            ledger=ledger,
+            change=report,
+            debt_config=debt_config,
+            actor="diffwitness-guard",
+            record=should_record,
+            record_if_budget_fails=False,
+        )
         _print_change_debt(report, budget)
-        if debt_config.get("auto_record", True):
-            if _tracked_ledger(repo, ledger.path):
-                print("Debt Ledger: configured ledger is tracked by Git; Guard will not mutate it after proof. Run `dw debt` explicitly to record the change.")
-            else:
-                stats = ledger.record_report(report, actor="diffwitness-guard")
-                print(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
+
+        if auto_record and tracked_ledger:
+            print("Debt Ledger: configured ledger is tracked by Git; Guard will not mutate it after proof. Run `dw debt` explicitly to record an accepted change.")
+        elif should_record and budget.passed:
+            print(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
+        elif should_record and not budget.passed:
+            print("Debt Ledger: rejected change was not admitted to the durable ledger.")
+
         if not budget.passed:
             print("DiffWitness Guard: DEBT BUDGET REJECTED", file=sys.stderr)
             return 1
