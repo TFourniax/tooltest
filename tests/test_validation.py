@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness.attestation import verify_integrity
 from diffwitness.entry import main
 
 
@@ -70,10 +71,16 @@ class ValidationOnlyTests(unittest.TestCase):
             self.assertTrue(report["certificate_id"].startswith("dwv1_"))
             self.assertEqual(report["candidate_run"]["classification"], "stable-pass")
             self.assertTrue(report["valid"])
+            self.assertEqual(report["execution"]["filesystem_isolation"], "reset-before-each-run")
+            self.assertTrue(verify_integrity(report)[0])
             self.assertEqual(
                 main(["verify", str(certificate), "--repo", str(repo)]),
                 0,
             )
+
+            tampered = json.loads(json.dumps(report))
+            tampered["execution"]["filesystem_isolation"] = "shared-state"
+            self.assertFalse(verify_integrity(tampered)[0])
 
     def test_failing_test_only_diff_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as td:
