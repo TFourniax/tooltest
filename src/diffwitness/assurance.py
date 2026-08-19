@@ -5,10 +5,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .analysis import AnalysisError, _prepare_sandbox
+from .analysis import AnalysisError, _run_variant_repeated
 from .diffing import FilePatch, test_overlay
 from .gitops import apply_patch, detached_worktree, git
-from .runner import run_repeated
 
 
 def build_assurance(
@@ -43,19 +42,14 @@ def build_assurance(
     test_files = sorted(file.path for file in files if file.is_test)
 
     with detached_worktree(source_repo, candidate_sha, "assurance-candidate") as candidate_wt:
-        _prepare_sandbox(
+        candidate_runs = _run_variant_repeated(
+            test_command,
             source_repo=source_repo,
             sandbox=candidate_wt,
-            prepare_command=prepare_command,
-            timeout=timeout,
-            shared_paths=shared_paths,
-        )
-        candidate_runs = run_repeated(
-            test_command,
-            cwd=candidate_wt,
-            source_repo=source_repo,
             timeout=timeout,
             repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared_paths,
         )
 
     with detached_worktree(source_repo, base_sha, "assurance-base") as base_wt:
@@ -66,19 +60,14 @@ def build_assurance(
                     "candidate test changes could not be overlaid onto base during assurance probe: "
                     + error
                 )
-        _prepare_sandbox(
+        baseline_runs = _run_variant_repeated(
+            test_command,
             source_repo=source_repo,
             sandbox=base_wt,
-            prepare_command=prepare_command,
-            timeout=timeout,
-            shared_paths=shared_paths,
-        )
-        baseline_runs = run_repeated(
-            test_command,
-            cwd=base_wt,
-            source_repo=source_repo,
             timeout=timeout,
             repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared_paths,
         )
 
     if candidate_runs.passed and baseline_runs.failed:
@@ -136,6 +125,7 @@ def build_assurance(
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "test_overlay": overlay_candidate_tests,
+            "filesystem_isolation": "reset-before-each-run",
         },
         "claim": claim,
         "non_claim": "Assurance mode does not establish real-hunk necessity or global program correctness.",
