@@ -42,6 +42,31 @@ class DebtScanTests(unittest.TestCase):
             self.assertIn("change.no-proof-certificate", rules)
             self.assertIn("change.no-changed-test-surface", rules)
 
+    def test_non_probative_certificate_cannot_hide_unverified_change(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = root / "repo"
+            repo.mkdir()
+            base = init_repo(repo, {"app.py": "def value():\n    return 1\n"})
+            (repo / "app.py").write_text("def value():\n    return 2\n", encoding="utf-8")
+            git("add", "app.py", cwd=repo)
+            git("commit", "-q", "-m", "change", cwd=repo)
+            candidate = git("rev-parse", "HEAD", cwd=repo)
+            cert = root / "non-proof.json"
+            cert.write_text(
+                json.dumps({"certificate_id": "dw0_not-a-causal-proof"}),
+                encoding="utf-8",
+            )
+            report = scan_change(
+                repo=repo,
+                base_sha=base,
+                candidate_sha=candidate,
+                certificate_path=cert,
+            )
+            rules = {signal.rule_id for signal in report.signals}
+            self.assertFalse(report.metadata["behavior_backed"])
+            self.assertIn("change.no-proof-certificate", rules)
+
     def test_preservation_certificate_prevents_fake_test_debt_but_not_security_review(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
