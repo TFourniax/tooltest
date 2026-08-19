@@ -4,12 +4,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .analysis import AnalysisError, _prepare_sandbox
+from .analysis import AnalysisError, _run_variant_repeated
 from .diffing import parse_file_patches, test_overlay
 from .gitops import apply_patch, detached_worktree, diff_text, git, hard_reset, snapshot_worktree
 from .ledger import LedgerItem
 from .project_scan import scan_project
-from .runner import run_repeated
 
 
 AUTO_RECHECK_TYPES = frozenset({"mutation-necessity", "historical-discrimination", "project-rule"})
@@ -46,28 +45,41 @@ def recheck_mutation_necessity(item: LedgerItem, *, repo: Path, current_sha: str
     if not isinstance(patch, str) or not patch.strip():
         return RecheckResult(item.debt_id, "inconclusive", "stored debt lineage has no mutation patch to replay", {"type": "mutation-necessity", "result": "missing-patch"})
     with detached_worktree(repo, current_sha, "debt-current") as worktree:
-        _prepare_sandbox(source_repo=repo, sandbox=worktree, prepare_command=prepare_command, timeout=timeout, shared_paths=shared_paths)
-        current_runs = run_repeated(test_command, cwd=worktree, source_repo=repo, timeout=timeout, repetitions=stability_runs)
+        current_runs = _run_variant_repeated(
+            test_command,
+            source_repo=repo,
+            sandbox=worktree,
+            timeout=timeout,
+            repetitions=stability_runs,
+            prepare_command=prepare_command,
+            shared_paths=shared_paths,
+        )
         if not current_runs.passed:
             return RecheckResult(item.debt_id, "inconclusive", f"current candidate is {current_runs.classification}; necessity replay requires stable-pass", {"type": "mutation-necessity", "current": current_runs.to_dict()})
 
-        # Tests are allowed to mutate their sandbox. Never let generated files, caches, modified
-        # fixtures, or tracked side effects from the stable-green control run leak into the
-        # counterfactual. Restore the exact candidate before removing the stored mutation.
-        hard_reset(worktree, current_sha)
+        # Restore the exact current candidate before applying the counterfactual. This removes all
+        # tracked, untracked, and ignored residue left by the control repetitions.
+        hard_reset(worktree, current_sha, clean_ignored=True)
         reverse_ok, reverse_error = apply_patch(worktree, patch, reverse=True)
         if reverse_ok:
-            _prepare_sandbox(source_repo=repo, sandbox=worktree, prepare_command=prepare_command, timeout=timeout, shared_paths=shared_paths)
-            without_runs = run_repeated(test_command, cwd=worktree, source_repo=repo, timeout=timeout, repetitions=stability_runs)
-            verification = {"type": "mutation-necessity", "result": "reverse-applied", "current": current_runs.to_dict(), "without_mutation": without_runs.to_dict()}
+            without_runs = _run_variant_repeated(
+                test_command,
+                source_repo=repo,
+                sandbox=worktree,
+                timeout=timeout,
+                repetitions=stability_runs,
+                prepare_command=prepare_command,
+                shared_paths=shared_paths,
+            )
+            verification = {"type": "mutation-necessity", "result": "reverse-applied", "current": current_runs.to_dict(), "without_mutation": without_runs.to_dict(), "filesystem_isolation": "reset-before-each-run"}
             if without_runs.failed:
                 return RecheckResult(item.debt_id, "resolved", "the stored mutation is now behaviorally witnessed: removing it makes current evidence stably fail", verification)
             if without_runs.passed:
                 return RecheckResult(item.debt_id, "open", "the stored mutation remains removable under current evidence", verification)
             return RecheckResult(item.debt_id, "inconclusive", f"evidence without the mutation is {without_runs.classification}", verification)
-        hard_reset(worktree, current_sha)
+        hard_reset(worktree, current_sha, clean_ignored=True)
         forward_ok, forward_error = apply_patch(worktree, patch, reverse=False)
-        verification = {"type": "mutation-necessity", "result": "patch-shape-changed", "current": current_runs.to_dict(), "reverse_error": reverse_error, "forward_applies": forward_ok, "forward_error": forward_error}
+        verification = {"type": "mutation-necessity", "result": "patch-shape-changed", "current": current_runs.to_dict(), "reverse_error": reverse_error, "forward_applies": forward_ok, "forward_error": forward_error, "filesystem_isolation": "reset-before-each-run"}
         if forward_ok:
             return RecheckResult(item.debt_id, "resolved", "the original debt-carrying mutation is no longer present in the current stable-green candidate", verification)
         return RecheckResult(item.debt_id, "inconclusive", "current code diverged from both sides of the stored mutation patch; exact lineage replay is no longer possible", verification)
@@ -95,15 +107,22 @@ def recheck_discrimination(item: LedgerItem, *, repo: Path, current_sha: str, te
                 ok, error = apply_patch(worktree, overlay, reverse=False)
                 if not ok:
                     raise AnalysisError(f"current test surface could not be overlaid onto {label}: {error}")
-            _prepare_sandbox(source_repo=repo, sandbox=worktree, prepare_command=prepare_command, timeout=timeout, shared_paths=shared_paths)
-            return run_repeated(test_command, cwd=worktree, source_repo=repo, timeout=timeout, repetitions=stability_runs)
+            return _run_variant_repeated(
+                test_command,
+                source_repo=repo,
+                sandbox=worktree,
+                timeout=timeout,
+                repetitions=stability_runs,
+                prepare_command=prepare_command,
+                shared_paths=shared_paths,
+            )
     try:
         base_runs = run_historical(base_sha, base_overlay, "debt-origin-base")
         candidate_runs = run_historical(candidate_sha, candidate_overlay, "debt-origin-candidate")
     except AnalysisError as exc:
         return RecheckResult(item.debt_id, "inconclusive", str(exc), {"type": "historical-discrimination", "result": "overlay-error"})
     verification = {"type": "historical-discrimination", "origin_base_sha": base_sha, "origin_candidate_sha": candidate_sha, "current_sha": current_sha,
-                    "base_with_current_tests": base_runs.to_dict(), "candidate_with_current_tests": candidate_runs.to_dict()}
+                    "base_with_current_tests": base_runs.to_dict(), "candidate_with_current_tests": candidate_runs.to_dict(), "filesystem_isolation": "reset-before-each-run"}
     if base_runs.failed and candidate_runs.passed:
         return RecheckResult(item.debt_id, "resolved", "current tests now discriminate the introducing candidate from its historical base", verification)
     if base_runs.passed and candidate_runs.passed:
