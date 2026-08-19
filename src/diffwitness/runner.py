@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from typing import Callable
 
 from .models import CommandResult, RunSet
 
@@ -77,11 +78,19 @@ def run_repeated(
     source_repo: Path,
     timeout: float,
     repetitions: int,
+    before_each: Callable[[], None] | None = None,
 ) -> RunSet:
+    """Run evidence repeatedly, optionally rebuilding an identical sandbox before every run.
+
+    `before_each` is intentionally executed before *every* repetition, including the first. Proof
+    callers use it to restore an immutable variant and rerun preparation so a test that mutates
+    files, caches, fixtures, or ignored state cannot influence the next stability observation.
+    """
     if repetitions < 1:
         raise ValueError("repetitions must be >= 1")
-    runs = [
-        run_command(command, cwd=cwd, source_repo=source_repo, timeout=timeout)
-        for _ in range(repetitions)
-    ]
+    runs: list[CommandResult] = []
+    for _ in range(repetitions):
+        if before_each is not None:
+            before_each()
+        runs.append(run_command(command, cwd=cwd, source_repo=source_repo, timeout=timeout))
     return RunSet(runs=runs, classification=classify_runs(runs))
