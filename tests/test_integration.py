@@ -178,6 +178,47 @@ class IntegrationTests(unittest.TestCase):
             sha = snapshot_worktree(repo)
             self.assertEqual(len(sha), 40)
 
+    def test_snapshot_ignores_untracked_runtime_caches_but_keeps_untracked_source(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            run("git", "init", "-q", cwd=repo)
+            (repo / "app.py").write_text("VALUE = 1\n", encoding="utf-8")
+            commit(repo, "initial")
+            base = resolve_ref(repo, "HEAD")
+
+            # Simulate an agent/test run in a repository whose .gitignore forgot Python caches.
+            cache = repo / "__pycache__" / "app.cpython-312.pyc"
+            cache.parent.mkdir()
+            cache.write_bytes(b"generated-runtime-cache")
+            pytest_cache = repo / ".pytest_cache" / "v" / "cache" / "nodeids"
+            pytest_cache.parent.mkdir(parents=True)
+            pytest_cache.write_text("[]\n", encoding="utf-8")
+            (repo / "new_feature.py").write_text("ENABLED = True\n", encoding="utf-8")
+
+            candidate = snapshot_worktree(repo)
+            changed = diff_text(repo, base, candidate)
+            self.assertIn("new_feature.py", changed)
+            self.assertNotIn("__pycache__", changed)
+            self.assertNotIn(".pytest_cache", changed)
+
+            # Snapshotting is non-destructive: ignored proof artifacts remain in the worktree.
+            self.assertTrue(cache.exists())
+            self.assertTrue(pytest_cache.exists())
+
+    def test_tracked_cache_named_file_is_never_silently_hidden(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            run("git", "init", "-q", cwd=repo)
+            tracked = repo / "__pycache__" / "fixture.pyc"
+            tracked.parent.mkdir()
+            tracked.write_bytes(b"version-one")
+            commit(repo, "track unusual fixture")
+            base = resolve_ref(repo, "HEAD")
+
+            tracked.write_bytes(b"version-two")
+            candidate = snapshot_worktree(repo)
+            self.assertIn("__pycache__/fixture.pyc", diff_text(repo, base, candidate))
+
 
 if __name__ == "__main__":
     unittest.main()
