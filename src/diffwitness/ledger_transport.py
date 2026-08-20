@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .gitops import GitError, git, git_result
+from .gitops import GitError, git, git_bytes, git_bytes_result, git_result
 from .ledger import DebtLedger, LedgerError
 
 DEFAULT_LEDGER_REF = "refs/diffwitness/debt-ledger"
@@ -45,20 +45,47 @@ def _set_ref(repo: Path, ref: str, commit: str) -> None:
     git(repo, "update-ref", ref, commit)
 
 
+def _decode_ascii(value: bytes) -> str:
+    return value.decode("ascii", errors="strict").strip()
+
+
+def _checkpoint_blob(repo: Path, commit: str) -> bytes:
+    """Read the canonical checkpoint blob, with a narrow legacy-Windows fallback.
+
+    Early alpha development used text-mode `git mktree` input. On Windows that could create a tree
+    entry literally named `ledger.jsonl\r`. Supporting that spelling here makes any already-created
+    local checkpoint recoverable while every newly written checkpoint uses the canonical name.
+    """
+    canonical = git_bytes_result(repo, "show", f"{commit}:{LEDGER_OBJECT_PATH}")
+    if canonical.returncode == 0:
+        return canonical.stdout
+
+    legacy_path = LEDGER_OBJECT_PATH + "\r"
+    legacy = git_bytes_result(repo, "show", f"{commit}:{legacy_path}")
+    if legacy.returncode == 0:
+        return legacy.stdout
+
+    detail = canonical.stderr.decode("utf-8", errors="replace").strip()
+    raise GitError(
+        f"command failed ({canonical.returncode}): git show {commit}:{LEDGER_OBJECT_PATH}\n{detail}"
+    )
+
+
 def checkpoint_ledger(
     *,
     repo: Path,
     ledger: DebtLedger,
     ref: str = DEFAULT_LEDGER_REF,
 ) -> str:
-    """Store a ledger snapshot on a Git ref without changing the code tree or HEAD."""
-    body = _serialize(ledger.events)
-    blob = git(repo, "hash-object", "-w", "--stdin", input_text=body).strip()
-    tree = git(
-        repo,
-        "mktree",
-        input_text=f"100644 blob {blob}\t{LEDGER_OBJECT_PATH}\n",
-    ).strip()
+    """Store a canonical ledger snapshot on a Git ref without changing the code tree or HEAD."""
+    # Object plumbing is byte-exact by design. Text-mode subprocess pipes translate LF to CRLF on
+    # Windows, which previously produced a tree entry named `ledger.jsonl\r` and OS-specific blob
+    # hashes. JSONL checkpoints are always UTF-8 + LF regardless of the writer's platform.
+    body = _serialize(ledger.events).encode("utf-8")
+    blob = _decode_ascii(git_bytes(repo, "hash-object", "-w", "--stdin", input_bytes=body))
+    tree_record = f"100644 blob {blob}\t{LEDGER_OBJECT_PATH}".encode("utf-8") + b"\0"
+    tree = _decode_ascii(git_bytes(repo, "mktree", "-z", input_bytes=tree_record))
+
     parent = _ref_commit(repo, ref)
     args = [
         "-c",
@@ -70,7 +97,8 @@ def checkpoint_ledger(
     ]
     if parent:
         # Avoid producing a new checkpoint commit when the current ref already contains the
-        # exact same ledger bytes. This keeps repeated `dw ledger push` calls idempotent.
+        # exact same ledger events. This keeps repeated `dw ledger push` calls idempotent even when
+        # an older checkpoint was authored on another operating system.
         current = read_checkpoint(repo=repo, ledger_path=ledger.path, ref=ref)
         if current is not None and current.events == ledger.events:
             return parent
@@ -79,8 +107,8 @@ def checkpoint_ledger(
         "DiffWitness debt ledger checkpoint\n\n"
         f"events: {len(ledger.events)}\n"
         f"last-hash: {ledger.last_hash or 'none'}\n"
-    )
-    commit = git(repo, *args, input_text=message).strip()
+    ).encode("utf-8")
+    commit = _decode_ascii(git_bytes(repo, *args, input_bytes=message))
     if parent:
         git(repo, "update-ref", ref, commit, parent)
     else:
@@ -97,7 +125,10 @@ def read_checkpoint(
     commit = _ref_commit(repo, ref)
     if not commit:
         return None
-    text = git(repo, "show", f"{commit}:{LEDGER_OBJECT_PATH}")
+    try:
+        text = _checkpoint_blob(repo, commit).decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise LedgerError("debt-ledger checkpoint is not valid UTF-8") from exc
     return _parse(text, path=ledger_path)
 
 
