@@ -118,15 +118,54 @@ def _status_line(status: str) -> str:
     return {"witnessed": "WITNESSED   ", "unwitnessed": "UNWITNESSED ", "inconclusive": "INCONCLUSIVE"}[status]
 
 
-def _write_init_workflow(repo: Path, *, force: bool) -> Path:
+def _write_init_workflow(
+    repo: Path,
+    *,
+    force: bool,
+    test_command: str,
+    prepare_command: str | None,
+) -> Path:
+    """Generate a reproducible PR workflow pinned to the installed DiffWitness release.
+
+    The evidence command supplied to `diffwitness init` is embedded explicitly instead of relying
+    on a PR-modifiable repository config file. JSON string syntax is valid YAML scalar syntax and
+    safely preserves quotes/backslashes in arbitrary shell commands.
+    """
     path = repo / ".github" / "workflows" / "diffwitness.yml"
     if path.exists() and not force:
         raise FileExistsError(f"{path} already exists; use --force to replace it")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        """name: DiffWitness\n\non:\n  pull_request:\n\npermissions:\n  contents: read\n\njobs:\n  evidence:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n      - name: Prove patch evidence\n        uses: TFourniax/tooltest@main\n        with:\n          base: ${{ github.event.pull_request.base.sha }}\n          candidate: ${{ github.event.pull_request.head.sha }}\n          policy: balanced\n          strategy: auto\n""",
-        encoding="utf-8",
-    )
+    lines = [
+        "name: DiffWitness",
+        "",
+        "on:",
+        "  pull_request:",
+        "",
+        "permissions:",
+        "  contents: read",
+        "",
+        "jobs:",
+        "  evidence:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - uses: actions/checkout@v7",
+        "        with:",
+        "          fetch-depth: 0",
+        "      - name: Prove patch evidence",
+        f"        uses: TFourniax/tooltest@v{__version__}",
+        "        with:",
+        "          base: ${{ github.event.pull_request.base.sha }}",
+        "          candidate: ${{ github.event.pull_request.head.sha }}",
+        f"          test: {json.dumps(test_command, ensure_ascii=False)}",
+    ]
+    if prepare_command:
+        lines.append(f"          prepare: {json.dumps(prepare_command, ensure_ascii=False)}")
+    lines += [
+        "          policy: balanced",
+        "          strategy: auto",
+        "",
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
     return path
 
 
@@ -135,7 +174,12 @@ def _init(args: argparse.Namespace) -> int:
     config_path = write_config(repo, test=args.test, prepare=args.prepare, force=args.force)
     print(f"created {config_path.relative_to(repo)}")
     if args.workflow:
-        workflow = _write_init_workflow(repo, force=args.force)
+        workflow = _write_init_workflow(
+            repo,
+            force=args.force,
+            test_command=args.test,
+            prepare_command=args.prepare,
+        )
         print(f"created {workflow.relative_to(repo)}")
     return 0
 
