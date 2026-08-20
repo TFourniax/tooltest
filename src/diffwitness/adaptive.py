@@ -82,6 +82,38 @@ def _partition(items: list[Mutation], count: int) -> list[list[Mutation]]:
     return [chunk for chunk in chunks if chunk]
 
 
+def _apply_advisory_order(
+    production: list[Mutation], ordered_mutation_ids: list[str] | None
+) -> list[Mutation]:
+    if not ordered_mutation_ids:
+        return list(production)
+    by_id = {mutation.id: mutation for mutation in production}
+    if len(by_id) != len(production):
+        raise AnalysisError("production mutation ids are not unique")
+    if len(ordered_mutation_ids) != len(production) or set(ordered_mutation_ids) != set(by_id):
+        raise AnalysisError("advisory mutation order must contain every production mutation exactly once")
+    if len(ordered_mutation_ids) != len(set(ordered_mutation_ids)):
+        raise AnalysisError("advisory mutation order contains duplicates")
+    return [by_id[mutation_id] for mutation_id in ordered_mutation_ids]
+
+
+def _validate_preferred_partitions(
+    production: list[Mutation], preferred_partitions: list[list[str]] | None
+) -> list[list[str]]:
+    if not preferred_partitions:
+        return []
+    expected = {mutation.id for mutation in production}
+    flattened = [mutation_id for group in preferred_partitions for mutation_id in group]
+    if (
+        not all(group for group in preferred_partitions)
+        or len(flattened) != len(set(flattened))
+        or set(flattened) != expected
+        or len(flattened) != len(production)
+    ):
+        raise AnalysisError("advisory partitions must form an exact non-empty partition of production mutations")
+    return [list(group) for group in preferred_partitions]
+
+
 @wall_clock_budgeted
 def find_adaptive_core(
     *,
@@ -98,8 +130,15 @@ def find_adaptive_core(
     stability_runs: int = 1,
     budget: int = 40,
     max_total_seconds: float | None = None,
+    ordered_mutation_ids: list[str] | None = None,
+    preferred_partitions: list[list[str]] | None = None,
 ) -> AdaptiveCoreResult:
     """Find a small, 1-minimal passing subset of the real production patch.
+
+    Optional advisory ordering/partitions may improve which experiments are attempted first, but
+    they do not remove any public verification step or grant the advisor authority over outcomes.
+    Every preferred group is tested through the same isolated evidence runner, then the built-in
+    delta-debugging and final 1-minimal checks continue normally.
 
     This is a budgeted delta-debugging style search, restricted to bug-discriminating evidence.
     It is deliberately not advertised as a globally minimum subset. Its sound claim is narrower:
@@ -115,7 +154,9 @@ def find_adaptive_core(
 
     shared = shared_paths or []
     test_files = {file.path for file in files if file.is_test}
-    production = [mutation for mutation in mutations if mutation.path not in test_files]
+    raw_production = [mutation for mutation in mutations if mutation.path not in test_files]
+    production = _apply_advisory_order(raw_production, ordered_mutation_ids)
+    advisory_partitions = _validate_preferred_partitions(production, preferred_partitions)
     overlay = test_overlay(files) if overlay_candidate_tests else ""
 
     if not production:
@@ -209,8 +250,23 @@ def find_adaptive_core(
                 )
 
             core = list(production)
-            granularity = 2
 
+            # Private/advisory planners get the first chance to suggest high-value group removals.
+            # A suggestion only matters after the public evidence runner observes that its complement
+            # remains stably green. Stale groups are intersected with the still-live core.
+            for group_ids in advisory_partitions:
+                if attempts >= budget or len(core) < 2:
+                    break
+                live_ids = {mutation.id for mutation in core}
+                remove_ids = set(group_ids) & live_ids
+                if not remove_ids or remove_ids == live_ids:
+                    continue
+                complement = [mutation for mutation in core if mutation.id not in remove_ids]
+                runs = evaluate(complement)
+                if runs is not None and runs.passed:
+                    core = complement
+
+            granularity = 2
             while len(core) >= 2 and attempts < budget:
                 chunks = _partition(core, granularity)
                 reduced = False
