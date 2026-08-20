@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:diffwitness:schema:change-envelope:1",
+  "title": "DiffWitness change envelope v1",
+  "description": "Correlation contract for one software change and its proof, debt and optional human-understanding evidence. The envelope summarizes and links evidence; it is not itself a correctness proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "change_id", "created_at", "repository", "base", "candidate"],
+  "anyOf": [
+    { "required": ["proof"] },
+    { "required": ["debt"] },
+    { "required": ["understanding"] }
+  ],
+  "properties": {
+    "schema_version": { "const": "change-envelope-1" },
+    "change_id": { "type": "string", "minLength": 8, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "repository": { "$ref": "#/$defs/repository" },
+    "base": { "$ref": "#/$defs/gitBinding" },
+    "candidate": { "$ref": "#/$defs/gitBinding" },
+    "actor": { "$ref": "#/$defs/actor" },
+    "proof": { "$ref": "#/$defs/proof" },
+    "debt": { "$ref": "#/$defs/debt" },
+    "understanding": { "$ref": "#/$defs/understanding" },
+    "privacy": { "$ref": "#/$defs/privacy" },
+    "extensions": { "type": "object", "additionalProperties": true }
+  },
+  "$defs": {
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint"],
+      "properties": {
+        "fingerprint": { "type": "string", "minLength": 8, "maxLength": 256 },
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "vcs": { "const": "git" }
+      }
+    },
+    "gitBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tree"],
+      "properties": {
+        "sha": { "type": ["string", "null"], "minLength": 7, "maxLength": 128 },
+        "tree": { "type": "string", "minLength": 7, "maxLength": 128 },
+        "dirty": { "type": "boolean" }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["agent", "human", "automation", "unknown"] },
+        "agent": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "session_digest": { "type": "string", "minLength": 8, "maxLength": 256 }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "certificate_id", "claim"],
+      "properties": {
+        "tool": { "const": "diffwitness" },
+        "certificate_id": { "type": "string", "minLength": 6, "maxLength": 128 },
+        "claim": {
+          "enum": ["causal", "preservation", "validation", "not-required", "inconclusive", "unknown"]
+        },
+        "accepted": { "type": "boolean" },
+        "certificate_schema": { "type": ["string", "integer"] }
+      }
+    },
+    "debt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_schema", "points", "open_lineages"],
+      "properties": {
+        "report_schema": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "points": { "type": "integer", "minimum": 0 },
+        "open_lineages": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^DW-[0-9A-F]{12}$" }
+        },
+        "budget_passed": { "type": ["boolean", "null"] }
+      }
+    },
+    "understanding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "receipt_schema"],
+      "properties": {
+        "tool": { "const": "idleproof" },
+        "receipt_schema": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "coverage": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "knowledge_debt": { "type": "integer", "minimum": 0 },
+        "feature_coverage": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "feature_debt": { "type": "integer", "minimum": 0 },
+        "receipt_digest": { "type": "string", "minLength": 8, "maxLength": 256 }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code_uploaded": { "type": "boolean", "default": false },
+        "contains_paths": { "type": "boolean" },
+        "contains_prompt_text": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}
