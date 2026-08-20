@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,9 @@ from .proof_cli import (
     _resolve_evidence,
 )
 from .reporting import render_markdown
+
+
+DEFAULT_MAX_TOTAL_SECONDS = 900.0
 
 
 def _escape_workflow(value: str) -> str:
@@ -170,6 +174,7 @@ def _run_exhaustive_gate(
     stability_runs: int,
     prepare: str | None,
     timeout: float,
+    max_total_seconds: float,
     shared: list[str],
     test_globs: list[str],
     ignore: list[str],
@@ -197,6 +202,8 @@ def _run_exhaustive_gate(
         str(stability_runs),
         "--timeout",
         str(timeout),
+        "--max-total-seconds",
+        str(max_total_seconds),
         "--certificate",
         str(cert),
         "--no-github-actions",
@@ -244,6 +251,12 @@ def gate_cli(argv: list[str]) -> int:
     parser.add_argument("--test", help="Evidence command; auto-detected when omitted")
     parser.add_argument("--prepare")
     parser.add_argument("--timeout", type=float)
+    parser.add_argument(
+        "--max-total-seconds",
+        type=float,
+        default=None,
+        help="Maximum wall-clock seconds for assurance + proof combined (default/config: 900)",
+    )
     parser.add_argument("--share", action="append", default=None)
     parser.add_argument("--test-glob", action="append", default=None)
     parser.add_argument("--ignore", action="append", default=None)
@@ -267,6 +280,11 @@ def gate_cli(argv: list[str]) -> int:
     test = _resolve_evidence(repo, args.test)
     prepare = args.prepare if args.prepare is not None else config.get("prepare")
     timeout = float(args.timeout if args.timeout is not None else config.get("timeout", 300.0))
+    max_total_seconds = float(
+        args.max_total_seconds
+        if args.max_total_seconds is not None
+        else config.get("max_total_seconds", DEFAULT_MAX_TOTAL_SECONDS)
+    )
     shared = _list_setting(args.share, config, "share")
     test_globs = _list_setting(args.test_glob, config, "test_glob")
     ignore = _list_setting(args.ignore, config, "ignore")
@@ -288,6 +306,10 @@ def gate_cli(argv: list[str]) -> int:
         else config.get("stability_runs", 2)
     )
     overlay_tests = bool(config.get("test_overlay", True))
+    if timeout <= 0:
+        raise AnalysisError("timeout must be > 0")
+    if max_total_seconds <= 0:
+        raise AnalysisError("max total seconds must be > 0")
     if adaptive_threshold < 1:
         raise AnalysisError("adaptive threshold must be >= 1")
     if adaptive_budget < 1:
@@ -306,6 +328,7 @@ def gate_cli(argv: list[str]) -> int:
         return 0
 
     github_mode = is_github_actions() if args.github_actions is None else args.github_actions
+    proof_started = time.monotonic()
 
     # Semantic probe first. This prevents forcing repair-style hunk necessity onto preservation
     # tasks and prevents large non-contrast patches from falling into Adaptive Core by accident.
@@ -321,6 +344,7 @@ def gate_cli(argv: list[str]) -> int:
         prepare_command=str(prepare) if prepare else None,
         shared_paths=shared,
         overlay_candidate_tests=overlay_tests,
+        max_total_seconds=max_total_seconds,
     )
     classification = str(assurance["classification"])
     if classification != "causal-contrast":
@@ -340,12 +364,20 @@ def gate_cli(argv: list[str]) -> int:
         print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
         return 1
 
+    elapsed = time.monotonic() - proof_started
+    remaining_seconds = max_total_seconds - elapsed
+    if remaining_seconds <= 0:
+        raise AnalysisError(
+            f"wall-clock proof budget exhausted during assurance ({max_total_seconds:g}s total)"
+        )
+
     selected = strategy
     if selected == "auto":
         selected = "adaptive" if len(mutations) > adaptive_threshold else "exhaustive"
     print(
         f"DiffWitness Gate: causal contrast proven; {selected} strategy for "
-        f"{len(mutations)} production mutation(s) under {policy} policy"
+        f"{len(mutations)} production mutation(s) under {policy} policy "
+        f"({remaining_seconds:.1f}s proof budget remaining)"
     )
 
     if selected == "adaptive":
@@ -363,6 +395,7 @@ def gate_cli(argv: list[str]) -> int:
                 overlay_candidate_tests=overlay_tests,
                 stability_runs=stability_runs,
                 budget=adaptive_budget,
+                max_total_seconds=remaining_seconds,
             )
             doc = _adaptive_document(
                 result,
@@ -375,6 +408,8 @@ def gate_cli(argv: list[str]) -> int:
             doc["execution"] = {
                 "prepare": prepare,
                 "timeout": timeout,
+                "max_total_seconds": max_total_seconds,
+                "proof_seconds_after_assurance": remaining_seconds,
                 "share": shared,
                 "test_glob": test_globs,
                 "ignore": ignore,
@@ -391,7 +426,7 @@ def gate_cli(argv: list[str]) -> int:
                 args.certificate.write_text(
                     json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
                 )
-        except AnalysisError as exc:
+        except (AnalysisError, TimeoutError) as exc:
             message = f"adaptive proof inconclusive: {exc}"
             if github_mode:
                 print(f"::error title=DiffWitness Adaptive Core::{_escape_workflow(message)}")
@@ -426,6 +461,7 @@ def gate_cli(argv: list[str]) -> int:
         stability_runs=stability_runs,
         prepare=str(prepare) if prepare else None,
         timeout=timeout,
+        max_total_seconds=remaining_seconds,
         shared=shared,
         test_globs=test_globs,
         ignore=ignore,
