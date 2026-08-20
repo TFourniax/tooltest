@@ -13,6 +13,11 @@ from .models import CommandResult, RunSet
 TAIL_CHARS = 5000
 _TERMINATE_GRACE_SECONDS = 0.75
 _COMMUNICATE_GRACE_SECONDS = 2.0
+_MIN_TIMEOUT_SECONDS = 0.001
+
+
+class WallClockBudgetExceeded(TimeoutError):
+    """Raised before starting more evidence after the total proof budget has expired."""
 
 
 def _tail(value: str | None) -> str:
@@ -32,6 +37,23 @@ def command_env(source_repo: Path) -> dict[str, str]:
             os.pathsep + env["NODE_PATH"] if env.get("NODE_PATH") else ""
         )
     return env
+
+
+def bounded_timeout(timeout: float, deadline: float | None = None) -> float:
+    """Return the command timeout constrained by an optional monotonic deadline.
+
+    A per-command timeout alone does not bound a counterfactual proof: dozens of variants can each
+    consume that timeout. The deadline lets higher-level proof engines guarantee a wall-clock cap
+    while preserving the existing per-command safety limit.
+    """
+    if timeout <= 0:
+        raise ValueError("timeout must be > 0")
+    if deadline is None:
+        return timeout
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise WallClockBudgetExceeded("DiffWitness wall-clock proof budget exhausted")
+    return max(_MIN_TIMEOUT_SECONDS, min(timeout, remaining))
 
 
 def _popen_group_kwargs() -> dict[str, object]:
@@ -94,8 +116,16 @@ def _terminate_process_tree(proc: subprocess.Popen[str]) -> None:
             pass
 
 
-def run_command(command: str, *, cwd: Path, source_repo: Path, timeout: float) -> CommandResult:
+def run_command(
+    command: str,
+    *,
+    cwd: Path,
+    source_repo: Path,
+    timeout: float,
+    deadline: float | None = None,
+) -> CommandResult:
     started = time.monotonic()
+    effective_timeout = bounded_timeout(timeout, deadline)
     proc = subprocess.Popen(
         command,
         cwd=cwd,
@@ -107,7 +137,7 @@ def run_command(command: str, *, cwd: Path, source_repo: Path, timeout: float) -
         **_popen_group_kwargs(),
     )
     try:
-        stdout, stderr = proc.communicate(timeout=timeout)
+        stdout, stderr = proc.communicate(timeout=effective_timeout)
         return CommandResult(
             returncode=proc.returncode,
             duration_s=time.monotonic() - started,
@@ -154,18 +184,31 @@ def run_repeated(
     timeout: float,
     repetitions: int,
     before_each: Callable[[], None] | None = None,
+    deadline: float | None = None,
 ) -> RunSet:
     """Run evidence repeatedly, optionally rebuilding an identical sandbox before every run.
 
     `before_each` is intentionally executed before *every* repetition, including the first. Proof
     callers use it to restore an immutable variant and rerun preparation so a test that mutates
     files, caches, fixtures, or ignored state cannot influence the next stability observation.
+
+    When `deadline` is supplied, every repetition is constrained by the wall-clock budget remaining
+    at the moment it starts; no fresh evidence command is started after that deadline expires.
     """
     if repetitions < 1:
         raise ValueError("repetitions must be >= 1")
     runs: list[CommandResult] = []
     for _ in range(repetitions):
+        bounded_timeout(timeout, deadline)
         if before_each is not None:
             before_each()
-        runs.append(run_command(command, cwd=cwd, source_repo=source_repo, timeout=timeout))
+        runs.append(
+            run_command(
+                command,
+                cwd=cwd,
+                source_repo=source_repo,
+                timeout=timeout,
+                deadline=deadline,
+            )
+        )
     return RunSet(runs=runs, classification=classify_runs(runs))
