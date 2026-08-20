@@ -14,7 +14,7 @@ from .models import (
     SearchSummary,
     SubsetResult,
 )
-from .runner import run_command, run_repeated
+from .runner import run_command, run_repeated, wall_clock_budgeted
 
 
 class AnalysisError(RuntimeError):
@@ -114,6 +114,7 @@ def _apply_many(worktree: Path, mutations: tuple[Mutation, ...] | list[Mutation]
     return True, ""
 
 
+@wall_clock_budgeted
 def run_analysis(
     *,
     source_repo: Path,
@@ -133,6 +134,7 @@ def run_analysis(
     max_subset_runs: int = 32,
     search_interactions: bool = True,
     max_interaction_runs: int = 20,
+    max_total_seconds: float | None = None,
 ) -> AnalysisOutcome:
     if stability_runs < 1:
         raise AnalysisError("--stability-runs must be >= 1")
