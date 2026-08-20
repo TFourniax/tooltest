@@ -17,7 +17,7 @@ DEBT_KEYS = {
     "ledger", "max_total", "max_per_change", "category_limits", "duplicate_scan", "max_scan_files",
     "max_duplicate_signals", "auto_record", *DEBT_CATEGORIES,
 }
-ENGINE_KEYS = {"command", "timeout", "required"}
+ENGINE_KEYS = {"command", "timeout", "required", "allow_source"}
 
 
 def _positive_int(section: dict[str, Any], key: str) -> None:
@@ -77,6 +77,7 @@ def validate_engine_config(section: dict[str, Any]) -> dict[str, Any]:
     if "timeout" in normalized:
         _positive_number(normalized, "timeout")
     _bool(normalized, "required", prefix="engine.")
+    _bool(normalized, "allow_source", prefix="engine.")
     if normalized.get("required") and not normalized.get("command"):
         raise ValueError("DiffWitness config `engine.required = true` requires `engine.command`")
     return normalized
@@ -208,9 +209,6 @@ def load_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
 
 
 def _toml_string(value: str) -> str:
-    # TOML basic strings accept the JSON escape repertoire used here (quotes, backslashes,
-    # controls and Unicode escapes). This is safer than hand-escaping only quotes/backslashes,
-    # which produced invalid config for commands containing newlines or other control characters.
     return json.dumps(value, ensure_ascii=False)
 
 
