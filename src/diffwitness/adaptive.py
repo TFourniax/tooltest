@@ -8,6 +8,7 @@ from .analysis import AnalysisError, _apply_many, _run_variant_repeated
 from .diffing import FilePatch, test_overlay
 from .gitops import apply_patch, detached_worktree, git, hard_reset
 from .models import Mutation, RepeatedCommandResult
+from .runner import wall_clock_budgeted
 
 
 @dataclass(slots=True)
@@ -81,6 +82,7 @@ def _partition(items: list[Mutation], count: int) -> list[list[Mutation]]:
     return [chunk for chunk in chunks if chunk]
 
 
+@wall_clock_budgeted
 def find_adaptive_core(
     *,
     source_repo: Path,
@@ -95,6 +97,7 @@ def find_adaptive_core(
     overlay_candidate_tests: bool = True,
     stability_runs: int = 1,
     budget: int = 40,
+    max_total_seconds: float | None = None,
 ) -> AdaptiveCoreResult:
     """Find a small, 1-minimal passing subset of the real production patch.
 
@@ -102,7 +105,8 @@ def find_adaptive_core(
     It is deliberately not advertised as a globally minimum subset. Its sound claim is narrower:
     every removed group was observed to be unnecessary for at least one stable-passing candidate
     subset, and `one_minimal` is true only when no single retained mutation can be removed while
-    preserving the selected stable pass.
+    preserving the selected stable pass. `max_total_seconds` additionally bounds the complete proof
+    wall clock, including preparation and repeated stability runs.
     """
     if stability_runs < 1:
         raise AnalysisError("stability_runs must be >= 1")
