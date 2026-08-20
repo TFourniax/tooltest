@@ -165,7 +165,7 @@ runs:
         exit "$debt_rc"
     - name: Preserve proof + debt artifacts
       if: ${{ always() && inputs.upload-certificate == 'true' && hashFiles('diffwitness-evidence.json') != '' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: diffwitness-${{ steps.prove.outputs.certificate_id }}
         path: |
