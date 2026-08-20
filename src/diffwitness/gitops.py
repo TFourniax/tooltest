@@ -46,6 +46,35 @@ def _run(
     return proc
 
 
+def _run_bytes(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    input_bytes: bytes | None = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess[bytes]:
+    """Run Git with byte-exact stdin/stdout for object plumbing.
+
+    Text-mode subprocess pipes translate newlines on Windows. That is harmless for ordinary Git
+    commands, but corrupts protocols such as `mktree -z` and makes supposedly portable Git objects
+    OS-dependent. Exact object/record callers must use this byte path instead.
+    """
+    proc = subprocess.run(
+        args,
+        cwd=cwd,
+        env=env,
+        input=input_bytes,
+        text=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if check and proc.returncode != 0:
+        stderr = proc.stderr.decode("utf-8", errors="replace").strip()
+        raise GitError(f"command failed ({proc.returncode}): {' '.join(args)}\n{stderr}")
+    return proc
+
+
 def git_result(repo: Path, *args: str, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
     """Run Git without raising so callers can distinguish expected absence from transport failure."""
     return _run(["git", *args], cwd=repo, check=False, input_text=input_text)
@@ -53,6 +82,23 @@ def git_result(repo: Path, *args: str, input_text: str | None = None) -> subproc
 
 def git(repo: Path, *args: str, check: bool = True, input_text: str | None = None) -> str:
     return _run(["git", *args], cwd=repo, check=check, input_text=input_text).stdout
+
+
+def git_bytes_result(
+    repo: Path, *args: str, input_bytes: bytes | None = None
+) -> subprocess.CompletedProcess[bytes]:
+    """Run Git byte-exactly without raising."""
+    return _run_bytes(["git", *args], cwd=repo, check=False, input_bytes=input_bytes)
+
+
+def git_bytes(
+    repo: Path,
+    *args: str,
+    check: bool = True,
+    input_bytes: bytes | None = None,
+) -> bytes:
+    """Run Git byte-exactly for object plumbing and NUL-delimited protocols."""
+    return _run_bytes(["git", *args], cwd=repo, check=check, input_bytes=input_bytes).stdout
 
 
 def repo_root(path: str | Path = ".") -> Path:
