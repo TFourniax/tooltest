@@ -20,6 +20,10 @@ from diffwitness.engine_protocol import (
 from diffwitness.models import Mutation
 
 
+ROOT = Path(__file__).resolve().parents[1]
+COMPAT_REQUEST_DIGEST = "f0ec375a81df52cdcdac55856201b559e8c1e6a29b74a4b96cfb0d0a9e3ca320"
+
+
 def git(repo: Path, *args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
@@ -27,7 +31,7 @@ def git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
-def make_repo(root: Path) -> tuple[Path, str, str]:
+def make_repo(root: Path) -> tuple[Path, str, str, str, str]:
     repo = root / "repo"
     repo.mkdir()
     git(repo, "init", "-q")
@@ -71,6 +75,22 @@ class EngineProtocolTests(unittest.TestCase):
             test_command="python -m unittest",
             changed_test_files=["tests/test_app.py"],
         )
+
+    def test_canonical_compat_vector_has_frozen_request_id_and_digest(self):
+        request = json.loads((ROOT / "compat" / "engine-request-v1.json").read_text(encoding="utf-8"))
+        self.assertEqual(request["request_id"], "dwerq_9f199984b5c39adba0e39b87")
+        self.assertEqual(request["change_id"], "dwchg_599cbaed708663721c128c78")
+        self.assertEqual(request_digest(request), COMPAT_REQUEST_DIGEST)
+        plan = {
+            "schema_version": "engine-plan-1",
+            "request_id": request["request_id"],
+            "request_digest": COMPAT_REQUEST_DIGEST,
+            "engine": {"name": "compat-vector", "version": "1"},
+            "ordered_mutation_ids": ["m_extra", "m_core"],
+            "partitions": [["m_extra"], ["m_core"]],
+            "interaction_pairs": [["m_core", "m_extra"]],
+        }
+        self.assertEqual(validate_engine_plan(request, plan)["request_digest"], COMPAT_REQUEST_DIGEST)
 
     def test_request_is_content_bound_without_embedding_test_command_or_patch(self):
         with tempfile.TemporaryDirectory() as td:
