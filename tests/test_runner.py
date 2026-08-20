@@ -3,13 +3,14 @@ from __future__ import annotations
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
 from diffwitness.analysis import _run_variant_repeated
 from diffwitness.gitops import detached_worktree
 from diffwitness.models import CommandResult
-from diffwitness.runner import classify_runs
+from diffwitness.runner import classify_runs, run_command
 
 
 def r(code: int | None, *, timeout: bool = False) -> CommandResult:
@@ -31,6 +32,38 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(classify_runs([r(1), r(2)]), "stable-fail")
         self.assertEqual(classify_runs([r(0), r(1)]), "flaky")
         self.assertEqual(classify_runs([r(None, timeout=True), r(0)]), "timeout")
+
+    def test_timeout_terminates_descendant_processes(self) -> None:
+        """A timed-out evidence command must not leak workers into later proof variants."""
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            marker = repo / "orphan.flag"
+            (repo / "child.py").write_text(
+                "import time\n"
+                "from pathlib import Path\n"
+                "time.sleep(1.0)\n"
+                "Path('orphan.flag').write_text('leaked', encoding='utf-8')\n",
+                encoding="utf-8",
+            )
+            (repo / "parent.py").write_text(
+                "import subprocess, sys, time\n"
+                "subprocess.Popen([sys.executable, 'child.py'])\n"
+                "time.sleep(30)\n",
+                encoding="utf-8",
+            )
+
+            result = run_command(
+                f'"{sys.executable}" parent.py',
+                cwd=repo,
+                source_repo=repo,
+                timeout=0.2,
+            )
+            self.assertTrue(result.timed_out)
+            self.assertIsNone(result.returncode)
+
+            # If only the parent shell had been killed, child.py would create this marker.
+            time.sleep(1.3)
+            self.assertFalse(marker.exists(), "timed-out evidence leaked a descendant process")
 
     def test_proof_repetitions_remove_ignored_state_between_runs(self) -> None:
         with tempfile.TemporaryDirectory() as td:
