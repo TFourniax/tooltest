@@ -93,6 +93,14 @@ def guard_cli(argv: list[str]) -> int:
     parser.add_argument("--adaptive-threshold", type=int, default=None)
     parser.add_argument("--adaptive-budget", type=int, default=None)
     parser.add_argument("--stability-runs", type=int, default=None)
+    parser.add_argument("--engine", help="Optional advisory engine executable; overrides configured engine.command")
+    parser.add_argument("--engine-timeout", type=float, default=None)
+    parser.add_argument(
+        "--engine-required",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Fail instead of using the Community planner if the adaptive advisory engine is unavailable or invalid",
+    )
     parser.add_argument("--certificate", type=Path)
     parser.add_argument("--report", type=Path)
     parser.add_argument("--no-debt", action="store_true", help="Run the proof boundary without Debt Ledger measurement")
@@ -114,6 +122,8 @@ def guard_cli(argv: list[str]) -> int:
     )
     if max_total_seconds <= 0:
         parser.error("--max-total-seconds must be > 0")
+    if args.engine_timeout is not None and args.engine_timeout <= 0:
+        parser.error("--engine-timeout must be > 0")
     debt_config = merged_debt_config(config.get("debt") or {})
     ledger = DebtLedger.load(ledger_path(repo, debt_config))
     baseline = snapshot_worktree(repo)
@@ -165,6 +175,12 @@ def guard_cli(argv: list[str]) -> int:
         gate_args += ["--adaptive-budget", str(args.adaptive_budget)]
     if args.stability_runs is not None:
         gate_args += ["--stability-runs", str(args.stability_runs)]
+    if args.engine:
+        gate_args += ["--engine", args.engine]
+    if args.engine_timeout is not None:
+        gate_args += ["--engine-timeout", str(args.engine_timeout)]
+    if args.engine_required is not None:
+        gate_args += ["--engine-required" if args.engine_required else "--no-engine-required"]
     for path in args.share:
         gate_args += ["--share", path]
     for pattern in args.test_glob:
