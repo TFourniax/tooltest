@@ -7,8 +7,10 @@ from typing import Any
 
 from .analysis import _run_variant_repeated
 from .gitops import detached_worktree, git
+from .runner import wall_clock_budgeted
 
 
+@wall_clock_budgeted
 def build_validation_only(
     *,
     source_repo: Path,
@@ -21,6 +23,7 @@ def build_validation_only(
     timeout: float,
     prepare_command: str | None,
     shared_paths: list[str],
+    max_total_seconds: float | None = None,
 ) -> dict[str, Any]:
     base_tree = git(source_repo, "rev-parse", "--verify", f"{base_sha}^{{tree}}").strip()
     candidate_tree = git(
@@ -48,6 +51,7 @@ def build_validation_only(
         "runs": runs.to_dict(),
         "prepare": prepare_command,
         "timeout": timeout,
+        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
         "filesystem_isolation": "reset-before-each-run",
@@ -69,6 +73,7 @@ def build_validation_only(
         "execution": {
             "prepare": prepare_command,
             "timeout": timeout,
+            "max_total_seconds": max_total_seconds,
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "filesystem_isolation": "reset-before-each-run",
