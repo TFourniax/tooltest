@@ -4,8 +4,10 @@ import os
 import signal
 import subprocess
 import time
+from contextvars import ContextVar
+from functools import wraps
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar
 
 from .models import CommandResult, RunSet
 
@@ -14,10 +16,42 @@ TAIL_CHARS = 5000
 _TERMINATE_GRACE_SECONDS = 0.75
 _COMMUNICATE_GRACE_SECONDS = 2.0
 _MIN_TIMEOUT_SECONDS = 0.001
+_ACTIVE_DEADLINE: ContextVar[float | None] = ContextVar("diffwitness_deadline", default=None)
+F = TypeVar("F", bound=Callable[..., object])
 
 
 class WallClockBudgetExceeded(TimeoutError):
     """Raised before starting more evidence after the total proof budget has expired."""
+
+
+def wall_clock_budgeted(func: F) -> F:
+    """Apply `max_total_seconds` from a keyword-only proof API to every nested command.
+
+    DiffWitness proof engines already centralize process execution in this module. A context-local
+    deadline therefore gives exhaustive proof, Adaptive Core, preparation commands and repeated
+    stability runs one shared wall-clock budget without threading a deadline parameter through every
+    internal helper. Nested proof calls inherit the tighter deadline.
+    """
+
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        raw = kwargs.get("max_total_seconds")
+        if raw is None:
+            return func(*args, **kwargs)
+        seconds = float(raw)
+        if seconds <= 0:
+            raise ValueError("max_total_seconds must be > 0")
+        deadline = time.monotonic() + seconds
+        inherited = _ACTIVE_DEADLINE.get()
+        if inherited is not None:
+            deadline = min(deadline, inherited)
+        token = _ACTIVE_DEADLINE.set(deadline)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            _ACTIVE_DEADLINE.reset(token)
+
+    return wrapped  # type: ignore[return-value]
 
 
 def _tail(value: str | None) -> str:
@@ -40,17 +74,13 @@ def command_env(source_repo: Path) -> dict[str, str]:
 
 
 def bounded_timeout(timeout: float, deadline: float | None = None) -> float:
-    """Return the command timeout constrained by an optional monotonic deadline.
-
-    A per-command timeout alone does not bound a counterfactual proof: dozens of variants can each
-    consume that timeout. The deadline lets higher-level proof engines guarantee a wall-clock cap
-    while preserving the existing per-command safety limit.
-    """
+    """Return the command timeout constrained by the active proof deadline when present."""
     if timeout <= 0:
         raise ValueError("timeout must be > 0")
-    if deadline is None:
+    effective_deadline = deadline if deadline is not None else _ACTIVE_DEADLINE.get()
+    if effective_deadline is None:
         return timeout
-    remaining = deadline - time.monotonic()
+    remaining = effective_deadline - time.monotonic()
     if remaining <= 0:
         raise WallClockBudgetExceeded("DiffWitness wall-clock proof budget exhausted")
     return max(_MIN_TIMEOUT_SECONDS, min(timeout, remaining))
@@ -192,8 +222,8 @@ def run_repeated(
     callers use it to restore an immutable variant and rerun preparation so a test that mutates
     files, caches, fixtures, or ignored state cannot influence the next stability observation.
 
-    When `deadline` is supplied, every repetition is constrained by the wall-clock budget remaining
-    at the moment it starts; no fresh evidence command is started after that deadline expires.
+    The active wall-clock budget is checked before both preparation and command execution, so a
+    proof never starts a fresh repetition after its global deadline has expired.
     """
     if repetitions < 1:
         raise ValueError("repetitions must be >= 1")
