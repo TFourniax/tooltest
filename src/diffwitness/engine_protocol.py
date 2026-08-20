@@ -92,11 +92,14 @@ def build_engine_request(
     strategy: str,
     test_command: str,
     changed_test_files: Sequence[str] = (),
+    local_workspace_read_allowed: bool = True,
 ) -> dict[str, Any]:
     if not mutations:
         raise EngineProtocolError("engine planning requires at least one mutation")
     if max_experiments < 1 or max_total_seconds <= 0 or stability_runs < 1:
         raise EngineProtocolError("invalid engine planning budget")
+    if not isinstance(local_workspace_read_allowed, bool):
+        raise EngineProtocolError("local workspace read policy must be true or false")
 
     repo_fingerprint = repository_fingerprint(repo)
     cid = change_id(
@@ -123,7 +126,7 @@ def build_engine_request(
         },
         "privacy": {
             "source_embedded": False,
-            "local_workspace_read_allowed": True,
+            "local_workspace_read_allowed": local_workspace_read_allowed,
         },
     }
     request_id = "dwerq_" + _sha256(_canonical(stable))[:24]
