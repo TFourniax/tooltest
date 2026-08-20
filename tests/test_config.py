@@ -34,6 +34,12 @@ class ConfigTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "adaptive_budget"):
                 load_config(repo)
+            config.write_text(
+                '[diffwitness]\ntest = "pytest -q"\nmax_total_seconds = 0\n',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "max_total_seconds"):
+                load_config(repo)
 
     def test_valid_gate_configuration_round_trips(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -45,6 +51,7 @@ class ConfigTests(unittest.TestCase):
                 'strategy = "auto"\n'
                 'adaptive_threshold = 20\n'
                 'adaptive_budget = 50\n'
+                'max_total_seconds = 420\n'
                 'stability_runs = 3\n'
                 'ignore = ["generated/**"]\n',
                 encoding="utf-8",
@@ -52,6 +59,7 @@ class ConfigTests(unittest.TestCase):
             config = load_config(repo)
             self.assertEqual(config["policy"], "strict")
             self.assertEqual(config["adaptive_budget"], 50)
+            self.assertEqual(config["max_total_seconds"], 420)
             self.assertEqual(config["ignore"], ["generated/**"])
 
 
