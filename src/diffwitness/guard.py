@@ -16,6 +16,9 @@ from .gitops import diff_text, git, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 
 
+DEFAULT_MAX_TOTAL_SECONDS = 900.0
+
+
 def _tracked_ledger(repo: Path, path: Path) -> bool:
     try:
         rel = path.resolve().relative_to(repo.resolve()).as_posix()
@@ -76,6 +79,12 @@ def guard_cli(argv: list[str]) -> int:
     parser.add_argument("--test")
     parser.add_argument("--prepare")
     parser.add_argument("--timeout", type=float)
+    parser.add_argument(
+        "--max-total-seconds",
+        type=float,
+        default=None,
+        help="Maximum wall-clock seconds for proof after the agent exits (default/config: 900)",
+    )
     parser.add_argument("--share", action="append", default=[])
     parser.add_argument("--test-glob", action="append", default=[])
     parser.add_argument("--ignore", action="append", default=[])
@@ -98,6 +107,13 @@ def guard_cli(argv: list[str]) -> int:
 
     repo = repo_root(args.repo)
     config = load_config(repo, args.config)
+    max_total_seconds = float(
+        args.max_total_seconds
+        if args.max_total_seconds is not None
+        else config.get("max_total_seconds", DEFAULT_MAX_TOTAL_SECONDS)
+    )
+    if max_total_seconds <= 0:
+        parser.error("--max-total-seconds must be > 0")
     debt_config = merged_debt_config(config.get("debt") or {})
     ledger = DebtLedger.load(ledger_path(repo, debt_config))
     baseline = snapshot_worktree(repo)
@@ -105,6 +121,7 @@ def guard_cli(argv: list[str]) -> int:
     print(f"Agent:    {' '.join(command)}")
     print(f"Policy:   {args.policy or 'config/default'}")
     print(f"Strategy: {args.strategy or 'config/default'}")
+    print(f"Proof budget: {max_total_seconds:g}s after agent exit")
     print()
 
     env = os.environ.copy()
@@ -126,7 +143,10 @@ def guard_cli(argv: list[str]) -> int:
         print("DiffWitness Guard: agent produced no repository change; proof not required.")
         return 0
 
-    gate_args = ["--repo", str(repo), "--base", baseline, "--candidate", candidate, "--no-github-actions"]
+    gate_args = [
+        "--repo", str(repo), "--base", baseline, "--candidate", candidate,
+        "--max-total-seconds", str(max_total_seconds), "--no-github-actions"
+    ]
     if args.config:
         gate_args += ["--config", args.config]
     if args.test:
