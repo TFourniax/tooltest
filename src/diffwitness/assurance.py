@@ -32,6 +32,10 @@ def build_assurance(
 ) -> dict[str, Any]:
     """Probe base/candidate behavior before choosing a causal proof strategy.
 
+    ``max_total_seconds`` is an execution guard, not part of the assurance claim. Keeping that
+    operational budget out of the content-addressed certificate preserves the assurance-1 hash
+    contract and avoids making certificate identity depend on a caller-side scheduling choice.
+
     This deliberately separates preservation assurance from causal repair evidence. When base and
     candidate both pass and tests did not change, the selected suite supports preservation but not
     necessity. When candidate tests changed yet base still passes after overlay, those tests are
@@ -105,7 +109,6 @@ def build_assurance(
         "classification": classification,
         "prepare": prepare_command,
         "timeout": timeout,
-        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
         "test_overlay": overlay_candidate_tests,
@@ -130,7 +133,6 @@ def build_assurance(
         "execution": {
             "prepare": prepare_command,
             "timeout": timeout,
-            "max_total_seconds": max_total_seconds,
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "test_overlay": overlay_candidate_tests,
