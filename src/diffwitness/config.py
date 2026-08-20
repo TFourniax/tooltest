@@ -11,12 +11,13 @@ DEFAULT_CONFIG = ".diffwitness.toml"
 KNOWN_KEYS = {
     "test", "prepare", "timeout", "max_total_seconds", "stability_runs", "sufficient_search", "max_subset_order",
     "max_subset_runs", "interaction_search", "max_interaction_runs", "test_glob", "ignore", "share",
-    "test_overlay", "policy", "strategy", "adaptive_threshold", "adaptive_budget", "debt",
+    "test_overlay", "policy", "strategy", "adaptive_threshold", "adaptive_budget", "debt", "engine",
 }
 DEBT_KEYS = {
     "ledger", "max_total", "max_per_change", "category_limits", "duplicate_scan", "max_scan_files",
     "max_duplicate_signals", "auto_record", *DEBT_CATEGORIES,
 }
+ENGINE_KEYS = {"command", "timeout", "required"}
 
 
 def _positive_int(section: dict[str, Any], key: str) -> None:
@@ -54,6 +55,31 @@ def _string_list(section: dict[str, Any], key: str) -> None:
     value = section[key]
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise ValueError(f"DiffWitness config `{key}` must be an array of strings")
+
+
+def validate_engine_config(section: dict[str, Any]) -> dict[str, Any]:
+    unknown = sorted(set(section) - ENGINE_KEYS)
+    if unknown:
+        raise ValueError(
+            "Unknown DiffWitness engine config key(s): " + ", ".join(unknown)
+            + ". Failing rather than silently changing advisory-engine semantics."
+        )
+    normalized = dict(section)
+    command = normalized.get("command")
+    if command is not None:
+        if (
+            not isinstance(command, list)
+            or not command
+            or any(not isinstance(item, str) or not item.strip() for item in command)
+        ):
+            raise ValueError("DiffWitness config `engine.command` must be a non-empty array of non-empty strings")
+        normalized["command"] = list(command)
+    if "timeout" in normalized:
+        _positive_number(normalized, "timeout")
+    _bool(normalized, "required", prefix="engine.")
+    if normalized.get("required") and not normalized.get("command"):
+        raise ValueError("DiffWitness config `engine.required = true` requires `engine.command`")
+    return normalized
 
 
 def validate_debt_config(section: dict[str, Any]) -> dict[str, Any]:
@@ -130,6 +156,10 @@ def validate_config(section: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(normalized["debt"], dict):
             raise ValueError("DiffWitness config `debt` must be a table")
         normalized["debt"] = validate_debt_config(dict(normalized["debt"]))
+    if "engine" in normalized:
+        if not isinstance(normalized["engine"], dict):
+            raise ValueError("DiffWitness config `engine` must be a table")
+        normalized["engine"] = validate_engine_config(dict(normalized["engine"]))
     return normalized
 
 
@@ -140,7 +170,8 @@ def _extract_sections(data: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("DiffWitness config must contain a [diffwitness] table")
         section = dict(raw)
     else:
-        section = {key: value for key, value in data.items() if key != "debt"}
+        section = {key: value for key, value in data.items() if key not in {"debt", "engine"}}
+
     top_debt = data.get("debt")
     nested_debt = section.get("debt")
     if top_debt is not None and nested_debt is not None:
@@ -150,6 +181,16 @@ def _extract_sections(data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(debt, dict):
             raise ValueError("DiffWitness debt config must be a table")
         section["debt"] = dict(debt)
+
+    top_engine = data.get("engine")
+    nested_engine = section.get("engine")
+    if top_engine is not None and nested_engine is not None:
+        raise ValueError("configure engine either as [engine] or [diffwitness.engine], not both")
+    engine = nested_engine if nested_engine is not None else top_engine
+    if engine is not None:
+        if not isinstance(engine, dict):
+            raise ValueError("DiffWitness engine config must be a table")
+        section["engine"] = dict(engine)
     return section
 
 
