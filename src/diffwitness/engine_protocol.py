@@ -31,14 +31,15 @@ def _sha256(value: str | bytes) -> str:
 
 
 def repository_fingerprint(repo: Path) -> str:
-    """Return a clone-stable repository fingerprint without exposing its remote URL.
+    """Return a clone-stable repository-lineage fingerprint without exposing its remote URL.
 
-    Root commits survive normal cloning and do not depend on the local path or configured remote.
-    Hashing all roots also handles imported/unrelated histories deterministically.
+    Only roots reachable from ``HEAD`` participate. Using every local ref would make identity drift
+    when a user fetched an unrelated branch or when DiffWitness created its own ledger/checkpoint
+    refs. Merged histories are still handled because all roots reachable from HEAD are included.
     """
     roots = sorted(
         line.strip()
-        for line in git(repo, "rev-list", "--max-parents=0", "--all").splitlines()
+        for line in git(repo, "rev-list", "--max-parents=0", "HEAD").splitlines()
         if line.strip()
     )
     if not roots:
