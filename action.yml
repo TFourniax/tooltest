@@ -21,6 +21,10 @@ inputs:
     description: Repetitions per evidence variant
     required: false
     default: "2"
+  max-total-seconds:
+    description: Maximum wall-clock seconds for semantic assurance plus causal proof
+    required: false
+    default: "900"
   policy:
     description: observe, balanced, or strict
     required: false
@@ -118,6 +122,7 @@ runs:
         DW_TEST: ${{ inputs.test }}
         DW_PREPARE: ${{ inputs.prepare }}
         DW_STABILITY: ${{ inputs.stability-runs }}
+        DW_MAX_TOTAL_SECONDS: ${{ inputs.max-total-seconds }}
         DW_POLICY: ${{ inputs.policy }}
         DW_STRICT: ${{ inputs.strict }}
         DW_STRATEGY: ${{ inputs.strategy }}
@@ -128,7 +133,7 @@ runs:
         set -euo pipefail
         policy="$DW_POLICY"
         if [[ "$DW_STRICT" == "true" ]]; then policy="strict"; fi
-        args=(gate --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
+        args=(gate --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --max-total-seconds "$DW_MAX_TOTAL_SECONDS" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
         dw "${args[@]}"
