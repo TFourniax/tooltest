@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -159,20 +160,25 @@ def load_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
     return validate_config(_extract_sections(data))
 
 
+def _toml_string(value: str) -> str:
+    # TOML basic strings accept the JSON escape repertoire used here (quotes, backslashes,
+    # controls and Unicode escapes). This is safer than hand-escaping only quotes/backslashes,
+    # which produced invalid config for commands containing newlines or other control characters.
+    return json.dumps(value, ensure_ascii=False)
+
+
 def write_config(repo: Path, *, test: str, prepare: str | None, force: bool = False) -> Path:
     path = repo / DEFAULT_CONFIG
     if path.exists() and not force:
         raise FileExistsError(f"{path} already exists; use --force to replace it")
-    escaped_test = test.replace("\\", "\\\\").replace('"', '\\"')
     lines = [
-        "[diffwitness]", f'test = "{escaped_test}"', 'policy = "balanced"', 'strategy = "auto"',
+        "[diffwitness]", f"test = {_toml_string(test)}", 'policy = "balanced"', 'strategy = "auto"',
         "adaptive_threshold = 16", "adaptive_budget = 40", "stability_runs = 2", "sufficient_search = true",
         "max_subset_order = 3", "max_subset_runs = 32", "interaction_search = true", "max_interaction_runs = 20",
         "test_overlay = true", "", "[debt]", 'ledger = ".git/diffwitness/debt-ledger.jsonl"', "auto_record = true",
         "duplicate_scan = true", "max_scan_files = 500", "max_duplicate_signals = 20",
     ]
     if prepare:
-        escaped = prepare.replace("\\", "\\\\").replace('"', '\\"')
-        lines.insert(2, f'prepare = "{escaped}"')
+        lines.insert(2, f"prepare = {_toml_string(prepare)}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
