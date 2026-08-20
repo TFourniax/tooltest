@@ -10,7 +10,7 @@ inputs:
     required: false
     default: HEAD
   test:
-    description: Evidence command; auto-detected when omitted and not configured in .diffwitness.toml
+    description: Evidence command; auto-detected when omitted and not configured in the trusted base .diffwitness.toml
     required: false
     default: ""
   prepare:
@@ -42,7 +42,7 @@ inputs:
     required: false
     default: "40"
   debt:
-    description: Measure change debt and enforce [debt] budgets after proof
+    description: Measure change debt and enforce trusted-base [debt] budgets after proof
     required: false
     default: "true"
   ledger-sync:
@@ -95,6 +95,20 @@ runs:
     - name: Install DiffWitness
       shell: bash
       run: python -m pip install "$GITHUB_ACTION_PATH"
+    - name: Materialize trusted base policy
+      id: trusted-config
+      shell: bash
+      env:
+        DW_BASE: ${{ inputs.base }}
+      run: |
+        set -euo pipefail
+        config="$(git rev-parse --git-path diffwitness/ci-base-policy.toml)"
+        mkdir -p "$(dirname "$config")"
+        : > "$config"
+        if git cat-file -e "$DW_BASE:.diffwitness.toml" 2>/dev/null; then
+          git show "$DW_BASE:.diffwitness.toml" > "$config"
+        fi
+        echo "path=$config" >> "$GITHUB_OUTPUT"
     - name: Build patch proof
       id: prove
       shell: bash
@@ -109,11 +123,12 @@ runs:
         DW_STRATEGY: ${{ inputs.strategy }}
         DW_ADAPTIVE_THRESHOLD: ${{ inputs.adaptive-threshold }}
         DW_ADAPTIVE_BUDGET: ${{ inputs.adaptive-budget }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
       run: |
         set -euo pipefail
         policy="$DW_POLICY"
         if [[ "$DW_STRICT" == "true" ]]; then policy="strict"; fi
-        args=(gate --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
+        args=(gate --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
         dw "${args[@]}"
@@ -123,9 +138,10 @@ runs:
       env:
         DW_LEDGER_REMOTE: ${{ inputs.ledger-remote }}
         DW_LEDGER_REF: ${{ inputs.ledger-ref }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
       run: |
         set -euo pipefail
-        dw ledger pull --remote "$DW_LEDGER_REMOTE" --ref "$DW_LEDGER_REF"
+        dw ledger --config "$DW_CONFIG" pull --remote "$DW_LEDGER_REMOTE" --ref "$DW_LEDGER_REF"
     - name: Measure change debt
       id: debt
       if: ${{ inputs.debt == 'true' }}
@@ -133,9 +149,10 @@ runs:
       env:
         DW_BASE: ${{ inputs.base }}
         DW_CANDIDATE: ${{ inputs.candidate }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
       run: |
         set +e
-        dw debt --base "$DW_BASE" --candidate "$DW_CANDIDATE" --certificate diffwitness-evidence.json --no-record --json diffwitness-debt.json
+        dw debt --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --certificate diffwitness-evidence.json --no-record --json diffwitness-debt.json
         debt_rc=$?
         set -e
         python - <<'PY'
