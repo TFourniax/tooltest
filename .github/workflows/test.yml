@@ -74,6 +74,40 @@ jobs:
       - name: Validate plugin, schema, and marketplace JSON
         run: python -c "import json, pathlib; paths=['.claude-plugin/plugin.json','.claude-plugin/marketplace.json','.codex-plugin/plugin.json','hooks/claude-hooks.json','hooks/codex-hooks.json','schema/diffwitness-report-v2.schema.json']; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in paths]; print('validated', len(paths), 'JSON contracts')"
 
+  static:
+    name: fatal static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Reject undefined or invalid Python names
+        run: |
+          python -m pip install ruff
+          python -m ruff check src integrations packaging --select F821,F822,F823
+
+  action-e2e:
+    name: composite Action end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create harmless WORKTREE candidate
+        shell: bash
+        run: printf '\n<!-- DiffWitness composite Action E2E -->\n' >> README.md
+      - name: Run repository Action exactly as a consumer would
+        uses: ./
+        with:
+          base: HEAD
+          candidate: WORKTREE
+          policy: balanced
+          strategy: auto
+          debt: "false"
+          ledger-sync: "false"
+          upload-certificate: "false"
+
   package:
     name: release package preflight
     runs-on: ubuntu-latest
