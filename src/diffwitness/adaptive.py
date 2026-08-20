@@ -289,8 +289,12 @@ def find_adaptive_core(
                     break
                 granularity = min(len(core), granularity * 2)
 
-            one_minimal = False
-            changed = True
+            # If one mutation remains, removing it produces the empty production subset. That exact
+            # subset was already executed above as `baseline_runs` (with the same candidate-test
+            # overlay) and was required to be stable-fail before search started. Re-running it would
+            # spend budget without adding evidence, so the singleton core is already 1-minimal.
+            one_minimal = len(core) == 1 and baseline_runs.failed
+            changed = not one_minimal
             while changed and core and attempts < budget:
                 changed = False
                 checked_all = True
