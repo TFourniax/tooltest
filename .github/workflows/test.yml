@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.11", "3.12"]
+        python: ["3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -42,7 +42,7 @@ jobs:
           exit "$rc"
       - name: Preserve unittest diagnostics
         if: ${{ always() && hashFiles('unittest.log') != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unittest-${{ runner.os }}-py${{ matrix.python }}
           path: unittest.log
@@ -61,11 +61,11 @@ jobs:
           dw ledger --help
           dw health --repo . --no-record
       - name: Dogfood DiffWitness project health
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
         run: dw health --repo . --no-record --json diffwitness-self-health.json
       - name: Preserve self-health report
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12' && hashFiles('diffwitness-self-health.json') != ''
-        uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14' && hashFiles('diffwitness-self-health.json') != ''
+        uses: actions/upload-artifact@v6
         with:
           name: diffwitness-self-health
           path: diffwitness-self-health.json
@@ -74,10 +74,10 @@ jobs:
       - name: Validate plugin, schema, and marketplace JSON
         run: python -c "import json, pathlib; paths=['.claude-plugin/plugin.json','.claude-plugin/marketplace.json','.codex-plugin/plugin.json','hooks/claude-hooks.json','hooks/codex-hooks.json','schema/diffwitness-report-v2.schema.json']; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in paths]; print('validated', len(paths), 'JSON contracts')"
       - name: Build wheel
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
         run: python -m pip wheel . --no-deps -w dist
       - name: Smoke installed wheel in clean virtualenv
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
         shell: bash
         run: |
           python -m venv wheel-smoke
