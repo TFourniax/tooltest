@@ -25,6 +25,12 @@ def build_validation_only(
     shared_paths: list[str],
     max_total_seconds: float | None = None,
 ) -> dict[str, Any]:
+    """Validate a test-only change while respecting a proof-wide runtime budget.
+
+    ``max_total_seconds`` is deliberately operational metadata only: it constrains execution through
+    ``wall_clock_budgeted`` but is not part of the validation-1 content-addressed claim. This keeps
+    existing certificates/verifiers stable while still bounding the work performed by the engine.
+    """
     base_tree = git(source_repo, "rev-parse", "--verify", f"{base_sha}^{{tree}}").strip()
     candidate_tree = git(
         source_repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}"
@@ -51,7 +57,6 @@ def build_validation_only(
         "runs": runs.to_dict(),
         "prepare": prepare_command,
         "timeout": timeout,
-        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
         "filesystem_isolation": "reset-before-each-run",
@@ -73,7 +78,6 @@ def build_validation_only(
         "execution": {
             "prepare": prepare_command,
             "timeout": timeout,
-            "max_total_seconds": max_total_seconds,
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "filesystem_isolation": "reset-before-each-run",
