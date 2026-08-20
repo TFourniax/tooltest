@@ -1,10 +1,95 @@
 from __future__ import annotations
 
-from pathlib import Path
+import ast
+from pathlib import Path, PurePosixPath
 
 from .debt_models import DebtReport
 from .debt_scan import scan_project as _scan_project
+from .diffing import is_test_path
 from .gitops import detached_worktree, snapshot_worktree
+
+
+def _python_top_level_targets(repo: Path, source: str) -> set[str] | None:
+    """Resolve local Python imports executed during module initialization.
+
+    The low-level cross-language scanner deliberately uses a broad regex to discover possible local
+    edges. For Python health reporting we can be more precise: imports nested in a function are lazy
+    and cannot form an import-initialization cycle merely by existing in the source. Returning None
+    on parse failure preserves the conservative low-level result rather than inventing certainty.
+    """
+    path = repo / source
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="strict"))
+    except (OSError, UnicodeError, SyntaxError, ValueError):
+        return None
+
+    parent = PurePosixPath(source).parent
+    targets: set[str] = set()
+
+    def add_candidate(base: PurePosixPath) -> None:
+        module = base.as_posix()
+        candidates = (module + ".py", module + "/__init__.py")
+        for candidate in candidates:
+            if (repo / candidate).is_file():
+                targets.add(candidate)
+
+    for node in tree.body:
+        if not isinstance(node, ast.ImportFrom) or node.level < 1:
+            continue
+        base = parent
+        for _ in range(max(0, node.level - 1)):
+            base = base.parent
+        if node.module:
+            add_candidate(base / node.module.replace(".", "/"))
+        else:
+            for alias in node.names:
+                if alias.name != "*":
+                    add_candidate(base / alias.name.replace(".", "/"))
+    return targets
+
+
+def _filter_project_noise(repo: Path, report: DebtReport) -> tuple[DebtReport, dict[str, int]]:
+    kept = []
+    removed_lazy_cycles = 0
+    removed_test_duplicates = 0
+
+    for signal in report.signals:
+        if signal.rule_id == "project.exact-duplicate-block":
+            locations = signal.evidence.get("locations") if isinstance(signal.evidence, dict) else None
+            if isinstance(locations, list) and locations:
+                paths = [str(item.get("path") or "") for item in locations if isinstance(item, dict)]
+                if paths and all(is_test_path(path) for path in paths):
+                    removed_test_duplicates += 1
+                    continue
+
+        if signal.rule_id == "project.local-import-cycle":
+            cycle = signal.evidence.get("cycle") if isinstance(signal.evidence, dict) else None
+            if isinstance(cycle, list) and len(cycle) >= 2 and all(
+                PurePosixPath(str(path)).suffix.lower() == ".py" for path in cycle
+            ):
+                parsed = True
+                runtime_cycle = True
+                normalized = [str(path) for path in cycle]
+                for index, source in enumerate(normalized):
+                    target = normalized[(index + 1) % len(normalized)]
+                    targets = _python_top_level_targets(repo, source)
+                    if targets is None:
+                        parsed = False
+                        break
+                    if target not in targets:
+                        runtime_cycle = False
+                        break
+                if parsed and not runtime_cycle:
+                    removed_lazy_cycles += 1
+                    continue
+
+        kept.append(signal)
+
+    report.signals = kept
+    return report, {
+        "filtered_lazy_python_cycles": removed_lazy_cycles,
+        "filtered_test_fixture_duplicates": removed_test_duplicates,
+    }
 
 
 def scan_project(
@@ -21,6 +106,10 @@ def scan_project(
     On a dirty worktree this could make provenance claim HEAD while actually inspecting different
     content. Snapshot first, then scan a detached worktree of exactly that snapshot so every signal
     is bound to the tree that was really analysed.
+
+    A narrow semantic post-pass removes two known sources of project-level accounting noise without
+    hiding production debt: Python imports that are lazy/function-local rather than initialization
+    edges, and duplicate blocks whose every location is a test file.
     """
     candidate_sha = snapshot_worktree(repo)
     with detached_worktree(repo, candidate_sha, "debt-health-snapshot") as snapshot:
@@ -30,9 +119,11 @@ def scan_project(
             max_scan_files=max_scan_files,
             max_duplicate_signals=max_duplicate_signals,
         )
+        report, filtered = _filter_project_noise(snapshot, report)
     report.repo = str(repo)
     report.metadata = {
         **report.metadata,
+        **filtered,
         "scan_source": "worktree-snapshot",
         "snapshot_sha": candidate_sha,
     }
