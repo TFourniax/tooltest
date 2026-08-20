@@ -10,7 +10,7 @@ from pathlib import Path
 from diffwitness.analysis import _run_variant_repeated
 from diffwitness.gitops import detached_worktree
 from diffwitness.models import CommandResult
-from diffwitness.runner import classify_runs, run_command
+from diffwitness.runner import classify_runs, run_command, wall_clock_budgeted
 
 
 def r(code: int | None, *, timeout: bool = False) -> CommandResult:
@@ -65,6 +65,26 @@ class RunnerTests(unittest.TestCase):
             time.sleep(1.3)
             self.assertFalse(marker.exists(), "timed-out evidence leaked a descendant process")
 
+    def test_wall_clock_budget_caps_nested_evidence_command(self) -> None:
+        """A proof-wide deadline must cap commands even when their local timeout is much larger."""
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+
+            @wall_clock_budgeted
+            def budgeted(*, max_total_seconds: float):
+                return run_command(
+                    f'"{sys.executable}" -c "import time; time.sleep(30)"',
+                    cwd=repo,
+                    source_repo=repo,
+                    timeout=30,
+                )
+
+            started = time.monotonic()
+            result = budgeted(max_total_seconds=0.2)
+            elapsed = time.monotonic() - started
+            self.assertTrue(result.timed_out)
+            self.assertLess(elapsed, 3.0, "proof-wide time budget did not constrain command runtime")
+
     def test_proof_repetitions_remove_ignored_state_between_runs(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td) / "repo"
@@ -102,7 +122,7 @@ class RunnerTests(unittest.TestCase):
             repo.mkdir()
             git(repo, "init", "-q")
             git(repo, "config", "user.email", "prepare@example.com")
-            git(repo, "config", "user.name", "Prepare Test")
+            git(repo, "config", "user.name", "Stability Test")
             (repo / ".gitignore").write_text("prepared.flag\n", encoding="utf-8")
             (repo / "check.py").write_text(
                 "from pathlib import Path\n"
