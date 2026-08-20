@@ -16,6 +16,7 @@ from .assurance import assurance_policy, build_assurance, render_assurance_markd
 from .cli import main as core_main
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
+from .engine_protocol import EngineProtocolError, build_engine_request, run_advisory_engine
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
 from .gitops import diff_text, repo_root, resolve_ref
 from .proof_cli import (
@@ -30,6 +31,7 @@ from .reporting import render_markdown
 
 
 DEFAULT_MAX_TOTAL_SECONDS = 900.0
+DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
 
 
 def _escape_workflow(value: str) -> str:
@@ -65,6 +67,17 @@ def _adaptive_markdown(doc: dict[str, Any]) -> str:
         "## Retained 1-minimal core" if doc.get("one_minimal") else "## Retained budgeted core",
         "",
     ]
+    planning = doc.get("planning") or {}
+    engine = planning.get("engine") or {}
+    if engine:
+        lines += [
+            "## Advisory planning",
+            "",
+            f"- Engine: **{engine.get('name', 'unknown')} {engine.get('version', '')}**",
+            f"- Request: `{planning.get('request_id', 'unknown')}`",
+            "- Authority: **advisory only** — every removal below was independently executed by the public proof runner.",
+            "",
+        ]
     if core_ids:
         for mutation_id in core_ids:
             meta = mutations.get(mutation_id) or {}
@@ -255,7 +268,7 @@ def gate_cli(argv: list[str]) -> int:
         "--max-total-seconds",
         type=float,
         default=None,
-        help="Maximum wall-clock seconds for assurance + proof combined (default/config: 900)",
+        help="Maximum wall-clock seconds for assurance + planning + proof combined (default/config: 900)",
     )
     parser.add_argument("--share", action="append", default=None)
     parser.add_argument("--test-glob", action="append", default=None)
@@ -265,6 +278,14 @@ def gate_cli(argv: list[str]) -> int:
     parser.add_argument("--adaptive-threshold", type=int, default=None)
     parser.add_argument("--adaptive-budget", type=int, default=None)
     parser.add_argument("--stability-runs", type=int, default=None)
+    parser.add_argument("--engine", help="Optional advisory engine executable; overrides configured engine.command")
+    parser.add_argument("--engine-timeout", type=float, default=None)
+    parser.add_argument(
+        "--engine-required",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Fail instead of using the Community planner if an adaptive advisory engine is unavailable or invalid",
+    )
     parser.add_argument("--certificate", type=Path)
     parser.add_argument("--report", type=Path)
     parser.add_argument(
@@ -306,10 +327,24 @@ def gate_cli(argv: list[str]) -> int:
         else config.get("stability_runs", 2)
     )
     overlay_tests = bool(config.get("test_overlay", True))
+    engine_config = config.get("engine") or {}
+    engine_command = [args.engine] if args.engine else list(engine_config.get("command") or [])
+    engine_timeout = float(
+        args.engine_timeout
+        if args.engine_timeout is not None
+        else engine_config.get("timeout", DEFAULT_ENGINE_TIMEOUT_SECONDS)
+    )
+    engine_required = bool(
+        args.engine_required
+        if args.engine_required is not None
+        else engine_config.get("required", False)
+    )
     if timeout <= 0:
         raise AnalysisError("timeout must be > 0")
     if max_total_seconds <= 0:
         raise AnalysisError("max total seconds must be > 0")
+    if engine_timeout <= 0:
+        raise AnalysisError("engine timeout must be > 0")
     if adaptive_threshold < 1:
         raise AnalysisError("adaptive threshold must be >= 1")
     if adaptive_budget < 1:
@@ -380,6 +415,54 @@ def gate_cli(argv: list[str]) -> int:
         f"({remaining_seconds:.1f}s proof budget remaining)"
     )
 
+    engine_plan: dict[str, Any] | None = None
+    if selected == "adaptive":
+        test_files = {file.path for file in files if file.is_test}
+        production_mutations = [mutation for mutation in mutations if mutation.path not in test_files]
+        if engine_required and not engine_command:
+            raise AnalysisError("adaptive advisory engine is required but no engine command is configured")
+        if engine_command and production_mutations:
+            request = build_engine_request(
+                repo=repo,
+                base_sha=base_sha,
+                base_tree=str(assurance["base"]["tree"]),
+                candidate_sha=candidate_sha,
+                candidate_tree=str(assurance["candidate"]["tree"]),
+                mutations=production_mutations,
+                max_experiments=adaptive_budget,
+                max_total_seconds=remaining_seconds,
+                stability_runs=stability_runs,
+                policy=policy,
+                strategy=selected,
+                test_command=test,
+                changed_test_files=sorted(test_files),
+            )
+            try:
+                engine_plan, diagnostic = run_advisory_engine(
+                    repo=repo,
+                    command=engine_command,
+                    request=request,
+                    timeout=min(engine_timeout, remaining_seconds),
+                    required=engine_required,
+                )
+            except EngineProtocolError as exc:
+                raise AnalysisError(f"required advisory engine failed: {exc}") from exc
+            if engine_plan is not None:
+                engine = engine_plan["engine"]
+                print(
+                    f"DiffWitness advisory planner: {engine['name']} {engine['version']} "
+                    f"({len(engine_plan['partitions'])} partition(s), "
+                    f"{len(engine_plan['interaction_pairs'])} interaction hint(s))"
+                )
+            elif diagnostic:
+                print(f"DiffWitness advisory planner skipped: {diagnostic}", file=sys.stderr)
+
+            remaining_seconds = max_total_seconds - (time.monotonic() - proof_started)
+            if remaining_seconds <= 0:
+                raise AnalysisError(
+                    f"wall-clock proof budget exhausted during assurance/planning ({max_total_seconds:g}s total)"
+                )
+
     if selected == "adaptive":
         try:
             result = find_adaptive_core(
@@ -396,6 +479,8 @@ def gate_cli(argv: list[str]) -> int:
                 stability_runs=stability_runs,
                 budget=adaptive_budget,
                 max_total_seconds=remaining_seconds,
+                ordered_mutation_ids=(engine_plan or {}).get("ordered_mutation_ids"),
+                preferred_partitions=(engine_plan or {}).get("partitions"),
             )
             doc = _adaptive_document(
                 result,
@@ -405,11 +490,21 @@ def gate_cli(argv: list[str]) -> int:
                 test=test,
                 mutations=mutations,
             )
+            if engine_plan is not None:
+                doc["planning"] = {
+                    "mode": "advisory",
+                    "engine": engine_plan["engine"],
+                    "request_id": engine_plan["request_id"],
+                    "request_digest": engine_plan["request_digest"],
+                    "partitions": len(engine_plan["partitions"]),
+                    "interaction_pairs": len(engine_plan["interaction_pairs"]),
+                    "authority": "advisory-only",
+                }
             doc["execution"] = {
                 "prepare": prepare,
                 "timeout": timeout,
                 "max_total_seconds": max_total_seconds,
-                "proof_seconds_after_assurance": remaining_seconds,
+                "proof_seconds_after_assurance_and_planning": remaining_seconds,
                 "share": shared,
                 "test_glob": test_globs,
                 "ignore": ignore,
