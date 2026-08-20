@@ -31,6 +31,19 @@ def run(repo: Path, *args: str) -> str:
     return proc.stdout.strip()
 
 
+def run_bytes(repo: Path, *args: str) -> bytes:
+    proc = subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        text=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if proc.returncode:
+        raise RuntimeError(proc.stderr.decode("utf-8", errors="replace"))
+    return proc.stdout
+
+
 def init_git(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
     for args in (
@@ -96,6 +109,25 @@ class LedgerTransportTests(unittest.TestCase):
             checkpoint = read_checkpoint(repo=repo, ledger_path=path)
             self.assertIsNotNone(checkpoint)
             self.assertEqual(checkpoint.last_hash, empty.last_hash)
+
+    def test_checkpoint_tree_and_blob_are_platform_canonical(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "repo"
+            init_git(repo)
+            ledger = ledger_for(repo)
+            ledger.record_report(DebtReport(scope="change", signals=[signal("portable")]))
+            commit = checkpoint_ledger(repo=repo, ledger=ledger)
+
+            # The checkpoint protocol uses a single exact tree entry. In particular, Windows must
+            # never smuggle a carriage return into the filename via text-mode mktree stdin.
+            self.assertEqual(
+                run_bytes(repo, "ls-tree", "-z", "--name-only", commit),
+                b"ledger.jsonl\0",
+            )
+            body = run_bytes(repo, "show", f"{commit}:ledger.jsonl")
+            self.assertTrue(body.endswith(b"\n"))
+            self.assertNotIn(b"\r\n", body)
+            self.assertEqual(body, body.decode("utf-8").encode("utf-8"))
 
     def test_checkpoint_is_idempotent_for_unchanged_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as td:
