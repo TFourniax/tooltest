@@ -63,6 +63,64 @@ class DebtIntegrityTests(unittest.TestCase):
                 git(repo, "rev-parse", f"{report.candidate_sha}^{{tree}}"),
             )
 
+    def test_health_filters_function_local_python_cycle_but_keeps_real_import_cycle(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "repo"
+            init_repo(
+                repo,
+                {
+                    "pkg/__init__.py": "",
+                    "pkg/a.py": (
+                        "from .b import VALUE_B\n"
+                        "VALUE_A = 1\n"
+                        "def lazy():\n"
+                        "    from .c import VALUE_C\n"
+                        "    return VALUE_C\n"
+                    ),
+                    "pkg/b.py": "from .a import VALUE_A\nVALUE_B = 2\n",
+                    "pkg/c.py": "from .a import VALUE_A\nVALUE_C = 3\n",
+                },
+            )
+            report = scan_project(repo=repo, duplicate_scan=False)
+            cycles = [
+                signal.evidence.get("cycle")
+                for signal in report.signals
+                if signal.rule_id == "project.local-import-cycle"
+            ]
+            flattened = {tuple(str(value) for value in cycle) for cycle in cycles if isinstance(cycle, list)}
+            self.assertTrue(
+                any({"pkg/a.py", "pkg/b.py"}.issubset(set(cycle)) for cycle in flattened),
+                flattened,
+            )
+            self.assertFalse(
+                any("pkg/c.py" in cycle for cycle in flattened),
+                flattened,
+            )
+            self.assertGreaterEqual(report.metadata["filtered_lazy_python_cycles"], 1)
+
+    def test_health_does_not_count_duplicate_blocks_only_in_test_fixtures(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "repo"
+            block = "\n".join(
+                f"    value_{index} = input_value + {index}  # repeated fixture statement {index}"
+                for index in range(10)
+            )
+            init_repo(
+                repo,
+                {
+                    "app.py": "def app(value):\n    return value\n",
+                    "tests/test_a.py": "def fixture_a(input_value):\n" + block + "\n    return value_9\n",
+                    "tests/test_b.py": "def fixture_b(input_value):\n" + block + "\n    return value_9\n",
+                },
+            )
+            report = scan_project(repo=repo, duplicate_scan=True)
+            duplicate_signals = [
+                signal for signal in report.signals
+                if signal.rule_id == "project.exact-duplicate-block"
+            ]
+            self.assertEqual(duplicate_signals, [])
+            self.assertGreaterEqual(report.metadata["filtered_test_fixture_duplicates"], 1)
+
     def test_mutation_recheck_cleans_control_run_side_effects_before_counterfactual(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td) / "repo"
