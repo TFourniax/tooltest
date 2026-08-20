@@ -8,11 +8,13 @@ from typing import Any
 from .analysis import AnalysisError, _run_variant_repeated
 from .diffing import FilePatch, test_overlay
 from .gitops import apply_patch, detached_worktree, git
+from .runner import wall_clock_budgeted
 
 
 FILESYSTEM_ISOLATION = "reset-before-each-run"
 
 
+@wall_clock_budgeted
 def build_assurance(
     *,
     source_repo: Path,
@@ -26,6 +28,7 @@ def build_assurance(
     prepare_command: str | None,
     shared_paths: list[str],
     overlay_candidate_tests: bool,
+    max_total_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Probe base/candidate behavior before choosing a causal proof strategy.
 
@@ -102,6 +105,7 @@ def build_assurance(
         "classification": classification,
         "prepare": prepare_command,
         "timeout": timeout,
+        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "shared_paths": sorted(shared_paths),
         "test_overlay": overlay_candidate_tests,
@@ -126,6 +130,7 @@ def build_assurance(
         "execution": {
             "prepare": prepare_command,
             "timeout": timeout,
+            "max_total_seconds": max_total_seconds,
             "stability_runs": stability_runs,
             "share": sorted(shared_paths),
             "test_overlay": overlay_candidate_tests,
