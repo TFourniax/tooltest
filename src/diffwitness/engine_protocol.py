@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -15,6 +16,12 @@ from .runner import _popen_group_kwargs, _terminate_process_tree
 ENGINE_REQUEST_SCHEMA = "engine-request-1"
 ENGINE_PLAN_SCHEMA = "engine-plan-1"
 _MAX_ENGINE_OUTPUT_BYTES = 1024 * 1024
+_MAX_ENGINE_STDERR_TAIL_BYTES = 2000
+_PLAN_KEYS = {
+    "schema_version", "request_id", "request_digest", "engine", "ordered_mutation_ids",
+    "partitions", "interaction_pairs", "diagnostics",
+}
+_ENGINE_KEYS = {"name", "version"}
 
 
 class EngineProtocolError(RuntimeError):
@@ -137,9 +144,16 @@ def _validate_exact_permutation(values: Any, expected: list[str], label: str) ->
     return list(values)
 
 
+def _reject_unknown(value: dict[str, Any], allowed: set[str], label: str) -> None:
+    unknown = sorted(set(value) - allowed)
+    if unknown:
+        raise EngineProtocolError(f"{label} contains unknown field(s): {', '.join(unknown)}")
+
+
 def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise EngineProtocolError("engine response must be a JSON object")
+    _reject_unknown(plan, _PLAN_KEYS, "engine plan")
     if plan.get("schema_version") != ENGINE_PLAN_SCHEMA:
         raise EngineProtocolError("unsupported engine response schema")
     if plan.get("request_id") != request.get("request_id"):
@@ -151,10 +165,13 @@ def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
     engine = plan.get("engine")
     if not isinstance(engine, dict):
         raise EngineProtocolError("engine response must identify engine name/version")
-    if not isinstance(engine.get("name"), str) or not engine["name"].strip():
-        raise EngineProtocolError("engine name is missing")
-    if not isinstance(engine.get("version"), str) or not engine["version"].strip():
-        raise EngineProtocolError("engine version is missing")
+    _reject_unknown(engine, _ENGINE_KEYS, "engine identity")
+    name = engine.get("name")
+    version = engine.get("version")
+    if not isinstance(name, str) or not name.strip() or len(name) > 128:
+        raise EngineProtocolError("engine name must be a non-empty string <= 128 characters")
+    if not isinstance(version, str) or not version.strip() or len(version) > 64:
+        raise EngineProtocolError("engine version must be a non-empty string <= 64 characters")
 
     expected_ids = [item["id"] for item in request.get("mutations") or []]
     ordered = _validate_exact_permutation(
@@ -200,17 +217,39 @@ def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
     diagnostics = plan.get("diagnostics") or {}
     if not isinstance(diagnostics, dict):
         raise EngineProtocolError("engine diagnostics must be an object")
+    planner_ms = diagnostics.get("planner_ms")
+    if planner_ms is not None and (
+        isinstance(planner_ms, bool) or not isinstance(planner_ms, (int, float)) or planner_ms < 0
+    ):
+        raise EngineProtocolError("engine diagnostics.planner_ms must be a non-negative number")
+    reason_codes = diagnostics.get("reason_codes")
+    if reason_codes is not None and (
+        not isinstance(reason_codes, list)
+        or any(not isinstance(item, str) or len(item) > 128 for item in reason_codes)
+    ):
+        raise EngineProtocolError("engine diagnostics.reason_codes must be an array of strings <= 128 characters")
 
     return {
         "schema_version": ENGINE_PLAN_SCHEMA,
         "request_id": request["request_id"],
         "request_digest": expected_digest,
-        "engine": {"name": engine["name"][:128], "version": engine["version"][:64]},
+        "engine": {"name": name, "version": version},
         "ordered_mutation_ids": ordered,
         "partitions": normalized_partitions,
         "interaction_pairs": normalized_pairs,
-        "diagnostics": diagnostics,
+        "diagnostics": json.loads(json.dumps(diagnostics)),
     }
+
+
+def _file_size(handle) -> int:
+    handle.flush()
+    return os.fstat(handle.fileno()).st_size
+
+
+def _read_tail(handle, limit: int) -> str:
+    size = _file_size(handle)
+    handle.seek(max(0, size - limit))
+    return handle.read(limit).decode("utf-8", errors="replace").strip()
 
 
 def run_advisory_engine(
@@ -221,7 +260,12 @@ def run_advisory_engine(
     timeout: float = 2.0,
     required: bool = False,
 ) -> tuple[dict[str, Any] | None, str | None]:
-    """Invoke an optional local planner with strict validation and safe fallback semantics."""
+    """Invoke an optional local planner with strict validation and safe fallback semantics.
+
+    Child stdout/stderr are spooled to temporary files rather than unbounded in-memory pipes. The
+    public runtime checks stdout size before reading/parsing it, so a malfunctioning advisory engine
+    cannot consume arbitrary parent-process RAM by flooding its protocol output.
+    """
     cmd = [str(item) for item in command if str(item)]
     if not cmd:
         if required:
@@ -230,46 +274,54 @@ def run_advisory_engine(
     if timeout <= 0:
         raise EngineProtocolError("engine timeout must be > 0")
 
-    proc: subprocess.Popen[str] | None = None
+    proc: subprocess.Popen[bytes] | None = None
     try:
-        proc = subprocess.Popen(
-            cmd,
-            cwd=repo,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env=os.environ.copy(),
-            **_popen_group_kwargs(),
-        )
-        try:
-            stdout, stderr = proc.communicate(
-                _canonical(request) + "\n", timeout=timeout
+        with tempfile.TemporaryFile(mode="w+b") as stdout_file, tempfile.TemporaryFile(mode="w+b") as stderr_file:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=repo,
+                stdin=subprocess.PIPE,
+                stdout=stdout_file,
+                stderr=stderr_file,
+                env=os.environ.copy(),
+                **_popen_group_kwargs(),
             )
-        except subprocess.TimeoutExpired as exc:
-            _terminate_process_tree(proc)
+            payload = (_canonical(request) + "\n").encode("utf-8")
             try:
-                proc.communicate(timeout=1.0)
-            except subprocess.TimeoutExpired:
+                proc.communicate(payload, timeout=timeout)
+            except subprocess.TimeoutExpired as exc:
+                _terminate_process_tree(proc)
                 try:
-                    proc.kill()
-                except OSError:
-                    pass
-            raise EngineProtocolError(
-                f"advisory engine exceeded {timeout:g}s planning timeout"
-            ) from exc
-        if proc.returncode != 0:
-            tail = (stderr or "")[-2000:].strip()
-            raise EngineProtocolError(
-                f"advisory engine exited with {proc.returncode}" + (f": {tail}" if tail else "")
-            )
-        if len(stdout.encode("utf-8")) > _MAX_ENGINE_OUTPUT_BYTES:
-            raise EngineProtocolError("advisory engine response exceeds 1 MiB")
-        try:
-            payload = json.loads(stdout)
-        except json.JSONDecodeError as exc:
-            raise EngineProtocolError("advisory engine returned invalid JSON") from exc
-        return validate_engine_plan(request, payload), None
+                    proc.communicate(timeout=1.0)
+                except subprocess.TimeoutExpired:
+                    try:
+                        proc.kill()
+                    except OSError:
+                        pass
+                    proc.communicate()
+                raise EngineProtocolError(
+                    f"advisory engine exceeded {timeout:g}s planning timeout"
+                ) from exc
+
+            stderr_tail = _read_tail(stderr_file, _MAX_ENGINE_STDERR_TAIL_BYTES)
+            if proc.returncode != 0:
+                raise EngineProtocolError(
+                    f"advisory engine exited with {proc.returncode}"
+                    + (f": {stderr_tail}" if stderr_tail else "")
+                )
+            stdout_size = _file_size(stdout_file)
+            if stdout_size > _MAX_ENGINE_OUTPUT_BYTES:
+                raise EngineProtocolError("advisory engine response exceeds 1 MiB")
+            stdout_file.seek(0)
+            try:
+                stdout = stdout_file.read().decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise EngineProtocolError("advisory engine returned non-UTF-8 output") from exc
+            try:
+                response = json.loads(stdout)
+            except json.JSONDecodeError as exc:
+                raise EngineProtocolError("advisory engine returned invalid JSON") from exc
+            return validate_engine_plan(request, response), None
     except (OSError, EngineProtocolError) as exc:
         if proc is not None and proc.poll() is None:
             _terminate_process_tree(proc)
