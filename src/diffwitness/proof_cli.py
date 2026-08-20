@@ -21,6 +21,9 @@ from .diffing import make_mutations, parse_file_patches
 from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
 
 
+DEFAULT_MAX_TOTAL_SECONDS = 900.0
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dw",
@@ -36,6 +39,12 @@ def _parser() -> argparse.ArgumentParser:
     guard.add_argument("--test", help="Evidence command; auto-detected when omitted")
     guard.add_argument("--policy", choices=["observe", "balanced", "strict"], default="balanced")
     guard.add_argument("--stability-runs", type=int, default=2)
+    guard.add_argument(
+        "--max-total-seconds",
+        type=float,
+        default=None,
+        help="Maximum wall-clock seconds for proof after the agent exits (default/config: 900)",
+    )
     guard.add_argument("--certificate", type=Path)
     guard.add_argument(
         "--strategy",
@@ -59,6 +68,12 @@ def _parser() -> argparse.ArgumentParser:
     core.add_argument("--test", help="Evidence command; auto-detected when omitted")
     core.add_argument("--stability-runs", type=int, default=2)
     core.add_argument("--budget", type=int, default=40)
+    core.add_argument(
+        "--max-total-seconds",
+        type=float,
+        default=None,
+        help="Maximum wall-clock seconds for the complete Adaptive Core proof (default/config: 900)",
+    )
     core.add_argument("--json", dest="json_path", type=Path)
 
     doctor = sub.add_parser("doctor", help="Explain zero-config evidence detection for this repository")
@@ -113,6 +128,16 @@ def _resolve_evidence(repo: Path, explicit: str | None) -> str:
     return plan.command
 
 
+def _resolve_total_budget(repo: Path, explicit: float | None) -> float:
+    raw: Any = explicit if explicit is not None else load_config(repo, None).get(
+        "max_total_seconds", DEFAULT_MAX_TOTAL_SECONDS
+    )
+    value = float(raw)
+    if value <= 0:
+        raise RuntimeError("--max-total-seconds must be > 0")
+    return value
+
+
 def _policy_passes(report: dict[str, Any], policy: str) -> tuple[bool, str]:
     summary = report["summary"]
     if policy == "observe":
@@ -154,6 +179,7 @@ def _run_proof(
     test: str,
     policy: str,
     stability_runs: int,
+    max_total_seconds: float,
     certificate: Path | None,
     quiet: bool = False,
 ) -> tuple[int, dict[str, Any] | None, str]:
@@ -176,6 +202,8 @@ def _run_proof(
         test,
         "--stability-runs",
         str(stability_runs),
+        "--max-total-seconds",
+        str(max_total_seconds),
         "--certificate",
         str(cert),
         "--no-github-actions",
@@ -259,6 +287,7 @@ def _run_adaptive(
     test: str,
     stability_runs: int,
     budget: int,
+    max_total_seconds: float,
     certificate: Path | None = None,
 ) -> tuple[AdaptiveCoreResult, dict[str, Any]]:
     result = find_adaptive_core(
@@ -270,6 +299,7 @@ def _run_adaptive(
         test_command=test,
         stability_runs=stability_runs,
         budget=budget,
+        max_total_seconds=max_total_seconds,
     )
     doc = _adaptive_document(
         result,
@@ -316,13 +346,17 @@ def _guard(args: argparse.Namespace) -> int:
         raise RuntimeError("guard requires an agent command, e.g. `dw guard -- claude` or `dw guard -- codex`")
     if args.adaptive_threshold < 1:
         raise RuntimeError("--adaptive-threshold must be >= 1")
+    if args.adaptive_budget < 1:
+        raise RuntimeError("--adaptive-budget must be >= 1")
 
     test = _resolve_evidence(repo, args.test)
+    max_total_seconds = _resolve_total_budget(repo, args.max_total_seconds)
     baseline = snapshot_worktree(repo)
     print(f"DiffWitness Guard armed at {baseline[:12]}")
     print(f"Evidence: {test}")
     print(f"Policy:   {args.policy}")
     print(f"Strategy: {args.strategy}")
+    print(f"Budget:   {max_total_seconds:g}s proof wall clock")
     print()
 
     env = os.environ.copy()
@@ -358,9 +392,10 @@ def _guard(args: argparse.Namespace) -> int:
                 test=test,
                 stability_runs=args.stability_runs,
                 budget=args.adaptive_budget,
+                max_total_seconds=max_total_seconds,
                 certificate=args.certificate,
             )
-        except AnalysisError as exc:
+        except (AnalysisError, TimeoutError) as exc:
             message = f"adaptive proof inconclusive: {exc}"
             if args.policy == "observe":
                 print(f"DiffWitness Guard: {message}")
@@ -382,6 +417,7 @@ def _guard(args: argparse.Namespace) -> int:
         test=test,
         policy=args.policy,
         stability_runs=args.stability_runs,
+        max_total_seconds=max_total_seconds,
         certificate=args.certificate,
     )
     if rc == 0:
@@ -395,6 +431,7 @@ def _guard(args: argparse.Namespace) -> int:
 def _core(args: argparse.Namespace) -> int:
     repo = repo_root(args.repo)
     test = _resolve_evidence(repo, args.test)
+    max_total_seconds = _resolve_total_budget(repo, args.max_total_seconds)
     base_sha = resolve_ref(repo, args.base)
     candidate_sha, candidate_ref = _candidate_sha(repo, args.candidate)
     files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
@@ -411,11 +448,13 @@ def _core(args: argparse.Namespace) -> int:
         test=test,
         stability_runs=args.stability_runs,
         budget=args.budget,
+        max_total_seconds=max_total_seconds,
         certificate=args.json_path,
     )
     print(f"base:      {args.base} ({base_sha[:12]})")
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
-    print(f"evidence:  {test}\n")
+    print(f"evidence:  {test}")
+    print(f"budget:    {max_total_seconds:g}s total\n")
     _print_adaptive(result, doc, mutations)
     return 0 if result.one_minimal else 1
 
@@ -513,6 +552,7 @@ def _session_stop(args: argparse.Namespace) -> int:
         test=str(test),
         policy=args.policy,
         stability_runs=int(config.get("stability_runs", 2)),
+        max_total_seconds=float(config.get("max_total_seconds", DEFAULT_MAX_TOTAL_SECONDS)),
         certificate=None,
         quiet=True,
     )
