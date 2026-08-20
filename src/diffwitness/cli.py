@@ -36,6 +36,11 @@ def _parser() -> argparse.ArgumentParser:
     prove.add_argument("--test", help="Evidence command. Can also be set in .diffwitness.toml")
     prove.add_argument("--prepare", help="Setup command run inside each isolated worktree")
     prove.add_argument("--timeout", type=float, help="Seconds per command")
+    prove.add_argument(
+        "--max-total-seconds",
+        type=float,
+        help="Maximum wall-clock seconds for the complete proof (default/config: 900)",
+    )
     prove.add_argument("--stability-runs", type=int, help="Repeat every evidence variant N times")
     prove.add_argument("--test-glob", action="append", default=None, help="Additional test-file glob; repeatable")
     prove.add_argument("--ignore", action="append", default=None, help="Changed path glob to exclude; repeatable")
@@ -192,6 +197,7 @@ def _prove(args: argparse.Namespace) -> int:
         raise AnalysisError("no evidence command configured; pass --test or create .diffwitness.toml")
     prepare_command = _cfg(args, config, "prepare", None)
     timeout = float(_cfg(args, config, "timeout", 300.0))
+    max_total_seconds = float(_cfg(args, config, "max_total_seconds", 900.0))
     stability_runs = int(_cfg(args, config, "stability_runs", 1))
     search_sufficient = bool(_cfg(args, config, "sufficient_search", True))
     max_subset_order = int(_cfg(args, config, "max_subset_order", 3))
@@ -201,6 +207,11 @@ def _prove(args: argparse.Namespace) -> int:
     test_globs = _list_cfg(args, config, "test_glob", "test_glob")
     ignore = _list_cfg(args, config, "ignore", "ignore")
     shared = _list_cfg(args, config, "share", "share")
+
+    if timeout <= 0:
+        raise AnalysisError("--timeout must be > 0")
+    if max_total_seconds <= 0:
+        raise AnalysisError("--max-total-seconds must be > 0")
 
     base_sha = resolve_ref(repo, args.base)
     if args.candidate.upper() == "WORKTREE":
@@ -231,6 +242,7 @@ def _prove(args: argparse.Namespace) -> int:
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
     print(f"evidence:  {test_command}")
     print(f"stability: {stability_runs} run(s) per variant")
+    print(f"budget:    {max_total_seconds:g}s total; {timeout:g}s per command")
     print(f"changes:   {len(mutations)} analyzed mutation(s); {sum(f.is_test for f in files)} changed test file(s)")
     print()
 
@@ -252,11 +264,13 @@ def _prove(args: argparse.Namespace) -> int:
         max_subset_runs=max_subset_runs,
         search_interactions=search_interactions,
         max_interaction_runs=max_interaction_runs,
+        max_total_seconds=max_total_seconds,
     )
 
     config_used = {
         "prepare": prepare_command,
         "timeout": timeout,
+        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "sufficient_search": search_sufficient,
         "max_subset_order": max_subset_order,
