@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import subprocess
 import sys
 import tempfile
@@ -10,7 +11,7 @@ from pathlib import Path
 from diffwitness.analysis import _run_variant_repeated
 from diffwitness.gitops import detached_worktree
 from diffwitness.models import CommandResult
-from diffwitness.runner import classify_runs, run_command, wall_clock_budgeted
+from diffwitness.runner import bounded_timeout, classify_runs, run_command, wall_clock_budgeted
 
 
 def r(code: int | None, *, timeout: bool = False) -> CommandResult:
@@ -84,6 +85,21 @@ class RunnerTests(unittest.TestCase):
             elapsed = time.monotonic() - started
             self.assertTrue(result.timed_out)
             self.assertLess(elapsed, 3.0, "proof-wide time budget did not constrain command runtime")
+
+    def test_non_finite_command_and_proof_budgets_fail_closed(self) -> None:
+        @wall_clock_budgeted
+        def budgeted(*, max_total_seconds: float):
+            return "should not run"
+
+        for value in (math.nan, math.inf, -math.inf):
+            with self.subTest(kind="proof", value=value):
+                with self.assertRaisesRegex(ValueError, "finite number"):
+                    budgeted(max_total_seconds=value)
+            with self.subTest(kind="command", value=value):
+                with self.assertRaisesRegex(ValueError, "finite number"):
+                    bounded_timeout(value)
+        with self.assertRaisesRegex(ValueError, "deadline must be finite"):
+            bounded_timeout(1.0, deadline=math.nan)
 
     def test_proof_repetitions_remove_ignored_state_between_runs(self) -> None:
         with tempfile.TemporaryDirectory() as td:
