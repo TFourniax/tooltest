@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 import signal
 import subprocess
@@ -38,9 +39,11 @@ def wall_clock_budgeted(func: F) -> F:
         raw = kwargs.get("max_total_seconds")
         if raw is None:
             return func(*args, **kwargs)
+        if isinstance(raw, bool):
+            raise ValueError("max_total_seconds must be a finite number > 0")
         seconds = float(raw)
-        if seconds <= 0:
-            raise ValueError("max_total_seconds must be > 0")
+        if not math.isfinite(seconds) or seconds <= 0:
+            raise ValueError("max_total_seconds must be a finite number > 0")
         deadline = time.monotonic() + seconds
         inherited = _ACTIVE_DEADLINE.get()
         if inherited is not None:
@@ -75,15 +78,20 @@ def command_env(source_repo: Path) -> dict[str, str]:
 
 def bounded_timeout(timeout: float, deadline: float | None = None) -> float:
     """Return the command timeout constrained by the active proof deadline when present."""
-    if timeout <= 0:
-        raise ValueError("timeout must be > 0")
+    if isinstance(timeout, bool):
+        raise ValueError("timeout must be a finite number > 0")
+    seconds = float(timeout)
+    if not math.isfinite(seconds) or seconds <= 0:
+        raise ValueError("timeout must be a finite number > 0")
     effective_deadline = deadline if deadline is not None else _ACTIVE_DEADLINE.get()
     if effective_deadline is None:
-        return timeout
+        return seconds
+    if not math.isfinite(float(effective_deadline)):
+        raise ValueError("deadline must be finite")
     remaining = effective_deadline - time.monotonic()
     if remaining <= 0:
         raise WallClockBudgetExceeded("DiffWitness wall-clock proof budget exhausted")
-    return max(_MIN_TIMEOUT_SECONDS, min(timeout, remaining))
+    return max(_MIN_TIMEOUT_SECONDS, min(seconds, remaining))
 
 
 def _popen_group_kwargs() -> dict[str, object]:
