@@ -27,11 +27,17 @@ def git(repo: Path, *args: str) -> str:
     return run(["git", *args], cwd=repo).stdout.strip()
 
 
+def module(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return run([sys.executable, "-m", "diffwitness.entry", *args], cwd=repo)
+
+
 def main() -> int:
     """Exercise the installed public product through a real before/after repository journey.
 
     This intentionally uses only Python stdlib + Git so the same smoke can run on Linux, macOS and
-    Windows after installing the wheel that would actually be distributed to users.
+    Windows after installing the wheel that would actually be distributed to users. The journey now
+    covers the platform contract as well as proof: one exact change is proved, debt-accounted, and
+    bound into a change-envelope using only the installed artifact.
     """
     with tempfile.TemporaryDirectory(prefix="diffwitness-alpha-smoke-") as raw:
         root = Path(raw)
@@ -67,30 +73,25 @@ def main() -> int:
         )
         certificate = root / "proof.json"
         evidence = f'"{sys.executable}" -m unittest -q'
-        guard = run(
-            [
-                sys.executable,
-                "-m",
-                "diffwitness.entry",
-                "guard",
-                "--repo",
-                str(repo),
-                "--test",
-                evidence,
-                "--policy",
-                "strict",
-                "--stability-runs",
-                "2",
-                "--strategy",
-                "exhaustive",
-                "--certificate",
-                str(certificate),
-                "--",
-                sys.executable,
-                str(agent),
-                str(repo / "calc.py"),
-            ],
-            cwd=repo,
+        guard = module(
+            repo,
+            "guard",
+            "--repo",
+            str(repo),
+            "--test",
+            evidence,
+            "--policy",
+            "strict",
+            "--stability-runs",
+            "2",
+            "--strategy",
+            "exhaustive",
+            "--certificate",
+            str(certificate),
+            "--",
+            sys.executable,
+            str(agent),
+            str(repo / "calc.py"),
         )
         if "PROOF ACCEPTED" not in guard.stdout:
             raise RuntimeError(f"guard did not report proof acceptance:\n{guard.stdout}")
@@ -103,12 +104,76 @@ def main() -> int:
         if summary.get("witnessed", 0) < 1 or summary.get("inconclusive", 0):
             raise RuntimeError(f"unexpected certificate summary: {summary!r}")
 
+        # Measure the same exact candidate without persisting test-only ledger state into the repo.
+        debt_json = root / "debt.json"
+        debt = module(
+            repo,
+            "debt",
+            "--repo",
+            str(repo),
+            "--base",
+            "HEAD",
+            "--candidate",
+            "WORKTREE",
+            "--certificate",
+            str(certificate),
+            "--json",
+            str(debt_json),
+            "--no-record",
+            "--ignore-budget",
+        )
+        if not debt_json.exists():
+            raise RuntimeError(f"debt command did not write its machine report:\n{debt.stdout}")
+        debt_payload = json.loads(debt_json.read_text(encoding="utf-8"))
+        debt_report = debt_payload.get("report") or {}
+        if debt_report.get("schema_version") != "debt-report-1":
+            raise RuntimeError(f"unexpected debt report schema: {debt_report.get('schema_version')!r}")
+
+        envelope_path = root / "change-envelope.json"
+        envelope_run = module(
+            repo,
+            "envelope",
+            "--repo",
+            str(repo),
+            "--base",
+            "HEAD",
+            "--candidate",
+            "WORKTREE",
+            "--proof",
+            str(certificate),
+            "--debt",
+            str(debt_json),
+            "--out",
+            str(envelope_path),
+        )
+        if not envelope_path.exists():
+            raise RuntimeError(f"envelope command did not write its output:\n{envelope_run.stdout}")
+        envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+        if envelope.get("schema_version") != "change-envelope-1":
+            raise RuntimeError(f"unexpected envelope schema: {envelope.get('schema_version')!r}")
+        if not str(envelope.get("change_id") or "").startswith("dwchg_"):
+            raise RuntimeError(f"invalid change id: {envelope.get('change_id')!r}")
+        if (envelope.get("proof") or {}).get("certificate_id") != payload.get("certificate_id"):
+            raise RuntimeError("change envelope lost or changed the exact proof certificate id")
+        if (envelope.get("proof") or {}).get("accepted") is not True:
+            raise RuntimeError(f"accepted Guard proof was not accepted in envelope: {envelope.get('proof')!r}")
+        if (envelope.get("debt") or {}).get("points") != (debt_report.get("summary") or {}).get("points"):
+            raise RuntimeError("change envelope debt points differ from the exact Debt Ledger report")
+        if (envelope.get("base") or {}).get("tree") != (payload.get("base") or {}).get("tree"):
+            raise RuntimeError("envelope base tree differs from proof base tree")
+        if (envelope.get("candidate") or {}).get("tree") != (payload.get("candidate") or {}).get("tree"):
+            raise RuntimeError("envelope candidate tree differs from proof candidate tree")
+        if (envelope.get("privacy") or {}).get("code_uploaded") is not False:
+            raise RuntimeError("local change envelope unexpectedly claims source upload")
+
         # The candidate itself must still pass independently of the certificate-producing process.
         run([sys.executable, "-m", "unittest", "-q"], cwd=repo)
         print(
             "alpha smoke passed:",
             payload.get("certificate_id"),
+            envelope.get("change_id"),
             f"witnessed={summary.get('witnessed', 0)}",
+            f"debt={envelope.get('debt', {}).get('points', 0)}",
         )
     return 0
 
