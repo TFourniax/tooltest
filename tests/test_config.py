@@ -41,6 +41,27 @@ class ConfigTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "max_total_seconds"):
                 load_config(repo)
 
+    def test_non_finite_timeouts_are_rejected_in_core_and_engine_config(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            config = repo / ".diffwitness.toml"
+            for literal in ("nan", "+inf", "-inf"):
+                with self.subTest(scope="core", literal=literal):
+                    config.write_text(
+                        f'[diffwitness]\ntest = "pytest -q"\nmax_total_seconds = {literal}\n',
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(ValueError, "finite positive number"):
+                        load_config(repo)
+                with self.subTest(scope="engine", literal=literal):
+                    config.write_text(
+                        '[diffwitness]\ntest = "pytest -q"\n'
+                        f'[engine]\ncommand = ["dw-private-engine"]\ntimeout = {literal}\n',
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(ValueError, "finite positive number"):
+                        load_config(repo)
+
     def test_valid_gate_configuration_round_trips(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
