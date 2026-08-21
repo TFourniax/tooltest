@@ -117,19 +117,30 @@ def resolve_ref(repo: Path, ref: str) -> str:
     return value
 
 
+def _is_local_tool_untracked(path: PurePosixPath) -> bool:
+    """Return True for project-local IdleProof/agent plumbing at any monorepo depth."""
+    normalized = path.as_posix().lstrip("./")
+    parts = path.parts
+    if ".idleproof" in parts:
+        return True
+    if len(parts) >= 2 and parts[-2:] == (".claude", "settings.local.json"):
+        return True
+    if len(parts) >= 2 and parts[-2:] == (".codex", "hooks.json"):
+        return True
+    return normalized in _LOCAL_TOOL_UNTRACKED
+
+
 def _is_transient_untracked(path: str) -> bool:
     """Recognize local/runtime artifacts that must not become proof surface.
 
     This filter only applies to *untracked* files. If a repository deliberately tracks a matching
     path, DiffWitness preserves it exactly like any other tracked content. Besides interpreter/test
-    caches, local IdleProof state and local Claude/Codex hook plumbing are omitted so installing the
-    understanding layer cannot change the software tree DiffWitness proves.
+    caches, local IdleProof state and local Claude/Codex hook plumbing are omitted even when the
+    coding session runs from a nested package in a monorepo, so installing the understanding layer
+    cannot change the software tree DiffWitness proves.
     """
     posix = PurePosixPath(path)
-    normalized = posix.as_posix()
-    if normalized == ".idleproof" or normalized.startswith(".idleproof/"):
-        return True
-    if normalized in _LOCAL_TOOL_UNTRACKED:
+    if _is_local_tool_untracked(posix):
         return True
     if any(part in _TRANSIENT_DIRS for part in posix.parts):
         return True
