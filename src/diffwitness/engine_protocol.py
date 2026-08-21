@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import subprocess
 import tempfile
@@ -29,7 +30,57 @@ class EngineProtocolError(RuntimeError):
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    try:
+        return json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        )
+    except ValueError as exc:
+        raise EngineProtocolError("engine protocol value contains a non-finite JSON number") from exc
+
+
+def _strict_json_loads(text: str) -> Any:
+    """Parse engine output as unambiguous JSON before content-bound validation."""
+
+    def reject_constant(value: str) -> Any:
+        raise EngineProtocolError(
+            f"advisory engine returned non-standard JSON numeric constant: {value}"
+        )
+
+    def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise EngineProtocolError(
+                    f"advisory engine returned duplicate JSON object key: {key}"
+                )
+            result[key] = value
+        return result
+
+    try:
+        return json.loads(
+            text,
+            parse_constant=reject_constant,
+            object_pairs_hook=unique_object,
+        )
+    except EngineProtocolError:
+        raise
+    except json.JSONDecodeError as exc:
+        raise EngineProtocolError("advisory engine returned invalid JSON") from exc
+
+
+def _reject_non_finite(value: Any, label: str) -> None:
+    if isinstance(value, float) and not math.isfinite(value):
+        raise EngineProtocolError(f"{label} contains a non-finite JSON number")
+    if isinstance(value, dict):
+        for key, item in value.items():
+            _reject_non_finite(item, f"{label}.{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            _reject_non_finite(item, f"{label}[{index}]")
 
 
 def _sha256(value: str | bytes) -> str:
@@ -96,7 +147,18 @@ def build_engine_request(
 ) -> dict[str, Any]:
     if not mutations:
         raise EngineProtocolError("engine planning requires at least one mutation")
-    if max_experiments < 1 or max_total_seconds <= 0 or stability_runs < 1:
+    if (
+        isinstance(max_experiments, bool)
+        or not isinstance(max_experiments, int)
+        or max_experiments < 1
+        or isinstance(max_total_seconds, bool)
+        or not isinstance(max_total_seconds, (int, float))
+        or not math.isfinite(float(max_total_seconds))
+        or max_total_seconds <= 0
+        or isinstance(stability_runs, bool)
+        or not isinstance(stability_runs, int)
+        or stability_runs < 1
+    ):
         raise EngineProtocolError("invalid engine planning budget")
     if not isinstance(local_workspace_read_allowed, bool):
         raise EngineProtocolError("local workspace read policy must be true or false")
@@ -156,6 +218,7 @@ def _reject_unknown(value: dict[str, Any], allowed: set[str], label: str) -> Non
 def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise EngineProtocolError("engine response must be a JSON object")
+    _reject_non_finite(plan, "engine plan")
     _reject_unknown(plan, _PLAN_KEYS, "engine plan")
     if plan.get("schema_version") != ENGINE_PLAN_SCHEMA:
         raise EngineProtocolError("unsupported engine response schema")
@@ -222,9 +285,12 @@ def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
         raise EngineProtocolError("engine diagnostics must be an object")
     planner_ms = diagnostics.get("planner_ms")
     if planner_ms is not None and (
-        isinstance(planner_ms, bool) or not isinstance(planner_ms, (int, float)) or planner_ms < 0
+        isinstance(planner_ms, bool)
+        or not isinstance(planner_ms, (int, float))
+        or not math.isfinite(float(planner_ms))
+        or planner_ms < 0
     ):
-        raise EngineProtocolError("engine diagnostics.planner_ms must be a non-negative number")
+        raise EngineProtocolError("engine diagnostics.planner_ms must be a finite non-negative number")
     reason_codes = diagnostics.get("reason_codes")
     if reason_codes is not None and (
         not isinstance(reason_codes, list)
@@ -240,7 +306,7 @@ def validate_engine_plan(request: dict[str, Any], plan: Any) -> dict[str, Any]:
         "ordered_mutation_ids": ordered,
         "partitions": normalized_partitions,
         "interaction_pairs": normalized_pairs,
-        "diagnostics": json.loads(json.dumps(diagnostics)),
+        "diagnostics": json.loads(_canonical(diagnostics)),
     }
 
 
@@ -274,8 +340,8 @@ def run_advisory_engine(
         if required:
             raise EngineProtocolError("private/advisory engine is required but no command is configured")
         return None, "no advisory engine configured"
-    if timeout <= 0:
-        raise EngineProtocolError("engine timeout must be > 0")
+    if timeout <= 0 or not math.isfinite(float(timeout)):
+        raise EngineProtocolError("engine timeout must be a finite number > 0")
 
     proc: subprocess.Popen[bytes] | None = None
     try:
@@ -320,10 +386,7 @@ def run_advisory_engine(
                 stdout = stdout_file.read().decode("utf-8")
             except UnicodeDecodeError as exc:
                 raise EngineProtocolError("advisory engine returned non-UTF-8 output") from exc
-            try:
-                response = json.loads(stdout)
-            except json.JSONDecodeError as exc:
-                raise EngineProtocolError("advisory engine returned invalid JSON") from exc
+            response = _strict_json_loads(stdout)
             return validate_engine_plan(request, response), None
     except (OSError, EngineProtocolError) as exc:
         if proc is not None and proc.poll() is None:
