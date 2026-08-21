@@ -32,6 +32,12 @@ def main(argv: list[str] | None = None) -> int:
         from ..doctor import doctor_cli
 
         return doctor_cli(args[1:])
+    if args and args[0] == "engine":
+        # Engine enrollment is machine-local commercial plumbing. Keep it outside the legacy proof
+        # parser and outside committed project state while preserving one canonical `dw` executable.
+        from ..engine_cli import engine_cli
+
+        return engine_cli(args[1:])
     return _frontend_main(args)
 
 
