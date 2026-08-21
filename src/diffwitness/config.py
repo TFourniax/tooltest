@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import tomllib
 from pathlib import Path
 from typing import Any
 
 from .debt_models import DEBT_CATEGORIES
+from .gitops import git_result
 
 DEFAULT_CONFIG = ".diffwitness.toml"
+LOCAL_ENGINE_SCHEMA = "diffwitness.local-engine.v1"
+MAX_LOCAL_ENGINE_BYTES = 16 * 1024
 KNOWN_KEYS = {
     "test", "prepare", "timeout", "max_total_seconds", "stability_runs", "sufficient_search", "max_subset_order",
     "max_subset_runs", "interaction_search", "max_interaction_runs", "test_glob", "ignore", "share",
@@ -200,7 +204,7 @@ def _extract_sections(data: dict[str, Any]) -> dict[str, Any]:
     return section
 
 
-def load_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
+def load_project_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
     path = Path(explicit) if explicit else repo / DEFAULT_CONFIG
     if explicit and not path.is_absolute():
         path = repo / path
@@ -211,6 +215,129 @@ def load_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError("DiffWitness config root must be a TOML table")
     return validate_config(_extract_sections(data))
+
+
+def local_engine_profile_path(repo: Path) -> Path | None:
+    proc = git_result(repo, "rev-parse", "--git-path", "diffwitness/engine.json")
+    if proc.returncode != 0:
+        return None
+    raw = proc.stdout.strip()
+    if not raw:
+        return None
+    path = Path(raw)
+    if not path.is_absolute():
+        path = repo / path
+    return path.resolve()
+
+
+def _strict_json_loads(text: str) -> Any:
+    def pairs(values: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in values:
+            if key in result:
+                raise ValueError(f"duplicate JSON object key: {key}")
+            result[key] = value
+        return result
+
+    return json.loads(
+        text,
+        object_pairs_hook=pairs,
+        parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
+    )
+
+
+def load_local_engine_profile(repo: Path) -> dict[str, Any] | None:
+    path = local_engine_profile_path(repo)
+    if path is None or not path.exists():
+        return None
+    try:
+        raw = path.read_bytes()
+    except OSError as exc:
+        raise ValueError(f"Cannot read local DiffWitness engine profile: {exc}") from exc
+    if len(raw) > MAX_LOCAL_ENGINE_BYTES:
+        raise ValueError("Local DiffWitness engine profile exceeds 16 KiB")
+    try:
+        parsed = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError(f"Local DiffWitness engine profile is invalid: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("Local DiffWitness engine profile root must be a JSON object")
+    unknown = sorted(set(parsed) - {"schema", "engine"})
+    if unknown:
+        raise ValueError("Unknown local DiffWitness engine profile field(s): " + ", ".join(unknown))
+    if parsed.get("schema") != LOCAL_ENGINE_SCHEMA:
+        raise ValueError("Unsupported local DiffWitness engine profile schema")
+    engine = parsed.get("engine")
+    if not isinstance(engine, dict):
+        raise ValueError("Local DiffWitness engine profile must contain an engine object")
+    return validate_engine_config(dict(engine))
+
+
+def write_local_engine_profile(repo: Path, engine: dict[str, Any]) -> Path:
+    normalized = validate_engine_config(dict(engine))
+    if not normalized.get("command"):
+        raise ValueError("Local DiffWitness engine profile requires engine.command")
+    path = local_engine_profile_path(repo)
+    if path is None:
+        raise ValueError("Local engine profiles require a Git repository")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"schema": LOCAL_ENGINE_SCHEMA, "engine": normalized}
+    encoded = (json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+    temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    try:
+        fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(encoded)
+                handle.flush()
+                os.fsync(handle.fileno())
+        except Exception:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+            raise
+        os.replace(temp, path)
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
+    finally:
+        try:
+            temp.unlink(missing_ok=True)
+        except OSError:
+            pass
+    return path
+
+
+def remove_local_engine_profile(repo: Path) -> bool:
+    path = local_engine_profile_path(repo)
+    if path is None or not path.exists():
+        return False
+    path.unlink()
+    return True
+
+
+def engine_config_source(repo: Path, explicit: str | None = None) -> tuple[str, dict[str, Any]]:
+    project = load_project_config(repo, explicit)
+    if project.get("engine"):
+        return "project", dict(project["engine"])
+    local = load_local_engine_profile(repo)
+    if local:
+        return "local", local
+    return "community", {}
+
+
+def load_config(repo: Path, explicit: str | None = None) -> dict[str, Any]:
+    project = load_project_config(repo, explicit)
+    if project.get("engine"):
+        return project
+    local = load_local_engine_profile(repo)
+    if not local:
+        return project
+    merged = dict(project)
+    merged["engine"] = local
+    return merged
 
 
 def _toml_string(value: str) -> str:
