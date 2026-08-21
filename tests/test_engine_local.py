@@ -29,6 +29,10 @@ def git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
+def test_command() -> str:
+    return f'{sys.executable} -c "raise SystemExit(0)"'
+
+
 def make_repo(root: Path) -> Path:
     repo = root / "repo"
     repo.mkdir()
@@ -38,7 +42,7 @@ def make_repo(root: Path) -> Path:
     (repo / "app.py").write_text("VALUE = 1\n", encoding="utf-8")
     (repo / ".diffwitness.toml").write_text(
         "[diffwitness]\n"
-        f"test = {json.dumps(f'{sys.executable} -c \\"raise SystemExit(0)\\"')}\n",
+        f"test = {json.dumps(test_command())}\n",
         encoding="utf-8",
     )
     git(repo, "add", ".")
@@ -138,7 +142,7 @@ class LocalEngineTests(unittest.TestCase):
             )
             (repo / ".diffwitness.toml").write_text(
                 "[diffwitness]\n"
-                f"test = {json.dumps(f'{sys.executable} -c \\"raise SystemExit(0)\\"')}\n\n"
+                f"test = {json.dumps(test_command())}\n\n"
                 "[engine]\n"
                 f"command = [{json.dumps(sys.executable)}, {json.dumps(str(project_engine))}]\n"
                 "timeout = 2.0\n"
