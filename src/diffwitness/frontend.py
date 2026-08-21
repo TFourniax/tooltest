@@ -30,6 +30,7 @@ Usage:
   dw repay [options] -- <agent>      Run a constrained repayment mission, verify, and re-measure
   dw recheck <DW-...> [options]      Replay verification for historical debt lineages
   dw ledger <action> [options]       Inspect, govern, checkpoint, and transport the Debt Ledger
+  dw envelope [options]              Bind Proof + Debt + IdleProof to one exact Git change
   dw verify <certificate> [options]  Verify certificate integrity and freshness
   dw note <certificate> [options]    Attach a verified proof reference using git notes
   dw doctor [options]                Explain zero-config evidence discovery
@@ -304,6 +305,10 @@ def main(argv: list[str] | None = None) -> int:
             from .attestation import note_cli
 
             return note_cli(args[1:])
+        if args[0] == "envelope":
+            from .change_envelope import envelope_cli
+
+            return envelope_cli(args[1:])
         if args[0] in {"debt", "health", "plan", "repay", "recheck", "ledger"}:
             from .debt_cli import health_cli, plan_cli, recheck_cli, repay_cli
             from .debt_entry import debt_entry

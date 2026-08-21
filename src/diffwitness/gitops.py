@@ -22,6 +22,7 @@ _TRANSIENT_DIRS = {
 }
 _TRANSIENT_SUFFIXES = {".pyc", ".pyo"}
 _TRANSIENT_FILES = {".coverage"}
+_LOCAL_TOOL_UNTRACKED = {".claude/settings.local.json", ".codex/hooks.json"}
 
 
 def _run(
@@ -117,14 +118,19 @@ def resolve_ref(repo: Path, ref: str) -> str:
 
 
 def _is_transient_untracked(path: str) -> bool:
-    """Recognize narrow runtime/test cache artifacts that must not become proof surface.
+    """Recognize local/runtime artifacts that must not become proof surface.
 
     This filter only applies to *untracked* files. If a repository deliberately tracks a matching
-    path, DiffWitness preserves it exactly like any other tracked content. The list is intentionally
-    conservative: it targets interpreter/test caches that are routinely created merely by running
-    evidence and have no stable source semantics.
+    path, DiffWitness preserves it exactly like any other tracked content. Besides interpreter/test
+    caches, local IdleProof state and local Claude/Codex hook plumbing are omitted so installing the
+    understanding layer cannot change the software tree DiffWitness proves.
     """
     posix = PurePosixPath(path)
+    normalized = posix.as_posix()
+    if normalized == ".idleproof" or normalized.startswith(".idleproof/"):
+        return True
+    if normalized in _LOCAL_TOOL_UNTRACKED:
+        return True
     if any(part in _TRANSIENT_DIRS for part in posix.parts):
         return True
     if posix.suffix.lower() in _TRANSIENT_SUFFIXES:
@@ -141,9 +147,10 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
     """Create an unreachable commit representing meaningful worktree content.
 
     An alternate index is used, so the user's real staging area is untouched. Git-ignored files are
-    not captured. Narrow, known *untracked* runtime/test cache artifacts are also omitted because a
-    preceding test run must not change the semantic candidate being proved. Deliberately tracked
-    files are never auto-excluded, even if their names resemble cache artifacts.
+    not captured. Narrow, known *untracked* runtime/test/tool artifacts are also omitted because a
+    preceding evidence run or local agent integration must not change the semantic candidate being
+    proved. Deliberately tracked files are never auto-excluded, even if their names resemble those
+    local artifacts.
 
     `exclude_paths` is reserved for caller-owned generated artifacts such as the certificate being
     verified. All exclusions affect only the ephemeral alternate index and never mutate the user's
