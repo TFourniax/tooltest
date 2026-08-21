@@ -160,6 +160,8 @@ jobs:
         run: python scripts/alpha_smoke.py
       - name: Exercise human acceptance journeys
         run: python scripts/human_acceptance.py
+      - name: Exercise fail-closed recovery journeys
+        run: python scripts/recovery_acceptance.py
 
   binary:
     name: standalone binary (${{ matrix.os }})
