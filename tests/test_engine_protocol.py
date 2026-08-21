@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -109,6 +110,27 @@ class EngineProtocolTests(unittest.TestCase):
         b = change_id(repository="dwrepo_" + "a" * 24, base_tree="b" * 40, candidate_tree="d" * 40)
         self.assertNotEqual(a, b)
 
+    def test_non_finite_planning_budget_is_rejected_before_request_hashing(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo, base, candidate, base_tree, candidate_tree = make_repo(Path(td))
+            for value in (math.nan, math.inf, -math.inf):
+                with self.subTest(value=value):
+                    with self.assertRaisesRegex(EngineProtocolError, "planning budget"):
+                        build_engine_request(
+                            repo=repo,
+                            base_sha=base,
+                            base_tree=base_tree,
+                            candidate_sha=candidate,
+                            candidate_tree=candidate_tree,
+                            mutations=mutations(),
+                            max_experiments=40,
+                            max_total_seconds=value,
+                            stability_runs=2,
+                            policy="balanced",
+                            strategy="adaptive",
+                            test_command="python -m unittest",
+                        )
+
     def test_plan_must_be_exactly_bound_and_cover_every_mutation_once(self):
         with tempfile.TemporaryDirectory() as td:
             repo, base, candidate, base_tree, candidate_tree = make_repo(Path(td))
@@ -132,6 +154,10 @@ class EngineProtocolTests(unittest.TestCase):
             stale = {**plan, "request_digest": "0" * 64}
             with self.assertRaisesRegex(EngineProtocolError, "exact request"):
                 validate_engine_plan(request, stale)
+
+            non_finite = {**plan, "diagnostics": {"planner_ms": math.nan}}
+            with self.assertRaisesRegex(EngineProtocolError, "non-finite"):
+                validate_engine_plan(request, non_finite)
 
     def test_optional_engine_failure_degrades_but_required_engine_fails_closed(self):
         with tempfile.TemporaryDirectory() as td:
@@ -157,6 +183,32 @@ class EngineProtocolTests(unittest.TestCase):
                     timeout=2,
                     required=True,
                 )
+
+    def test_ambiguous_engine_json_is_rejected_before_plan_validation(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo, base, candidate, base_tree, candidate_tree = make_repo(root)
+            request = self._request(repo, base, candidate, base_tree, candidate_tree)
+            fixtures = {
+                "duplicate": 'print(\'{"schema_version":"engine-plan-1","schema_version":"engine-plan-1"}\')\n',
+                "nan": 'print(\'{"diagnostics":{"planner_ms":NaN}}\')\n',
+            }
+            for label, source in fixtures.items():
+                with self.subTest(label=label):
+                    engine = root / f"ambiguous_{label}.py"
+                    engine.write_text(source, encoding="utf-8")
+                    plan, diagnostic = run_advisory_engine(
+                        repo=repo,
+                        command=[sys.executable, str(engine)],
+                        request=request,
+                        timeout=2,
+                        required=False,
+                    )
+                    self.assertIsNone(plan)
+                    self.assertTrue(
+                        "duplicate JSON object key" in (diagnostic or "")
+                        or "numeric constant" in (diagnostic or "")
+                    )
 
     def test_real_subprocess_plan_is_validated_before_use(self):
         with tempfile.TemporaryDirectory() as td:
