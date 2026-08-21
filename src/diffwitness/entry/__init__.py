@@ -25,7 +25,14 @@ def _configure_stdio() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
-    return _frontend_main(argv)
+    args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == "doctor":
+        # Doctor is intercepted here so the commercial preflight can evolve independently from the
+        # legacy proof CLI while `dw` remains the canonical user-facing command.
+        from ..doctor import doctor_cli
+
+        return doctor_cli(args[1:])
+    return _frontend_main(args)
 
 
 __all__ = ["FrontendError", "main"]
