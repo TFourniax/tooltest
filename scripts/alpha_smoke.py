@@ -27,8 +27,8 @@ def git(repo: Path, *args: str) -> str:
     return run(["git", *args], cwd=repo).stdout.strip()
 
 
-def module(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return run([sys.executable, "-m", "diffwitness.entry", *args], cwd=repo)
+def module(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return run([sys.executable, "-m", "diffwitness.entry", *args], cwd=repo, check=check)
 
 
 def main() -> int:
@@ -37,7 +37,8 @@ def main() -> int:
     This intentionally uses only Python stdlib + Git so the same smoke can run on Linux, macOS and
     Windows after installing the wheel that would actually be distributed to users. The journey now
     covers the platform contract as well as proof: one exact change is proved, debt-accounted, and
-    bound into a change-envelope using only the installed artifact.
+    bound into a change-envelope using only the installed artifact. It also verifies fail-closed
+    behavior when an otherwise well-formed evidence file is rebound to a different candidate tree.
     """
     with tempfile.TemporaryDirectory(prefix="diffwitness-alpha-smoke-") as raw:
         root = Path(raw)
@@ -104,7 +105,6 @@ def main() -> int:
         if summary.get("witnessed", 0) < 1 or summary.get("inconclusive", 0):
             raise RuntimeError(f"unexpected certificate summary: {summary!r}")
 
-        # Measure the same exact candidate without persisting test-only ledger state into the repo.
         debt_json = root / "debt.json"
         debt = module(
             repo,
@@ -166,7 +166,58 @@ def main() -> int:
         if (envelope.get("privacy") or {}).get("code_uploaded") is not False:
             raise RuntimeError("local change envelope unexpectedly claims source upload")
 
-        # The candidate itself must still pass independently of the certificate-producing process.
+        # A stale/rebound Debt report must never be silently correlated to the accepted proof.
+        stale_debt = root / "stale-debt.json"
+        stale_payload = json.loads(debt_json.read_text(encoding="utf-8"))
+        stale_payload["report"]["candidate_tree"] = "0" * len(str(debt_report.get("candidate_tree") or "0" * 40))
+        stale_debt.write_text(json.dumps(stale_payload), encoding="utf-8")
+        rejected_debt = module(
+            repo,
+            "envelope",
+            "--repo",
+            str(repo),
+            "--base",
+            "HEAD",
+            "--candidate",
+            "WORKTREE",
+            "--proof",
+            str(certificate),
+            "--debt",
+            str(stale_debt),
+            "--out",
+            str(root / "must-not-exist.json"),
+            check=False,
+        )
+        if rejected_debt.returncode != 2 or "candidate tree does not match" not in rejected_debt.stdout:
+            raise RuntimeError(f"stale Debt report did not fail closed:\n{rejected_debt.stdout}")
+        if (root / "must-not-exist.json").exists():
+            raise RuntimeError("failed change-envelope validation still wrote an output artifact")
+
+        # Integrity tampering must also be rejected before correlation.
+        stale_proof = root / "tampered-proof.json"
+        tampered = json.loads(certificate.read_text(encoding="utf-8"))
+        tampered["summary"]["witnessed"] = int(tampered["summary"].get("witnessed", 0)) + 1
+        stale_proof.write_text(json.dumps(tampered), encoding="utf-8")
+        rejected_proof = module(
+            repo,
+            "envelope",
+            "--repo",
+            str(repo),
+            "--base",
+            "HEAD",
+            "--candidate",
+            "WORKTREE",
+            "--proof",
+            str(stale_proof),
+            "--out",
+            str(root / "must-not-exist-proof.json"),
+            check=False,
+        )
+        if rejected_proof.returncode != 2 or "integrity mismatch" not in rejected_proof.stdout:
+            raise RuntimeError(f"tampered proof certificate did not fail closed:\n{rejected_proof.stdout}")
+        if (root / "must-not-exist-proof.json").exists():
+            raise RuntimeError("failed proof integrity validation still wrote an envelope")
+
         run([sys.executable, "-m", "unittest", "-q"], cwd=repo)
         print(
             "alpha smoke passed:",
@@ -174,6 +225,7 @@ def main() -> int:
             envelope.get("change_id"),
             f"witnessed={summary.get('witnessed', 0)}",
             f"debt={envelope.get('debt', {}).get('points', 0)}",
+            "stale-evidence=fail-closed",
         )
     return 0
 
