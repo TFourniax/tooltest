@@ -58,6 +58,7 @@ jobs:
           dw --version
           dw --help
           dw doctor --repo .
+          dw engine --help
           dw ledger --help
           dw envelope --help
           dw health --repo . --no-record
@@ -130,6 +131,7 @@ jobs:
           release-wheel-smoke/bin/python -m pip check
           release-wheel-smoke/bin/dw --version
           release-wheel-smoke/bin/dw --help
+          release-wheel-smoke/bin/dw engine --help
           release-wheel-smoke/bin/dw ledger --help
           release-wheel-smoke/bin/dw envelope --help
           release-wheel-smoke/bin/diffwitness --version
@@ -160,6 +162,8 @@ jobs:
         run: python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
       - name: Exercise real Guard + Debt + change-envelope journey
         run: python scripts/alpha_smoke.py
+      - name: Exercise private-engine activation + adaptive Gate from installed wheel
+        run: python scripts/engine_artifact_smoke.py
       - name: Exercise human acceptance journeys
         run: python scripts/human_acceptance.py
       - name: Exercise fail-closed recovery journeys
@@ -185,5 +189,6 @@ jobs:
           pyinstaller --clean --onefile --name dw packaging/dw_entry.py
           ./dist/dw --version || ./dist/dw.exe --version
           ./dist/dw --help || ./dist/dw.exe --help
+          ./dist/dw engine --help || ./dist/dw.exe engine --help
           ./dist/dw ledger --help || ./dist/dw.exe ledger --help
           ./dist/dw envelope --help || ./dist/dw.exe envelope --help
