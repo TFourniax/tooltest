@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -32,8 +33,13 @@ def _positive_number(section: dict[str, Any], key: str) -> None:
     if key not in section:
         return
     value = section[key]
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
-        raise ValueError(f"DiffWitness config `{key}` must be a positive number")
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(float(value))
+        or value <= 0
+    ):
+        raise ValueError(f"DiffWitness config `{key}` must be a finite positive number")
 
 
 def _nonnegative_int_or_none(section: dict[str, Any], key: str, *, prefix: str = "") -> None:
