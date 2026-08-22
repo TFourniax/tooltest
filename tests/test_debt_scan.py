@@ -208,27 +208,34 @@ class DebtScanTests(unittest.TestCase):
             self.assertEqual(migration_signal.verification["type"], "change-review")
             self.assertIn("does not prove rollback is impossible", migration_signal.explanation)
 
-    def test_project_scan_finds_duplicate_block_and_local_cycle(self) -> None:
+    def test_project_scan_finds_one_duplicate_region_and_local_cycle(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
             block = "\n".join(
-                [f"    value_{i} = input_value + {i}  # duplicated long statement {i}" for i in range(10)]
+                [f"    value_{i} = input_value + {i}  # duplicated long statement {i}" for i in range(14)]
             )
             init_repo(
                 repo,
                 {
-                    "a.py": "def alpha(input_value):\n" + block + "\n    return value_9\n",
-                    "b.py": "def beta(input_value):\n" + block + "\n    return value_9\n",
+                    "a.py": "def alpha(input_value):\n" + block + "\n    return value_13\n",
+                    "b.py": "def beta(input_value):\n" + block + "\n    return value_13\n",
                     "web/a.js": "import value from './b'\nexport default value + 1\n",
                     "web/b.js": "import value from './a'\nexport default value + 1\n",
                 },
             )
-            rules = {
-                signal.rule_id
-                for signal in scan_project(repo=repo, max_scan_files=100, max_duplicate_signals=10).signals
-            }
+            report = scan_project(repo=repo, max_scan_files=100, max_duplicate_signals=20)
+            rules = {signal.rule_id for signal in report.signals}
             self.assertIn("project.exact-duplicate-block", rules)
             self.assertIn("project.local-import-cycle", rules)
+            duplicates = [
+                signal for signal in report.signals
+                if signal.rule_id == "project.exact-duplicate-block"
+            ]
+            self.assertEqual(len(duplicates), 1)
+            self.assertGreater(duplicates[0].evidence.get("overlapping_windows", 0), 1)
+            self.assertGreaterEqual(duplicates[0].evidence.get("normalized_lines", 0), 14)
+            self.assertEqual(duplicates[0].points, 1)
+            self.assertIn("counted once", duplicates[0].explanation)
 
 
 if __name__ == "__main__":
