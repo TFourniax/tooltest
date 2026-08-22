@@ -39,5 +39,7 @@ jobs:
         with:
           node-version: "22"
           package-manager-cache: false
+      - name: Syntax-check real authenticated-agent harness
+        run: python -m py_compile scripts/real_agent_acceptance.py
       - name: Exact installed-artifact golden path + stale-correlation fail-safe
         run: python scripts/integrated_product_smoke.py --idleproof-repo ./idleproof
