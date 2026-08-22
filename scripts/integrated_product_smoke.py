@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(args: list[str], *, cwd: Path, env: dict[str, str] | None = None, timeout: float = 120.0) -> subprocess.CompletedProcess[str]:
-    proc = subprocess.run(
+    return subprocess.run(
         args,
         cwd=cwd,
         env=env,
@@ -26,7 +26,6 @@ def run(args: list[str], *, cwd: Path, env: dict[str, str] | None = None, timeou
         timeout=timeout,
         check=False,
     )
-    return proc
 
 
 def check(args: list[str], *, cwd: Path, env: dict[str, str] | None = None, timeout: float = 120.0) -> str:
@@ -112,10 +111,10 @@ def create_idleproof_shim(root: Path, *, node: Path, idleproof_bin: Path, invoca
 
 def write_agent_script(path: Path, *, mode: str) -> None:
     if mode == "fix":
-        replacement = "def add(a, b):\\n    return a + b\\n"
+        replacement = "def add(a, b):\n    return a + b\n"
         prompt = "Fix add so the regression test passes without unrelated changes"
     elif mode == "refactor":
-        replacement = "def add(a, b):\\n    return sum((a, b))\\n"
+        replacement = "def add(a, b):\n    return sum((a, b))\n"
         prompt = "Refactor add without changing its behavior"
     else:
         raise ValueError(mode)
@@ -244,8 +243,6 @@ def main(argv: list[str] | None = None) -> int:
             invocations = invocation_log.read_text(encoding="utf-8") if invocation_log.exists() else ""
             require("portal assurance --envelope" in invocations, "Guard never exercised the installed IdleProof assurance bridge")
 
-            # A second valid code change intentionally leaves the previous IdleProof receipt stale.
-            # Guard must keep valid Proof/Debt but refuse to correlate that old human-understanding receipt.
             stale_receipt = read_json(project / ".idleproof" / "receipt.json")
             stale_id = stale_receipt.get("session", {}).get("change", {}).get("changeId")
             require(stale_id == first_change_id, "fixture lost the first exact receipt identity")
@@ -274,11 +271,7 @@ def main(argv: list[str] | None = None) -> int:
             require(second_envelope.get("proof", {}).get("accepted") is True, "stale IdleProof incorrectly erased valid DiffWitness proof")
             require(isinstance(second_envelope.get("debt", {}).get("points"), int), "stale IdleProof incorrectly erased valid Debt Ledger evidence")
 
-            verify = run([str(python), "-m", "diffwitness.entry", "verify", str(cert), "--repo", str(project)], cwd=project, env=env)
-            # The worktree changed after the first certificate, so verification may report staleness rather than validity.
-            # What matters here is that the original immutable certificate remains parseable and bounded, not silently rewritten.
             require(cert.is_file() and read_json(cert).get("certificate_id"), "later user work rewrote or removed the original proof certificate")
-
             print(
                 "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact npm artifact · "
                 "UNDERSTAND/PROVE/OWE exact identity · assurance bridge · stale-correlation fail-safe"
