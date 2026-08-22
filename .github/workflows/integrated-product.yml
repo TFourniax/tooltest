@@ -20,23 +20,24 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout DiffWitness + Debt Ledger
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Checkout exact IdleProof alpha branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: TFourniax/tooltest-2
           ref: agent/idleproof-human-ci
           fetch-depth: 0
           path: idleproof
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
+          package-manager-cache: false
       - name: Exact installed-artifact golden path + stale-correlation fail-safe
         run: python scripts/integrated_product_smoke.py --idleproof-repo ./idleproof
