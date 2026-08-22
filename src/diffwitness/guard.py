@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+from .change_envelope import ChangeEnvelopeError, build_change_envelope
 from .config import load_config
 from .debt_budget import evaluate_and_record, ledger_path, merged_debt_config
 from .debt_certificate import validate_debt_certificate
@@ -67,6 +69,90 @@ def _agent_provenance(command: list[str]) -> dict[str, str]:
     else:
         agent = executable
     return {"source": "guard", "agent": agent, "executable": executable}
+
+
+def _persist_guard_envelope(
+    *,
+    repo: Path,
+    base_sha: str,
+    candidate_sha: str,
+    proof_path: Path,
+    temp_dir: Path,
+    report=None,
+    budget=None,
+) -> Path:
+    debt_path: Path | None = None
+    if report is not None and budget is not None:
+        debt_path = temp_dir / "guard-debt.json"
+        debt_path.write_text(
+            json.dumps(
+                {"report": report.to_dict(), "budget": budget.to_dict(), "ledger": {}},
+                indent=2,
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    understanding_path = repo / ".idleproof" / "receipt.json"
+    include_understanding = understanding_path.is_file()
+    try:
+        envelope = build_change_envelope(
+            repo=repo,
+            base_ref=base_sha,
+            candidate_ref=candidate_sha,
+            proof_path=proof_path,
+            debt_path=debt_path,
+            understanding_path=understanding_path if include_understanding else None,
+        )
+    except ChangeEnvelopeError as exc:
+        if not include_understanding:
+            raise
+        # IdleProof is optional. A stale/mismatched receipt must never be correlated to this
+        # change, but it also must not erase otherwise valid DiffWitness Proof/Debt evidence.
+        print(f"IdleProof correlation skipped: {exc}", file=sys.stderr)
+        envelope = build_change_envelope(
+            repo=repo,
+            base_ref=base_sha,
+            candidate_ref=candidate_sha,
+            proof_path=proof_path,
+            debt_path=debt_path,
+        )
+
+    output = repo / ".git" / "diffwitness" / "change-envelope.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    staged = output.with_suffix(".json.tmp")
+    staged.write_text(json.dumps(envelope, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    staged.replace(output)
+    print(f"Change envelope: {output}")
+    return output
+
+
+def _sync_idleproof_assurance(repo: Path, envelope_path: Path) -> None:
+    """Best-effort bridge into the optional IdleProof understanding layer.
+
+    The envelope is already exact-bound and authoritative evidence remains in DiffWitness. An
+    absent/older IdleProof install must never make a valid Guard fail.
+    """
+    executable = shutil.which("idleproof")
+    if executable is None or not (repo / ".idleproof" / "receipt.json").is_file():
+        return
+    try:
+        proc = subprocess.run(
+            [executable, "portal", "assurance", "--envelope", str(envelope_path), "--quiet"],
+            cwd=repo,
+            check=False,
+            timeout=15,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print(f"IdleProof assurance sync deferred: {exc}", file=sys.stderr)
+        return
+    if proc.returncode not in {0, 2}:
+        detail = (proc.stderr or proc.stdout or "unsupported IdleProof assurance bridge").strip().splitlines()[-1]
+        print(f"IdleProof assurance sync deferred: {detail[:240]}", file=sys.stderr)
 
 
 def guard_cli(argv: list[str]) -> int:
@@ -195,17 +281,27 @@ def guard_cli(argv: list[str]) -> int:
     from .entry import main as entry_main
 
     with tempfile.TemporaryDirectory(prefix="diffwitness-guard-") as td:
-        proof_path = args.certificate or (Path(td) / "guard-proof.json")
+        temp_dir = Path(td)
+        proof_path = args.certificate or (temp_dir / "guard-proof.json")
         gate_args += ["--certificate", str(proof_path)]
         rc = entry_main(["gate", *gate_args])
         if rc != 0:
             print("\nDiffWitness Guard: PROOF REJECTED", file=sys.stderr)
             return rc
         print("\nDiffWitness Guard: PROOF ACCEPTED")
+        _validate_generated_certificate(proof_path, repo=repo, candidate_sha=candidate)
+
         if args.no_debt:
+            envelope_path = _persist_guard_envelope(
+                repo=repo,
+                base_sha=baseline,
+                candidate_sha=candidate,
+                proof_path=proof_path,
+                temp_dir=temp_dir,
+            )
+            _sync_idleproof_assurance(repo, envelope_path)
             return 0
 
-        _validate_generated_certificate(proof_path, repo=repo, candidate_sha=candidate)
         report = scan_change(
             repo=repo,
             base_sha=baseline,
@@ -238,6 +334,17 @@ def guard_cli(argv: list[str]) -> int:
             print(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
         elif should_record and not budget.passed:
             print("Debt Ledger: rejected change was not admitted to the durable ledger.")
+
+        envelope_path = _persist_guard_envelope(
+            repo=repo,
+            base_sha=baseline,
+            candidate_sha=candidate,
+            proof_path=proof_path,
+            temp_dir=temp_dir,
+            report=report,
+            budget=budget,
+        )
+        _sync_idleproof_assurance(repo, envelope_path)
 
         if not budget.passed:
             print("DiffWitness Guard: DEBT BUDGET REJECTED", file=sys.stderr)
