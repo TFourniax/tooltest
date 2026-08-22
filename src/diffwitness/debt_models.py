@@ -137,10 +137,114 @@ def sort_signals(signals: Iterable[DebtSignal]) -> list[DebtSignal]:
     return sorted(signals, key=lambda signal: (-SEVERITY_ORDER[signal.severity], MEASUREMENT_ORDER[signal.measurement], signal.category, signal.path or "", signal.line or 0, signal.rule_id, signal.debt_id))
 
 
-def dedupe_signals(signals: Iterable[DebtSignal]) -> list[DebtSignal]:
-    """Keep the strongest signal for each stable debt identity instead of double charging it."""
-    by_id: dict[str, DebtSignal] = {}
+def _duplicate_locations(signal: DebtSignal) -> list[tuple[str, int]] | None:
+    if signal.rule_id != "project.exact-duplicate-block":
+        return None
+    raw = signal.evidence.get("locations")
+    if not isinstance(raw, list) or len(raw) < 2:
+        return None
+    locations: list[tuple[str, int]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            return None
+        path = item.get("path")
+        line = item.get("line")
+        if not isinstance(path, str) or not isinstance(line, int) or line < 1:
+            return None
+        locations.append((path, line))
+    locations.sort()
+    if len({path for path, _ in locations}) < 2:
+        return None
+    return locations
+
+
+def _coalesce_duplicate_regions(signals: list[DebtSignal]) -> list[DebtSignal]:
+    """Collapse overlapping 8-line duplicate windows into one human-sized region.
+
+    The project scanner intentionally uses sliding windows for detection sensitivity. Charging
+    every adjacent window as a separate obligation makes one copied region look like many debts.
+    This post-processing keeps the sensitive detector while presenting/accounting one maximal
+    contiguous region. The first window's content-derived anchor is retained so the lineage does
+    not depend on absolute line numbers.
+    """
+    passthrough: list[DebtSignal] = []
+    by_paths: dict[tuple[str, ...], list[tuple[tuple[int, ...], DebtSignal]]] = {}
     for signal in signals:
+        locations = _duplicate_locations(signal)
+        if locations is None:
+            passthrough.append(signal)
+            continue
+        paths = tuple(path for path, _ in locations)
+        lines = tuple(line for _, line in locations)
+        by_paths.setdefault(paths, []).append((lines, signal))
+
+    merged: list[DebtSignal] = []
+    for paths, entries in by_paths.items():
+        entries.sort(key=lambda item: item[0])
+        runs: list[list[tuple[tuple[int, ...], DebtSignal]]] = []
+        current: list[tuple[tuple[int, ...], DebtSignal]] = []
+        for entry in entries:
+            if not current:
+                current = [entry]
+                continue
+            previous_lines = current[-1][0]
+            deltas = [new - old for old, new in zip(previous_lines, entry[0], strict=True)]
+            # Adjacent compact-code windows can skip comments/blank lines in source. A bounded
+            # positive advance on every copy still represents the same overlapping 8-line run.
+            if all(1 <= delta <= 8 for delta in deltas):
+                current.append(entry)
+            else:
+                runs.append(current)
+                current = [entry]
+        if current:
+            runs.append(current)
+
+        for run in runs:
+            if len(run) == 1:
+                merged.append(run[0][1])
+                continue
+            first_lines, first = run[0]
+            last_lines, _ = run[-1]
+            locations = [
+                {"path": path, "line": start, "end_line": end + 7}
+                for path, start, end in zip(paths, first_lines, last_lines, strict=True)
+            ]
+            strongest = max((entry[1] for entry in run), key=lambda signal: (SEVERITY_ORDER[signal.severity], int(signal.points or 0)))
+            normalized_lines = 8 + len(run) - 1
+            merged.append(
+                DebtSignal(
+                    category="redundancy",
+                    rule_id="project.exact-duplicate-block",
+                    title="Exact normalized code region duplicated across files",
+                    severity=strongest.severity,
+                    measurement="deterministic",
+                    anchor=first.anchor,
+                    path=paths[0],
+                    line=first_lines[0],
+                    end_line=last_lines[0] + 7,
+                    explanation=(
+                        f"One normalized duplicated region spans at least {normalized_lines} compact code lines "
+                        f"across {len(paths)} files. Overlapping 8-line detector windows are counted once; "
+                        "consolidation may or may not be architecturally desirable."
+                    ),
+                    evidence={
+                        "locations": locations,
+                        "normalized_lines": normalized_lines,
+                        "overlapping_windows": len(run),
+                    },
+                    verification=first.verification,
+                    introduced_by=first.introduced_by,
+                    tags=first.tags,
+                )
+            )
+    return passthrough + merged
+
+
+def dedupe_signals(signals: Iterable[DebtSignal]) -> list[DebtSignal]:
+    """Keep one charge per stable obligation, including one charge per duplicate region."""
+    normalized = _coalesce_duplicate_regions(list(signals))
+    by_id: dict[str, DebtSignal] = {}
+    for signal in normalized:
         current = by_id.get(signal.debt_id)
         if current is None:
             by_id[signal.debt_id] = signal
