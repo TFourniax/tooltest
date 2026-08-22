@@ -86,6 +86,10 @@ class RunSet:
         }
 
 
+# Descriptive alias used by the adaptive engine and external integrations.
+RepeatedCommandResult = RunSet
+
+
 @dataclass(slots=True)
 class MutationResult:
     mutation: Mutation

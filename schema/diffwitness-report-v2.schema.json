@@ -23,6 +23,15 @@
     "base": {"$ref": "#/$defs/ref"},
     "candidate": {"$ref": "#/$defs/ref"},
     "test_command": {"type": "string"},
+    "execution": {
+      "type": "object",
+      "properties": {
+        "filesystem_isolation": {
+          "type": "string",
+          "enum": ["reset-before-each-run"]
+        }
+      }
+    },
     "contrast": {
       "enum": [
         "base-fail_candidate-pass",
@@ -59,7 +68,8 @@
       "required": ["ref", "sha"],
       "properties": {
         "ref": {"type": "string"},
-        "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+        "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
       }
     },
     "runSet": {

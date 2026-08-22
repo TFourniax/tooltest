@@ -1,0 +1,58 @@
+name: Evidence false positive
+description: DiffWitness blocked or warned on a change you believe is intentionally required.
+title: "[evidence false-positive] "
+labels: ["evidence", "needs-reproduction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        DiffWitness signals are relative to the selected executable evidence. A useful report includes a minimal reproducible repository/patch and explains the independent requirement that the current evidence missed.
+  - type: input
+    id: version
+    attributes:
+      label: DiffWitness version / certificate id
+      placeholder: "0.3.0 / dw2_..."
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Evidence mode
+      options:
+        - exhaustive causal proof
+        - Adaptive Core
+        - preservation assurance
+        - non-discriminating evidence
+        - validation-only
+        - proof-not-required
+        - unknown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Why is the flagged change required?
+      description: Describe the requirement independently from the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence command and output
+      placeholder: "pytest -q ..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction / public repository
+      description: Provide a public link or enough code/diff to reproduce without secrets.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Safety
+      options:
+        - label: I removed secrets, proprietary data, and credentials from the reproduction.
+          required: true

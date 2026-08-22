@@ -5,12 +5,24 @@ import shutil
 import subprocess
 import tempfile
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterator
 
 
 class GitError(RuntimeError):
     pass
+
+
+_TRANSIENT_DIRS = {
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".hypothesis",
+}
+_TRANSIENT_SUFFIXES = {".pyc", ".pyo"}
+_TRANSIENT_FILES = {".coverage"}
+_LOCAL_TOOL_UNTRACKED = {".claude/settings.local.json", ".codex/hooks.json"}
 
 
 def _run(
@@ -35,8 +47,59 @@ def _run(
     return proc
 
 
+def _run_bytes(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    input_bytes: bytes | None = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess[bytes]:
+    """Run Git with byte-exact stdin/stdout for object plumbing.
+
+    Text-mode subprocess pipes translate newlines on Windows. That is harmless for ordinary Git
+    commands, but corrupts protocols such as `mktree -z` and makes supposedly portable Git objects
+    OS-dependent. Exact object/record callers must use this byte path instead.
+    """
+    proc = subprocess.run(
+        args,
+        cwd=cwd,
+        env=env,
+        input=input_bytes,
+        text=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if check and proc.returncode != 0:
+        stderr = proc.stderr.decode("utf-8", errors="replace").strip()
+        raise GitError(f"command failed ({proc.returncode}): {' '.join(args)}\n{stderr}")
+    return proc
+
+
+def git_result(repo: Path, *args: str, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
+    """Run Git without raising so callers can distinguish expected absence from transport failure."""
+    return _run(["git", *args], cwd=repo, check=False, input_text=input_text)
+
+
 def git(repo: Path, *args: str, check: bool = True, input_text: str | None = None) -> str:
     return _run(["git", *args], cwd=repo, check=check, input_text=input_text).stdout
+
+
+def git_bytes_result(
+    repo: Path, *args: str, input_bytes: bytes | None = None
+) -> subprocess.CompletedProcess[bytes]:
+    """Run Git byte-exactly without raising."""
+    return _run_bytes(["git", *args], cwd=repo, check=False, input_bytes=input_bytes)
+
+
+def git_bytes(
+    repo: Path,
+    *args: str,
+    check: bool = True,
+    input_bytes: bytes | None = None,
+) -> bytes:
+    """Run Git byte-exactly for object plumbing and NUL-delimited protocols."""
+    return _run_bytes(["git", *args], cwd=repo, check=check, input_bytes=input_bytes).stdout
 
 
 def repo_root(path: str | Path = ".") -> Path:
@@ -54,11 +117,55 @@ def resolve_ref(repo: Path, ref: str) -> str:
     return value
 
 
-def snapshot_worktree(repo: Path) -> str:
-    """Create an unreachable commit representing staged, unstaged and untracked files.
+def _is_local_tool_untracked(path: PurePosixPath) -> bool:
+    """Return True for project-local IdleProof/agent plumbing at any monorepo depth."""
+    normalized = path.as_posix().lstrip("./")
+    parts = path.parts
+    if ".idleproof" in parts:
+        return True
+    if len(parts) >= 2 and parts[-2:] == (".claude", "settings.local.json"):
+        return True
+    if len(parts) >= 2 and parts[-2:] == (".codex", "hooks.json"):
+        return True
+    return normalized in _LOCAL_TOOL_UNTRACKED
 
-    An alternate index is used, so the user's real staging area is untouched.
-    Ignored files are intentionally not captured.
+
+def _is_transient_untracked(path: str) -> bool:
+    """Recognize local/runtime artifacts that must not become proof surface.
+
+    This filter only applies to *untracked* files. If a repository deliberately tracks a matching
+    path, DiffWitness preserves it exactly like any other tracked content. Besides interpreter/test
+    caches, local IdleProof state and local Claude/Codex hook plumbing are omitted even when the
+    coding session runs from a nested package in a monorepo, so installing the understanding layer
+    cannot change the software tree DiffWitness proves.
+    """
+    posix = PurePosixPath(path)
+    if _is_local_tool_untracked(posix):
+        return True
+    if any(part in _TRANSIENT_DIRS for part in posix.parts):
+        return True
+    if posix.suffix.lower() in _TRANSIENT_SUFFIXES:
+        return True
+    return posix.name in _TRANSIENT_FILES
+
+
+def _transient_untracked_paths(repo: Path) -> list[str]:
+    raw = git(repo, "ls-files", "--others", "--exclude-standard", "-z")
+    return sorted(path for path in raw.split("\0") if path and _is_transient_untracked(path))
+
+
+def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> str:
+    """Create an unreachable commit representing meaningful worktree content.
+
+    An alternate index is used, so the user's real staging area is untouched. Git-ignored files are
+    not captured. Narrow, known *untracked* runtime/test/tool artifacts are also omitted because a
+    preceding evidence run or local agent integration must not change the semantic candidate being
+    proved. Deliberately tracked files are never auto-excluded, even if their names resemble those
+    local artifacts.
+
+    `exclude_paths` is reserved for caller-owned generated artifacts such as the certificate being
+    verified. All exclusions affect only the ephemeral alternate index and never mutate the user's
+    real staging area or working files.
     """
     head = resolve_ref(repo, "HEAD")
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
@@ -67,8 +174,20 @@ def snapshot_worktree(repo: Path) -> str:
     env = os.environ.copy()
     env["GIT_INDEX_FILE"] = index_name
     try:
+        transient = _transient_untracked_paths(repo)
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
+        exclusions = [*(exclude_paths or []), *transient]
+        for raw in dict.fromkeys(exclusions):
+            rel = Path(raw)
+            if rel.is_absolute() or ".." in rel.parts:
+                raise GitError(f"snapshot exclusion must be a repo-relative path: {raw}")
+            _run(
+                ["git", "reset", "--quiet", head, "--", rel.as_posix()],
+                cwd=repo,
+                env=env,
+                check=False,
+            )
         tree = _run(["git", "write-tree"], cwd=repo, env=env).stdout.strip()
         commit_env = env.copy()
         commit_env.setdefault("GIT_AUTHOR_NAME", "DiffWitness")
@@ -118,9 +237,16 @@ def detached_worktree(repo: Path, commit: str, label: str) -> Iterator[Path]:
         shutil.rmtree(parent, ignore_errors=True)
 
 
-def hard_reset(worktree: Path, commit: str) -> None:
+def hard_reset(worktree: Path, commit: str, *, clean_ignored: bool = False) -> None:
+    """Restore a disposable worktree to an exact commit.
+
+    Normal callers preserve ignored dependency/cache state for speed. Stability isolation sets
+    `clean_ignored=True`, which is safe only for DiffWitness-owned disposable worktrees: ignored and
+    untracked state is removed before preparation is recreated for the next evidence repetition.
+    """
     git(worktree, "reset", "--hard", "--quiet", commit)
-    git(worktree, "clean", "-fd", "--quiet", check=False)
+    clean_flags = "-ffdx" if clean_ignored else "-fd"
+    git(worktree, "clean", clean_flags, "--quiet", check=False)
 
 
 def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[bool, str]:

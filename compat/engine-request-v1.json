@@ -1,0 +1,57 @@
+{
+  "schema_version": "engine-request-1",
+  "change_id": "dwchg_599cbaed708663721c128c78",
+  "repository": {
+    "fingerprint": "dwrepo_111111111111111111111111"
+  },
+  "base": {
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "candidate": {
+    "sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "tree": "dddddddddddddddddddddddddddddddddddddddd"
+  },
+  "mutations": [
+    {
+      "id": "m_core",
+      "path": "src/core.py",
+      "label": "src/core.py hunk 1/1",
+      "kind": "hunk",
+      "additions": 2,
+      "deletions": 1,
+      "line": 10,
+      "end_line": 12
+    },
+    {
+      "id": "m_extra",
+      "path": "src/extra.py",
+      "label": "src/extra.py hunk 1/1",
+      "kind": "hunk",
+      "additions": 1,
+      "deletions": 1,
+      "line": 3,
+      "end_line": 4
+    }
+  ],
+  "budget": {
+    "max_experiments": 12,
+    "max_total_seconds": 45.0,
+    "stability_runs": 2
+  },
+  "policy": {
+    "mode": "balanced",
+    "strategy": "adaptive"
+  },
+  "evidence": {
+    "command_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "changed_test_files": [
+      "tests/test_core.py"
+    ]
+  },
+  "privacy": {
+    "source_embedded": false,
+    "local_workspace_read_allowed": true
+  },
+  "request_id": "dwerq_9f199984b5c39adba0e39b87"
+}

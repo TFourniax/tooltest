@@ -36,6 +36,11 @@ def _parser() -> argparse.ArgumentParser:
     prove.add_argument("--test", help="Evidence command. Can also be set in .diffwitness.toml")
     prove.add_argument("--prepare", help="Setup command run inside each isolated worktree")
     prove.add_argument("--timeout", type=float, help="Seconds per command")
+    prove.add_argument(
+        "--max-total-seconds",
+        type=float,
+        help="Maximum wall-clock seconds for the complete proof (default/config: 900)",
+    )
     prove.add_argument("--stability-runs", type=int, help="Repeat every evidence variant N times")
     prove.add_argument("--test-glob", action="append", default=None, help="Additional test-file glob; repeatable")
     prove.add_argument("--ignore", action="append", default=None, help="Changed path glob to exclude; repeatable")
@@ -118,15 +123,54 @@ def _status_line(status: str) -> str:
     return {"witnessed": "WITNESSED   ", "unwitnessed": "UNWITNESSED ", "inconclusive": "INCONCLUSIVE"}[status]
 
 
-def _write_init_workflow(repo: Path, *, force: bool) -> Path:
+def _write_init_workflow(
+    repo: Path,
+    *,
+    force: bool,
+    test_command: str,
+    prepare_command: str | None,
+) -> Path:
+    """Generate a reproducible PR workflow pinned to the installed DiffWitness release.
+
+    The evidence command supplied to `diffwitness init` is embedded explicitly instead of relying
+    on a PR-modifiable repository config file. JSON string syntax is valid YAML scalar syntax and
+    safely preserves quotes/backslashes in arbitrary shell commands.
+    """
     path = repo / ".github" / "workflows" / "diffwitness.yml"
     if path.exists() and not force:
         raise FileExistsError(f"{path} already exists; use --force to replace it")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        """name: DiffWitness\n\non:\n  pull_request:\n\npermissions:\n  contents: read\n\njobs:\n  evidence:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n      - name: Prove patch evidence\n        uses: TFourniax/tooltest@main\n        with:\n          base: ${{ github.event.pull_request.base.sha }}\n          candidate: ${{ github.event.pull_request.head.sha }}\n          strict: false\n""",
-        encoding="utf-8",
-    )
+    lines = [
+        "name: DiffWitness",
+        "",
+        "on:",
+        "  pull_request:",
+        "",
+        "permissions:",
+        "  contents: read",
+        "",
+        "jobs:",
+        "  evidence:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - uses: actions/checkout@v7",
+        "        with:",
+        "          fetch-depth: 0",
+        "      - name: Prove patch evidence",
+        f"        uses: TFourniax/tooltest@v{__version__}",
+        "        with:",
+        "          base: ${{ github.event.pull_request.base.sha }}",
+        "          candidate: ${{ github.event.pull_request.head.sha }}",
+        f"          test: {json.dumps(test_command, ensure_ascii=False)}",
+    ]
+    if prepare_command:
+        lines.append(f"          prepare: {json.dumps(prepare_command, ensure_ascii=False)}")
+    lines += [
+        "          policy: balanced",
+        "          strategy: auto",
+        "",
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
     return path
 
 
@@ -135,7 +179,12 @@ def _init(args: argparse.Namespace) -> int:
     config_path = write_config(repo, test=args.test, prepare=args.prepare, force=args.force)
     print(f"created {config_path.relative_to(repo)}")
     if args.workflow:
-        workflow = _write_init_workflow(repo, force=args.force)
+        workflow = _write_init_workflow(
+            repo,
+            force=args.force,
+            test_command=args.test,
+            prepare_command=args.prepare,
+        )
         print(f"created {workflow.relative_to(repo)}")
     return 0
 
@@ -148,6 +197,7 @@ def _prove(args: argparse.Namespace) -> int:
         raise AnalysisError("no evidence command configured; pass --test or create .diffwitness.toml")
     prepare_command = _cfg(args, config, "prepare", None)
     timeout = float(_cfg(args, config, "timeout", 300.0))
+    max_total_seconds = float(_cfg(args, config, "max_total_seconds", 900.0))
     stability_runs = int(_cfg(args, config, "stability_runs", 1))
     search_sufficient = bool(_cfg(args, config, "sufficient_search", True))
     max_subset_order = int(_cfg(args, config, "max_subset_order", 3))
@@ -157,6 +207,11 @@ def _prove(args: argparse.Namespace) -> int:
     test_globs = _list_cfg(args, config, "test_glob", "test_glob")
     ignore = _list_cfg(args, config, "ignore", "ignore")
     shared = _list_cfg(args, config, "share", "share")
+
+    if timeout <= 0:
+        raise AnalysisError("--timeout must be > 0")
+    if max_total_seconds <= 0:
+        raise AnalysisError("--max-total-seconds must be > 0")
 
     base_sha = resolve_ref(repo, args.base)
     if args.candidate.upper() == "WORKTREE":
@@ -176,17 +231,18 @@ def _prove(args: argparse.Namespace) -> int:
     mutations = make_mutations(files, include_tests=args.include_test_changes, ignore_globs=ignore)
     ignored_count = len(all_mutations) - len(mutations)
     if not mutations:
-        print("DiffWitness: no analyzable changes remain after test/ignore filtering.", file=sys.stderr)
+        print("DiffWitness: no analyzable changes remain after test/documentation/ignore filtering.", file=sys.stderr)
         return 2
     if args.reduction_patch and not args.minimize:
         raise AnalysisError("--reduction-patch requires --minimize")
 
-    print("DiffWitness 0.2 - counterfactual patch evidence")
+    print(f"DiffWitness {__version__} - counterfactual patch evidence")
     print(f"repo:      {repo}")
     print(f"base:      {args.base} ({base_sha[:12]})")
     print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
     print(f"evidence:  {test_command}")
     print(f"stability: {stability_runs} run(s) per variant")
+    print(f"budget:    {max_total_seconds:g}s total; {timeout:g}s per command")
     print(f"changes:   {len(mutations)} analyzed mutation(s); {sum(f.is_test for f in files)} changed test file(s)")
     print()
 
@@ -208,11 +264,13 @@ def _prove(args: argparse.Namespace) -> int:
         max_subset_runs=max_subset_runs,
         search_interactions=search_interactions,
         max_interaction_runs=max_interaction_runs,
+        max_total_seconds=max_total_seconds,
     )
 
     config_used = {
         "prepare": prepare_command,
         "timeout": timeout,
+        "max_total_seconds": max_total_seconds,
         "stability_runs": stability_runs,
         "sufficient_search": search_sufficient,
         "max_subset_order": max_subset_order,
