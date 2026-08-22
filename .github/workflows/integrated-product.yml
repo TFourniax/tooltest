@@ -1,0 +1,42 @@
+name: integrated-product-smoke
+
+on:
+  push:
+    branches: ["agent/debt-ledger"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integrated-product-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-artifacts:
+    name: Understand → Prove → Owe / exact artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout DiffWitness + Debt Ledger
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout exact IdleProof alpha branch
+        uses: actions/checkout@v4
+        with:
+          repository: TFourniax/tooltest-2
+          ref: agent/idleproof-human-ci
+          fetch-depth: 0
+          path: idleproof
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Exact installed-artifact golden path + stale-correlation fail-safe
+        run: python scripts/integrated_product_smoke.py --idleproof-repo ./idleproof
