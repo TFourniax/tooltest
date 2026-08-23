@@ -6,7 +6,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from .config import load_config
 from .continuity_state import ensure_state
@@ -14,9 +14,13 @@ from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
 # Split paths/qualified identifiers into semantic terms rather than treating `payments/refund.py`
-# as one opaque token.  This keeps the compiler deterministic while materially improving recall.
+# as one opaque token. This keeps the compiler deterministic while materially improving recall.
 _WORD = re.compile(r"[A-Za-z0-9]+")
 _KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "component": 3, "file": 2, "debt": 4}
+_STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
+_MAX_GRAPH_ENTITIES = 1000
+_MAX_GRAPH_RELATIONS = 5000
+_MAX_GRAPH_DEPTH = 2
 
 
 def _now() -> str:
@@ -37,20 +41,11 @@ def _loads(raw: str | None) -> dict[str, Any]:
         return {}
 
 
-def _score(task_tokens: set[str], row: sqlite3.Row) -> int:
+def _entity_text(row: sqlite3.Row) -> str:
     payload = _loads(row["payload_json"])
-    text = " ".join(
+    return " ".join(
         [str(row["label"] or ""), str(row["entity_id"]), json.dumps(payload, ensure_ascii=False, sort_keys=True)]
     )
-    overlap = len(task_tokens & _tokens(text))
-    score = overlap * 5 + _KIND_BONUS.get(str(row["kind"]), 0)
-    if row["kind"] == "invariant" and payload.get("critical") is True:
-        score += 20
-    if row["epistemic_status"] == "VERIFIED":
-        score += 3
-    elif row["epistemic_status"] == "OBSERVED":
-        score += 2
-    return score
 
 
 def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
@@ -63,42 +58,6 @@ def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
         "updatedAt": row["updated_at"],
         "details": payload,
     }
-
-
-def _relevant_entities(conn: sqlite3.Connection, task: str, limit: int) -> list[dict[str, Any]]:
-    task_tokens = _tokens(task)
-    rows = conn.execute(
-        "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc limit 1000"
-    ).fetchall()
-    ranked: list[tuple[int, sqlite3.Row]] = []
-    for row in rows:
-        score = _score(task_tokens, row)
-        payload = _loads(row["payload_json"])
-        if score > _KIND_BONUS.get(str(row["kind"]), 0) or (row["kind"] == "invariant" and payload.get("critical") is True):
-            ranked.append((score, row))
-    ranked.sort(key=lambda item: (-item[0], str(item[1]["updated_at"])))
-    return [{**_entity_view(row), "relevance": score} for score, row in ranked[:limit]]
-
-
-def _relations_for(conn: sqlite3.Connection, ids: list[str]) -> list[dict[str, Any]]:
-    if not ids:
-        return []
-    placeholders = ",".join("?" for _ in ids)
-    rows = conn.execute(
-        f"select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' and (source_id in ({placeholders}) or target_id in ({placeholders})) order by updated_at desc limit 200",
-        (*ids, *ids),
-    ).fetchall()
-    return [
-        {
-            "source": row["source_id"],
-            "predicate": row["predicate"],
-            "target": row["target_id"],
-            "targetKind": row["target_kind"],
-            "epistemicStatus": row["epistemic_status"],
-            "metadata": _loads(row["metadata_json"]),
-        }
-        for row in rows
-    ]
 
 
 def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list[dict[str, Any]]:
@@ -124,6 +83,146 @@ def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list
             "relevance": score,
         }
         for score, row in scored[:limit]
+    ]
+
+
+def _semantic_relations(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute(
+        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' order by updated_at desc limit ?",
+        (_MAX_GRAPH_RELATIONS,),
+    ).fetchall()
+
+
+def _relevant_entities(
+    conn: sqlite3.Connection,
+    task: str,
+    limit: int,
+    *,
+    seed_component_ids: Iterable[str] = (),
+) -> list[dict[str, Any]]:
+    """Rank project memory by direct task match *and* bounded relation propagation.
+
+    Lexical matching is only a seed. Once an objective/component is relevant, decisions, invariants,
+    and failed approaches connected to that seed can enter context even when they use different
+    wording. This is the important distinction between a document search and a Project State graph.
+    """
+    task_tokens = _tokens(task)
+    rows = conn.execute(
+        "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc limit ?",
+        (_MAX_GRAPH_ENTITIES,),
+    ).fetchall()
+    by_id = {str(row["entity_id"]): row for row in rows}
+    scores: dict[str, int] = {}
+    depths: dict[str, int] = {}
+    reasons: dict[str, str] = {}
+
+    # Direct semantic seeds.
+    for entity_id, row in by_id.items():
+        payload = _loads(row["payload_json"])
+        overlap = len(task_tokens & _tokens(_entity_text(row)))
+        if overlap:
+            score = overlap * 10 + _KIND_BONUS.get(str(row["kind"]), 0) + _STATUS_BONUS.get(str(row["epistemic_status"]), 0)
+            scores[entity_id] = score
+            depths[entity_id] = 0
+            reasons[entity_id] = f"task-token-overlap:{overlap}"
+        if row["kind"] == "invariant" and payload.get("critical") is True:
+            score = max(scores.get(entity_id, 0), 30 + _STATUS_BONUS.get(str(row["epistemic_status"]), 0))
+            scores[entity_id] = score
+            depths[entity_id] = 0
+            reasons[entity_id] = "critical-invariant"
+
+    relations = _semantic_relations(conn)
+    component_ids = set(seed_component_ids)
+
+    # A task-matched code component is a first-class graph seed. Human project memory attached to
+    # that component should surface even if its prose uses completely different words.
+    for relation in relations:
+        source = str(relation["source_id"])
+        target = str(relation["target_id"])
+        if target in component_ids and source in by_id:
+            candidate = 22 + _STATUS_BONUS.get(str(by_id[source]["epistemic_status"]), 0)
+            if candidate > scores.get(source, -1):
+                scores[source] = candidate
+                depths[source] = 1
+                reasons[source] = f"component:{relation['predicate']}:{target}"
+        if source in component_ids and target in by_id:
+            candidate = 22 + _STATUS_BONUS.get(str(by_id[target]["epistemic_status"]), 0)
+            if candidate > scores.get(target, -1):
+                scores[target] = candidate
+                depths[target] = 1
+                reasons[target] = f"component:{relation['predicate']}:{source}"
+
+    adjacency: dict[str, list[tuple[str, str]]] = {entity_id: [] for entity_id in by_id}
+    for relation in relations:
+        source = str(relation["source_id"])
+        target = str(relation["target_id"])
+        predicate = str(relation["predicate"])
+        if source in by_id and target in by_id:
+            # Relevance is traversable in either direction: if an objective matters, a decision
+            # motivated_by it matters; if the decision matters, the objective remains useful too.
+            adjacency[source].append((target, predicate))
+            adjacency[target].append((source, predicate))
+
+    # Two hops are enough to recover patterns such as objective <- decision <- failed approach,
+    # while preventing a large project graph from flooding a task with distant history.
+    frontier = {entity_id for entity_id, depth in depths.items() if depth <= 1}
+    for _ in range(_MAX_GRAPH_DEPTH):
+        next_frontier: set[str] = set()
+        for source in frontier:
+            source_depth = depths.get(source, 0)
+            if source_depth >= _MAX_GRAPH_DEPTH:
+                continue
+            source_score = scores[source]
+            for target, predicate in adjacency.get(source, []):
+                candidate_depth = source_depth + 1
+                if candidate_depth > _MAX_GRAPH_DEPTH:
+                    continue
+                candidate_score = max(1, int(source_score * 0.68))
+                candidate_score += _STATUS_BONUS.get(str(by_id[target]["epistemic_status"]), 0)
+                current_depth = depths.get(target, 999)
+                if candidate_score > scores.get(target, -1) or candidate_depth < current_depth:
+                    scores[target] = max(candidate_score, scores.get(target, 0))
+                    depths[target] = min(candidate_depth, current_depth)
+                    reasons[target] = f"relation:{predicate}:{source}"
+                    next_frontier.add(target)
+        frontier = next_frontier
+        if not frontier:
+            break
+
+    ranked = [
+        (scores[entity_id], depths.get(entity_id, 0), by_id[entity_id], reasons.get(entity_id, "graph"))
+        for entity_id in scores
+    ]
+    ranked.sort(key=lambda item: (-item[0], item[1], str(item[2]["updated_at"]), str(item[2]["entity_id"])))
+    return [
+        {
+            **_entity_view(row),
+            "relevance": score,
+            "relationDepth": depth,
+            "relevanceReason": reason,
+        }
+        for score, depth, row, reason in ranked[:limit]
+    ]
+
+
+def _relations_for(conn: sqlite3.Connection, ids: list[str]) -> list[dict[str, Any]]:
+    if not ids:
+        return []
+    placeholders = ",".join("?" for _ in ids)
+    rows = conn.execute(
+        f"select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' and (source_id in ({placeholders}) or target_id in ({placeholders})) order by updated_at desc limit 200",
+        (*ids, *ids),
+    ).fetchall()
+    return [
+        {
+            "source": row["source_id"],
+            "predicate": row["predicate"],
+            "target": row["target_id"],
+            "targetKind": row["target_kind"],
+            "epistemicStatus": row["epistemic_status"],
+            "metadata": _loads(row["metadata_json"]),
+        }
+        for row in rows
     ]
 
 
@@ -234,10 +333,15 @@ def compile_context(
     conn = sqlite3.connect(state_path)
     conn.row_factory = sqlite3.Row
     try:
-        entities = _relevant_entities(conn, task, max_items)
+        components = _related_files(conn, task, limit=max_items)
+        entities = _relevant_entities(
+            conn,
+            task,
+            max_items,
+            seed_component_ids=[str(item["id"]) for item in components],
+        )
         ids = [item["id"] for item in entities]
         relations = _relations_for(conn, ids)
-        components = _related_files(conn, task, limit=max_items)
         changes = _recent_changes(conn, ids, components, limit=min(8, max_items))
         debts = _open_debts(conn, changes, limit=max_items)
         event_head_row = conn.execute("select value from meta where key='event_head'").fetchone()
