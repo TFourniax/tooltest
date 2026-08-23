@@ -38,6 +38,28 @@ def main(argv: list[str] | None = None) -> int:
         from ..engine_cli import engine_cli
 
         return engine_cli(args[1:])
+    if args and args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
+        # Continuity is an additive facade over the existing Proof/Debt kernel.  Keeping these
+        # commands outside the legacy parser means the experimental Project State model can evolve
+        # or be removed without changing the stable proof/debt command semantics.
+        from ..continuity_cli import (
+            context_cli,
+            decision_cli,
+            failed_approach_cli,
+            invariant_cli,
+            objective_cli,
+            state_cli,
+        )
+
+        handlers = {
+            "state": state_cli,
+            "context": context_cli,
+            "objective": objective_cli,
+            "decision": decision_cli,
+            "invariant": invariant_cli,
+            "failed-approach": failed_approach_cli,
+        }
+        return handlers[args[0]](args[1:])
     return _frontend_main(args)
 
 
