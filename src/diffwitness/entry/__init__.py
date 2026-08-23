@@ -32,51 +32,87 @@ def _digest(path: Path) -> str | None:
         return None
 
 
+def _option_value(argv: list[str], name: str, default: str | None = None) -> str | None:
+    for index, value in enumerate(argv):
+        if value == name and index + 1 < len(argv):
+            return argv[index + 1]
+        prefix = name + "="
+        if value.startswith(prefix):
+            return value[len(prefix) :]
+    return default
+
+
+def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
+    """Reflect the validated Debt Ledger into Project State without changing command authority."""
+    try:
+        from ..continuity_debt_bridge import sync_debt_history
+        from ..gitops import repo_root
+
+        repo = repo_root(_option_value(argv, "--repo", ".") or ".")
+        result = sync_debt_history(
+            repo,
+            explicit_config=_option_value(argv, "--config"),
+        )
+        created = int(result.get("created") or 0)
+        if created:
+            print(f"Project continuity: {created} Debt Ledger lifecycle event(s) projected")
+    except Exception as exc:
+        # Continuity is an additive memory projection. Debt Ledger itself remains authoritative and a
+        # projection problem must never alter an otherwise valid debt/proof command result.
+        print(f"Project continuity debt sync degraded: {str(exc)[:300]}", file=sys.stderr)
+
+
 def _guard_with_continuity(argv: list[str]) -> int:
     """Run the unchanged Guard kernel, then project a newly written envelope best-effort.
 
     This wrapper is intentionally outside :mod:`diffwitness.guard`: the authoritative proof/debt
     kernel remains unchanged and a continuity failure can never turn an accepted proof into a
-    rejection.  A manual/stale envelope is not trusted; VERIFIED is granted here only after Guard
+    rejection. A manual/stale envelope is not trusted; VERIFIED is granted here only after Guard
     itself has validated the generated certificate and rewritten the exact envelope during this run.
     """
     from ..gitops import repo_root
     from ..guard import guard_cli
 
-    parser_repo = "."
-    for index, value in enumerate(argv):
-        if value == "--repo" and index + 1 < len(argv):
-            parser_repo = argv[index + 1]
-            break
+    parser_repo = _option_value(argv, "--repo", ".") or "."
     try:
         repo = repo_root(parser_repo)
     except Exception:
-        # Preserve Guard's canonical error/exit behavior for invalid repository arguments.
         return guard_cli(argv)
 
     envelope_path = repo / ".git" / "diffwitness" / "change-envelope.json"
     before = _digest(envelope_path)
     rc = guard_cli(argv)
     after = _digest(envelope_path)
-    if after is None or after == before:
-        return rc
+    if after is not None and after != before:
+        try:
+            from ..continuity_bridge import record_change_envelope
+            from ..continuity_state import ensure_state
 
-    try:
-        from ..continuity_bridge import record_change_envelope
-        from ..continuity_state import ensure_state
+            result = record_change_envelope(
+                repo=repo,
+                path=envelope_path,
+                actor="diffwitness-guard",
+                trusted_proof=True,
+            )
+            ensure_state(repo)
+            created = result.get("created") or {}
+            total = sum(int(value or 0) for value in created.values())
+            print(f"Project continuity: {total} new change event(s) · {result['change_id']}")
+        except Exception as exc:
+            print(f"Project continuity recording degraded: {str(exc)[:300]}", file=sys.stderr)
 
-        result = record_change_envelope(
-            repo=repo,
-            path=envelope_path,
-            actor="diffwitness-guard",
-            trusted_proof=True,
-        )
-        ensure_state(repo)
-        created = result.get("created") or {}
-        total = sum(int(value or 0) for value in created.values())
-        print(f"Project continuity: {total} new event(s) · {result['change_id']}")
-    except Exception as exc:
-        print(f"Project continuity recording degraded: {str(exc)[:300]}", file=sys.stderr)
+    # Guard may also append durable Debt Ledger lifecycle events. Project those independently so the
+    # global continuity history captures introduced/refreshed/reopened transitions, not only the
+    # envelope's point-in-time debt snapshot.
+    _sync_debt_continuity_best_effort(argv)
+    return rc
+
+
+def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
+    rc = _frontend_main([command, *argv])
+    # Sync even after a non-zero command result: an accounting command can legitimately have mutated
+    # the durable Ledger before returning a policy/budget failure. The Ledger is the source of truth.
+    _sync_debt_continuity_best_effort(argv)
     return rc
 
 
@@ -84,19 +120,17 @@ def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] == "doctor":
-        # Doctor is intercepted here so the commercial preflight can evolve independently from the
-        # legacy proof CLI while `dw` remains the canonical user-facing command.
         from ..doctor import doctor_cli
 
         return doctor_cli(args[1:])
     if args and args[0] == "engine":
-        # Engine enrollment is machine-local commercial plumbing. Keep it outside the legacy proof
-        # parser and outside committed project state while preserving one canonical `dw` executable.
         from ..engine_cli import engine_cli
 
         return engine_cli(args[1:])
     if args and args[0] == "guard":
         return _guard_with_continuity(args[1:])
+    if args and args[0] in {"debt", "health", "repay", "recheck", "ledger"}:
+        return _debt_command_with_continuity(args[0], args[1:])
     if args and args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
         # Continuity is an additive facade over the existing Proof/Debt kernel. Keeping these
         # commands outside the legacy parser means the experimental Project State model can evolve
