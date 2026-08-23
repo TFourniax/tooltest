@@ -49,27 +49,16 @@ def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
         from ..gitops import repo_root
 
         repo = repo_root(_option_value(argv, "--repo", ".") or ".")
-        result = sync_debt_history(
-            repo,
-            explicit_config=_option_value(argv, "--config"),
-        )
+        result = sync_debt_history(repo, explicit_config=_option_value(argv, "--config"))
         created = int(result.get("created") or 0)
         if created:
             print(f"Project continuity: {created} Debt Ledger lifecycle event(s) projected")
     except Exception as exc:
-        # Continuity is an additive memory projection. Debt Ledger itself remains authoritative and a
-        # projection problem must never alter an otherwise valid debt/proof command result.
         print(f"Project continuity debt sync degraded: {str(exc)[:300]}", file=sys.stderr)
 
 
 def _guard_with_continuity(argv: list[str]) -> int:
-    """Run the unchanged Guard kernel, then project a newly written envelope best-effort.
-
-    This wrapper is intentionally outside :mod:`diffwitness.guard`: the authoritative proof/debt
-    kernel remains unchanged and a continuity failure can never turn an accepted proof into a
-    rejection. A manual/stale envelope is not trusted; VERIFIED is granted here only after Guard
-    itself has validated the generated certificate and rewritten the exact envelope during this run.
-    """
+    """Run the unchanged Guard kernel, then project a newly written envelope best-effort."""
     from ..gitops import repo_root
     from ..guard import guard_cli
 
@@ -101,17 +90,14 @@ def _guard_with_continuity(argv: list[str]) -> int:
         except Exception as exc:
             print(f"Project continuity recording degraded: {str(exc)[:300]}", file=sys.stderr)
 
-    # Guard may also append durable Debt Ledger lifecycle events. Project those independently so the
-    # global continuity history captures introduced/refreshed/reopened transitions, not only the
-    # envelope's point-in-time debt snapshot.
     _sync_debt_continuity_best_effort(argv)
     return rc
 
 
 def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
     rc = _frontend_main([command, *argv])
-    # Sync even after a non-zero command result: an accounting command can legitimately have mutated
-    # the durable Ledger before returning a policy/budget failure. The Ledger is the source of truth.
+    # A command can legitimately append accounting history before returning a budget/policy failure.
+    # The durable Ledger is the source of truth, so synchronize after both zero and non-zero results.
     _sync_debt_continuity_best_effort(argv)
     return rc
 
@@ -119,22 +105,24 @@ def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
-    if args and args[0] == "doctor":
+    if not args or args[0] in {"-h", "--help", "help"}:
+        from ..public_help import PUBLIC_HELP
+
+        print(PUBLIC_HELP, end="")
+        return 0
+    if args[0] == "doctor":
         from ..doctor import doctor_cli
 
         return doctor_cli(args[1:])
-    if args and args[0] == "engine":
+    if args[0] == "engine":
         from ..engine_cli import engine_cli
 
         return engine_cli(args[1:])
-    if args and args[0] == "guard":
+    if args[0] == "guard":
         return _guard_with_continuity(args[1:])
-    if args and args[0] in {"debt", "health", "repay", "recheck", "ledger"}:
+    if args[0] in {"debt", "health", "repay", "recheck", "ledger"}:
         return _debt_command_with_continuity(args[0], args[1:])
-    if args and args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
-        # Continuity is an additive facade over the existing Proof/Debt kernel. Keeping these
-        # commands outside the legacy parser means the experimental Project State model can evolve
-        # or be removed without changing the stable proof/debt command semantics.
+    if args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
         from ..continuity_cli import (
             context_cli,
             decision_cli,
