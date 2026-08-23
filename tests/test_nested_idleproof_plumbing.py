@@ -32,6 +32,9 @@ class NestedLocalToolArtifactsTests(unittest.TestCase):
             (package / ".claude" / "settings.local.json").write_text("{}\n", encoding="utf-8")
             (package / ".codex").mkdir()
             (package / ".codex" / "hooks.json").write_text("{}\n", encoding="utf-8")
+            (package / ".cursor" / "rules").mkdir(parents=True)
+            (package / ".cursor" / "hooks.json").write_text("{}\n", encoding="utf-8")
+            (package / ".cursor" / "rules" / "idleproof-continuity.mdc").write_text("local rule\n", encoding="utf-8")
 
             snapshot = snapshot_worktree(repo)
             candidate_tree = self.git(repo, "rev-parse", f"{snapshot}^{{tree}}")
