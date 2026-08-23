@@ -9,6 +9,7 @@ from typing import Any
 
 from .continuity_bridge import record_change_envelope
 from .continuity_context import compile_context, render_context
+from .continuity_debt_bridge import sync_debt_history
 from .continuity_events import append_project_event, continuity_paths, read_project_events
 from .continuity_state import ensure_state, rebuild_state, state_status
 from .gitops import repo_root
@@ -67,7 +68,7 @@ def _print(value: Any, json_mode: bool = False) -> None:
 def state_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw state",
-        description="Inspect, import, or rebuild the reconstructible Project State projection.",
+        description="Inspect, import, sync, or rebuild the reconstructible Project State projection.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
     status = sub.add_parser("status")
@@ -75,7 +76,12 @@ def state_cli(argv: list[str]) -> int:
     status.add_argument("--json", action="store_true")
     rebuild = sub.add_parser("rebuild")
     rebuild.add_argument("--repo", default=".")
+    rebuild.add_argument("--config")
     rebuild.add_argument("--structure", action=argparse.BooleanOptionalAction, default=True)
+    sync_debt = sub.add_parser("sync-debt")
+    sync_debt.add_argument("--repo", default=".")
+    sync_debt.add_argument("--config")
+    sync_debt.add_argument("--json", action="store_true")
     ingest = sub.add_parser("ingest-envelope")
     ingest.add_argument("envelope", type=Path)
     ingest.add_argument("--repo", default=".")
@@ -106,15 +112,28 @@ def state_cli(argv: list[str]) -> int:
                 print("WARN working tree is dirty; cached structure remains HEAD-bound until explicitly refreshed.")
         return 0
 
+    if args.command == "sync-debt":
+        result = sync_debt_history(repo, explicit_config=args.config)
+        ensure_state(repo)
+        if args.json:
+            _print(result, True)
+        else:
+            print(f"Debt continuity: {result['created']} new ProjectEvent(s) from {result['ledger_events']} validated Debt Ledger event(s)")
+        return 0
+
     if args.command == "rebuild":
+        debt = sync_debt_history(repo, explicit_config=args.config)
         path = rebuild_state(repo, include_structure=bool(args.structure))
         print(f"Rebuilt Project State: {path}")
+        if debt["ledger_events"]:
+            print(f"Debt continuity: {debt['created']} new event(s) synchronized before rebuild")
         return 0
 
     if args.command == "ingest-envelope":
         # A manually supplied envelope is a useful historical artifact, but it is not enough to
         # upgrade its embedded Proof summary to VERIFIED. Guard owns that authoritative bridge.
         result = record_change_envelope(repo=repo, path=args.envelope, actor="human-import", trusted_proof=False)
+        sync_debt_history(repo)
         ensure_state(repo)
         _print(result, args.json)
         return 0
@@ -184,6 +203,7 @@ def context_cli(argv: list[str]) -> int:
     )
     parser.add_argument("task", nargs="+")
     parser.add_argument("--repo", default=".")
+    parser.add_argument("--config")
     parser.add_argument("--max-items", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=12000)
     parser.add_argument("--refresh-structure", action=argparse.BooleanOptionalAction, default=True)
@@ -193,6 +213,7 @@ def context_cli(argv: list[str]) -> int:
     task = " ".join(args.task).strip()
     if not task:
         parser.error("task cannot be empty")
+    sync_debt_history(args.repo, explicit_config=args.config)
     context = compile_context(
         args.repo,
         task,
@@ -278,11 +299,16 @@ def decision_cli(argv: list[str]) -> int:
     add.add_argument("--why")
     add.add_argument("--objective", action="append", default=[])
     add.add_argument("--component", action="append", default=[])
+    add.add_argument("--created-debt", action="append", default=[])
     add.add_argument("--alternative", action="append", default=[])
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)
     label = " ".join(args.label)
-    relations = _relations(args.objective, "motivated_by", "objective") + _component_relations(args.component, "affects")
+    relations = (
+        _relations(args.objective, "motivated_by", "objective")
+        + _component_relations(args.component, "affects")
+        + _relations(args.created_debt, "created", "debt")
+    )
     entity_id = _declare(
         repo,
         event_type="decision.recorded",
@@ -336,10 +362,15 @@ def failed_approach_cli(argv: list[str]) -> int:
     add.add_argument("--reason", required=True)
     add.add_argument("--decision", action="append", default=[])
     add.add_argument("--component", action="append", default=[])
+    add.add_argument("--debt", action="append", default=[])
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)
     label = " ".join(args.label)
-    relations = _relations(args.decision, "informed", "decision") + _component_relations(args.component, "affected")
+    relations = (
+        _relations(args.decision, "informed", "decision")
+        + _component_relations(args.component, "affected")
+        + _relations(args.debt, "created", "debt")
+    )
     entity_id = _declare(
         repo,
         event_type="approach.failed",
