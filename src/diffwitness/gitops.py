@@ -104,7 +104,7 @@ def git_bytes(
     input_bytes: bytes | None = None,
 ) -> bytes:
     """Run Git byte-exactly for object plumbing and NUL-delimited protocols."""
-    return _run_bytes(["git", *args], cwd=repo, check=check, input_bytes=input_bytes).stdout
+    return _run_bytes(["git", *args], cwd=repo, env=None, check=check, input_bytes=input_bytes).stdout
 
 
 def repo_root(path: str | Path = ".") -> Path:
@@ -267,4 +267,18 @@ def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[b
 
 
 def candidate_delta(worktree: Path, candidate: str) -> str:
-    return git(worktree, "diff", "--no-color", candidate, "--")
+    return git(
+        worktree,
+        "-c",
+        "core.quotePath=false",
+        "diff",
+        "--no-color",
+        "--no-ext-diff",
+        "--binary",
+        candidate,
+        "--",
+    )
+
+
+def git_version(repo: Path) -> str:
+    return git(repo, "--version").strip()
