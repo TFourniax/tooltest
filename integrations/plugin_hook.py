@@ -53,22 +53,14 @@ def _user_prompt_submit() -> int:
         return 0
     task = raw_prompt.strip()[:_MAX_PROMPT_CHARS]
     try:
-        from diffwitness.continuity_context import compile_context, render_context
+        from diffwitness.continuity_context_enriched import compile_context, render_context
 
-        context = compile_context(
-            cwd,
-            task,
-            max_items=10,
-            refresh_structure=True,
-        )
+        context = compile_context(cwd, task, max_items=10, refresh_structure=True)
         rendered = render_context(context, max_chars=_MAX_CONTEXT_CHARS).strip()
     except Exception:
         return 0
     if not rendered:
         return 0
-    # Keep the injected text factual and explicit about authority. Claude's hook documentation
-    # recommends context rather than pseudo-system commands; executed DiffWitness evidence remains
-    # authoritative and this context must never be treated as a proof claim.
     additional = (
         "DIFFWITNESS PROJECT CONTINUITY (advisory, local, bounded)\n"
         "Use these project facts as relevant context for the submitted task. Epistemic labels matter: "
@@ -104,8 +96,6 @@ def run() -> int:
     args = [command]
     if command == "session-stop":
         args += ["--policy", policy]
-    # Do not pre-read stdin for SessionStart/Stop: proof_cli owns their hook payload and existing
-    # semantics stay unchanged.
     return main(args)
 
 
