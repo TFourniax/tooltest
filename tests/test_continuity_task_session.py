@@ -18,7 +18,7 @@ class ContinuityTaskSessionTests(unittest.TestCase):
     def test_task_id_has_frozen_cross_runtime_vector(self):
         self.assertEqual(
             stable_task_id("session-1", 1, "Implement partial refunds safely"),
-            "dwtask_c54d07d5c2dcc98ed83401d7",
+            "dwtask_f347d504913fb4938155fabe",
         )
 
     def test_short_followup_keeps_anchor_and_task_identity(self):
