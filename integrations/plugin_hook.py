@@ -19,7 +19,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from diffwitness.proof_cli import main  # noqa: E402
+from diffwitness.proof_cli import main as proof_main  # noqa: E402
 
 
 _MAX_PROMPT_CHARS = 12000
@@ -105,6 +105,24 @@ def _user_prompt_submit() -> int:
     return 0
 
 
+def _session_stop() -> int:
+    """Converge native IDE completion on Proof + Debt + Continuity + optional IdleProof Portal."""
+    payload = _read_hook_payload()
+    policy = os.environ.get("DIFFWITNESS_POLICY", "balanced")
+    try:
+        from diffwitness.ide_handoff import finalize_ide_session
+
+        result = finalize_ide_session(payload, policy=policy)
+    except Exception as exc:
+        # Unknown handoff failures are not silently upgraded to successful evidence. This is a
+        # correctness boundary: the agent may continue, while the user receives an actionable
+        # failure instead of a false "proved" state.
+        message = f"DiffWitness integrated handoff failed before evidence could be established: {str(exc)[:1200]}"
+        result = {"decision": "block", "reason": message, "systemMessage": message}
+    print(json.dumps(result, ensure_ascii=False))
+    return 0
+
+
 def run() -> int:
     if len(sys.argv) < 2 or sys.argv[1] not in {"session-start", "session-stop", "user-prompt-submit"}:
         print(
@@ -115,11 +133,9 @@ def run() -> int:
     command = sys.argv[1]
     if command == "user-prompt-submit":
         return _user_prompt_submit()
-    policy = os.environ.get("DIFFWITNESS_POLICY", "balanced")
-    args = [command]
     if command == "session-stop":
-        args += ["--policy", policy]
-    return main(args)
+        return _session_stop()
+    return proof_main(["session-start"])
 
 
 if __name__ == "__main__":
