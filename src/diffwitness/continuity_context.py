@@ -18,8 +18,6 @@ from .gitops import git, repo_root
 _WORD = re.compile(r"[A-Za-z0-9]+")
 _KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "component": 3, "file": 2, "debt": 4}
 _STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
-_MAX_GRAPH_ENTITIES = 1000
-_MAX_GRAPH_RELATIONS = 5000
 _MAX_GRAPH_DEPTH = 2
 
 
@@ -63,7 +61,7 @@ def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
 def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list[dict[str, Any]]:
     tokens = _tokens(task)
     rows = conn.execute(
-        "select component_id,path,language,module_name,epistemic_status,provider from structure_components order by path limit 5000"
+        "select component_id,path,language,module_name,epistemic_status,provider from structure_components order by path"
     ).fetchall()
     scored: list[tuple[int, sqlite3.Row]] = []
     for row in rows:
@@ -87,9 +85,11 @@ def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list
 
 
 def _semantic_relations(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    # Project memory must not silently forget an old relation merely because newer history crossed an
+    # arbitrary row cap. Performance is handled by the reconstructible SQLite projection and is
+    # continuously measured by ContinuityBench; correctness wins over hidden recency truncation.
     return conn.execute(
-        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' order by updated_at desc limit ?",
-        (_MAX_GRAPH_RELATIONS,),
+        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' order by updated_at desc"
     ).fetchall()
 
 
@@ -104,12 +104,11 @@ def _relevant_entities(
 
     Lexical matching is only a seed. Once an objective/component is relevant, decisions, invariants,
     and failed approaches connected to that seed can enter context even when they use different
-    wording. This is the important distinction between a document search and a Project State graph.
+    wording. No arbitrary recency window is allowed to erase older still-relevant project memory.
     """
     task_tokens = _tokens(task)
     rows = conn.execute(
-        "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc limit ?",
-        (_MAX_GRAPH_ENTITIES,),
+        "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc"
     ).fetchall()
     by_id = {str(row["entity_id"]): row for row in rows}
     scores: dict[str, int] = {}
@@ -258,7 +257,7 @@ def _recent_changes(
         )
         left join debt_snapshots ds on ds.change_id=c.change_id
         left join understanding u on u.change_id=c.change_id
-        order by c.updated_at desc limit 200
+        order by c.updated_at desc
         """
     ).fetchall()
     ranked: list[tuple[int, sqlite3.Row, list[str]]] = []
