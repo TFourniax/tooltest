@@ -11,7 +11,7 @@ from diffwitness.continuity_bridge import record_change_envelope
 from diffwitness.continuity_cli import decision_cli, failed_approach_cli, invariant_cli, objective_cli
 from diffwitness.continuity_context import compile_context
 from diffwitness.continuity_events import ContinuityError, append_project_event, continuity_paths, read_project_events
-from diffwitness.continuity_state import ensure_state, rebuild_state, state_status
+from diffwitness.continuity_state import STATE_SCHEMA, ensure_state, rebuild_state, state_status
 from diffwitness.engine_protocol import change_id, repository_fingerprint
 from diffwitness.structure_provider import component_id_for_path
 
@@ -128,7 +128,7 @@ class ContinuityKernelTests(unittest.TestCase):
             conn = sqlite3.connect(repaired)
             try:
                 self.assertEqual(conn.execute("select count(*) from entities").fetchone()[0], 1)
-                self.assertEqual(conn.execute("select value from meta where key='schema'").fetchone()[0], "continuity-state-1")
+                self.assertEqual(conn.execute("select value from meta where key='schema'").fetchone()[0], STATE_SCHEMA)
             finally:
                 conn.close()
 
@@ -190,7 +190,6 @@ class ContinuityKernelTests(unittest.TestCase):
             self.assertIn("OBJ-REFUNDS", {item["id"] for item in context["objectives"]})
             self.assertIn("DEC-IDEMPOTENCY", {item["id"] for item in context["decisions"]})
             self.assertIn("INV-CAPTURE-LIMIT", {item["id"] for item in context["invariants"]})
-            # No lexical overlap with the task: this must arrive through Project State relations.
             failed = next(item for item in context["failedApproaches"] if item["id"] == "FAIL-DIRECT-CHARGE")
             self.assertGreaterEqual(failed.get("relationDepth", 99), 1)
             self.assertIn("payments/refund.py", {item["path"] for item in context["components"]})
