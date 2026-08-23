@@ -16,6 +16,7 @@ Project continuity:
   dw decision record <text>          Record a decision and its rationale/relations
   dw invariant add <text>            Record a project invariant; --critical makes it always relevant
   dw failed-approach record <text>   Preserve an approach that should not be repeated
+  dw relation add A <type> B         Add a typed human-declared relation between existing facts
   dw state status                    Inspect the append-only journal and rebuildable Project State
   dw state graph [--entity ID]       Inspect typed project entities and relations
   dw state rebuild                   Rebuild state.db from ProjectEvents + Git
@@ -40,7 +41,7 @@ With the Claude/Codex plugin installed, task-specific `dw context` is injected a
 UserPromptSubmit. Context is advisory; only executed DiffWitness evidence can establish VERIFIED
 claims. Project memory is local-first and the continuity journal never stores raw prompts or raw diffs.
 Project memory can travel between clones through an isolated fast-forward-only Git ref; it never
-changes the repository's code HEAD.
+changes the repository's code HEAD. Human `dw relation` assertions are always DECLARED, never VERIFIED.
 
 Use `dw <command> --help` for command-specific options.
 """
