@@ -43,7 +43,6 @@ def _option_value(argv: list[str], name: str, default: str | None = None) -> str
 
 
 def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
-    """Reflect the validated Debt Ledger into Project State without changing command authority."""
     try:
         from ..continuity_debt_bridge import sync_debt_history
         from ..gitops import repo_root
@@ -58,7 +57,6 @@ def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
 
 
 def _guard_with_continuity(argv: list[str]) -> int:
-    """Run the unchanged Guard kernel, then project a newly written envelope best-effort."""
     from ..gitops import repo_root
     from ..guard import guard_cli
 
@@ -96,8 +94,6 @@ def _guard_with_continuity(argv: list[str]) -> int:
 
 def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
     rc = _frontend_main([command, *argv])
-    # A command can legitimately append accounting history before returning a budget/policy failure.
-    # The durable Ledger is the source of truth, so synchronize after both zero and non-zero results.
     _sync_debt_continuity_best_effort(argv)
     return rc
 
@@ -122,6 +118,10 @@ def main(argv: list[str] | None = None) -> int:
         return _guard_with_continuity(args[1:])
     if args[0] in {"debt", "health", "repay", "recheck", "ledger"}:
         return _debt_command_with_continuity(args[0], args[1:])
+    if args[0] == "state" and len(args) > 1 and args[1] in {"checkpoint", "restore", "pull", "push"}:
+        from ..continuity_transport_cli import state_transport_cli
+
+        return state_transport_cli(args[1:])
     if args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
         from ..continuity_cli import (
             context_cli,
