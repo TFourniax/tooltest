@@ -25,6 +25,7 @@ _ENTITY_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_.:/@-]{0,255}$")
 _LOCK_TIMEOUT_SECONDS = 10.0
 _STALE_LOCK_SECONDS = 120.0
 _MAX_EVENT_BYTES = 256 * 1024
+_MAX_BATCH_EVENTS = 2048
 
 
 def _now() -> str:
@@ -110,30 +111,41 @@ def _validate_relations(relations: Any) -> None:
             raise ContinuityError("project relation metadata must be an object")
 
 
+def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> None:
+    where = f" at line {line}" if line is not None else ""
+    if event.get("schema_version") != SCHEMA_VERSION:
+        raise ContinuityError(f"unsupported project event schema{where}")
+    event_type = event.get("event_type")
+    if not isinstance(event_type, str) or not _EVENT_TYPE.fullmatch(event_type):
+        raise ContinuityError(f"invalid project event type{where}: {event_type!r}")
+    if event.get("epistemic_status") not in EPISTEMIC_STATUSES:
+        raise ContinuityError(f"invalid epistemic status{where}")
+    if not isinstance(event.get("timestamp"), str) or not event.get("timestamp"):
+        raise ContinuityError(f"invalid timestamp{where}")
+    actor = event.get("actor")
+    if not isinstance(actor, dict) or not isinstance(actor.get("kind"), str) or not actor.get("kind"):
+        raise ContinuityError(f"invalid actor{where}")
+    _validate_subject(event.get("subject"))
+    _validate_relations(event.get("relations", []))
+    if not isinstance(event.get("payload"), dict):
+        raise ContinuityError(f"invalid payload{where}")
+    if not isinstance(event.get("provenance"), dict):
+        raise ContinuityError(f"invalid provenance{where}")
+    dedupe_key = event.get("dedupe_key")
+    if dedupe_key is not None and (not isinstance(dedupe_key, str) or not dedupe_key or len(dedupe_key) > 500):
+        raise ContinuityError(f"invalid dedupe key{where}")
+    raw = (_canonical(event) + "\n").encode("utf-8")
+    if len(raw) > _MAX_EVENT_BYTES:
+        raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
+
+
 def validate_project_events(events: list[dict[str, Any]]) -> None:
     previous: str | None = None
     dedupe: set[str] = set()
     for index, event in enumerate(events, start=1):
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
-        if event.get("schema_version") != SCHEMA_VERSION:
-            raise ContinuityError(f"unsupported project event schema at line {index}")
-        event_type = event.get("event_type")
-        if not isinstance(event_type, str) or not _EVENT_TYPE.fullmatch(event_type):
-            raise ContinuityError(f"invalid project event type at line {index}: {event_type!r}")
-        if event.get("epistemic_status") not in EPISTEMIC_STATUSES:
-            raise ContinuityError(f"invalid epistemic status at line {index}")
-        if not isinstance(event.get("timestamp"), str) or not event.get("timestamp"):
-            raise ContinuityError(f"invalid timestamp at line {index}")
-        actor = event.get("actor")
-        if not isinstance(actor, dict) or not isinstance(actor.get("kind"), str) or not actor.get("kind"):
-            raise ContinuityError(f"invalid actor at line {index}")
-        _validate_subject(event.get("subject"))
-        _validate_relations(event.get("relations", []))
-        if not isinstance(event.get("payload"), dict):
-            raise ContinuityError(f"invalid payload at line {index}")
-        if not isinstance(event.get("provenance"), dict):
-            raise ContinuityError(f"invalid provenance at line {index}")
+        _validate_event_shape(event, line=index)
         if event.get("prev_hash") != previous:
             raise ContinuityError(f"project event hash chain broken at line {index}")
         if event.get("event_id") != _event_id(event):
@@ -143,14 +155,9 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
             raise ContinuityError(f"project event integrity failed at line {index}")
         dedupe_key = event.get("dedupe_key")
         if dedupe_key is not None:
-            if not isinstance(dedupe_key, str) or not dedupe_key or len(dedupe_key) > 500:
-                raise ContinuityError(f"invalid dedupe key at line {index}")
             if dedupe_key in dedupe:
                 raise ContinuityError(f"duplicate project event dedupe key at line {index}: {dedupe_key}")
             dedupe.add(dedupe_key)
-        raw = (_canonical(event) + "\n").encode("utf-8")
-        if len(raw) > _MAX_EVENT_BYTES:
-            raise ContinuityError(f"project event at line {index} exceeds {_MAX_EVENT_BYTES} bytes")
         previous = expected_hash
 
 
@@ -220,9 +227,129 @@ def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
     return {
         key: event.get(key)
         for key in (
-            "event_type", "actor", "epistemic_status", "subject", "relations", "payload", "provenance", "dedupe_key"
+            "event_type",
+            "actor",
+            "epistemic_status",
+            "subject",
+            "relations",
+            "payload",
+            "provenance",
+            "dedupe_key",
         )
     }
+
+
+def _candidate_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
+    event_type = spec.get("event_type")
+    epistemic_status = spec.get("epistemic_status")
+    subject = spec.get("subject")
+    actor_value = dict(spec.get("actor") or {"kind": "system", "id": "diffwitness"})
+    relations_value = list(spec.get("relations") or [])
+    payload_value = dict(spec.get("payload") or {})
+    provenance_value = dict(spec.get("provenance") or {"producer": "diffwitness", "source": "local"})
+    candidate = {
+        "schema_version": SCHEMA_VERSION,
+        "event_type": event_type,
+        "timestamp": spec.get("timestamp") or _now(),
+        "actor": actor_value,
+        "epistemic_status": epistemic_status,
+        "subject": dict(subject or {}),
+        "relations": relations_value,
+        "payload": payload_value,
+        "provenance": provenance_value,
+        "dedupe_key": spec.get("dedupe_key"),
+        "prev_hash": None,
+    }
+    _validate_event_shape(candidate)
+    return candidate
+
+
+def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> None:
+    if not events:
+        return
+    raw = b"".join((_canonical(event) + "\n").encode("utf-8") for event in events)
+    paths.root.mkdir(parents=True, exist_ok=True)
+    fd = os.open(paths.events, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        offset = 0
+        while offset < len(raw):
+            written = os.write(fd, raw[offset:])
+            if written <= 0:
+                raise ContinuityError("failed to append project event batch")
+            offset += written
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    try:
+        directory_fd = os.open(paths.root, os.O_RDONLY)
+    except OSError:
+        directory_fd = None
+    if directory_fd is not None:
+        try:
+            os.fsync(directory_fd)
+        except OSError:
+            pass
+        finally:
+            os.close(directory_fd)
+
+
+def append_project_events(
+    *,
+    repo: str | Path,
+    events: list[dict[str, Any]],
+) -> list[tuple[dict[str, Any], bool]]:
+    """Append a semantic batch with one lock/read/validation/write/fsync cycle.
+
+    This is the preferred path for one software change because Proof, Debt and Understanding are one
+    logical observation. It also means invalid later items cannot leave a partially imported change.
+    Existing duplicate items are returned as ``created=False`` and do not consume a new hash-chain
+    position.
+    """
+    if not isinstance(events, list) or len(events) > _MAX_BATCH_EVENTS:
+        raise ContinuityError(f"project event batch must contain at most {_MAX_BATCH_EVENTS} items")
+    if not events:
+        return []
+    root_repo = repo_root(repo)
+    paths = continuity_paths(root_repo)
+    candidates = [_candidate_from_spec(spec) for spec in events]
+
+    with _event_lock(paths):
+        existing = read_project_events(paths.events)
+        by_dedupe = {
+            str(event["dedupe_key"]): event
+            for event in existing
+            if event.get("dedupe_key") is not None
+        }
+        results: list[tuple[dict[str, Any], bool]] = []
+        appended: list[dict[str, Any]] = []
+        previous_hash = existing[-1]["event_hash"] if existing else None
+
+        for candidate in candidates:
+            dedupe_key = candidate.get("dedupe_key")
+            if dedupe_key is not None and str(dedupe_key) in by_dedupe:
+                event = by_dedupe[str(dedupe_key)]
+                probe = {**candidate, "timestamp": event.get("timestamp"), "prev_hash": event.get("prev_hash")}
+                probe["event_id"] = _event_id(probe)
+                probe["event_hash"] = _event_hash(probe)
+                if _semantic_core(event) != _semantic_core(probe):
+                    raise ContinuityError(f"conflicting project event for dedupe key {dedupe_key}")
+                results.append((event, False))
+                continue
+
+            candidate["prev_hash"] = previous_hash
+            candidate["event_id"] = _event_id(candidate)
+            candidate["event_hash"] = _event_hash(candidate)
+            appended.append(candidate)
+            results.append((candidate, True))
+            previous_hash = candidate["event_hash"]
+            if dedupe_key is not None:
+                by_dedupe[str(dedupe_key)] = candidate
+
+        # Existing history was already validated by read_project_events. One complete pass here checks
+        # the batch's chain continuity and duplicate semantics before a single byte is appended.
+        validate_project_events([*existing, *appended])
+        _durable_append(paths, appended)
+        return results
 
 
 def append_project_event(
@@ -238,73 +365,22 @@ def append_project_event(
     dedupe_key: str | None = None,
     timestamp: str | None = None,
 ) -> tuple[dict[str, Any], bool]:
-    root_repo = repo_root(repo)
-    paths = continuity_paths(root_repo)
-    actor_value = dict(actor or {"kind": "system", "id": "diffwitness"})
-    relations_value = list(relations or [])
-    payload_value = dict(payload or {})
-    provenance_value = dict(provenance or {"producer": "diffwitness", "source": "local"})
-    candidate = {
-        "schema_version": SCHEMA_VERSION,
-        "event_type": event_type,
-        "timestamp": timestamp or _now(),
-        "actor": actor_value,
-        "epistemic_status": epistemic_status,
-        "subject": dict(subject),
-        "relations": relations_value,
-        "payload": payload_value,
-        "provenance": provenance_value,
-        "dedupe_key": dedupe_key,
-        "prev_hash": None,
-    }
-    if not _EVENT_TYPE.fullmatch(event_type):
-        raise ContinuityError(f"invalid project event type: {event_type!r}")
-    if epistemic_status not in EPISTEMIC_STATUSES:
-        raise ContinuityError(f"invalid epistemic status: {epistemic_status!r}")
-    _validate_subject(subject)
-    _validate_relations(relations_value)
-    if not isinstance(payload_value, dict) or not isinstance(provenance_value, dict):
-        raise ContinuityError("project event payload/provenance must be objects")
-
-    with _event_lock(paths):
-        existing = read_project_events(paths.events)
-        if dedupe_key:
-            for event in existing:
-                if event.get("dedupe_key") != dedupe_key:
-                    continue
-                probe = {**candidate, "timestamp": event.get("timestamp"), "prev_hash": event.get("prev_hash")}
-                probe["event_id"] = _event_id(probe)
-                probe["event_hash"] = _event_hash(probe)
-                if _semantic_core(event) != _semantic_core(probe):
-                    raise ContinuityError(f"conflicting project event for dedupe key {dedupe_key}")
-                return event, False
-
-        candidate["prev_hash"] = existing[-1]["event_hash"] if existing else None
-        candidate["event_id"] = _event_id(candidate)
-        candidate["event_hash"] = _event_hash(candidate)
-        raw = (_canonical(candidate) + "\n").encode("utf-8")
-        if len(raw) > _MAX_EVENT_BYTES:
-            raise ContinuityError(f"project event exceeds {_MAX_EVENT_BYTES} bytes")
-        validate_project_events([*existing, candidate])
-        paths.root.mkdir(parents=True, exist_ok=True)
-        fd = os.open(paths.events, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
-        try:
-            os.write(fd, raw)
-            os.fsync(fd)
-        finally:
-            os.close(fd)
-        try:
-            directory_fd = os.open(paths.root, os.O_RDONLY)
-        except OSError:
-            directory_fd = None
-        if directory_fd is not None:
-            try:
-                os.fsync(directory_fd)
-            except OSError:
-                pass
-            finally:
-                os.close(directory_fd)
-        return candidate, True
+    return append_project_events(
+        repo=repo,
+        events=[
+            {
+                "event_type": event_type,
+                "subject": subject,
+                "epistemic_status": epistemic_status,
+                "payload": payload,
+                "relations": relations,
+                "provenance": provenance,
+                "actor": actor,
+                "dedupe_key": dedupe_key,
+                "timestamp": timestamp,
+            }
+        ],
+    )[0]
 
 
 def event_head(repo: str | Path = ".") -> str | None:
