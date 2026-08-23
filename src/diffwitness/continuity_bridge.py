@@ -60,6 +60,17 @@ def _file_entity_id(path: str) -> str:
     return "file:" + hashlib.sha256(path.encode("utf-8")).hexdigest()[:24]
 
 
+def _change_actor(envelope: dict[str, Any]) -> dict[str, str]:
+    """Return the actor described by the evidence, not the process importing that evidence."""
+    raw = envelope.get("actor")
+    if isinstance(raw, dict):
+        kind = str(raw.get("kind") or "agent")[:64]
+        identity = str(raw.get("agent") or raw.get("id") or kind)[:128]
+        if kind and identity:
+            return {"kind": kind, "id": identity}
+    return {"kind": "unknown", "id": "unknown-change-actor"}
+
+
 def record_change_envelope(
     *,
     repo: str | Path,
@@ -70,10 +81,14 @@ def record_change_envelope(
 ) -> dict[str, Any]:
     """Project a frozen change envelope into continuity events.
 
-    ``trusted_proof`` is deliberately false for arbitrary/manual envelope imports.  An envelope
+    ``trusted_proof`` is deliberately false for arbitrary/manual envelope imports. An envelope
     contains a *summary* of a proof certificate; seeing that summary is not enough to upgrade a
-    claim to VERIFIED.  Guard passes ``trusted_proof=True`` only for the in-memory envelope it has
-    just built from a certificate that the authoritative public runner already validated.
+    claim to VERIFIED. Guard passes ``trusted_proof=True`` only after the authoritative public
+    runner has validated the generated certificate.
+
+    ``actor`` identifies the importer for diagnostics/provenance only. The semantic change actor is
+    taken from the envelope (when IdleProof supplied one) so importing the same exact Git fact by a
+    human and by Guard cannot create a false semantic conflict.
     """
     root = repo_root(repo)
     if envelope is None:
@@ -86,10 +101,14 @@ def record_change_envelope(
     source_digest = None
     if path is not None and path.exists():
         source_digest = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
-    provenance = {"producer": "diffwitness", "source": "change-envelope", "artifact_schema": "change-envelope-1"}
+    provenance = {
+        "producer": "diffwitness",
+        "source": "change-envelope",
+        "artifact_schema": "change-envelope-1",
+    }
     if source_digest:
         provenance["artifact_digest"] = source_digest
-    event_actor = {"kind": "agent" if actor not in {"human", "automation"} else actor, "id": actor[:128]}
+    event_actor = _change_actor(envelope)
 
     file_relations = [
         {
@@ -146,7 +165,12 @@ def record_change_envelope(
                         "metadata": {"authoritative_validation": bool(trusted_proof)},
                     }
                 ],
-                provenance={**provenance, "producer": "diffwitness-proof", "authoritative_validation": bool(trusted_proof)},
+                provenance={
+                    **provenance,
+                    "producer": "diffwitness-proof",
+                    "authoritative_validation": bool(trusted_proof),
+                    "imported_by": actor[:128],
+                },
                 actor=event_actor,
                 dedupe_key=f"proof:{cert}:{proof_status.lower()}",
             )
