@@ -22,6 +22,12 @@ def _id(prefix: str, *parts: str) -> str:
     return f"{prefix}_" + hashlib.sha256(raw).hexdigest()[:24]
 
 
+def component_id_for_path(relative_path: str) -> str:
+    """Stable provider-neutral component identity for one repository path."""
+    normalized = str(relative_path).replace('\\','/').removeprefix('./')
+    return _id('dwcomp', normalized)
+
+
 def _head_tree(repo: Path) -> str:
     try:
         return git(repo,'rev-parse','HEAD^{tree}').strip()
@@ -73,7 +79,7 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     for path in files:
         rel=path.relative_to(root).as_posix()
         module=_module_name(rel)
-        component_id=_id('dwcomp','python',rel)
+        component_id=component_id_for_path(rel)
         path_to_component[rel]=component_id
         if module:
             module_to_component[module]=component_id
