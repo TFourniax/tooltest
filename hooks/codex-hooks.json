@@ -1,5 +1,5 @@
 {
-  "description": "Capture repository state at session start and require DiffWitness proof before Codex stops.",
+  "description": "Arm DiffWitness proof, inject bounded Project Continuity context for each task, and require evidence before Codex stops.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,18 @@
             "type": "command",
             "command": "python \"${PLUGIN_ROOT}/integrations/plugin_hook.py\" session-start",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/integrations/plugin_hook.py\" user-prompt-submit",
+            "timeout": 8,
+            "additionalContextLimit": 2500
           }
         ]
       }
