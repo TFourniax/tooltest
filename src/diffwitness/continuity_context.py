@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .config import load_config
-from .continuity_state import ensure_state
+from .continuity_events import continuity_paths
+from .continuity_state import STATE_SCHEMA, ensure_state
 from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
@@ -37,6 +38,75 @@ def _loads(raw: str | None) -> dict[str, Any]:
         return value if isinstance(value, dict) else {}
     except json.JSONDecodeError:
         return {}
+
+
+def _tail_event_head(path: Path) -> str | None:
+    """Read only the final bounded ProjectEvent to detect a newly appended journal head.
+
+    ProjectEvent records are capped at 256 KiB, so a 512 KiB tail always contains the complete last
+    valid record. This is a freshness hint for *advisory context only*; strict commands still call
+    ``ensure_state`` and validate the complete hash chain. Any malformed tail falls back to strict
+    validation rather than being trusted.
+    """
+    if not path.exists():
+        return ""
+    try:
+        size = path.stat().st_size
+        with path.open("rb") as handle:
+            handle.seek(max(0, size - 512 * 1024))
+            data = handle.read()
+    except OSError:
+        return None
+    for raw in reversed(data.splitlines()):
+        if not raw.strip():
+            continue
+        try:
+            value = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        if not isinstance(value, dict):
+            return None
+        head = value.get("event_hash")
+        return head if isinstance(head, str) and head else None
+    return ""
+
+
+def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
+    """Reuse a known-current projection without revalidating immutable history on every prompt.
+
+    Context injection is explicitly advisory. If the journal head has not changed since the last
+    fully validated rebuild, the existing state is the last known-valid projection and can be reused.
+    A new/malformed tail, schema drift, missing/corrupt state, or structural HEAD change falls back to
+    the strict full-chain path. Authoritative Proof/Debt commands never use this shortcut.
+    """
+    paths = continuity_paths(root)
+    if not paths.state.exists():
+        return ensure_state(root, include_structure=refresh_structure)
+    try:
+        conn = sqlite3.connect(paths.state)
+        try:
+            meta = {str(key): str(value) for key, value in conn.execute("select key,value from meta").fetchall()}
+        finally:
+            conn.close()
+    except sqlite3.DatabaseError:
+        return ensure_state(root, include_structure=refresh_structure)
+    tail_head = _tail_event_head(paths.events)
+    if tail_head is None or meta.get("schema") != STATE_SCHEMA or meta.get("event_head", "") != tail_head:
+        return ensure_state(root, include_structure=refresh_structure)
+    if refresh_structure:
+        try:
+            conn = sqlite3.connect(paths.state)
+            try:
+                from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+
+                if structure_index_needs_refresh(root, conn):
+                    refresh_structure_index(root, conn=conn)
+                    conn.commit()
+            finally:
+                conn.close()
+        except sqlite3.DatabaseError:
+            return ensure_state(root, include_structure=True)
+    return paths.state
 
 
 def _entity_text(row: sqlite3.Row) -> str:
@@ -115,7 +185,6 @@ def _relevant_entities(
     depths: dict[str, int] = {}
     reasons: dict[str, str] = {}
 
-    # Direct semantic seeds.
     for entity_id, row in by_id.items():
         payload = _loads(row["payload_json"])
         overlap = len(task_tokens & _tokens(_entity_text(row)))
@@ -132,9 +201,6 @@ def _relevant_entities(
 
     relations = _semantic_relations(conn)
     component_ids = set(seed_component_ids)
-
-    # A task-matched code component is a first-class graph seed. Human project memory attached to
-    # that component should surface even if its prose uses completely different words.
     for relation in relations:
         source = str(relation["source_id"])
         target = str(relation["target_id"])
@@ -157,13 +223,9 @@ def _relevant_entities(
         target = str(relation["target_id"])
         predicate = str(relation["predicate"])
         if source in by_id and target in by_id:
-            # Relevance is traversable in either direction: if an objective matters, a decision
-            # motivated_by it matters; if the decision matters, the objective remains useful too.
             adjacency[source].append((target, predicate))
             adjacency[target].append((source, predicate))
 
-    # Two hops are enough to recover patterns such as objective <- decision <- failed approach,
-    # while preventing a large project graph from flooding a task with distant history.
     frontier = {entity_id for entity_id, depth in depths.items() if depth <= 1}
     for _ in range(_MAX_GRAPH_DEPTH):
         next_frontier: set[str] = set()
@@ -328,7 +390,7 @@ def compile_context(
     refresh_structure: bool = True,
 ) -> dict[str, Any]:
     root = repo_root(repo)
-    state_path = ensure_state(root, include_structure=refresh_structure)
+    state_path = _advisory_state_path(root, refresh_structure=refresh_structure)
     conn = sqlite3.connect(state_path)
     conn.row_factory = sqlite3.Row
     try:
@@ -405,6 +467,7 @@ def compile_context(
             "verified": "executed authoritative evidence",
             "contextIsAdvisory": True,
             "proofRemainsAuthoritative": True,
+            "stateFreshness": "fast journal-head match; strict full-chain validation on any change",
         },
     }
     stable = {key: value for key, value in payload.items() if key != "generated_at"}
