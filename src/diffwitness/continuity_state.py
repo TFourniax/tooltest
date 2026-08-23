@@ -10,7 +10,7 @@ from typing import Any, Iterable
 from .continuity_events import continuity_paths, read_project_events
 from .gitops import git, repo_root
 
-STATE_SCHEMA = "continuity-state-1"
+STATE_SCHEMA = "continuity-state-2"
 _STATUS_RANK = {"DECLARED": 1, "INFERRED": 2, "OBSERVED": 3, "VERIFIED": 4}
 
 
@@ -101,14 +101,26 @@ def _schema(conn: sqlite3.Connection) -> None:
         create table debts(
           debt_id text primary key,
           status text not null,
+          accepted integer not null default 0,
+          accepted_reason text,
+          category text,
+          rule_id text,
+          title text,
+          severity text,
+          measurement text,
+          points integer,
+          path text,
           introduced_change_id text,
           last_change_id text,
           epistemic_status text not null,
+          payload_json text not null,
           source_event_id text not null,
           updated_at text not null
         );
         create index debts_status_idx on debts(status, updated_at desc);
         create index debts_change_idx on debts(last_change_id);
+        create index debts_intro_change_idx on debts(introduced_change_id);
+        create index debts_path_idx on debts(path, status);
 
         create table debt_snapshots(
           change_id text primary key,
@@ -178,6 +190,7 @@ def _schema(conn: sqlite3.Connection) -> None:
 
 def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
     import hashlib
+
     seed = f"{source_id}\0{predicate}\0{target_id}".encode("utf-8")
     return "dwrel_" + hashlib.sha256(seed).hexdigest()[:24]
 
@@ -189,13 +202,17 @@ def _lifecycle(event_type: str, payload: dict[str, Any]) -> str:
     return explicit if explicit in {"active", "inactive"} else "active"
 
 
+def _strongest(existing: str | None, candidate: str) -> str:
+    if existing and _STATUS_RANK.get(existing, 0) > _STATUS_RANK.get(candidate, 0):
+        return existing
+    return candidate
+
+
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
     subject = event["subject"]
     entity_id = str(subject["id"])
     existing = conn.execute("select epistemic_status from entities where entity_id=?", (entity_id,)).fetchone()
-    status = event["epistemic_status"]
-    if existing and _STATUS_RANK.get(existing["epistemic_status"], 0) > _STATUS_RANK.get(status, 0):
-        status = existing["epistemic_status"]
+    status = _strongest(existing["epistemic_status"] if existing else None, event["epistemic_status"])
     payload = event.get("payload") or {}
     conn.execute(
         """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id)
@@ -205,9 +222,15 @@ def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
              lifecycle=excluded.lifecycle,updated_at=excluded.updated_at,payload_json=excluded.payload_json,
              provenance_json=excluded.provenance_json,source_event_id=excluded.source_event_id""",
         (
-            entity_id, subject["kind"], subject.get("label"), status,
-            _lifecycle(event["event_type"], payload), event["timestamp"], _canonical(payload),
-            _canonical(event.get("provenance") or {}), event["event_id"],
+            entity_id,
+            subject["kind"],
+            subject.get("label"),
+            status,
+            _lifecycle(event["event_type"], payload),
+            event["timestamp"],
+            _canonical(payload),
+            _canonical(event.get("provenance") or {}),
+            event["event_id"],
         ),
     )
 
@@ -219,17 +242,88 @@ def _upsert_relations(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
         rid = _relation_id(source, relation["predicate"], target["id"])
         status = relation.get("epistemic_status") or event["epistemic_status"]
         existing = conn.execute("select epistemic_status from relations where relation_id=?", (rid,)).fetchone()
-        if existing and _STATUS_RANK.get(existing["epistemic_status"], 0) > _STATUS_RANK.get(status, 0):
-            status = existing["epistemic_status"]
+        status = _strongest(existing["epistemic_status"] if existing else None, status)
         conn.execute(
             """insert into relations(relation_id,source_id,predicate,target_id,target_kind,epistemic_status,lifecycle,metadata_json,source_event_id,updated_at)
                values(?,?,?,?,?,?,?,?,?,?)
                on conflict(relation_id) do update set
                  target_kind=excluded.target_kind,epistemic_status=excluded.epistemic_status,lifecycle=excluded.lifecycle,
                  metadata_json=excluded.metadata_json,source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
-            (rid, source, relation["predicate"], target["id"], target["kind"], status, "active",
-             _canonical(relation.get("metadata") or {}), event["event_id"], event["timestamp"]),
+            (
+                rid,
+                source,
+                relation["predicate"],
+                target["id"],
+                target["kind"],
+                status,
+                "active",
+                _canonical(relation.get("metadata") or {}),
+                event["event_id"],
+                event["timestamp"],
+            ),
         )
+
+
+def _debt_signal(payload: dict[str, Any]) -> dict[str, Any]:
+    signal = payload.get("signal")
+    return signal if isinstance(signal, dict) else {}
+
+
+def _upsert_debt_open(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
+    payload = event.get("payload") or {}
+    subject_id = str(event["subject"]["id"])
+    signal = _debt_signal(payload)
+    change_id = payload.get("change_id")
+    existing = conn.execute("select * from debts where debt_id=?", (subject_id,)).fetchone()
+    kind = event["event_type"]
+    accepted = int(existing["accepted"]) if existing else 0
+    accepted_reason = existing["accepted_reason"] if existing else None
+    if kind in {"debt.introduced", "debt.reopened"}:
+        accepted = 0
+        accepted_reason = None
+    introduced_change_id = existing["introduced_change_id"] if existing else None
+    if introduced_change_id is None and change_id:
+        introduced_change_id = change_id
+    status = _strongest(existing["epistemic_status"] if existing else None, event["epistemic_status"])
+
+    def chosen(key: str) -> Any:
+        value = signal.get(key)
+        if value is not None:
+            return value
+        return existing[key] if existing else None
+
+    conn.execute(
+        """insert into debts(
+             debt_id,status,accepted,accepted_reason,category,rule_id,title,severity,measurement,points,path,
+             introduced_change_id,last_change_id,epistemic_status,payload_json,source_event_id,updated_at
+           ) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+           on conflict(debt_id) do update set
+             status=excluded.status,accepted=excluded.accepted,accepted_reason=excluded.accepted_reason,
+             category=excluded.category,rule_id=excluded.rule_id,title=excluded.title,severity=excluded.severity,
+             measurement=excluded.measurement,points=excluded.points,path=excluded.path,
+             introduced_change_id=excluded.introduced_change_id,last_change_id=excluded.last_change_id,
+             epistemic_status=excluded.epistemic_status,payload_json=excluded.payload_json,
+             source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
+        (
+            subject_id,
+            "open",
+            accepted,
+            accepted_reason,
+            chosen("category"),
+            chosen("rule_id"),
+            chosen("title"),
+            chosen("severity"),
+            chosen("measurement"),
+            chosen("points"),
+            chosen("path"),
+            introduced_change_id,
+            change_id or (existing["last_change_id"] if existing else None),
+            status,
+            _canonical(payload),
+            event["event_id"],
+            event["timestamp"],
+        ),
+    )
 
 
 def _specialized(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
@@ -242,53 +336,88 @@ def _specialized(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
                values(?,?,?,?,?,?,?,?,?,?)
                on conflict(change_id) do update set actor_json=excluded.actor_json,changed_files_json=excluded.changed_files_json,
                  updated_at=excluded.updated_at,source_event_id=excluded.source_event_id""",
-            (subject_id, str(payload.get("repository_fingerprint") or ""), str(payload.get("base_tree") or ""),
-             str(payload.get("candidate_tree") or ""), payload.get("base_sha"), payload.get("candidate_sha"),
-             _canonical(event.get("actor") or {}), _canonical(payload.get("changed_files") or []), event["timestamp"], event["event_id"]),
+            (
+                subject_id,
+                str(payload.get("repository_fingerprint") or ""),
+                str(payload.get("base_tree") or ""),
+                str(payload.get("candidate_tree") or ""),
+                payload.get("base_sha"),
+                payload.get("candidate_sha"),
+                _canonical(event.get("actor") or {}),
+                _canonical(payload.get("changed_files") or []),
+                event["timestamp"],
+                event["event_id"],
+            ),
         )
     elif kind == "proof.completed":
-        change_id = str(payload.get("change_id") or "")
+        cid = str(payload.get("change_id") or "")
         conn.execute(
             """insert into proofs(certificate_id,change_id,claim,accepted,epistemic_status,source_event_id,updated_at)
                values(?,?,?,?,?,?,?)
                on conflict(certificate_id) do update set change_id=excluded.change_id,claim=excluded.claim,accepted=excluded.accepted,
                  epistemic_status=excluded.epistemic_status,source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
-            (subject_id, change_id, str(payload.get("claim") or "unknown"), 1 if payload.get("accepted") else 0,
-             event["epistemic_status"], event["event_id"], event["timestamp"]),
+            (
+                subject_id,
+                cid,
+                str(payload.get("claim") or "unknown"),
+                1 if payload.get("accepted") else 0,
+                event["epistemic_status"],
+                event["event_id"],
+                event["timestamp"],
+            ),
         )
-    elif kind == "debt.observed":
-        change_id = payload.get("change_id")
+    elif kind in {"debt.observed", "debt.introduced", "debt.refreshed", "debt.reopened"}:
+        _upsert_debt_open(conn, event)
+    elif kind == "debt.accepted":
         conn.execute(
-            """insert into debts(debt_id,status,introduced_change_id,last_change_id,epistemic_status,source_event_id,updated_at)
-               values(?,?,?,?,?,?,?)
-               on conflict(debt_id) do update set status='open',last_change_id=excluded.last_change_id,
-                 epistemic_status=excluded.epistemic_status,source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
-            (subject_id, "open", change_id, change_id, event["epistemic_status"], event["event_id"], event["timestamp"]),
+            "update debts set accepted=1,accepted_reason=?,payload_json=?,source_event_id=?,updated_at=? where debt_id=?",
+            (payload.get("reason"), _canonical(payload), event["event_id"], event["timestamp"], subject_id),
+        )
+    elif kind == "debt.unaccepted":
+        conn.execute(
+            "update debts set accepted=0,accepted_reason=null,payload_json=?,source_event_id=?,updated_at=? where debt_id=?",
+            (_canonical(payload), event["event_id"], event["timestamp"], subject_id),
         )
     elif kind == "debt.resolved":
-        conn.execute("update debts set status='resolved',last_change_id=?,source_event_id=?,updated_at=? where debt_id=?",
-                     (payload.get("change_id"), event["event_id"], event["timestamp"], subject_id))
+        conn.execute(
+            "update debts set status='resolved',last_change_id=coalesce(?,last_change_id),payload_json=?,source_event_id=?,updated_at=? where debt_id=?",
+            (payload.get("change_id"), _canonical(payload), event["event_id"], event["timestamp"], subject_id),
+        )
     elif kind == "debt.snapshot":
-        change_id = str(payload.get("change_id") or subject_id)
+        cid = str(payload.get("change_id") or subject_id)
         budget = payload.get("budget_passed")
         conn.execute(
             """insert into debt_snapshots(change_id,points,obligations,budget_passed,source_event_id,updated_at)
                values(?,?,?,?,?,?)
                on conflict(change_id) do update set points=excluded.points,obligations=excluded.obligations,
                  budget_passed=excluded.budget_passed,source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
-            (change_id, int(payload.get("points") or 0), int(payload.get("obligations") or 0),
-             None if budget is None else (1 if budget else 0), event["event_id"], event["timestamp"]),
+            (
+                cid,
+                int(payload.get("points") or 0),
+                int(payload.get("obligations") or 0),
+                None if budget is None else (1 if budget else 0),
+                event["event_id"],
+                event["timestamp"],
+            ),
         )
     elif kind == "understanding.recorded":
-        change_id = str(payload.get("change_id") or subject_id)
+        cid = str(payload.get("change_id") or subject_id)
         conn.execute(
             """insert into understanding(change_id,coverage,knowledge_debt,feature_coverage,feature_debt,receipt_digest,source_event_id,updated_at)
                values(?,?,?,?,?,?,?,?)
                on conflict(change_id) do update set coverage=excluded.coverage,knowledge_debt=excluded.knowledge_debt,
                  feature_coverage=excluded.feature_coverage,feature_debt=excluded.feature_debt,receipt_digest=excluded.receipt_digest,
                  source_event_id=excluded.source_event_id,updated_at=excluded.updated_at""",
-            (change_id, payload.get("coverage"), payload.get("knowledge_debt"), payload.get("feature_coverage"),
-             payload.get("feature_debt"), payload.get("receipt_digest"), event["event_id"], event["timestamp"]),
+            (
+                cid,
+                payload.get("coverage"),
+                payload.get("knowledge_debt"),
+                payload.get("feature_coverage"),
+                payload.get("feature_debt"),
+                payload.get("receipt_digest"),
+                event["event_id"],
+                event["timestamp"],
+            ),
         )
 
 
@@ -307,9 +436,18 @@ def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) ->
             for sequence, event in enumerate(events, start=1):
                 conn.execute(
                     "insert into events(sequence,event_id,event_type,timestamp,epistemic_status,subject_id,subject_kind,event_hash,payload_json,provenance_json) values(?,?,?,?,?,?,?,?,?,?)",
-                    (sequence, event["event_id"], event["event_type"], event["timestamp"], event["epistemic_status"],
-                     event["subject"]["id"], event["subject"]["kind"], event["event_hash"],
-                     _canonical(event.get("payload") or {}), _canonical(event.get("provenance") or {})),
+                    (
+                        sequence,
+                        event["event_id"],
+                        event["event_type"],
+                        event["timestamp"],
+                        event["epistemic_status"],
+                        event["subject"]["id"],
+                        event["subject"]["kind"],
+                        event["event_hash"],
+                        _canonical(event.get("payload") or {}),
+                        _canonical(event.get("provenance") or {}),
+                    ),
                 )
                 _upsert_entity(conn, event)
                 _upsert_relations(conn, event)
@@ -321,6 +459,7 @@ def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) ->
             conn.commit()
             if include_structure:
                 from .structure_provider import refresh_structure_index
+
                 refresh_structure_index(root_repo, conn=conn)
                 conn.commit()
         finally:
@@ -358,7 +497,8 @@ def ensure_state(repo: str | Path = ".", *, include_structure: bool = False) -> 
     if include_structure:
         conn = _connect(paths.state)
         try:
-            from .structure_provider import structure_index_needs_refresh, refresh_structure_index
+            from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+
             if structure_index_needs_refresh(root_repo, conn):
                 refresh_structure_index(root_repo, conn=conn)
                 conn.commit()
