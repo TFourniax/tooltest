@@ -22,7 +22,12 @@ _TRANSIENT_DIRS = {
 }
 _TRANSIENT_SUFFIXES = {".pyc", ".pyo"}
 _TRANSIENT_FILES = {".coverage"}
-_LOCAL_TOOL_UNTRACKED = {".claude/settings.local.json", ".codex/hooks.json"}
+_LOCAL_TOOL_UNTRACKED = {
+    ".claude/settings.local.json",
+    ".codex/hooks.json",
+    ".cursor/hooks.json",
+    ".cursor/rules/idleproof-continuity.mdc",
+}
 
 
 def _run(
@@ -127,6 +132,10 @@ def _is_local_tool_untracked(path: PurePosixPath) -> bool:
         return True
     if len(parts) >= 2 and parts[-2:] == (".codex", "hooks.json"):
         return True
+    if len(parts) >= 2 and parts[-2:] == (".cursor", "hooks.json"):
+        return True
+    if len(parts) >= 3 and parts[-3:] == (".cursor", "rules", "idleproof-continuity.mdc"):
+        return True
     return normalized in _LOCAL_TOOL_UNTRACKED
 
 
@@ -135,9 +144,9 @@ def _is_transient_untracked(path: str) -> bool:
 
     This filter only applies to *untracked* files. If a repository deliberately tracks a matching
     path, DiffWitness preserves it exactly like any other tracked content. Besides interpreter/test
-    caches, local IdleProof state and local Claude/Codex hook plumbing are omitted even when the
-    coding session runs from a nested package in a monorepo, so installing the understanding layer
-    cannot change the software tree DiffWitness proves.
+    caches, local IdleProof state and local Claude/Codex/Cursor hook plumbing are omitted even when
+    the coding session runs from a nested package in a monorepo, so installing the understanding
+    layer cannot change the software tree DiffWitness proves.
     """
     posix = PurePosixPath(path)
     if _is_local_tool_untracked(posix):
@@ -258,18 +267,4 @@ def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[b
 
 
 def candidate_delta(worktree: Path, candidate: str) -> str:
-    return git(
-        worktree,
-        "-c",
-        "core.quotePath=false",
-        "diff",
-        "--no-color",
-        "--no-ext-diff",
-        "--binary",
-        candidate,
-        "--",
-    )
-
-
-def git_version(repo: Path) -> str:
-    return git(repo, "--version").strip()
+    return git(worktree, "diff", "--no-color", candidate, "--")
