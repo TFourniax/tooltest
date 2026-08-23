@@ -14,12 +14,11 @@ from .continuity_state import STATE_SCHEMA, ensure_state
 from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
-# Split paths/qualified identifiers into semantic terms rather than treating `payments/refund.py`
-# as one opaque token. This keeps the compiler deterministic while materially improving recall.
 _WORD = re.compile(r"[A-Za-z0-9]+")
 _KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "component": 3, "file": 2, "debt": 4}
 _STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
 _MAX_GRAPH_DEPTH = 2
+_CONTEXT_DIGEST_META = "context_event_file_sha256"
 
 
 def _now() -> str:
@@ -40,73 +39,96 @@ def _loads(raw: str | None) -> dict[str, Any]:
         return {}
 
 
-def _tail_event_head(path: Path) -> str | None:
-    """Read only the final bounded ProjectEvent to detect a newly appended journal head.
+def _event_file_digest(path: Path) -> str | None:
+    """Hash journal bytes cheaply without reparsing them.
 
-    ProjectEvent records are capped at 256 KiB, so a 512 KiB tail always contains the complete last
-    valid record. This is a freshness hint for *advisory context only*; strict commands still call
-    ``ensure_state`` and validate the complete hash chain. Any malformed tail falls back to strict
-    validation rather than being trusted.
+    A digest match is useful only because the digest is stamped *after* a strict full-chain
+    validation. Any byte-level edit then invalidates the cache, including an old-line modification
+    that preserves file length and the final event hash text.
     """
+    digest = hashlib.sha256()
     if not path.exists():
-        return ""
+        return digest.hexdigest()
     try:
-        size = path.stat().st_size
         with path.open("rb") as handle:
-            handle.seek(max(0, size - 512 * 1024))
-            data = handle.read()
+            while True:
+                chunk = handle.read(1024 * 1024)
+                if not chunk:
+                    break
+                digest.update(chunk)
     except OSError:
         return None
-    for raw in reversed(data.splitlines()):
-        if not raw.strip():
-            continue
-        try:
-            value = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            return None
-        if not isinstance(value, dict):
-            return None
-        head = value.get("event_hash")
-        return head if isinstance(head, str) and head else None
-    return ""
+    return digest.hexdigest()
 
 
-def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
-    """Reuse a known-current projection without revalidating immutable history on every prompt.
-
-    Context injection is explicitly advisory. If the journal head has not changed since the last
-    fully validated rebuild, the existing state is the last known-valid projection and can be reused.
-    A new/malformed tail, schema drift, missing/corrupt state, or structural HEAD change falls back to
-    the strict full-chain path. Authoritative Proof/Debt commands never use this shortcut.
-    """
-    paths = continuity_paths(root)
-    if not paths.state.exists():
-        return ensure_state(root, include_structure=refresh_structure)
+def _read_state_meta(path: Path) -> dict[str, str]:
     try:
-        conn = sqlite3.connect(paths.state)
+        conn = sqlite3.connect(path)
         try:
-            meta = {str(key): str(value) for key, value in conn.execute("select key,value from meta").fetchall()}
+            return {str(key): str(value) for key, value in conn.execute("select key,value from meta").fetchall()}
         finally:
             conn.close()
     except sqlite3.DatabaseError:
-        return ensure_state(root, include_structure=refresh_structure)
-    tail_head = _tail_event_head(paths.events)
-    if tail_head is None or meta.get("schema") != STATE_SCHEMA or meta.get("event_head", "") != tail_head:
-        return ensure_state(root, include_structure=refresh_structure)
-    if refresh_structure:
-        try:
-            conn = sqlite3.connect(paths.state)
-            try:
-                from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+        return {}
 
-                if structure_index_needs_refresh(root, conn):
-                    refresh_structure_index(root, conn=conn)
-                    conn.commit()
-            finally:
-                conn.close()
-        except sqlite3.DatabaseError:
-            return ensure_state(root, include_structure=True)
-    return paths.state
+
+def _stamp_validated_digest(state_path: Path, digest: str) -> None:
+    conn = sqlite3.connect(state_path)
+    try:
+        conn.execute(
+            "insert into meta(key,value) values(?,?) on conflict(key) do update set value=excluded.value",
+            (_CONTEXT_DIGEST_META, digest),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _refresh_structure_if_needed(root: Path, state_path: Path) -> Path:
+    try:
+        conn = sqlite3.connect(state_path)
+        try:
+            from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+
+            if structure_index_needs_refresh(root, conn):
+                refresh_structure_index(root, conn=conn)
+                conn.commit()
+        finally:
+            conn.close()
+    except sqlite3.DatabaseError:
+        return ensure_state(root, include_structure=True)
+    return state_path
+
+
+def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
+    """Fast, tamper-evident freshness path for task context.
+
+    Strict ProjectEvent validation remains the trust root. The first context compilation (or any
+    journal byte change) runs ``ensure_state``, which validates the complete hash chain and rebuilds
+    when needed. Only then is the journal byte digest stamped into the derived SQLite state. Hot
+    prompts compare SHA-256 instead of reparsing every JSON event. Thus the shortcut is fast but does
+    not silently tolerate historical tampering. Proof/Debt authority is unchanged.
+    """
+    paths = continuity_paths(root)
+    digest = _event_file_digest(paths.events)
+    if digest is None or not paths.state.exists():
+        state = ensure_state(root, include_structure=refresh_structure)
+        validated_digest = _event_file_digest(paths.events)
+        if validated_digest is not None:
+            _stamp_validated_digest(state, validated_digest)
+        return state
+
+    meta = _read_state_meta(paths.state)
+    if meta.get("schema") == STATE_SCHEMA and meta.get(_CONTEXT_DIGEST_META) == digest:
+        return _refresh_structure_if_needed(root, paths.state) if refresh_structure else paths.state
+
+    # Missing or changed digest is never auto-adopted. Full parsing/hash-chain validation must
+    # establish the new anchor first; a tampered journal raises from ensure_state instead.
+    state = ensure_state(root, include_structure=refresh_structure)
+    validated_digest = _event_file_digest(paths.events)
+    if validated_digest is not None:
+        _stamp_validated_digest(state, validated_digest)
+    return state
 
 
 def _entity_text(row: sqlite3.Row) -> str:
@@ -155,9 +177,6 @@ def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list
 
 
 def _semantic_relations(conn: sqlite3.Connection) -> list[sqlite3.Row]:
-    # Project memory must not silently forget an old relation merely because newer history crossed an
-    # arbitrary row cap. Performance is handled by the reconstructible SQLite projection and is
-    # continuously measured by ContinuityBench; correctness wins over hidden recency truncation.
     return conn.execute(
         "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' order by updated_at desc"
     ).fetchall()
@@ -170,12 +189,7 @@ def _relevant_entities(
     *,
     seed_component_ids: Iterable[str] = (),
 ) -> list[dict[str, Any]]:
-    """Rank project memory by direct task match *and* bounded relation propagation.
-
-    Lexical matching is only a seed. Once an objective/component is relevant, decisions, invariants,
-    and failed approaches connected to that seed can enter context even when they use different
-    wording. No arbitrary recency window is allowed to erase older still-relevant project memory.
-    """
+    """Rank all active project memory by direct task match plus a bounded two-hop graph walk."""
     task_tokens = _tokens(task)
     rows = conn.execute(
         "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc"
@@ -467,7 +481,7 @@ def compile_context(
             "verified": "executed authoritative evidence",
             "contextIsAdvisory": True,
             "proofRemainsAuthoritative": True,
-            "stateFreshness": "fast journal-head match; strict full-chain validation on any change",
+            "stateFreshness": "SHA-256 match against a previously full-chain-validated ProjectEvent journal",
         },
     }
     stable = {key: value for key, value in payload.items() if key != "generated_at"}
