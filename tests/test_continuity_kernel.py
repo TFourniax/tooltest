@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 from diffwitness.continuity_bridge import record_change_envelope
-from diffwitness.continuity_cli import context_cli, decision_cli, failed_approach_cli, invariant_cli, objective_cli
+from diffwitness.continuity_cli import decision_cli, failed_approach_cli, invariant_cli, objective_cli
 from diffwitness.continuity_context import compile_context
 from diffwitness.continuity_events import ContinuityError, append_project_event, continuity_paths, read_project_events
 from diffwitness.continuity_state import ensure_state, rebuild_state, state_status
@@ -117,23 +117,32 @@ class ContinuityKernelTests(unittest.TestCase):
                 provenance={"producer": "test", "source": "unit"},
             )
             state = rebuild_state(repo, include_structure=True)
-            with sqlite3.connect(state) as conn:
+            conn = sqlite3.connect(state)
+            try:
                 self.assertEqual(conn.execute("select count(*) from entities").fetchone()[0], 1)
                 self.assertGreater(conn.execute("select count(*) from structure_components").fetchone()[0], 0)
+            finally:
+                conn.close()
             state.write_bytes(b"not a sqlite database")
             repaired = ensure_state(repo, include_structure=True)
-            with sqlite3.connect(repaired) as conn:
+            conn = sqlite3.connect(repaired)
+            try:
                 self.assertEqual(conn.execute("select count(*) from entities").fetchone()[0], 1)
                 self.assertEqual(conn.execute("select value from meta where key='schema'").fetchone()[0], "continuity-state-1")
+            finally:
+                conn.close()
 
     def test_python_structure_separates_observed_from_inferred(self):
         with tempfile.TemporaryDirectory() as td:
             repo = self.repo(Path(td))
             state = rebuild_state(repo, include_structure=True)
-            with sqlite3.connect(state) as conn:
+            conn = sqlite3.connect(state)
+            try:
                 observed = conn.execute("select count(*) from structure_edges where predicate='imports' and epistemic_status='OBSERVED'").fetchone()[0]
                 inferred = conn.execute("select count(*) from structure_edges where predicate='calls-name' and epistemic_status='INFERRED'").fetchone()[0]
                 wrong = conn.execute("select count(*) from structure_edges where predicate='calls-name' and epistemic_status='VERIFIED'").fetchone()[0]
+            finally:
+                conn.close()
             self.assertGreaterEqual(observed, 1)
             self.assertGreaterEqual(inferred, 1)
             self.assertEqual(wrong, 0)
@@ -148,7 +157,6 @@ class ContinuityKernelTests(unittest.TestCase):
             proof_events = [event for event in events if event["event_type"] == "proof.completed"]
             self.assertEqual(len(proof_events), 1)
             self.assertEqual(proof_events[0]["epistemic_status"], "OBSERVED")
-            # Arbitrary Git paths stay labels, never unsafe entity ids.
             file_targets = [relation["target"] for event in events for relation in event.get("relations", []) if relation["target"].get("kind") == "file"]
             self.assertTrue(any(target.get("label") == "payments/refund path.py" for target in file_targets))
             self.assertTrue(all(" " not in target["id"] for target in file_targets))
@@ -158,17 +166,20 @@ class ContinuityKernelTests(unittest.TestCase):
             third = record_change_envelope(repo=repo, envelope=envelope, actor="diffwitness-guard", trusted_proof=True)
             self.assertEqual(sum(third["created"].values()), 0)
             state = ensure_state(repo)
-            with sqlite3.connect(state) as conn:
+            conn = sqlite3.connect(state)
+            try:
                 row = conn.execute("select epistemic_status,accepted,change_id from proofs where certificate_id=?", (envelope["proof"]["certificate_id"],)).fetchone()
+            finally:
+                conn.close()
             self.assertEqual(row, ("VERIFIED", 1, cid))
 
     def test_context_compiler_joins_human_memory_structure_and_change_evidence(self):
         with tempfile.TemporaryDirectory() as td:
             repo = self.repo(Path(td))
-            objective_cli(["Support partial refunds safely", "--repo", str(repo), "--id", "OBJ-REFUNDS", "--priority", "high", "--component", "payments/refund.py"])
-            decision_cli(["Keep refund operations idempotent", "--repo", str(repo), "--id", "DEC-IDEMPOTENCY", "--why", "payment retries are normal", "--objective", "OBJ-REFUNDS", "--component", "payments/refund.py"])
-            invariant_cli(["Refund total must never exceed captured payment", "--repo", str(repo), "--id", "INV-CAPTURE-LIMIT", "--critical", "--objective", "OBJ-REFUNDS", "--component", "payments/refund.py"])
-            failed_approach_cli(["Mutating charge rows directly", "--repo", str(repo), "--id", "FAIL-DIRECT-CHARGE", "--reason", "retries duplicated side effects", "--decision", "DEC-IDEMPOTENCY", "--component", "payments/refund.py"])
+            objective_cli(["add", "Support partial refunds safely", "--repo", str(repo), "--id", "OBJ-REFUNDS", "--priority", "high", "--component", "payments/refund.py"])
+            decision_cli(["record", "Keep refund operations idempotent", "--repo", str(repo), "--id", "DEC-IDEMPOTENCY", "--why", "payment retries are normal", "--objective", "OBJ-REFUNDS", "--component", "payments/refund.py"])
+            invariant_cli(["add", "Refund total must never exceed captured payment", "--repo", str(repo), "--id", "INV-CAPTURE-LIMIT", "--critical", "--objective", "OBJ-REFUNDS", "--component", "payments/refund.py"])
+            failed_approach_cli(["record", "Mutating charge rows directly", "--repo", str(repo), "--id", "FAIL-DIRECT-CHARGE", "--reason", "retries duplicated side effects", "--decision", "DEC-IDEMPOTENCY", "--component", "payments/refund.py"])
             envelope, cid = self.envelope(repo)
             record_change_envelope(repo=repo, envelope=envelope, actor="diffwitness-guard", trusted_proof=True)
             context = compile_context(repo, "implement partial refunds in payments", max_items=20, refresh_structure=True)
@@ -179,7 +190,9 @@ class ContinuityKernelTests(unittest.TestCase):
             self.assertIn("OBJ-REFUNDS", {item["id"] for item in context["objectives"]})
             self.assertIn("DEC-IDEMPOTENCY", {item["id"] for item in context["decisions"]})
             self.assertIn("INV-CAPTURE-LIMIT", {item["id"] for item in context["invariants"]})
-            self.assertIn("FAIL-DIRECT-CHARGE", {item["id"] for item in context["failedApproaches"]})
+            # No lexical overlap with the task: this must arrive through Project State relations.
+            failed = next(item for item in context["failedApproaches"] if item["id"] == "FAIL-DIRECT-CHARGE")
+            self.assertGreaterEqual(failed.get("relationDepth", 99), 1)
             self.assertIn("payments/refund.py", {item["path"] for item in context["components"]})
             self.assertIn("DW-0123456789AB", {item["debt_id"] for item in context["knownDebt"]})
             change = next(item for item in context["recentRelatedChanges"] if item["changeId"] == cid)
