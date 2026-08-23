@@ -44,19 +44,19 @@ class PluginContextHookTests(unittest.TestCase):
         )
         return repo
 
-    def run_hook(self, repo: Path, payload: dict) -> subprocess.CompletedProcess[str]:
+    def run_hook(self, repo: Path, payload: dict, command: str = "user-prompt-submit", timeout: float = 10) -> subprocess.CompletedProcess[str]:
         project_root = Path(__file__).resolve().parents[1]
         env = os.environ.copy()
         env["PLUGIN_ROOT"] = str(project_root)
         return subprocess.run(
-            [sys.executable, str(project_root / "integrations" / "plugin_hook.py"), "user-prompt-submit"],
+            [sys.executable, str(project_root / "integrations" / "plugin_hook.py"), command],
             cwd=repo,
             env=env,
             input=json.dumps(payload),
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=10,
+            timeout=timeout,
             check=False,
         )
 
@@ -111,6 +111,67 @@ class PluginContextHookTests(unittest.TestCase):
             )
             self.assertEqual(proc.returncode, 0)
             self.assertEqual(proc.stdout, "")
+
+    def test_native_session_stop_converges_on_proof_debt_envelope_and_continuity_without_guard_wrapper(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "native-project"
+            repo.mkdir()
+            self.git(repo, "init", "-q")
+            self.git(repo, "config", "user.email", "native@example.test")
+            self.git(repo, "config", "user.name", "Native IDE Test")
+            (repo / "app.py").write_text("def add(a, b):\n    return a - b\n", encoding="utf-8")
+            tests = repo / "tests"
+            tests.mkdir()
+            (tests / "test_app.py").write_text(
+                "import unittest\nfrom app import add\n\n"
+                "class T(unittest.TestCase):\n"
+                "    def test_add(self): self.assertEqual(add(2, 3), 5)\n",
+                encoding="utf-8",
+            )
+            (repo / ".diffwitness.toml").write_text(
+                '[diffwitness]\n'
+                f'test = "{sys.executable.replace(chr(92), chr(92) * 2)} -m unittest discover -s tests -q"\n'
+                'stability_runs = 1\n'
+                'max_total_seconds = 120\n',
+                encoding="utf-8",
+            )
+            self.git(repo, "add", "-A")
+            self.git(repo, "commit", "-qm", "buggy baseline")
+
+            session_id = "native-session"
+            started = self.run_hook(
+                repo,
+                {"session_id": session_id, "cwd": str(repo), "hook_event_name": "SessionStart"},
+                command="session-start",
+            )
+            self.assertEqual(started.returncode, 0, started.stderr)
+
+            (repo / "app.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+            stopped = self.run_hook(
+                repo,
+                {"session_id": session_id, "cwd": str(repo), "hook_event_name": "Stop", "source": "claude-code"},
+                command="session-stop",
+                timeout=180,
+            )
+            self.assertEqual(stopped.returncode, 0, stopped.stderr)
+            result = json.loads(stopped.stdout.splitlines()[-1])
+            self.assertEqual(result["decision"], "approve", result)
+            self.assertIn("Proof accepted", result["systemMessage"])
+            self.assertIn("Debt +", result["systemMessage"])
+            self.assertIn("Continuity", result["systemMessage"])
+
+            envelope_path = repo / ".git" / "diffwitness" / "change-envelope.json"
+            self.assertTrue(envelope_path.is_file())
+            envelope = json.loads(envelope_path.read_text(encoding="utf-8"))
+            self.assertRegex(envelope["change_id"], r"^dwchg_[a-f0-9]{24}$")
+            self.assertTrue(envelope["proof"]["accepted"])
+            self.assertIsInstance(envelope["debt"]["points"], int)
+            self.assertIsInstance(envelope["debt"]["open_lineages"], list)
+
+            events = continuity_paths(repo).events.read_text(encoding="utf-8")
+            self.assertIn('"event_type":"change.observed"', events)
+            self.assertIn('"event_type":"proof.completed"', events)
+            self.assertIn('"event_type":"debt.snapshot"', events)
 
 
 if __name__ == "__main__":
