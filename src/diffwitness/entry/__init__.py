@@ -1,10 +1,4 @@
-"""Public DiffWitness frontend.
-
-The package form intentionally owns :mod:`diffwitness.entry` for the current public command surface.
-A tiny wrapper configures robust UTF-8 terminal output before delegating to the frontend so an
-otherwise successful proof/health command cannot fail merely because a legacy Windows console
-cannot encode an annotation, arrow, ellipsis, or repository path.
-"""
+"""Public DiffWitness frontend and additive Project Continuity facade."""
 
 from __future__ import annotations
 
@@ -122,6 +116,10 @@ def main(argv: list[str] | None = None) -> int:
         from ..continuity_transport_cli import state_transport_cli
 
         return state_transport_cli(args[1:])
+    if args[0] == "relation":
+        from ..continuity_relation_cli import relation_cli
+
+        return relation_cli(args[1:])
     if args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
         from ..continuity_cli import (
             context_cli,
