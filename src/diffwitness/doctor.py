@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 from typing import Any
 
 from .autodetect import detect_evidence
 from .config import load_config
+from .continuity_events import ContinuityError
+from .continuity_state import state_status
 from .engine_capabilities import EngineCapabilityError, inspect_engine_capabilities
 from .engine_protocol import EngineProtocolError
 from .gitops import GitError, repo_root
@@ -17,7 +18,7 @@ DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
 def doctor_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw doctor",
-        description="Preflight evidence discovery and an optional advisory engine without executing project tests.",
+        description="Preflight evidence, optional advisory engine, and local project continuity without executing tests.",
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
@@ -44,9 +45,7 @@ def doctor_cli(argv: list[str]) -> int:
             print("Evidence candidates:")
             for index, plan in enumerate(plans, 1):
                 default = "  <- default" if index == 1 else ""
-                print(
-                    f"  {index}. {plan.command} [{plan.confidence}] - {plan.reason}{default}"
-                )
+                print(f"  {index}. {plan.command} [{plan.confidence}] - {plan.reason}{default}")
         else:
             print("Evidence:   none detected")
             print("Action:     configure [diffwitness].test or pass --test")
@@ -63,11 +62,7 @@ def doctor_cli(argv: list[str]) -> int:
             print("Advisory:   Community planner only (no external engine configured)")
         else:
             try:
-                capabilities = inspect_engine_capabilities(
-                    cwd=repo,
-                    command=engine_command,
-                    timeout=engine_timeout,
-                )
+                capabilities = inspect_engine_capabilities(cwd=repo, command=engine_command, timeout=engine_timeout)
             except (EngineCapabilityError, EngineProtocolError) as exc:
                 engine_ok = False
                 print(f"Advisory:   INVALID - {exc}")
@@ -93,11 +88,40 @@ def doctor_cli(argv: list[str]) -> int:
                     f"metadata-only={'yes' if privacy.get('supports_metadata_only') else 'no'}"
                 )
 
+        continuity_ok = True
+        try:
+            continuity = state_status(repo)
+        except ContinuityError as exc:
+            continuity_ok = False
+            print(f"Continuity: INVALID - {exc}")
+            print("Action:     repair/restore the append-only ProjectEvent journal before trusting project memory")
+        else:
+            event_count = int(continuity.get("event_count") or 0)
+            if event_count == 0:
+                print("Continuity: ready - no project memory recorded yet")
+            else:
+                current = bool(continuity.get("state_current"))
+                print(
+                    f"Continuity: {event_count} ProjectEvent(s); "
+                    f"derived state {'current' if current else 'rebuild-on-demand'}"
+                )
+                counts = continuity.get("counts") or {}
+                if counts:
+                    print(
+                        "Memory:     "
+                        f"{counts.get('entities', 0)} entities / {counts.get('relations', 0)} relations / "
+                        f"{counts.get('changes', 0)} changes / {counts.get('debts', 0)} debts"
+                    )
+            print("Context:    local + bounded + advisory; `dw context <task>`")
+            print("Trust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED")
+            print("Privacy:    ProjectEvent history excludes raw prompts and raw diffs")
+
         if evidence_ok:
             print("\nAgent guard examples:")
-            print("  dw guard -- claude")
-            print("  dw guard -- codex")
-        return 0 if evidence_ok and engine_ok else 1
+            print("  dw guard --policy strict -- claude")
+            print("  dw guard --policy strict -- codex")
+            print("Claude/Codex plugins can inject task-specific Project Continuity at UserPromptSubmit.")
+        return 0 if evidence_ok and engine_ok and continuity_ok else 1
     except (GitError, ValueError, OSError) as exc:
         print(f"DiffWitness doctor: {exc}")
         return 2
