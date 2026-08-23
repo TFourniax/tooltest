@@ -23,10 +23,7 @@ def _repo(root: Path) -> Path:
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "continuity-bench@example.test")
     _git(repo, "config", "user.name", "Continuity Bench")
-    (repo / "payments.py").write_text(
-        "def refund(amount):\n    return amount\n",
-        encoding="utf-8",
-    )
+    (repo / "payments.py").write_text("def refund(amount):\n    return amount\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-qm", "bench base")
     return repo
@@ -60,6 +57,21 @@ def _percentile(values: list[float], fraction: float) -> float:
     return ordered[position]
 
 
+def _compile(repo: Path) -> dict:
+    return compile_context(
+        repo,
+        "implement partial refunds safely in payments",
+        max_items=12,
+        refresh_structure=True,
+    )
+
+
+def _assert_recall(context: dict, events: int) -> None:
+    expected = "OBJ-BENCH-" + f"{events - 1:05d}"
+    if expected not in {item["id"] for item in context["objectives"]}:
+        raise RuntimeError("Context Compiler failed to recall the scale fixture's relevant objective")
+
+
 def run(events: int, batch_size: int, context_runs: int) -> dict:
     with tempfile.TemporaryDirectory(prefix="diffwitness-continuity-bench-") as td:
         repo = _repo(Path(td))
@@ -80,24 +92,24 @@ def run(events: int, batch_size: int, context_runs: int) -> dict:
         state = rebuild_state(repo, include_structure=True)
         rebuild_seconds = time.perf_counter() - rebuild_started
 
-        timings_ms: list[float] = []
-        context = None
+        # Cold context includes establishing the SHA-256 anchor after a freshly rebuilt strict state.
+        cold_started = time.perf_counter()
+        cold_context = _compile(repo)
+        cold_ms = (time.perf_counter() - cold_started) * 1000.0
+        _assert_recall(cold_context, events)
+
+        # Hot contexts represent normal consecutive UserPromptSubmit calls with no ProjectEvent change.
+        hot_ms: list[float] = []
+        context = cold_context
         for _ in range(context_runs):
             started = time.perf_counter()
-            context = compile_context(
-                repo,
-                "implement partial refunds safely in payments",
-                max_items=12,
-                refresh_structure=True,
-            )
-            timings_ms.append((time.perf_counter() - started) * 1000.0)
-        assert context is not None
-        if "OBJ-BENCH-" + f"{events - 1:05d}" not in {item["id"] for item in context["objectives"]}:
-            raise RuntimeError("Context Compiler failed to recall the scale fixture's relevant objective")
+            context = _compile(repo)
+            hot_ms.append((time.perf_counter() - started) * 1000.0)
+            _assert_recall(context, events)
         rendered = render_context(context, max_chars=6500)
 
         return {
-            "schema_version": "continuity-bench-1",
+            "schema_version": "continuity-bench-2",
             "events": events,
             "batch_size": batch_size,
             "event_log_bytes": continuity_paths(repo).events.stat().st_size,
@@ -105,12 +117,15 @@ def run(events: int, batch_size: int, context_runs: int) -> dict:
             "append_seconds": round(append_seconds, 6),
             "full_log_verify_seconds": round(verify_seconds, 6),
             "rebuild_seconds": round(rebuild_seconds, 6),
-            "context_runs": context_runs,
-            "context_ms": {
-                "min": round(min(timings_ms), 3),
-                "median": round(statistics.median(timings_ms), 3),
-                "p95": round(_percentile(timings_ms, 0.95), 3),
-                "max": round(max(timings_ms), 3),
+            "context": {
+                "cold_ms": round(cold_ms, 3),
+                "hot_runs": context_runs,
+                "hot_ms": {
+                    "min": round(min(hot_ms), 3),
+                    "median": round(statistics.median(hot_ms), 3),
+                    "p95": round(_percentile(hot_ms, 0.95), 3),
+                    "max": round(max(hot_ms), 3),
+                },
             },
             "context_chars": len(rendered),
             "context_id": context["context_id"],
@@ -122,10 +137,11 @@ def main() -> int:
     parser.add_argument("--events", type=int, default=10_000)
     parser.add_argument("--batch-size", type=int, default=2_000)
     parser.add_argument("--context-runs", type=int, default=7)
-    parser.add_argument("--max-append-seconds", type=float, default=30.0)
-    parser.add_argument("--max-verify-seconds", type=float, default=5.0)
-    parser.add_argument("--max-rebuild-seconds", type=float, default=15.0)
-    parser.add_argument("--max-context-p95-ms", type=float, default=1500.0)
+    parser.add_argument("--max-append-seconds", type=float, default=10.0)
+    parser.add_argument("--max-verify-seconds", type=float, default=2.0)
+    parser.add_argument("--max-rebuild-seconds", type=float, default=5.0)
+    parser.add_argument("--max-context-cold-ms", type=float, default=1000.0)
+    parser.add_argument("--max-context-hot-p95-ms", type=float, default=300.0)
     parser.add_argument("--json", type=Path)
     args = parser.parse_args()
     if args.events < 1 or args.batch_size < 1 or args.context_runs < 1:
@@ -139,8 +155,12 @@ def main() -> int:
         failures.append(f"verify {result['full_log_verify_seconds']}s > {args.max_verify_seconds}s")
     if result["rebuild_seconds"] > args.max_rebuild_seconds:
         failures.append(f"rebuild {result['rebuild_seconds']}s > {args.max_rebuild_seconds}s")
-    if result["context_ms"]["p95"] > args.max_context_p95_ms:
-        failures.append(f"context p95 {result['context_ms']['p95']}ms > {args.max_context_p95_ms}ms")
+    if result["context"]["cold_ms"] > args.max_context_cold_ms:
+        failures.append(f"context cold {result['context']['cold_ms']}ms > {args.max_context_cold_ms}ms")
+    if result["context"]["hot_ms"]["p95"] > args.max_context_hot_p95_ms:
+        failures.append(
+            f"context hot p95 {result['context']['hot_ms']['p95']}ms > {args.max_context_hot_p95_ms}ms"
+        )
     result["passed"] = not failures
     result["failures"] = failures
 
