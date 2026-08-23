@@ -29,10 +29,11 @@ jobs:
           --events 10000
           --batch-size 2000
           --context-runs 7
-          --max-append-seconds 30
-          --max-verify-seconds 5
-          --max-rebuild-seconds 15
-          --max-context-p95-ms 1500
+          --max-append-seconds 10
+          --max-verify-seconds 2
+          --max-rebuild-seconds 5
+          --max-context-cold-ms 1000
+          --max-context-hot-p95-ms 300
           --json continuitybench.json
       - name: Preserve ContinuityBench result
         if: ${{ always() && hashFiles('continuitybench.json') != '' }}
