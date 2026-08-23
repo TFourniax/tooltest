@@ -48,14 +48,17 @@ def _write_session_state(path: Path, state: dict[str, Any]) -> None:
     staged.replace(path)
 
 
-def _retry_or_approve(path: Path, state: dict[str, Any], message: str) -> dict[str, Any]:
+def _retry_or_block(path: Path, state: dict[str, Any], message: str) -> dict[str, Any]:
     retries = int(state.get("retries", 0)) + 1
     state["retries"] = retries
     _write_session_state(path, state)
     if retries > _MAX_RETRIES:
         return _decision(
-            "approve",
-            f"DiffWitness could not establish an acceptable handoff after {_MAX_RETRIES} continuation attempts: {message}",
+            "block",
+            "DiffWitness still cannot establish acceptable evidence after "
+            f"{_MAX_RETRIES} continuation attempts. The task requires human intervention or a "
+            "stronger evidence command before it can be declared complete. "
+            f"Last reason: {message[-2600:]}",
         )
     return _decision(
         "block",
@@ -157,12 +160,12 @@ def finalize_ide_session(
             quiet=True,
         )
         if rc != 0:
-            return _retry_or_approve(path, state, reason or "Proof did not pass")
+            return _retry_or_block(path, state, reason or "Proof did not pass")
 
         try:
             _validate_generated_certificate(proof_path, repo=root, candidate_sha=candidate)
         except Exception as exc:
-            return _retry_or_approve(path, state, f"generated Proof certificate failed validation: {exc}")
+            return _retry_or_block(path, state, f"generated Proof certificate failed validation: {exc}")
 
         debt_config = merged_debt_config(config.get("debt") or {})
         ledger = DebtLedger.load(ledger_path(root, debt_config))
@@ -209,7 +212,7 @@ def finalize_ide_session(
 
         if not budget.passed:
             violations = "; ".join(str(value) for value in budget.violations[:6]) or "configured debt budget exceeded"
-            return _retry_or_approve(path, state, f"Debt Ledger budget rejected the change: {violations}")
+            return _retry_or_block(path, state, f"Debt Ledger budget rejected the change: {violations}")
 
         try:
             path.unlink()
