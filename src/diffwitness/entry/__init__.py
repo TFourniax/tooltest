@@ -120,9 +120,12 @@ def main(argv: list[str] | None = None) -> int:
         from ..continuity_relation_cli import relation_cli
 
         return relation_cli(args[1:])
-    if args[0] in {"state", "context", "objective", "decision", "invariant", "failed-approach"}:
+    if args[0] == "context":
+        from ..continuity_context_command import context_command_cli
+
+        return context_command_cli(args[1:])
+    if args[0] in {"state", "objective", "decision", "invariant", "failed-approach"}:
         from ..continuity_cli import (
-            context_cli,
             decision_cli,
             failed_approach_cli,
             invariant_cli,
@@ -132,7 +135,6 @@ def main(argv: list[str] | None = None) -> int:
 
         handlers = {
             "state": state_cli,
-            "context": context_cli,
             "objective": objective_cli,
             "decision": decision_cli,
             "invariant": invariant_cli,
