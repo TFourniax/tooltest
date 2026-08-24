@@ -7,8 +7,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from diffwitness.continuity_events import append_project_event, continuity_paths
+from diffwitness.ide_handoff import finalize_ide_session
+from diffwitness.proof_cli import _state_path
 from diffwitness.structure_provider import component_id_for_path
 
 
@@ -172,6 +175,59 @@ class PluginContextHookTests(unittest.TestCase):
             self.assertIn('"event_type":"change.observed"', events)
             self.assertIn('"event_type":"proof.completed"', events)
             self.assertIn('"event_type":"debt.snapshot"', events)
+
+    def test_native_handoff_blocks_an_intact_but_canonically_unaccepted_proof_before_debt_or_continuity(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "native-unaccepted"
+            repo.mkdir()
+            self.git(repo, "init", "-q")
+            self.git(repo, "config", "user.email", "native@example.test")
+            self.git(repo, "config", "user.name", "Native IDE Test")
+            (repo / "app.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+            tests = repo / "tests"
+            tests.mkdir()
+            (tests / "test_app.py").write_text(
+                "import unittest\nfrom app import add\n\n"
+                "class T(unittest.TestCase):\n"
+                "    def test_add(self): self.assertEqual(add(2, 3), 5)\n",
+                encoding="utf-8",
+            )
+            (repo / ".diffwitness.toml").write_text(
+                '[diffwitness]\n'
+                f'test = "{sys.executable.replace(chr(92), chr(92) * 2)} -m unittest discover -s tests -q"\n'
+                'stability_runs = 1\n',
+                encoding="utf-8",
+            )
+            self.git(repo, "add", "-A")
+            self.git(repo, "commit", "-qm", "green baseline")
+
+            session_id = "native-unaccepted-session"
+            base = self.git(repo, "rev-parse", "HEAD")
+            state_path = _state_path(repo, session_id)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            state_path.write_text(json.dumps({"base": base, "retries": 0}), encoding="utf-8")
+            (repo / "app.py").write_text("def add(a, b):\n    return sum((a, b))\n", encoding="utf-8")
+
+            report = {
+                "schema_version": 2,
+                "certificate_id": "dwcert_test",
+                "contrast": "base-pass_candidate-pass",
+                "candidate_run": {"classification": "stable-pass"},
+                "summary": {"unwitnessed": 1, "inconclusive": 0, "surplus_candidate_hunks": 0},
+            }
+            with mock.patch("diffwitness.ide_handoff._run_proof", return_value=(0, report, "proof policy satisfied")), mock.patch(
+                "diffwitness.ide_handoff._validate_generated_certificate", return_value=None
+            ), mock.patch("diffwitness.ide_handoff.scan_change") as scan_change:
+                result = finalize_ide_session(
+                    {"session_id": session_id, "cwd": str(repo), "source": "claude-code"},
+                    repo=repo,
+                )
+
+            self.assertEqual(result["decision"], "block", result)
+            self.assertIn("not accepted", result["systemMessage"])
+            scan_change.assert_not_called()
+            self.assertFalse((repo / ".git" / "diffwitness" / "change-envelope.json").exists())
+            self.assertFalse(continuity_paths(repo).events.exists())
 
 
 if __name__ == "__main__":
