@@ -177,11 +177,12 @@ def assert_integrated_envelope(repo: Path, *, previous_change_id: str | None = N
     require(str(understanding.get("receipt_digest") or "").startswith("sha256:"), "understanding receipt is not digest-bound")
     require(envelope.get("privacy", {}).get("code_uploaded") is False, "envelope privacy boundary claims source upload")
     require(envelope.get("privacy", {}).get("contains_prompt_text") is False, "envelope privacy boundary contains prompt text")
-    receipt_change = receipt.get("session", {}).get("change", {})
+    receipt_session = receipt.get("session", {})
+    receipt_change = receipt_session.get("change", {})
     require(receipt_change.get("changeId") == change_id, "understanding and DiffWitness did not converge on the same dwchg identity")
-    receipt_proof = receipt.get("session", {}).get("proof", {})
+    receipt_proof = receipt_session.get("proof", {})
     require(receipt_proof.get("changeId") == change_id, "receipt proof identity diverges from exact change identity")
-    require(str(receipt.get("session", {}).get("taskId") or "").startswith("dwtask_"), "receipt has no stable dwtask identity")
+    require(str((receipt_session.get("task") or {}).get("id") or "").startswith("dwtask_"), "receipt has no stable dwtask identity")
     return change_id
 
 
