@@ -114,7 +114,7 @@ def finalize_ide_session(
     if not path.exists():
         return _decision(
             "approve",
-            "DiffWitness was not armed at session start; use the Defitness/IDE installer or `dw guard` for guaranteed capture.",
+            "DiffWitness was not armed at session start; run `dw setup` for native IDE capture or use `dw guard` as the explicit fallback.",
         )
 
     state = _read_session_state(path)
@@ -122,7 +122,7 @@ def finalize_ide_session(
     if not isinstance(base, str) or not base:
         return _decision(
             "approve",
-            "DiffWitness session state is invalid; use the Defitness/IDE installer or `dw guard` for guaranteed capture.",
+            "DiffWitness session state is invalid; rerun `dw setup` for native IDE capture or use `dw guard` as the explicit fallback.",
         )
 
     candidate = snapshot_worktree(root)
