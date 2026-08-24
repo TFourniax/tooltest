@@ -187,15 +187,16 @@ def assert_integrated_envelope(repo: Path, *, previous_change_id: str | None = N
 
 
 def assert_continuity(repo: Path, change_id: str) -> None:
-    journal = repo / ".git" / "diffwitness" / "continuity" / "events.jsonl"
-    if not journal.is_file():
-        candidates = list((repo / ".git" / "diffwitness").rglob("*.jsonl"))
-        journal = next((item for item in candidates if "continu" in str(item).lower()), journal)
-    require(journal.is_file(), "native handoff produced no Project Continuity journal")
+    # Project Continuity intentionally shares the Git-common DiffWitness root with the frozen
+    # change envelope: .git/diffwitness/events.jsonl + rebuildable state.db. Keeping this assertion
+    # on the public continuity contract (not an invented subdirectory) catches real missing events.
+    journal = repo / ".git" / "diffwitness" / "events.jsonl"
+    require(journal.is_file(), "native handoff produced no Project Continuity event journal")
     text = journal.read_text(encoding="utf-8", errors="replace")
     require(change_id in text, "Project Continuity journal is not correlated to the canonical change id")
     for event_type in ("change.observed", "proof.completed", "debt.snapshot"):
-        require(event_type in text, f"Project Continuity journal is missing {event_type}")
+        require(f'"event_type":"{event_type}"' in text, f"Project Continuity journal is missing {event_type}")
+    require((repo / ".git" / "diffwitness" / "state.db").is_file(), "Project Continuity did not materialize its rebuildable state")
 
 
 def main(argv: list[str] | None = None) -> int:
