@@ -104,6 +104,10 @@ def main(argv: list[str] | None = None) -> int:
         from ..setup import setup_cli
 
         return setup_cli(args[1:])
+    if args[0] == "portal":
+        from ..portal_proxy import portal_cli
+
+        return portal_cli(args[1:])
     if args[0] == "ide-hook":
         from ..ide_plugin import ide_hook_cli
 
