@@ -314,10 +314,21 @@ def main(argv: list[str] | None = None) -> int:
             first_change_id = assert_integrated_envelope(project)
             assert_continuity(project, first_change_id)
 
-            # Do not commit the first task. A real developer frequently starts the next agent task on
-            # top of existing uncommitted work. SessionStart must bind that exact dirty tree as the new
-            # baseline rather than attributing the earlier task to the later agent session.
-            session2 = "native-alpha-dirty-refactor"
+            # Do not commit the first task. Add a new failing regression test before SessionStart as
+            # ordinary pre-existing human work. The second agent session therefore starts from an
+            # exact dirty baseline containing both the prior fix and the new failing test. Only the
+            # later implementation change may be attributed to this task.
+            (tests / "test_app.py").write_text(
+                "import unittest\nfrom app import add, multiply\n\n"
+                "class T(unittest.TestCase):\n"
+                "    def test_add(self): self.assertEqual(add(2, 3), 5)\n"
+                "    def test_multiply(self): self.assertEqual(multiply(4, 5), 20)\n",
+                encoding="utf-8",
+            )
+            dirty_status = git(project, "status", "--porcelain")
+            require("app.py" in dirty_status and "tests/test_app.py" in dirty_status, "fixture did not create the intended dirty baseline")
+
+            session2 = "native-alpha-dirty-regression"
             run_native_hook(node=node, hook_bin=hook_bin, project=project, env=env, session=session2, event={"hook_event_name": "SessionStart"})
             _, prompt2 = run_native_hook(
                 node=node,
@@ -325,7 +336,7 @@ def main(argv: list[str] | None = None) -> int:
                 project=project,
                 env=env,
                 session=session2,
-                event={"hook_event_name": "UserPromptSubmit", "prompt": "Refactor add without changing its behavior"},
+                event={"hook_event_name": "UserPromptSubmit", "prompt": "Implement multiply so the new regression passes; preserve the existing add fix"},
             )
             require(prompt2 is not None, "dirty-baseline task produced no integrated context")
             run_native_hook(
@@ -336,7 +347,10 @@ def main(argv: list[str] | None = None) -> int:
                 session=session2,
                 event={"hook_event_name": "PreToolUse", "tool_name": "Edit", "tool_input": {"file_path": str(project / "app.py")}},
             )
-            (project / "app.py").write_text("def add(a, b):\n    return sum((a, b))\n", encoding="utf-8")
+            (project / "app.py").write_text(
+                "def add(a, b):\n    return a + b\n\n\ndef multiply(a, b):\n    return a * b\n",
+                encoding="utf-8",
+            )
             run_native_hook(
                 node=node,
                 hook_bin=hook_bin,
@@ -354,6 +368,7 @@ def main(argv: list[str] | None = None) -> int:
                 event={"hook_event_name": "Stop"},
             )
             require(stop2 is not None and stop2.get("decision") == "approve", "dirty-baseline native handoff was not approved", stop2_proc)
+            require("Proof accepted" in str(stop2.get("systemMessage") or ""), "dirty-baseline handoff did not surface Proof acceptance")
             second_change_id = assert_integrated_envelope(project, previous_change_id=first_change_id)
             assert_continuity(project, second_change_id)
 
