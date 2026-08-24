@@ -258,8 +258,11 @@ def main(argv: list[str] | None = None) -> int:
                 timeout=30,
             )
             require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
-            status_json = last_json(status.stdout)
-            require(status_json is not None and status_json.get("healthy") is True, "dw setup status is not healthy")
+            try:
+                status_json = json.loads(status.stdout)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError(f"dw setup status returned invalid JSON: {status.stdout[:1000]}") from exc
+            require(status_json.get("healthy") is True, "dw setup status is not healthy", status)
             require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not arm all supported adapters")
 
             integration_config = read_json(project / ".idleproof" / "diffwitness.json")
