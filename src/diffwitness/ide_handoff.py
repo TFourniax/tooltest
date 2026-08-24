@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .autodetect import default_evidence
+from .change_envelope import _proof_claim
 from .config import load_config
 from .continuity_bridge import record_change_envelope
 from .continuity_state import ensure_state
@@ -166,6 +167,20 @@ def finalize_ide_session(
             _validate_generated_certificate(proof_path, repo=root, candidate_sha=candidate)
         except Exception as exc:
             return _retry_or_block(path, state, f"generated Proof certificate failed validation: {exc}")
+
+        # Native IDE handoff is a release boundary, not merely an advisory balanced-policy result.
+        # Reuse the exact frozen change-envelope claim semantics before Debt/Continuity/Portal are
+        # allowed to observe the change. This prevents an intact but inconclusive/unwitnessed proof
+        # certificate from being surfaced as an approved completed task.
+        if not isinstance(report, dict):
+            return _retry_or_block(path, state, "Proof certificate was not available for canonical acceptance evaluation")
+        proof_claim, proof_accepted = _proof_claim(report)
+        if not proof_accepted:
+            return _retry_or_block(
+                path,
+                state,
+                f"canonical Proof claim is {proof_claim!r} and is not accepted by the change-envelope contract",
+            )
 
         debt_config = merged_debt_config(config.get("debt") or {})
         ledger = DebtLedger.load(ledger_path(root, debt_config))
