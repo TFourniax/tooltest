@@ -2,7 +2,7 @@ name: integrated-product-smoke
 
 on:
   push:
-    branches: ["agent/debt-ledger"]
+    branches: ["agent/debt-ledger", "agent/prealpha-p0-hardening-20260823"]
   pull_request:
   workflow_dispatch:
 
@@ -15,20 +15,20 @@ concurrency:
 
 jobs:
   exact-artifacts:
-    name: Understand → Prove → Owe / exact artifacts
+    name: Native Understand → Prove → Owe → Continuity / exact artifacts
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Checkout DiffWitness + Debt Ledger
+      - name: Checkout DiffWitness + Debt Ledger + Continuity
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Checkout exact IdleProof alpha branch
+      - name: Checkout matching IdleProof sidecar hardening branch
         uses: actions/checkout@v7
         with:
           repository: TFourniax/tooltest-2
-          ref: agent/idleproof-human-ci
+          ref: agent/prealpha-p0-hardening-20260823
           fetch-depth: 0
           path: idleproof
           persist-credentials: false
@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: "22"
           package-manager-cache: false
-      - name: Syntax-check real authenticated-agent harness
-        run: python -m py_compile scripts/real_agent_acceptance.py
-      - name: Exact installed-artifact golden path + stale-correlation fail-safe
+      - name: Syntax-check real authenticated-agent harness and native artifact journey
+        run: python -m py_compile scripts/real_agent_acceptance.py scripts/integrated_product_smoke.py
+      - name: Exact installed-artifact native alpha path (no guard wrapper)
         run: python scripts/integrated_product_smoke.py --idleproof-repo ./idleproof
