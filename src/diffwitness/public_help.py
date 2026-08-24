@@ -11,6 +11,13 @@ After setup, use Claude Code, Codex, or Cursor normally. DiffWitness runs at the
   OWE         measure and persist software/debt obligations
   CONTINUITY  preserve bounded project memory for the next task/session/device
 
+Portal (optional cloud history):
+  dw portal identity [--json]         Show the local project/device enrollment identity
+  dw portal configure ...             Configure the scoped ingest endpoint without exposing tokens in argv
+  dw portal status [--json]           Inspect local delivery/queue state
+  dw portal sync [--json]             Flush the bounded privacy-safe snapshot queue
+  dw portal disconnect                Remove the local Portal credential configuration
+
 Explicit/manual workflows:
   dw guard [options] -- <agent>        Run any agent/process inside an explicit proof + debt boundary
   dw gate [options]                    Validate an existing Git diff / pull request
