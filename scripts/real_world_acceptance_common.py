@@ -159,12 +159,40 @@ def read_json(path: Path) -> dict:
 
 
 def safe_git_status(repo: Path) -> list[tuple[str, str]]:
+    # Porcelain's leading XY columns are data. Never route this through check()/git(),
+    # because check() strips leading whitespace and corrupts paths for entries like
+    # " M path/to/file". NUL framing also keeps spaces/newlines in filenames lossless.
+    proc = run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=repo,
+    )
+    require(proc.returncode == 0, "git status --porcelain failed", proc)
+
     entries: list[tuple[str, str]] = []
-    raw = git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-    for line in raw.splitlines():
-        if len(line) < 4:
+    records = proc.stdout.split("\0")
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if not record:
             continue
-        entries.append((line[:2], line[3:].replace("\\", "/")))
+        require(
+            len(record) >= 4 and record[2] == " ",
+            f"malformed porcelain-v1 record: {record!r}",
+        )
+        status = record[:2]
+        path = record[3:].replace("\\", "/")
+        entries.append((status, path))
+
+        # With -z, rename/copy entries carry the source pathname in the next NUL
+        # field. The first pathname is the destination and is the worktree path we
+        # want to validate, so consume (but do not report) the source field.
+        if "R" in status or "C" in status:
+            require(
+                index < len(records) and bool(records[index]),
+                f"malformed porcelain rename/copy record for {path!r}",
+            )
+            index += 1
     return entries
 
 
