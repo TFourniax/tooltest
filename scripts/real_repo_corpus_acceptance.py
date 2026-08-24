@@ -52,14 +52,23 @@ def load_manifest() -> list[dict]:
         require(not target.is_absolute() and ".." not in target.parts, f"case {case_id}: unsafe target path")
         require(case["needle"] != case["replacement"], f"case {case_id}: mutation is a no-op")
         require(isinstance(case["pythonpath"], list) and case["pythonpath"], f"case {case_id}: pythonpath must be non-empty")
+        for raw_path in case["pythonpath"]:
+            python_path = Path(str(raw_path))
+            require(
+                str(raw_path) and not python_path.is_absolute() and ".." not in python_path.parts,
+                f"case {case_id}: pythonpath entries must stay repo-relative: {raw_path!r}",
+            )
     return cases
 
 
 def validation_env(base_env: dict[str, str], repo: Path, case: dict) -> dict[str, str]:
     env = base_env.copy()
-    paths = [str((repo / str(item)).resolve()) for item in case["pythonpath"]]
-    existing = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = os.pathsep.join(paths + ([existing] if existing else []))
+    # Evidence must resolve imports relative to the *current* worktree. DiffWitness executes the
+    # same command in detached base/candidate sandboxes; absolute paths back to the live worktree
+    # would make both variants import the candidate and destroy causal contrast.
+    del repo  # kept in the signature to make the call-site contract explicit
+    paths = [str(Path(str(item))) for item in case["pythonpath"]]
+    env["PYTHONPATH"] = os.pathsep.join(paths)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env
 
