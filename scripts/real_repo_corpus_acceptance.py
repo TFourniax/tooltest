@@ -252,7 +252,16 @@ def main(argv: list[str] | None = None) -> int:
                         claude_budget=args.claude_budget_usd,
                     )
                     results.append(result)
-                    print(f"[real-corpus] {'PASS' if result['accepted'] else 'AGENT-NO-ACCEPT'} · {case['id']} / {agent}", flush=True)
+                    if result["accepted"]:
+                        print(f"[real-corpus] PASS · {case['id']} / {agent}", flush=True)
+                    else:
+                        print(
+                            f"[real-corpus] AGENT-NO-ACCEPT · {case['id']} / {agent} · "
+                            f"candidateGreen={str(result['candidateGreen']).lower()} · "
+                            f"scopeClean={str(result['scopeClean']).lower()} · "
+                            f"failureClass={result['failureClass']} · guardExit={result['guardExit']}",
+                            flush=True,
+                        )
 
             for case in cases:
                 case_results = [r for r in results if r["case"] == case["id"]]
