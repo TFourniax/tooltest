@@ -8,18 +8,25 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import venv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(args: list[str], *, cwd: Path, env: dict[str, str] | None = None, timeout: float = 120.0) -> subprocess.CompletedProcess[str]:
+def run(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    timeout: float = 120.0,
+    input_text: str | None = None,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
         cwd=cwd,
         env=env,
+        input=input_text,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -59,7 +66,7 @@ def evidence_command(python: Path) -> str:
     return subprocess.list2cmdline(parts) if os.name == "nt" else shlex.join(parts)
 
 
-def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Path, Path, Path | None]:
+def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Path, Path, Path, Path | None]:
     artifacts = root / "artifacts"
     artifacts.mkdir()
     check([sys.executable, "-m", "pip", "wheel", str(ROOT), "--no-deps", "--wheel-dir", str(artifacts)], cwd=ROOT, timeout=180)
@@ -69,12 +76,14 @@ def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Pat
     pyenv = root / "python-consumer"
     venv.EnvBuilder(with_pip=True, clear=True).create(pyenv)
     python = executable_in_venv(pyenv, "python")
+    dw = executable_in_venv(pyenv, "dw")
     check([str(python), "-m", "pip", "install", "--no-deps", "--no-index", str(wheels[0])], cwd=root, timeout=120)
+    require(dw.is_file(), "installed DiffWitness wheel has no dw console entrypoint")
 
     npm = shutil.which("npm")
     node = shutil.which("node")
-    require(bool(npm), "npm is required for the exact IdleProof artifact journey")
-    require(bool(node), "node is required for the exact IdleProof artifact journey")
+    require(bool(npm), "npm is required for the exact IdleProof sidecar artifact journey")
+    require(bool(node), "node is required for the exact IdleProof sidecar artifact journey")
     packed = json.loads(check([str(npm), "pack", "--json"], cwd=idleproof_repo, timeout=120))
     require(isinstance(packed, list) and packed and packed[0].get("filename"), "npm pack did not return an IdleProof artifact")
     tarball = idleproof_repo / packed[0]["filename"]
@@ -83,9 +92,12 @@ def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Pat
     consumer.mkdir()
     check([str(npm), "init", "-y"], cwd=consumer)
     check([str(npm), "install", "--ignore-scripts", "--no-audit", "--no-fund", str(tarball)], cwd=consumer, timeout=120)
-    idleproof_bin = consumer / "node_modules" / "idleproof" / "bin" / "idleproof.mjs"
-    require(idleproof_bin.is_file(), "installed IdleProof npm artifact has no CLI")
-    return python, Path(str(node)), idleproof_bin, tarball
+    package_root = consumer / "node_modules" / "idleproof"
+    idleproof_bin = package_root / "bin" / "idleproof.mjs"
+    hook_bin = package_root / "bin" / "idleproof-hook.mjs"
+    require(idleproof_bin.is_file(), "installed IdleProof sidecar artifact has no CLI")
+    require(hook_bin.is_file(), "installed IdleProof sidecar artifact has no convergent native hook")
+    return python, dw, Path(str(node)), idleproof_bin, tarball
 
 
 def create_idleproof_shim(root: Path, *, node: Path, idleproof_bin: Path, invocation_log: Path) -> Path:
@@ -106,97 +118,103 @@ def create_idleproof_shim(root: Path, *, node: Path, idleproof_bin: Path, invoca
             encoding="utf-8",
         )
         shim.chmod(0o755)
-    return shim_dir
-
-
-def write_agent_script(path: Path, *, mode: str) -> None:
-    if mode == "fix":
-        replacement = "def add(a, b):\n    return a + b\n"
-        prompt = "Fix add so the regression test passes without unrelated changes"
-    elif mode == "refactor":
-        replacement = "def add(a, b):\n    return sum((a, b))\n"
-        prompt = "Refactor add without changing its behavior"
-    else:
-        raise ValueError(mode)
-    path.write_text(
-        textwrap.dedent(
-            f"""
-            import json
-            import os
-            import subprocess
-            from pathlib import Path
-
-            project = Path(os.environ["INTEGRATED_PROJECT"])
-            node = os.environ["INTEGRATED_NODE"]
-            idleproof = os.environ["INTEGRATED_IDLEPROOF_BIN"]
-            session = os.environ["INTEGRATED_SESSION"]
-
-            def hook(event):
-                proc = subprocess.run(
-                    [node, idleproof, "hook"], cwd=project,
-                    input=json.dumps({{"cwd":str(project), "session_id":session, **event}}) + "\\n",
-                    text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
-                )
-                if proc.returncode:
-                    raise SystemExit(f"IdleProof hook failed: {{proc.returncode}}\\n{{proc.stderr}}")
-
-            hook({{"hook_event_name":"UserPromptSubmit", "prompt":{prompt!r}}})
-            hook({{"hook_event_name":"PreToolUse", "tool_name":"Edit", "tool_input":{{"file_path":str(project / "app.py")}}}})
-            (project / "app.py").write_text({replacement!r}, encoding="utf-8")
-            hook({{"hook_event_name":"PostToolUse", "tool_name":"Edit", "tool_input":{{"file_path":str(project / "app.py")}}}})
-            hook({{"hook_event_name":"Stop"}})
-            """
-        ).strip()
-        + "\n",
-        encoding="utf-8",
-    )
+    return shim
 
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def assert_integrated_envelope(repo: Path) -> str:
+def last_json(text: str) -> dict | None:
+    for line in reversed(text.splitlines()):
+        try:
+            value = json.loads(line.strip())
+        except (json.JSONDecodeError, AttributeError):
+            continue
+        if isinstance(value, dict):
+            return value
+    return None
+
+
+def run_native_hook(
+    *,
+    node: Path,
+    hook_bin: Path,
+    project: Path,
+    env: dict[str, str],
+    session: str,
+    event: dict,
+    timeout: float = 240.0,
+) -> tuple[subprocess.CompletedProcess[str], dict | None]:
+    payload = {"cwd": str(project), "session_id": session, **event}
+    proc = run(
+        [str(node), str(hook_bin), "claude"],
+        cwd=project,
+        env=env,
+        timeout=timeout,
+        input_text=json.dumps(payload) + "\n",
+    )
+    require(proc.returncode == 0, f"native hook failed for {event.get('hook_event_name')}", proc)
+    return proc, last_json(proc.stdout)
+
+
+def assert_integrated_envelope(repo: Path, *, previous_change_id: str | None = None) -> str:
     envelope_path = repo / ".git" / "diffwitness" / "change-envelope.json"
     receipt_path = repo / ".idleproof" / "receipt.json"
-    require(envelope_path.is_file(), "Guard did not persist the integrated change envelope")
-    require(receipt_path.is_file(), "IdleProof did not persist its exact task receipt")
+    require(envelope_path.is_file(), "native DiffWitness handoff did not persist the integrated change envelope")
+    require(receipt_path.is_file(), "understanding sidecar did not persist its exact task receipt")
     envelope = read_json(envelope_path)
     receipt = read_json(receipt_path)
     change_id = str(envelope.get("change_id") or "")
     require(change_id.startswith("dwchg_") and len(change_id) == 30, "integrated envelope has no canonical change id")
+    if previous_change_id is not None:
+        require(change_id != previous_change_id, "a later task reused the previous canonical change id")
     require(envelope.get("proof", {}).get("accepted") is True, "integrated envelope lost accepted DiffWitness proof")
     require(isinstance(envelope.get("debt", {}).get("points"), int), "integrated envelope has no bounded Debt Ledger points")
     require(isinstance(envelope.get("debt", {}).get("open_lineages"), list), "integrated envelope has no bounded debt lineage list")
     understanding = envelope.get("understanding")
-    require(isinstance(understanding, dict), "exact IdleProof receipt was not correlated into the envelope")
+    require(isinstance(understanding, dict), "exact understanding receipt was not correlated into the envelope")
     require(str(understanding.get("receipt_digest") or "").startswith("sha256:"), "understanding receipt is not digest-bound")
     require(envelope.get("privacy", {}).get("code_uploaded") is False, "envelope privacy boundary claims source upload")
     require(envelope.get("privacy", {}).get("contains_prompt_text") is False, "envelope privacy boundary contains prompt text")
     receipt_change = receipt.get("session", {}).get("change", {})
-    require(receipt_change.get("changeId") == change_id, "IdleProof and DiffWitness did not converge on the same dwchg identity")
+    require(receipt_change.get("changeId") == change_id, "understanding and DiffWitness did not converge on the same dwchg identity")
     receipt_proof = receipt.get("session", {}).get("proof", {})
-    require(receipt_proof.get("changeId") == change_id, "IdleProof receipt proof identity diverges from exact change identity")
+    require(receipt_proof.get("changeId") == change_id, "receipt proof identity diverges from exact change identity")
+    require(str(receipt.get("session", {}).get("taskId") or "").startswith("dwtask_"), "receipt has no stable dwtask identity")
     return change_id
 
 
+def assert_continuity(repo: Path, change_id: str) -> None:
+    journal = repo / ".git" / "diffwitness" / "continuity" / "events.jsonl"
+    if not journal.is_file():
+        candidates = list((repo / ".git" / "diffwitness").rglob("*.jsonl"))
+        journal = next((item for item in candidates if "continu" in str(item).lower()), journal)
+    require(journal.is_file(), "native handoff produced no Project Continuity journal")
+    text = journal.read_text(encoding="utf-8", errors="replace")
+    require(change_id in text, "Project Continuity journal is not correlated to the canonical change id")
+    for event_type in ("change.observed", "proof.completed", "debt.snapshot"):
+        require(event_type in text, f"Project Continuity journal is missing {event_type}")
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Exercise the exact installed IdleProof + DiffWitness + Debt Ledger golden path.")
+    parser = argparse.ArgumentParser(description="Exercise installed DiffWitness + sidecar through the native alpha setup path.")
     parser.add_argument("--idleproof-repo", required=True, type=Path)
     args = parser.parse_args(argv)
     idleproof_repo = args.idleproof_repo.resolve()
     require((idleproof_repo / "package.json").is_file(), "--idleproof-repo does not contain package.json")
 
     tarball: Path | None = None
-    server_started = False
     with tempfile.TemporaryDirectory(prefix="integrated-product-smoke-") as td:
         root = Path(td)
         try:
-            python, node, idleproof_bin, tarball = install_exact_artifacts(root, idleproof_repo)
+            python, dw, node, idleproof_bin, tarball = install_exact_artifacts(root, idleproof_repo)
+            hook_bin = idleproof_bin.parent / "idleproof-hook.mjs"
             invocation_log = root / "idleproof-invocations.log"
-            shim_dir = create_idleproof_shim(root, node=node, idleproof_bin=idleproof_bin, invocation_log=invocation_log)
+            idleproof_shim = create_idleproof_shim(root, node=node, idleproof_bin=idleproof_bin, invocation_log=invocation_log)
             env = os.environ.copy()
-            env["PATH"] = str(shim_dir) + os.pathsep + env.get("PATH", "")
+            env["PATH"] = str(idleproof_shim.parent) + os.pathsep + str(dw.parent) + os.pathsep + env.get("PATH", "")
+            env["DIFFWITNESS_BIN"] = str(dw)
 
             project = root / "project"
             project.mkdir()
@@ -210,79 +228,152 @@ def main(argv: list[str] | None = None) -> int:
                 "import unittest\nfrom app import add\n\nclass T(unittest.TestCase):\n    def test_add(self): self.assertEqual(add(2, 3), 5)\n",
                 encoding="utf-8",
             )
+            test_command = evidence_command(python)
+            (project / ".diffwitness.toml").write_text(
+                "[diffwitness]\n"
+                f"test = {json.dumps(test_command)}\n"
+                "stability_runs = 1\n"
+                "max_total_seconds = 120\n\n"
+                "[debt]\n"
+                "max_total = 1000\n"
+                "max_per_change = 1000\n",
+                encoding="utf-8",
+            )
             git(project, "add", "-A")
             git(project, "commit", "-qm", "buggy baseline")
 
-            on = run([str(node), str(idleproof_bin), "on", "--agent", "claude", "--no-open"], cwd=project, env=env, timeout=20)
-            require(on.returncode == 0, "IdleProof exact npm artifact did not start", on)
-            server_started = True
-
-            agent = root / "agent-fix.py"
-            write_agent_script(agent, mode="fix")
-            first_env = env | {
-                "INTEGRATED_PROJECT": str(project),
-                "INTEGRATED_NODE": str(node),
-                "INTEGRATED_IDLEPROOF_BIN": str(idleproof_bin),
-                "INTEGRATED_SESSION": "integrated-fix-session",
-            }
-            cert = root / "integrated-proof.json"
-            first = run(
-                [
-                    str(python), "-m", "diffwitness.entry", "guard",
-                    "--repo", str(project), "--test", evidence_command(python),
-                    "--policy", "strict", "--strategy", "exhaustive", "--stability-runs", "1",
-                    "--certificate", str(cert), "--", str(python), str(agent),
-                ],
-                cwd=project,
-                env=first_env,
-                timeout=180,
-            )
-            require(first.returncode == 0, "integrated exact-artifact bugfix journey was rejected", first)
-            require("PROOF ACCEPTED" in (first.stdout + first.stderr), "user-visible proof acceptance is missing", first)
-            first_change_id = assert_integrated_envelope(project)
-            invocations = invocation_log.read_text(encoding="utf-8") if invocation_log.exists() else ""
-            require("portal assurance --envelope" in invocations, "Guard never exercised the installed IdleProof assurance bridge")
-
-            stale_receipt = read_json(project / ".idleproof" / "receipt.json")
-            stale_id = stale_receipt.get("session", {}).get("change", {}).get("changeId")
-            require(stale_id == first_change_id, "fixture lost the first exact receipt identity")
-            agent2 = root / "agent-refactor.py"
-            agent2.write_text(
-                "from pathlib import Path\nPath('app.py').write_text('def add(a, b):\\n    return sum((a, b))\\n', encoding='utf-8')\n",
-                encoding="utf-8",
-            )
-            second = run(
-                [
-                    str(python), "-m", "diffwitness.entry", "guard",
-                    "--repo", str(project), "--test", evidence_command(python),
-                    "--policy", "balanced", "--strategy", "exhaustive", "--stability-runs", "1",
-                    "--", str(python), str(agent2),
-                ],
+            setup = run(
+                [str(dw), "setup", "--agent", "all", "--idleproof-command", str(idleproof_shim)],
                 cwd=project,
                 env=env,
-                timeout=180,
+                timeout=120,
             )
-            require(second.returncode == 0, "preservation change failed while testing stale IdleProof handling", second)
-            require("IdleProof correlation skipped:" in second.stderr, "stale IdleProof receipt was not visibly rejected", second)
-            second_envelope = read_json(project / ".git" / "diffwitness" / "change-envelope.json")
-            second_id = str(second_envelope.get("change_id") or "")
-            require(second_id.startswith("dwchg_") and second_id != first_change_id, "second real change reused the stale change identity")
-            require(second_envelope.get("understanding") is None, "stale understanding was falsely attached to a new change")
-            require(second_envelope.get("proof", {}).get("accepted") is True, "stale IdleProof incorrectly erased valid DiffWitness proof")
-            require(isinstance(second_envelope.get("debt", {}).get("points"), int), "stale IdleProof incorrectly erased valid Debt Ledger evidence")
+            require(setup.returncode == 0, "dw setup did not arm the exact installed artifacts", setup)
+            require("DiffWitness is ready" in setup.stdout, "dw setup did not expose the release-ready user message", setup)
+            status = run(
+                [str(dw), "setup", "status", "--idleproof-command", str(idleproof_shim), "--json"],
+                cwd=project,
+                env=env,
+                timeout=30,
+            )
+            require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
+            status_json = last_json(status.stdout)
+            require(status_json is not None and status_json.get("healthy") is True, "dw setup status is not healthy")
+            require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not arm all supported adapters")
 
-            require(cert.is_file() and read_json(cert).get("certificate_id"), "later user work rewrote or removed the original proof certificate")
+            integration_config = read_json(project / ".idleproof" / "diffwitness.json")
+            require(integration_config.get("schema") == "diffwitness.integration-config.v1", "setup did not write canonical integration config")
+            require(not (project / ".idleproof" / "defitness.json").exists(), "setup left the experimental product-name config behind")
+            require("defitness" not in json.dumps(integration_config).lower(), "canonical setup config still exposes the experimental product name")
+            claude_settings = read_json(project / ".claude" / "settings.local.json")
+            require("idleproof-hook.mjs" in json.dumps(claude_settings), "dw setup did not install the convergent Claude hook")
+
+            session1 = "native-alpha-fix"
+            run_native_hook(node=node, hook_bin=hook_bin, project=project, env=env, session=session1, event={"hook_event_name": "SessionStart"})
+            _, prompt1 = run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session1,
+                event={"hook_event_name": "UserPromptSubmit", "prompt": "Fix add so the regression test passes without unrelated changes"},
+            )
+            require(prompt1 is not None, "native UserPromptSubmit produced no integrated context")
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session1,
+                event={"hook_event_name": "PreToolUse", "tool_name": "Edit", "tool_input": {"file_path": str(project / "app.py")}},
+            )
+            (project / "app.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session1,
+                event={"hook_event_name": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": str(project / "app.py")}},
+            )
+            stop1_proc, stop1 = run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session1,
+                event={"hook_event_name": "Stop"},
+            )
+            require(stop1 is not None and stop1.get("decision") == "approve", "native task handoff was not approved", stop1_proc)
+            require("Proof accepted" in str(stop1.get("systemMessage") or ""), "native handoff did not surface Proof acceptance")
+            first_change_id = assert_integrated_envelope(project)
+            assert_continuity(project, first_change_id)
+
+            # Do not commit the first task. A real developer frequently starts the next agent task on
+            # top of existing uncommitted work. SessionStart must bind that exact dirty tree as the new
+            # baseline rather than attributing the earlier task to the later agent session.
+            session2 = "native-alpha-dirty-refactor"
+            run_native_hook(node=node, hook_bin=hook_bin, project=project, env=env, session=session2, event={"hook_event_name": "SessionStart"})
+            _, prompt2 = run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session2,
+                event={"hook_event_name": "UserPromptSubmit", "prompt": "Refactor add without changing its behavior"},
+            )
+            require(prompt2 is not None, "dirty-baseline task produced no integrated context")
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session2,
+                event={"hook_event_name": "PreToolUse", "tool_name": "Edit", "tool_input": {"file_path": str(project / "app.py")}},
+            )
+            (project / "app.py").write_text("def add(a, b):\n    return sum((a, b))\n", encoding="utf-8")
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session2,
+                event={"hook_event_name": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": str(project / "app.py")}},
+            )
+            stop2_proc, stop2 = run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session=session2,
+                event={"hook_event_name": "Stop"},
+            )
+            require(stop2 is not None and stop2.get("decision") == "approve", "dirty-baseline native handoff was not approved", stop2_proc)
+            second_change_id = assert_integrated_envelope(project, previous_change_id=first_change_id)
+            assert_continuity(project, second_change_id)
+
+            invocations = invocation_log.read_text(encoding="utf-8") if invocation_log.exists() else ""
+            require("integration install" in invocations, "dw setup never exercised the installed sidecar integration API")
+            require("portal assurance --envelope" in invocations, "native DiffWitness handoff never exercised the installed Portal assurance bridge")
+            require(" guard " not in f" {invocations} ", "native alpha journey unexpectedly relied on dw guard")
+
+            uninstall = run(
+                [str(dw), "setup", "uninstall", "--idleproof-command", str(idleproof_shim)],
+                cwd=project,
+                env=env,
+                timeout=60,
+            )
+            require(uninstall.returncode == 0, "dw setup uninstall failed", uninstall)
+            require(not (project / ".idleproof" / "diffwitness.json").exists(), "uninstall left the integration config armed")
+            require((project / ".idleproof" / "receipt.json").is_file(), "uninstall destroyed historical understanding evidence")
+            require((project / ".git" / "diffwitness" / "change-envelope.json").is_file(), "uninstall destroyed historical Proof/Debt evidence")
+
             print(
-                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact npm artifact · "
-                "UNDERSTAND/PROVE/OWE exact identity · assurance bridge · stale-correlation fail-safe"
+                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact sidecar artifact · dw setup · "
+                "native hooks without guard · dirty baseline · UNDERSTAND/PROVE/OWE/CONTINUITY · uninstall preserves evidence"
             )
             return 0
         finally:
-            if server_started:
-                try:
-                    run([str(node), str(idleproof_bin), "stop"], cwd=project, env=env, timeout=10)
-                except Exception:
-                    pass
             if tarball is not None:
                 try:
                     tarball.unlink(missing_ok=True)
