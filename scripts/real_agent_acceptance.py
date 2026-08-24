@@ -48,6 +48,17 @@ def git(repo: Path, *args: str) -> str:
     return check(["git", *args], cwd=repo)
 
 
+def git_status_entries(repo: Path) -> list[str]:
+    """Return porcelain-v1 entries without destroying the leading XY status columns."""
+    proc = run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=repo,
+        timeout=30,
+    )
+    require(proc.returncode == 0, "git status failed during agent scope validation", proc)
+    return [entry for entry in proc.stdout.split("\0") if entry]
+
+
 def executable_in_venv(venv_dir: Path, name: str) -> Path:
     scripts = "Scripts" if os.name == "nt" else "bin"
     suffix = ".exe" if os.name == "nt" else ""
@@ -60,7 +71,7 @@ def bin_in_node_consumer(consumer: Path, name: str) -> Path:
 
 
 def evidence_command(python: Path) -> str:
-    parts = [str(python), "-m", "unittest", "discover", "-s", "tests", "-q"]
+    parts = [str(python), "-B", "-m", "unittest", "discover", "-s", "tests", "-q"]
     return subprocess.list2cmdline(parts) if os.name == "nt" else shlex.join(parts)
 
 
@@ -163,16 +174,21 @@ def codex_command(idleproof: Path, prompt: str) -> list[str]:
 
 
 def assert_only_expected_change(repo: Path) -> None:
-    changed = [line.strip() for line in git(repo, "status", "--porcelain", "--untracked-files=all").splitlines() if line.strip()]
-    unexpected = []
-    for line in changed:
-        path_text = line[3:] if len(line) > 3 else line
+    changed = git_status_entries(repo)
+    unexpected: list[str] = []
+    for entry in changed:
+        # Porcelain v1 is "XY path". Preserve XY exactly; stripping the entry first turns
+        # " M calculator.py" into "M calculator.py" and corrupts path extraction.
+        if len(entry) < 4 or entry[2] != " ":
+            unexpected.append(entry)
+            continue
+        path_text = entry[3:]
         normalized = path_text.replace("\\", "/")
         if normalized == "calculator.py":
             continue
         if normalized.startswith(".idleproof/") or normalized.startswith(".claude/") or normalized.startswith(".codex/"):
             continue
-        unexpected.append(line)
+        unexpected.append(entry)
     require(not unexpected, f"agent exceeded the requested scope: {unexpected}")
     require(git(repo, "diff", "--name-only", "HEAD").splitlines() == ["calculator.py"], "tracked scope is not exactly calculator.py")
 
@@ -243,7 +259,7 @@ def exercise_agent(agent: str, *, root: Path, python: Path, idleproof: Path, env
     else:
         raise ValueError(agent)
 
-    baseline = run([str(python), "-m", "unittest", "discover", "-s", "tests", "-q"], cwd=repo, env=env, timeout=30)
+    baseline = run([str(python), "-B", "-m", "unittest", "discover", "-s", "tests", "-q"], cwd=repo, env=env, timeout=30)
     require(baseline.returncode != 0, f"{agent}: acceptance fixture baseline is unexpectedly green")
     certificate = root / f"{agent}-certificate.json"
     guard = run(
@@ -265,7 +281,7 @@ def exercise_agent(agent: str, *, root: Path, python: Path, idleproof: Path, env
     try:
         require(guard.returncode == 0, f"{agent}: real agent journey was not accepted by DiffWitness", guard)
         require("PROOF ACCEPTED" in (guard.stdout + guard.stderr), f"{agent}: Guard did not surface accepted proof", guard)
-        post = run([str(python), "-m", "unittest", "discover", "-s", "tests", "-q"], cwd=repo, env=env, timeout=30)
+        post = run([str(python), "-B", "-m", "unittest", "discover", "-s", "tests", "-q"], cwd=repo, env=env, timeout=30)
         require(post.returncode == 0, f"{agent}: candidate is not actually green after Guard", post)
         assert_only_expected_change(repo)
         summary = assert_product_state(repo, idleproof, agent, env)
@@ -298,6 +314,9 @@ def main(argv: list[str] | None = None) -> int:
             python, idleproof, tarball = build_exact_consumers(root, idleproof_repo)
             env = os.environ.copy()
             env["PATH"] = str(idleproof.parent) + os.pathsep + env.get("PATH", "")
+            # Keep harness-created Python cache files out of the user workspace so the strict
+            # scope validator measures agent behavior rather than interpreter side effects.
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
             # The real-agent jobs must never inherit production Portal authority. They only exercise
             # local agent behavior; the managed Portal behavior lab is a separate isolated workflow.
             for secret in ("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_DB_PASSWORD"):
