@@ -100,6 +100,10 @@ def main(argv: list[str] | None = None) -> int:
 
         print(PUBLIC_HELP, end="")
         return 0
+    if args[0] == "setup":
+        from ..setup import setup_cli
+
+        return setup_cli(args[1:])
     if args[0] == "ide-hook":
         from ..ide_plugin import ide_hook_cli
 
