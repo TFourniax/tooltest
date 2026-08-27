@@ -1,8 +1,8 @@
 # Product surfaces: DiffWitness and IdleProof
 
-DiffWitness and IdleProof share one assurance system but are deliberately **not one user experience**.
+DiffWitness and IdleProof share one assurance system but are deliberately **not one fixed user experience**.
 
-## One truth model, two products
+## One truth model, two product entry points
 
 ### DiffWitness — technical change assurance
 
@@ -44,6 +44,31 @@ IdleProof may:
 
 IdleProof must not turn a heuristic, an LLM suggestion or missing evidence into a VERIFIED claim.
 
+## Reversible experience level
+
+Product entry point and experience level are separate decisions.
+
+A user can enter through IdleProof and later ask for engineering detail. A developer can enter through DiffWitness and later prefer a simpler project summary. No reinstall, migration, duplicate project or second proof run is required to move between those levels.
+
+The supported human-facing levels are:
+
+- **Guided** — plain language, consequences, unknowns and recommended actions first. Exact provenance remains available through progressive disclosure.
+- **Technical** — exact assurance terminology, Git/change identity, proof scope, certificate/provenance detail, Debt Ledger accounting and engineering commands first.
+
+Switching levels changes **presentation only**. It must never change:
+
+- the bound change;
+- proof execution or acceptance;
+- certificate contents;
+- Debt Ledger history or policy;
+- readiness inputs;
+- machine-readable status contracts;
+- privacy boundaries.
+
+For the local DiffWitness experience, `dw view guided` and `dw view technical` persist the preference under `.git/diffwitness/`; `dw status --view ...` provides a one-off override. Existing DiffWitness installations default to Technical for backward compatibility. The `dw status --json` contract is deliberately view-invariant.
+
+IdleProof Portal defaults to Guided because it is the non-technical product entry point, while Technical remains available from the global application shell and can be reversed at any time.
+
 ## Trust vocabulary
 
 Every customer-facing statement that can affect a merge, release or security decision should map to one of these classes:
@@ -53,7 +78,7 @@ Every customer-facing statement that can affect a merge, release or security dec
 - **SUGGESTED** — recommended next work, test or question. Useful, but not evidence that the work is required or correct.
 - **UNKNOWN** — the system does not currently have enough evidence to make the stronger statement.
 
-No presentation layer may silently upgrade OBSERVED, SUGGESTED or UNKNOWN to VERIFIED.
+No presentation layer may silently upgrade OBSERVED, SUGGESTED or UNKNOWN to VERIFIED. Guided mode may translate these labels, but the underlying class must remain inspectable.
 
 ## Architecture boundary
 
@@ -79,6 +104,8 @@ coding agent / human
               IdleProof Portal
           human UX + longitudinal
           readiness + next actions
+                 /          \
+            Guided       Technical
 ```
 
 The Portal is not a second proof engine. It is a commercial coordination and presentation surface over bounded metadata.
@@ -89,12 +116,13 @@ The cloud control plane should not require source code, raw prompts, raw diffs o
 
 ## Product rule
 
-Do not solve audience differences by forking assurance semantics.
+Do not solve audience differences by forking assurance semantics or by trapping a user in the persona chosen during onboarding.
 
 Additive UX is preferred:
 
 - developers get concise summaries plus drill-down to exact evidence;
 - non-technical users get plain-language state plus drill-down to provenance;
+- either user can switch the default disclosure level at any time;
 - both surfaces resolve to the same change IDs, proof certificates and Debt Ledger obligations when those objects exist.
 
 This keeps the product understandable without creating two incompatible definitions of truth.
