@@ -1,6 +1,7 @@
 PUBLIC_HELP = """DiffWitness — evidence, software debt, and project continuity for AI-assisted code
 
 Core workflow:
+  dw view [guided|technical]         Show or switch the saved human-facing experience for this repo
   dw status [options]                Show evidence readiness, current change, debt, and next actions
   dw guard [options] -- <agent>      Run Claude/Codex/another agent inside the proof + debt boundary
   dw gate [options]                  Validate an existing Git diff / pull request
@@ -35,9 +36,16 @@ Evidence / interoperability:
 
 Start here:
   dw status
+  dw view guided                     # simpler language, same underlying truth
+  dw view technical                  # exact engineering detail
   dw doctor
   dw guard --policy strict -- claude
   # or: dw guard --policy strict -- codex
+
+The saved view is a local presentation preference stored under `.git/diffwitness/`; it never changes
+proof semantics, Debt Ledger state, source code, or the repository HEAD. `dw status --view ...` can
+override it for one invocation. `dw status --json` always emits the same bounded machine contract,
+regardless of the human-facing view.
 
 `dw status` is intentionally a navigation summary, not a correctness score. It only summarizes
 configured/detected evidence, Git metadata and the Debt Ledger, and points to the next command that
