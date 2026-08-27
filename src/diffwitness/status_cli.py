@@ -10,6 +10,7 @@ from .config import load_config
 from .debt_budget import ledger_path, merged_debt_config
 from .gitops import git, repo_root
 from .ledger import DebtLedger
+from .view_mode import VIEW_MODES, get_view_mode
 
 
 def _evidence_command(repo: Path, config: dict[str, Any]) -> tuple[str | None, str]:
@@ -142,13 +143,13 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
     }
 
 
-def _render(value: dict[str, Any]) -> str:
+def _render_technical(value: dict[str, Any]) -> str:
     evidence = value["evidence"]
     tree = value["working_tree"]
     debt = value["debt"]
     envelope = value.get("latest_change_envelope") or {}
     lines = [
-        "DIFFWITNESS STATUS",
+        "DIFFWITNESS STATUS · TECHNICAL VIEW",
         "",
         f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}" + (
             f" ({evidence['source']}: {evidence['command']})" if evidence['ready'] else ""
@@ -167,9 +168,63 @@ def _render(value: dict[str, Any]) -> str:
         [
             "",
             "Status is a navigation summary, not a correctness verdict. Use Gate / Proof for executable claims.",
+            "Prefer less detail? `dw view guided` (or one-off: `dw status --view guided`).",
         ]
     )
     return "\n".join(lines)
+
+
+def _guided_heading(value: dict[str, Any]) -> tuple[str, str]:
+    evidence = value["evidence"]
+    tree = value["working_tree"]
+    debt = value["debt"]
+    if not evidence["ready"]:
+        return "Setup needs attention", "DiffWitness does not yet know how to run executable checks for this project."
+    if tree["dirty"]:
+        return "A change is waiting to be verified", f"{tree['changed_file_count']} changed file(s) are currently present."
+    if debt["open_obligations"]:
+        return "Some known items need attention", f"{debt['open_obligations']} technical obligation(s) are still open."
+    return "Ready for the next protected change", "Verification setup is available, the working tree is clean, and no open obligation is recorded."
+
+
+def _render_guided(value: dict[str, Any]) -> str:
+    evidence = value["evidence"]
+    tree = value["working_tree"]
+    debt = value["debt"]
+    envelope = value.get("latest_change_envelope") or {}
+    heading, summary = _guided_heading(value)
+    lines = [
+        "DIFFWITNESS · GUIDED VIEW",
+        "",
+        heading,
+        summary,
+        "",
+        "What we know",
+        "✓ Verification setup is ready." if evidence["ready"] else "⚠ Verification setup is not ready yet.",
+        f"⚠ {tree['changed_file_count']} changed file(s) are waiting for verification." if tree["dirty"] else "✓ No uncommitted software change is currently visible.",
+        f"⚠ {debt['open_obligations']} technical obligation(s) remain to review." if debt["open_obligations"] else "✓ No open technical obligation is recorded in the Debt Ledger.",
+        "✓ A previous protected change is recorded." if envelope.get("present") else "• No protected change receipt is recorded yet.",
+        "",
+        "What to do next",
+    ]
+    for index, action in enumerate(value["next_actions"], start=1):
+        lines.append(f"{index}. {action['title']}")
+        lines.append(f"   Why: {action['reason']}")
+        lines.append(f"   Run: {action['command']}")
+    lines.extend(
+        [
+            "",
+            "This is guidance over bounded project signals, not a claim that the application is complete or correct.",
+            "Want the engineering details? `dw view technical` (or one-off: `dw status --view technical`).",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def render_project_status(value: dict[str, Any], *, view: str) -> str:
+    if view == "guided":
+        return _render_guided(value)
+    return _render_technical(value)
 
 
 def status_cli(argv: list[str]) -> int:
@@ -179,6 +234,7 @@ def status_cli(argv: list[str]) -> int:
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
+    parser.add_argument("--view", choices=VIEW_MODES, help="Temporarily override the saved guided/technical display view")
     parser.add_argument("--json", action="store_true", help="Emit the bounded diffwitness.project-status.v1 JSON contract")
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)
@@ -186,8 +242,8 @@ def status_cli(argv: list[str]) -> int:
     if args.json:
         print(json.dumps(value, indent=2, ensure_ascii=False))
     else:
-        print(_render(value))
+        print(render_project_status(value, view=args.view or get_view_mode(repo)))
     return 0
 
 
-__all__ = ["build_project_status", "status_cli"]
+__all__ = ["build_project_status", "render_project_status", "status_cli"]
