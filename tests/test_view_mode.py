@@ -3,16 +3,28 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness.entry import main
 from diffwitness.view_mode import DEFAULT_VIEW_MODE, get_view_mode, set_view_mode, view_cli
 
 
 def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", *args], cwd=repo, check=True, text=True, capture_output=True).stdout.strip()
+
+
+@contextlib.contextmanager
+def _cwd(path: Path):
+    before = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(before)
 
 
 class ViewModeTests(unittest.TestCase):
@@ -53,6 +65,23 @@ class ViewModeTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             self.assertEqual(view_cli(["technical", "--repo", str(repo), "--json"]), 0)
         self.assertEqual(json.loads(output.getvalue())["view"], "technical")
+
+    def test_root_help_follows_saved_view_without_removing_access_to_technical_mode(self) -> None:
+        repo = self.make_repo()
+        with _cwd(repo):
+            technical = io.StringIO()
+            with contextlib.redirect_stdout(technical):
+                self.assertEqual(main([]), 0)
+            self.assertIn("Core workflow", technical.getvalue())
+            self.assertIn("dw prove", technical.getvalue())
+            set_view_mode(repo, "guided")
+            guided = io.StringIO()
+            with contextlib.redirect_stdout(guided):
+                self.assertEqual(main([]), 0)
+            self.assertIn("Guided view", guided.getvalue())
+            self.assertIn("dw status", guided.getvalue())
+            self.assertIn("dw view technical", guided.getvalue())
+            self.assertNotIn("dw prove [options]", guided.getvalue())
 
     def test_invalid_stored_preference_fails_soft_to_technical(self) -> None:
         repo = self.make_repo()
