@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Any
 
 from .debt_models import DEBT_CATEGORIES, DebtBudgetResult, DebtReport
+from .debt_sensor import merge_sensor_result
 from .ledger import DebtLedger, _ledger_lock
+from .semantic_redundancy import SENSOR_ID as SEMANTIC_REDUNDANCY_SENSOR_ID, SemanticRedundancySensor
 
 DEFAULT_DEBT_CONFIG: dict[str, Any] = {
     "ledger": ".git/diffwitness/debt-ledger.jsonl",
@@ -14,6 +16,10 @@ DEFAULT_DEBT_CONFIG: dict[str, Any] = {
     "duplicate_scan": True,
     "max_scan_files": 500,
     "max_duplicate_signals": 20,
+    "semantic_redundancy_scan": True,
+    "semantic_redundancy_threshold": 0.88,
+    "semantic_redundancy_min_tokens": 32,
+    "max_semantic_redundancy_signals": 20,
     "auto_record": True,
 }
 
@@ -32,8 +38,53 @@ def ledger_path(repo: Path, debt_config: dict[str, Any]) -> Path:
     return path if path.is_absolute() else repo / path
 
 
+def _mark_sensor_degraded(change: DebtReport, exc: Exception) -> None:
+    sensors = dict(change.metadata.get("debt_sensors") or {})
+    sensors[SEMANTIC_REDUNDANCY_SENSOR_ID] = {
+        "status": "degraded",
+        "signals": 0,
+        "error": f"{type(exc).__name__}: {exc}"[:240],
+        "non_blocking": True,
+    }
+    change.metadata["debt_sensors"] = sensors
+
+
+def _enrich_change_with_sensors(change: DebtReport, config: dict[str, Any]) -> None:
+    """Attach advisory Debt Sensor findings at the accounting boundary.
+
+    This deliberately runs after DiffWitness Proof/debt measurement has produced its report. Sensors
+    therefore cannot alter WITNESSED/UNWITNESSED/INCONCLUSIVE or fabricate causal evidence. A sensor
+    failure is fail-open for the sensor only: the pre-existing debt/budget path continues unchanged.
+    """
+    if not bool(config.get("semantic_redundancy_scan", True)):
+        return
+    if change.scope != "change" or not change.repo or not change.base_sha or not change.candidate_sha:
+        return
+    already = change.metadata.get("debt_sensors") or {}
+    if SEMANTIC_REDUNDANCY_SENSOR_ID in already:
+        return
+    try:
+        sensor = SemanticRedundancySensor(
+            threshold=float(config.get("semantic_redundancy_threshold", 0.88)),
+            max_files=int(config.get("max_scan_files", 500)),
+            max_signals=int(config.get("max_semantic_redundancy_signals", 20)),
+            min_tokens=int(config.get("semantic_redundancy_min_tokens", 32)),
+        )
+        result = sensor.scan_change(
+            repo=Path(change.repo),
+            base_sha=change.base_sha,
+            candidate_sha=change.candidate_sha,
+        )
+        merge_sensor_result(change, result)
+    except Exception as exc:  # advisory sensors must never regress the existing proof/accounting path
+        _mark_sensor_degraded(change, exc)
+
+
 def evaluate_budget(*, ledger: DebtLedger, change: DebtReport | None, debt_config: dict[str, Any]) -> DebtBudgetResult:
     config = merged_debt_config(debt_config)
+    if change is not None:
+        _enrich_change_with_sensors(change, config)
+
     active_total = ledger.active_points()
     active_by_category = ledger.active_by_category()
     active_ids = {item.debt_id for item in ledger.active_items()}

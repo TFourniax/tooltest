@@ -4,9 +4,11 @@ import ast
 from pathlib import Path, PurePosixPath
 
 from .debt_models import DebtReport
+from .debt_sensor import merge_sensor_result
 from .debt_scan import scan_project as _scan_project
 from .diffing import is_test_path
 from .gitops import detached_worktree, snapshot_worktree
+from .semantic_redundancy import SENSOR_ID as SEMANTIC_REDUNDANCY_SENSOR_ID, SemanticRedundancySensor
 
 
 def _python_top_level_targets(repo: Path, source: str) -> set[str] | None:
@@ -92,12 +94,27 @@ def _filter_project_noise(repo: Path, report: DebtReport) -> tuple[DebtReport, d
     }
 
 
+def _mark_sensor_degraded(report: DebtReport, exc: Exception) -> None:
+    sensors = dict(report.metadata.get("debt_sensors") or {})
+    sensors[SEMANTIC_REDUNDANCY_SENSOR_ID] = {
+        "status": "degraded",
+        "signals": 0,
+        "error": f"{type(exc).__name__}: {exc}"[:240],
+        "non_blocking": True,
+    }
+    report.metadata["debt_sensors"] = sensors
+
+
 def scan_project(
     *,
     repo: Path,
     duplicate_scan: bool = True,
     max_scan_files: int = 500,
     max_duplicate_signals: int = 20,
+    semantic_redundancy_scan: bool = True,
+    semantic_redundancy_threshold: float = 0.88,
+    semantic_redundancy_min_tokens: int = 32,
+    max_semantic_redundancy_signals: int = 20,
 ) -> DebtReport:
     """Scan an immutable snapshot of the current worktree.
 
@@ -110,6 +127,10 @@ def scan_project(
     A narrow semantic post-pass removes two known sources of project-level accounting noise without
     hiding production debt: Python imports that are lazy/function-local rather than initialization
     edges, and duplicate blocks whose every location is a test file.
+
+    Debt Sensors run only after this deterministic scan. They are advisory extensions and cannot
+    affect DiffWitness Proof classifications. Semantic redundancy findings currently carry zero debt
+    points by design while precision is benchmarked on real repositories.
     """
     candidate_sha = snapshot_worktree(repo)
     with detached_worktree(repo, candidate_sha, "debt-health-snapshot") as snapshot:
@@ -120,6 +141,20 @@ def scan_project(
             max_duplicate_signals=max_duplicate_signals,
         )
         report, filtered = _filter_project_noise(snapshot, report)
+        if semantic_redundancy_scan:
+            try:
+                sensor = SemanticRedundancySensor(
+                    threshold=semantic_redundancy_threshold,
+                    max_files=max_scan_files,
+                    max_signals=max_semantic_redundancy_signals,
+                    min_tokens=semantic_redundancy_min_tokens,
+                )
+                merge_sensor_result(
+                    report,
+                    sensor.scan_project(repo=snapshot, candidate_sha=candidate_sha),
+                )
+            except Exception as exc:  # advisory sensor failure must not regress health/debt
+                _mark_sensor_degraded(report, exc)
     report.repo = str(repo)
     report.metadata = {
         **report.metadata,
