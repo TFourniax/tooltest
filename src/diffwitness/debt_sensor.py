@@ -29,9 +29,24 @@ class DebtSensor(Protocol):
     def scan_project(self, *, repo: Any, candidate_sha: str) -> DebtSensorResult: ...
 
 
+def _normalize_verification(signal: DebtSignal) -> None:
+    """Normalize the temporary sensor alias without widening the durable Ledger contract.
+
+    The established Debt Ledger verification discriminator is ``type``. Early experimental sensors
+    briefly emitted ``kind``. Accept that alias at the sensor boundary only, then persist/report the
+    canonical form so recheck consumers never need to understand two schemas.
+    """
+    verification = dict(signal.verification or {})
+    alias = verification.pop("kind", None)
+    if alias is not None and "type" not in verification:
+        verification["type"] = alias
+    signal.verification = verification
+
+
 def merge_sensor_result(report: DebtReport, result: DebtSensorResult) -> DebtReport:
     """Merge advisory findings without changing the report/proof identity or accounting semantics."""
-
+    for signal in result.signals:
+        _normalize_verification(signal)
     report.signals = dedupe_signals([*report.signals, *result.signals])
     sensors = dict(report.metadata.get("debt_sensors") or {})
     sensors[result.sensor_id] = {

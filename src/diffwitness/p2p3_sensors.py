@@ -284,7 +284,7 @@ def _layer_bypass_signal(source: str, target: str, mediator_targets: list[str], 
             "candidate_sha": candidate_sha,
             "source_code_exported": False,
         },
-        verification={"kind": "change-rule", "sensor": LAYER_BYPASS_SENSOR_ID},
+        verification={"type": "change-rule", "sensor": LAYER_BYPASS_SENSOR_ID},
         tags=["debt-sensor", "architecture", "layer-bypass", "advisory"],
     )
 
@@ -312,7 +312,7 @@ def _orphan_signal(target: str, previous_importers: list[str], *, candidate_sha:
             "static_import_graph_only": True,
             "source_code_exported": False,
         },
-        verification={"kind": "change-rule", "sensor": ORPHAN_CODE_SENSOR_ID},
+        verification={"type": "change-rule", "sensor": ORPHAN_CODE_SENSOR_ID},
         tags=["debt-sensor", "architecture", "orphan-code", "migration-residue", "advisory"],
     )
 
@@ -415,7 +415,7 @@ def parallel_abstraction_from_semantic(result: DebtSensorResult, *, max_signals:
                     "This can indicate two competing architectural entry points for the same responsibility; keep both only when the boundary is intentional."
                 ),
                 evidence=derived_evidence,
-                verification={"kind": "project-rule", "sensor": PARALLEL_ABSTRACTION_SENSOR_ID},
+                verification={"type": "project-rule", "sensor": PARALLEL_ABSTRACTION_SENSOR_ID},
                 tags=["debt-sensor", "architecture", "parallel-abstraction", "advisory"],
             )
         )
@@ -571,7 +571,7 @@ def _dependency_signal(
             "candidate_sha": candidate_sha,
             "source_code_exported": False,
         },
-        verification={"kind": "project-rule", "sensor": DEPENDENCY_SPRAW_SENSOR_ID},
+        verification={"type": "project-rule", "sensor": DEPENDENCY_SPRAW_SENSOR_ID},
         tags=["debt-sensor", "dependency", "overlapping-toolchain", "advisory"],
     )
 
