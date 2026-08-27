@@ -100,6 +100,10 @@ def main(argv: list[str] | None = None) -> int:
 
         print(PUBLIC_HELP, end="")
         return 0
+    if args[0] == "view":
+        from ..view_mode import view_cli
+
+        return view_cli(args[1:])
     if args[0] == "status":
         from ..status_cli import status_cli
 
