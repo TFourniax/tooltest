@@ -37,7 +37,7 @@ TOKEN_RE = re.compile(
     r"|[^\s]",
     re.MULTILINE,
 )
-WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+WORD_RE = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*")
 
 
 @dataclass(frozen=True, slots=True)
