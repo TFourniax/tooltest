@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diffwitness.status_cli import build_project_status, status_cli
+from diffwitness.status_cli import build_project_status, render_project_status, status_cli
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -61,17 +61,33 @@ class ProjectStatusTests(unittest.TestCase):
         self.assertNotIn("return 43", encoded)
         self.assertNotIn("return 42", encoded)
 
-    def test_json_cli_is_machine_readable_and_non_mutating(self) -> None:
+    def test_guided_and_technical_views_share_the_exact_same_status_model(self) -> None:
+        repo = self.make_repo()
+        (repo / "app.py").write_text("def answer():\n    return 43\n", encoding="utf-8")
+        value = build_project_status(repo)
+        guided = render_project_status(value, view="guided")
+        technical = render_project_status(value, view="technical")
+        self.assertIn("GUIDED VIEW", guided)
+        self.assertIn("A change is waiting to be verified", guided)
+        self.assertNotIn("Last change   ", guided)
+        self.assertIn("TECHNICAL VIEW", technical)
+        self.assertIn("Working tree  1 changed file(s)", technical)
+        self.assertEqual(value["schema"], "diffwitness.project-status.v1")
+
+    def test_json_cli_is_machine_readable_non_mutating_and_view_invariant(self) -> None:
         repo = self.make_repo()
         before = _git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            rc = status_cli(["--repo", str(repo), "--json"])
+        outputs: list[dict[str, object]] = []
+        for view in ("guided", "technical"):
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                rc = status_cli(["--repo", str(repo), "--view", view, "--json"])
+            self.assertEqual(rc, 0)
+            outputs.append(json.loads(output.getvalue()))
         after = _git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-        self.assertEqual(rc, 0)
         self.assertEqual(before, after)
-        payload = json.loads(output.getvalue())
-        self.assertEqual(payload["schema"], "diffwitness.project-status.v1")
+        self.assertEqual(outputs[0], outputs[1])
+        self.assertEqual(outputs[0]["schema"], "diffwitness.project-status.v1")
 
 
 if __name__ == "__main__":
