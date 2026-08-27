@@ -25,6 +25,14 @@ DEFAULT_DEBT_CONFIG: dict[str, Any] = {
     "max_security_policy_signals": 20,
     "agent_expansion_scan": True,
     "max_agent_expansion_signals": 1,
+    "layer_bypass_scan": True,
+    "max_layer_bypass_signals": 20,
+    "parallel_abstraction_scan": True,
+    "max_parallel_abstraction_signals": 20,
+    "dependency_sprawl_scan": True,
+    "max_dependency_sprawl_signals": 20,
+    "orphan_code_scan": True,
+    "max_orphan_code_signals": 20,
     "auto_record": True,
 }
 

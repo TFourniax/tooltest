@@ -58,7 +58,9 @@ def _filter_project_noise(repo: Path, report: DebtReport) -> tuple[DebtReport, d
 
         if signal.rule_id == "project.local-import-cycle":
             cycle = signal.evidence.get("cycle") if isinstance(signal.evidence, dict) else None
-            if isinstance(cycle, list) and len(cycle) >= 2 and all(PurePosixPath(str(path)).suffix.lower() == ".py" for path in cycle):
+            if isinstance(cycle, list) and len(cycle) >= 2 and all(
+                PurePosixPath(str(path)).suffix.lower() == ".py" for path in cycle
+            ):
                 parsed = True
                 runtime_cycle = True
                 normalized = [str(path) for path in cycle]
@@ -78,7 +80,10 @@ def _filter_project_noise(repo: Path, report: DebtReport) -> tuple[DebtReport, d
         kept.append(signal)
 
     report.signals = kept
-    return report, {"filtered_lazy_python_cycles": removed_lazy_cycles, "filtered_test_fixture_duplicates": removed_test_duplicates}
+    return report, {
+        "filtered_lazy_python_cycles": removed_lazy_cycles,
+        "filtered_test_fixture_duplicates": removed_test_duplicates,
+    }
 
 
 def scan_project(
@@ -95,17 +100,30 @@ def scan_project(
     max_parallel_source_signals: int = 20,
     duplicate_security_policy_scan: bool = True,
     max_security_policy_signals: int = 20,
+    parallel_abstraction_scan: bool = True,
+    max_parallel_abstraction_signals: int = 20,
+    dependency_sprawl_scan: bool = True,
+    max_dependency_sprawl_signals: int = 20,
 ) -> DebtReport:
     """Scan an immutable snapshot of the current worktree.
 
     The deterministic project scan remains authoritative for deterministic debt rules. Debt Sensors
     run only after that scan and are advisory extensions: they cannot affect DiffWitness Proof
-    classifications. Current semantic/P1 sensor findings carry zero debt points while precision is
-    benchmarked on real repositories.
+    classifications. Current semantic/P1/P2/P3 sensor findings carry zero debt points while precision
+    is benchmarked on real repositories.
+
+    Change-history-dependent sensors such as layer-bypass and orphan-code do not run in project mode
+    because a single snapshot cannot establish that an architectural edge was newly bypassed or that
+    a previously referenced implementation became orphaned.
     """
     candidate_sha = snapshot_worktree(repo)
     with detached_worktree(repo, candidate_sha, "debt-health-snapshot") as snapshot:
-        report = _scan_project(repo=snapshot, duplicate_scan=duplicate_scan, max_scan_files=max_scan_files, max_duplicate_signals=max_duplicate_signals)
+        report = _scan_project(
+            repo=snapshot,
+            duplicate_scan=duplicate_scan,
+            max_scan_files=max_scan_files,
+            max_duplicate_signals=max_duplicate_signals,
+        )
         report, filtered = _filter_project_noise(snapshot, report)
         enrich_project_with_sensors(
             report,
@@ -121,8 +139,17 @@ def scan_project(
                 "max_parallel_source_signals": max_parallel_source_signals,
                 "duplicate_security_policy_scan": duplicate_security_policy_scan,
                 "max_security_policy_signals": max_security_policy_signals,
+                "parallel_abstraction_scan": parallel_abstraction_scan,
+                "max_parallel_abstraction_signals": max_parallel_abstraction_signals,
+                "dependency_sprawl_scan": dependency_sprawl_scan,
+                "max_dependency_sprawl_signals": max_dependency_sprawl_signals,
             },
         )
     report.repo = str(repo)
-    report.metadata = {**report.metadata, **filtered, "scan_source": "worktree-snapshot", "snapshot_sha": candidate_sha}
+    report.metadata = {
+        **report.metadata,
+        **filtered,
+        "scan_source": "worktree-snapshot",
+        "snapshot_sha": candidate_sha,
+    }
     return report
