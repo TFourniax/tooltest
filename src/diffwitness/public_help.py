@@ -1,4 +1,4 @@
-PUBLIC_HELP = """DiffWitness — evidence, software debt, and project continuity for AI-assisted code
+TECHNICAL_HELP = """DiffWitness — evidence, software debt, and project continuity for AI-assisted code
 
 Core workflow:
   dw view [guided|technical]         Show or switch the saved human-facing experience for this repo
@@ -37,7 +37,6 @@ Evidence / interoperability:
 Start here:
   dw status
   dw view guided                     # simpler language, same underlying truth
-  dw view technical                  # exact engineering detail
   dw doctor
   dw guard --policy strict -- claude
   # or: dw guard --policy strict -- codex
@@ -60,4 +59,32 @@ changes the repository's code HEAD. Human `dw relation` assertions are always DE
 Use `dw <command> --help` for command-specific options.
 """
 
-__all__ = ["PUBLIC_HELP"]
+GUIDED_HELP = """DiffWitness · Guided view — understand what needs attention without hiding the evidence
+
+Start here:
+  dw status                         Show what is known, what needs attention, and what to do next
+  dw guard -- <agent>               Put the next Claude/Codex/agent change behind verification
+  dw doctor                         Check whether this project is ready to produce executable evidence
+  dw view technical                 Switch to exact engineering detail at any time
+
+Useful follow-up actions:
+  dw plan                           See which known technical obligations can be repaid next
+  dw repay -- <agent>               Ask an agent to repay selected debt and verify the result
+
+Guided view changes wording and disclosure only. It does not weaken verification, hide an UNKNOWN as
+success, or change any proof certificate / Debt Ledger state. `dw status --json` remains the same
+machine-readable contract in both views.
+
+Need the complete engineering command surface now? Run `dw view technical`, then `dw --help` again.
+You can switch back with `dw view guided` without reinstalling or changing the project.
+"""
+
+# Backward-compatible import for integrations/tests that expect the original constant.
+PUBLIC_HELP = TECHNICAL_HELP
+
+
+def help_for_view(view: str) -> str:
+    return GUIDED_HELP if view == "guided" else TECHNICAL_HELP
+
+
+__all__ = ["GUIDED_HELP", "PUBLIC_HELP", "TECHNICAL_HELP", "help_for_view"]
