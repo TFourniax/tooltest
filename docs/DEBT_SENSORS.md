@@ -14,7 +14,7 @@ The finding is intentionally phrased as **possible semantic reimplementation**. 
 
 Semantic redundancy findings are `heuristic`, category `redundancy`, and carry **0 points by default** during the calibration phase. They are still assigned stable `DW-...` identities and can be stored in Debt Ledger. This gives us real precision/false-positive data before allowing the sensor to affect debt budgets.
 
-The first calibration ships enabled with conservative internal defaults: similarity threshold `0.85`, minimum unit size `32` normalized tokens, and at most `20` semantic-redundancy signals per scan. `max_scan_files` from the existing debt scanner still bounds repository work.
+The first calibration ships enabled with conservative internal defaults: similarity threshold `0.88`, minimum unit size `32` normalized tokens, and at most `20` semantic-redundancy signals per scan. `max_scan_files` from the existing debt scanner still bounds repository work.
 
 These calibration knobs are intentionally **not yet part of the public TOML contract**. Exposing thresholds before we have measured precision on a representative real-repository corpus would create a configuration surface we might later need to break. Once the sensor has benchmark evidence, the stable controls can be promoted through the normal validated DiffWitness configuration contract.
 
