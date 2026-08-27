@@ -1,6 +1,7 @@
 PUBLIC_HELP = """DiffWitness — evidence, software debt, and project continuity for AI-assisted code
 
 Core workflow:
+  dw status [options]                Show evidence readiness, current change, debt, and next actions
   dw guard [options] -- <agent>      Run Claude/Codex/another agent inside the proof + debt boundary
   dw gate [options]                  Validate an existing Git diff / pull request
   dw prove [options]                 Exhaustive hunk-level counterfactual evidence
@@ -33,9 +34,14 @@ Evidence / interoperability:
   dw doctor [options]                Preflight evidence + advisory engine + continuity readiness
 
 Start here:
+  dw status
   dw doctor
   dw guard --policy strict -- claude
   # or: dw guard --policy strict -- codex
+
+`dw status` is intentionally a navigation summary, not a correctness score. It only summarizes
+configured/detected evidence, Git metadata and the Debt Ledger, and points to the next command that
+can produce stronger evidence.
 
 With the Claude/Codex plugin installed, task-specific `dw context` is injected automatically at
 UserPromptSubmit. Context is advisory; only executed DiffWitness evidence can establish VERIFIED
