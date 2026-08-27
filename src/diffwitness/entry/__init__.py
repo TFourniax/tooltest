@@ -36,6 +36,20 @@ def _option_value(argv: list[str], name: str, default: str | None = None) -> str
     return default
 
 
+def _root_help() -> str:
+    from ..public_help import TECHNICAL_HELP, help_for_view
+
+    try:
+        from ..gitops import repo_root
+        from ..view_mode import get_view_mode
+
+        repo = repo_root(".")
+        return help_for_view(get_view_mode(repo))
+    except Exception:
+        # Outside a repository, retain the established complete command surface.
+        return TECHNICAL_HELP
+
+
 def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
     try:
         from ..continuity_debt_bridge import sync_debt_history
@@ -96,9 +110,7 @@ def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
     if not args or args[0] in {"-h", "--help", "help"}:
-        from ..public_help import PUBLIC_HELP
-
-        print(PUBLIC_HELP, end="")
+        print(_root_help(), end="")
         return 0
     if args[0] == "view":
         from ..view_mode import view_cli
