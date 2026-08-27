@@ -18,7 +18,7 @@ Configuration under `[diffwitness.debt]`:
 
 ```toml
 semantic_redundancy_scan = true
-semantic_redundancy_threshold = 0.88
+semantic_redundancy_threshold = 0.85
 semantic_redundancy_min_tokens = 32
 max_semantic_redundancy_signals = 20
 ```

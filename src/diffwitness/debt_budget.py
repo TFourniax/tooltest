@@ -17,7 +17,7 @@ DEFAULT_DEBT_CONFIG: dict[str, Any] = {
     "max_scan_files": 500,
     "max_duplicate_signals": 20,
     "semantic_redundancy_scan": True,
-    "semantic_redundancy_threshold": 0.88,
+    "semantic_redundancy_threshold": 0.85,
     "semantic_redundancy_min_tokens": 32,
     "max_semantic_redundancy_signals": 20,
     "auto_record": True,
@@ -65,7 +65,7 @@ def _enrich_change_with_sensors(change: DebtReport, config: dict[str, Any]) -> N
         return
     try:
         sensor = SemanticRedundancySensor(
-            threshold=float(config.get("semantic_redundancy_threshold", 0.88)),
+            threshold=float(config.get("semantic_redundancy_threshold", 0.85)),
             max_files=int(config.get("max_scan_files", 500)),
             max_signals=int(config.get("max_semantic_redundancy_signals", 20)),
             min_tokens=int(config.get("semantic_redundancy_min_tokens", 32)),

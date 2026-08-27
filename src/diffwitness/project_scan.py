@@ -112,7 +112,7 @@ def scan_project(
     max_scan_files: int = 500,
     max_duplicate_signals: int = 20,
     semantic_redundancy_scan: bool = True,
-    semantic_redundancy_threshold: float = 0.88,
+    semantic_redundancy_threshold: float = 0.85,
     semantic_redundancy_min_tokens: int = 32,
     max_semantic_redundancy_signals: int = 20,
 ) -> DebtReport:

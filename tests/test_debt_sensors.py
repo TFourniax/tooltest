@@ -86,7 +86,7 @@ class SemanticRedundancySensorTests(unittest.TestCase):
             git("commit", "-q", "-m", "agent adds parallel implementation", cwd=repo)
             candidate = git("rev-parse", "HEAD", cwd=repo)
 
-            result = SemanticRedundancySensor().scan_change(
+            result = SemanticRedundancySensor(threshold=0.85).scan_change(
                 repo=repo,
                 base_sha=base,
                 candidate_sha=candidate,
@@ -101,7 +101,7 @@ class SemanticRedundancySensorTests(unittest.TestCase):
             self.assertFalse(signal.evidence["source_code_exported"])
             paths = {item["path"] for item in signal.evidence["locations"]}
             self.assertEqual(paths, {"legacy/auth.py", "new/access.py"})
-            self.assertGreaterEqual(signal.evidence["similarity"], 0.88)
+            self.assertGreaterEqual(signal.evidence["similarity"], 0.85)
 
     def test_change_and_project_modes_keep_same_debt_identity(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -114,7 +114,7 @@ class SemanticRedundancySensorTests(unittest.TestCase):
             git("commit", "-q", "-m", "parallel implementation", cwd=repo)
             candidate = git("rev-parse", "HEAD", cwd=repo)
 
-            sensor = SemanticRedundancySensor()
+            sensor = SemanticRedundancySensor(threshold=0.85)
             change = sensor.scan_change(repo=repo, base_sha=base, candidate_sha=candidate)
             project = sensor.scan_project(repo=repo, candidate_sha=candidate)
 
@@ -131,7 +131,7 @@ class SemanticRedundancySensorTests(unittest.TestCase):
             git("commit", "-q", "-m", "exact copy", cwd=repo)
             candidate = git("rev-parse", "HEAD", cwd=repo)
 
-            result = SemanticRedundancySensor().scan_change(
+            result = SemanticRedundancySensor(threshold=0.85).scan_change(
                 repo=repo,
                 base_sha=base,
                 candidate_sha=candidate,
