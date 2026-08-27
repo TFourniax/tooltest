@@ -1,9 +1,11 @@
-PUBLIC_HELP = """DiffWitness — understand, prove, control debt, and preserve continuity for AI-assisted code
+TECHNICAL_HELP = """DiffWitness — understand, prove, control debt, and preserve continuity for AI-assisted code
 
 Start here:
   dw setup                            Arm native Claude/Codex/Cursor integration for this Git project
   dw setup status                     Verify the installed DiffWitness integration
-  dw doctor                           Preflight local evidence, debt, and continuity readiness
+  dw status                           Show evidence readiness, current change, debt, and next actions
+  dw view guided                      Prefer simpler language over the same underlying truth
+  dw doctor                           Preflight local evidence, debt, continuity, and advisory readiness
 
 After setup, use Claude Code, Codex, or Cursor normally. DiffWitness runs at the native task boundary:
   UNDERSTAND  explain what the agent is changing in this project
@@ -50,14 +52,49 @@ Evidence / interoperability:
   dw recheck <DW-...> [options]        Replay verification for historical debt lineages
   dw ide-hook <event>                  Native IDE protocol (normally installed by `dw setup`)
 
+The saved view is a local presentation preference stored under `.git/diffwitness/`. Switching between
+Guided and Technical changes presentation only: proof semantics, certificates, Debt Ledger state,
+source code, repository HEAD, privacy boundaries, and machine-readable status contracts remain the same.
+`dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
+
 DiffWitness is local-first. Proof, Debt Ledger, understanding, and Project Continuity do not require a
 model API and do not upload source code. Portal sync, when configured, carries only the bounded product
 contract; raw prompts, raw diffs, agent event streams, and source code stay out of Portal.
 
-`dw guard` remains available as an explicit fallback for unsupported agents and automation. Normal
-Claude/Codex/Cursor users should not need to wrap their agent after `dw setup`.
+`dw status` is navigation over bounded evidence, Git metadata, and durable obligations; it is not a
+correctness score. `dw guard` remains an explicit fallback for unsupported agents and automation.
+Normal Claude/Codex/Cursor users should not need to wrap their agent after `dw setup`.
 
 Use `dw <command> --help` for command-specific options.
 """
 
-__all__ = ["PUBLIC_HELP"]
+GUIDED_HELP = """DiffWitness · Guided view — understand what needs attention without hiding the evidence
+
+Start here:
+  dw setup                           Connect DiffWitness to Claude/Codex/Cursor for this Git project
+  dw status                          Show what is known, what needs attention, and what to do next
+  dw doctor                          Check whether the project is ready to produce executable evidence
+  dw view technical                  Switch to exact engineering detail at any time
+
+Useful follow-up actions:
+  dw guard -- <agent>                Explicitly protect an unsupported agent/process when needed
+  dw plan                            See which known technical obligations can be repaid next
+  dw repay -- <agent>                Ask an agent to repay selected debt and verify the result
+
+Guided view changes wording and disclosure only. It does not weaken verification, hide an UNKNOWN as
+success, or change proof certificates, Debt Ledger state, project source, privacy boundaries, or the
+machine-readable status contract. Source code and raw prompts/diffs stay local by default.
+
+Need the complete engineering command surface now? Run `dw view technical`, then `dw --help` again.
+You can switch back with `dw view guided` without reinstalling or changing the project.
+"""
+
+# Backward-compatible import for integrations/tests that expect the original constant.
+PUBLIC_HELP = TECHNICAL_HELP
+
+
+def help_for_view(view: str) -> str:
+    return GUIDED_HELP if view == "guided" else TECHNICAL_HELP
+
+
+__all__ = ["GUIDED_HELP", "PUBLIC_HELP", "TECHNICAL_HELP", "help_for_view"]
