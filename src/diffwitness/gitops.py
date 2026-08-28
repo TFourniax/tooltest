@@ -38,12 +38,22 @@ def _run(
     input_text: str | None = None,
     check: bool = True,
 ) -> subprocess.CompletedProcess[str]:
+    """Run a textual Git/subprocess command with platform-independent UTF-8 decoding.
+
+    Git paths, patches and DiffWitness-owned text are UTF-8 oriented. Letting ``subprocess`` choose
+    the host locale makes the exact same repository behave differently on Windows (for example
+    cp1252 can fail while reading a UTF-8 source blob). Byte-exact plumbing must use ``_run_bytes``;
+    this helper deliberately decodes text as UTF-8 and replaces undecodable bytes instead of
+    crashing a background reader thread.
+    """
     proc = subprocess.run(
         args,
         cwd=cwd,
         env=env,
         input=input_text,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
