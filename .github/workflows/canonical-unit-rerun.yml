@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CANONICAL_SHA: 995bbdff26a7289766e153004467f91b5a6372e7
+  CANONICAL_SHA: a88c25c60f32676fe4354999681042013b9a0a5e
 
 jobs:
   test:
