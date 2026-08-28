@@ -1,0 +1,302 @@
+name: canonical-public-validation
+
+on:
+  push:
+    branches: ["agent/ci-canonical-validation-20260828"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canonical-public-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CANONICAL_SHA: b567594b05bfcdb481682ecd98566e128b3b85a1
+
+jobs:
+  test:
+    name: tests / ${{ matrix.os }} / py${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verify exact canonical checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Install editable package
+        run: python -m pip install -e .
+      - name: Check installed dependency graph
+        run: python -m pip check
+      - name: Compile package and integrations
+        run: python -m compileall -q src integrations scripts
+      - name: Run unit and integration tests
+        id: unittest
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -v 2>&1 | tee unittest.log
+          rc=${PIPESTATUS[0]}
+          echo "return_code=$rc" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+      - name: Preserve unittest diagnostics
+        if: ${{ always() && hashFiles('unittest.log') != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-unittest-${{ runner.os }}-py${{ matrix.python }}
+          path: unittest.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify package/runtime version contract
+        run: python -c "import diffwitness; from importlib.metadata import version; assert diffwitness.__version__ == version('diffwitness')"
+      - name: Smoke public CLIs
+        shell: bash
+        run: |
+          diffwitness --version
+          diffwitness suggest --repo .
+          dw --version
+          dw --help
+          dw doctor --repo .
+          dw engine --help
+          dw ledger --help
+          dw envelope --help
+          dw health --repo . --no-record
+      - name: Dogfood DiffWitness project health
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
+        run: dw health --repo . --no-record --json diffwitness-self-health.json
+      - name: Preserve self-health report
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14' && hashFiles('diffwitness-self-health.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-diffwitness-self-health
+          path: diffwitness-self-health.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Validate plugin, schema, and marketplace JSON
+        run: python -c "import json,pathlib; paths=['.claude-plugin/plugin.json','.claude-plugin/marketplace.json','.codex-plugin/plugin.json','hooks/claude-hooks.json','hooks/codex-hooks.json','schema/diffwitness-report-v2.schema.json','schema/diffwitness-certificate.schema.json','schema/change-envelope-v1.schema.json']; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in paths]"
+
+  static:
+    name: fatal static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - run: python -m pip install ruff
+      - run: python -m ruff check src integrations packaging scripts --select F821,F822,F823
+
+  action-e2e:
+    name: composite Action end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+          fetch-depth: 0
+      - run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Create harmless WORKTREE candidate
+        shell: bash
+        run: printf '\n<!-- canonical composite Action E2E -->\n' >> README.md
+      - name: Run repository Action exactly as a consumer would
+        uses: ./
+        with:
+          base: HEAD
+          candidate: WORKTREE
+          policy: balanced
+          strategy: auto
+          debt: "false"
+          ledger-sync: "false"
+          upload-certificate: "false"
+
+  package:
+    name: release package preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Build source and wheel distributions
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          python -m twine check dist/*
+      - name: Smoke installed release wheel in clean environment
+        shell: bash
+        run: |
+          python -m venv release-wheel-smoke
+          release-wheel-smoke/bin/python -m pip install --no-deps dist/*.whl
+          release-wheel-smoke/bin/python -m pip check
+          release-wheel-smoke/bin/dw --version
+          release-wheel-smoke/bin/dw --help
+          release-wheel-smoke/bin/dw engine --help
+          release-wheel-smoke/bin/dw ledger --help
+          release-wheel-smoke/bin/dw envelope --help
+          release-wheel-smoke/bin/diffwitness --version
+      - uses: actions/upload-artifact@v6
+        with:
+          name: canonical-preflight-python-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  wheel-e2e:
+    name: installed wheel alpha journeys / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Verify exact canonical checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build --wheel
+      - name: Install exact built wheel
+        run: python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
+      - run: python scripts/alpha_smoke.py
+      - run: python scripts/engine_artifact_smoke.py
+      - run: python scripts/human_acceptance.py
+      - run: python scripts/recovery_acceptance.py
+
+  binary:
+    name: standalone binary / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Verify exact canonical checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Build and smoke standalone dw
+        shell: bash
+        run: |
+          python -m pip install . pyinstaller
+          python -m pip check
+          pyinstaller --clean --onefile --name dw packaging/dw_entry.py
+          ./dist/dw --version || ./dist/dw.exe --version
+          ./dist/dw --help || ./dist/dw.exe --help
+          ./dist/dw engine --help || ./dist/dw.exe engine --help
+          ./dist/dw ledger --help || ./dist/dw.exe ledger --help
+          ./dist/dw envelope --help || ./dist/dw.exe envelope --help
+
+  proofbench:
+    name: causal semantics benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - run: |
+          python -m pip install .
+          python -m pip check
+      - run: python benchmarks/proofbench.py --json > proofbench-results.json
+      - if: ${{ always() && hashFiles('proofbench-results.json') != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-proofbench-results
+          path: proofbench-results.json
+          if-no-files-found: error
+          retention-days: 30
+
+  continuitybench:
+    name: longitudinal Continuity benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - run: python -m pip install -e .
+      - name: Benchmark 10k-event longitudinal project
+        run: >-
+          python scripts/continuity_bench.py
+          --events 10000
+          --batch-size 2000
+          --context-runs 7
+          --max-append-seconds 10
+          --max-verify-seconds 2
+          --max-rebuild-seconds 5
+          --max-context-cold-ms 1000
+          --max-context-hot-p95-ms 300
+          --json continuitybench.json
+      - if: ${{ always() && hashFiles('continuitybench.json') != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: canonical-continuitybench-10k
+          path: continuitybench.json
+          if-no-files-found: error
+          retention-days: 30
+
+  integrated-product:
+    name: native Understand-Prove-Owe-Continuity smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CANONICAL_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact canonical checkout
+        run: test "$(git rev-parse HEAD)" = "$CANONICAL_SHA"
+      - name: Checkout matching IdleProof sidecar hardening branch
+        uses: actions/checkout@v7
+        with:
+          repository: TFourniax/tooltest-2
+          ref: agent/prealpha-p0-hardening-20260823
+          fetch-depth: 0
+          path: idleproof
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - run: python -m py_compile scripts/real_agent_acceptance.py scripts/integrated_product_smoke.py
+      - run: python scripts/integrated_product_smoke.py --idleproof-repo ./idleproof
