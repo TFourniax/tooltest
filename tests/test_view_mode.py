@@ -72,16 +72,25 @@ class ViewModeTests(unittest.TestCase):
             technical = io.StringIO()
             with contextlib.redirect_stdout(technical):
                 self.assertEqual(main([]), 0)
-            self.assertIn("Core workflow", technical.getvalue())
-            self.assertIn("dw prove", technical.getvalue())
+            technical_help = technical.getvalue()
+            self.assertIn("Start here:", technical_help)
+            self.assertIn("dw setup", technical_help)
+            self.assertIn("dw view guided", technical_help)
+            self.assertIn("dw prove", technical_help)
+            self.assertIn("UNDERSTAND", technical_help)
+            self.assertIn("PROVE", technical_help)
+            self.assertIn("OWE", technical_help)
+            self.assertIn("CONTINUITY", technical_help)
+
             set_view_mode(repo, "guided")
             guided = io.StringIO()
             with contextlib.redirect_stdout(guided):
                 self.assertEqual(main([]), 0)
-            self.assertIn("Guided view", guided.getvalue())
-            self.assertIn("dw status", guided.getvalue())
-            self.assertIn("dw view technical", guided.getvalue())
-            self.assertNotIn("dw prove [options]", guided.getvalue())
+            guided_help = guided.getvalue()
+            self.assertIn("Guided view", guided_help)
+            self.assertIn("dw status", guided_help)
+            self.assertIn("dw view technical", guided_help)
+            self.assertNotIn("dw prove [options]", guided_help)
 
     def test_invalid_stored_preference_fails_soft_to_technical(self) -> None:
         repo = self.make_repo()
