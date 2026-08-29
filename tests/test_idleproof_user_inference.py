@@ -14,6 +14,7 @@ from diffwitness.entry import main
 from diffwitness.idleproof_user_inference import (
     UserInferenceError,
     _cache_key,
+    _print_units,
     _store_cache,
     _validate_transport_security,
     call_user_owned_provider,
@@ -136,11 +137,63 @@ class IdleProofUserInferenceTests(unittest.TestCase):
             )
         self.assertEqual(opener.calls, 1)
         self.assertEqual(result["provider_endpoint"], "https://provider.example/v1/chat/completions")
+        self.assertEqual(result["canonical_source"], "deterministic")
         self.assertFalse(result["diffwitness_managed_api_used"])
         ids = {unit["id"] for unit in result["units"]}
         self.assertNotIn("invented:99", ids)
+        self.assertEqual(result["units"][0]["original"], "One production file changed.")
         self.assertEqual(result["units"][0]["text"], "A clearer equivalent sentence.")
+        self.assertTrue(result["units"][0]["presentation_only"])
         self.assertIn("Bearer user-secret", opener.last_request.headers.get("Authorization", ""))
+
+    def test_provider_control_characters_are_neutralized_before_display_or_cache(self):
+        context = self.context()
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {"rewrites": [{"id": "what_changed:0", "text": "\u001b[31mPretend everything is safe\u001b[0m"}]}
+                        )
+                    }
+                }
+            ]
+        }
+        opener = _Opener(payload)
+        with mock.patch("urllib.request.build_opener", return_value=opener):
+            result = call_user_owned_provider(
+                context=context,
+                endpoint="https://provider.example/v1/chat/completions",
+                model="user/model",
+                api_key="user-secret",
+            )
+        self.assertNotIn("\x1b", result["units"][0]["text"])
+        self.assertEqual(result["units"][0]["original"], "One production file changed.")
+
+    def test_human_output_always_shows_deterministic_original_before_labelled_ai_wording(self):
+        result = {
+            "source": "user-owned-ai",
+            "canonical_source": "deterministic",
+            "units": [
+                {
+                    "id": "what_changed:0",
+                    "section": "what_changed",
+                    "original": "Canonical deterministic fact.",
+                    "text": "Smoother wording.",
+                    "rewritten": True,
+                    "presentation_only": True,
+                }
+            ],
+            "cost_owner": "user",
+            "diffwitness_managed_api_used": False,
+        }
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            _print_units(result)
+        rendered = output.getvalue()
+        self.assertLess(rendered.index("Canonical deterministic fact."), rendered.index("Smoother wording."))
+        self.assertIn("AI wording (presentation only)", rendered)
+        self.assertIn("Canonical wording above remains the deterministic evidence-derived", rendered)
 
     def test_api_key_cannot_be_sent_over_plain_http_except_loopback(self):
         with self.assertRaises(UserInferenceError):
@@ -201,7 +254,8 @@ class IdleProofUserInferenceTests(unittest.TestCase):
                         0,
                     )
             self.assertEqual(opener.calls, 1)
-            self.assertIn("Same fact, smoother wording.", first.getvalue())
+            self.assertIn("One production file changed.", first.getvalue())
+            self.assertIn("AI wording (presentation only): Same fact, smoother wording.", first.getvalue())
             self.assertIn("cached", second.getvalue())
             cache = repo / ".git" / "diffwitness" / "idleproof-ai-cache.json"
             self.assertTrue(cache.is_file())
@@ -220,6 +274,7 @@ class IdleProofUserInferenceTests(unittest.TestCase):
                 key_a,
                 {
                     "source": "user-owned-ai",
+                    "canonical_source": "deterministic",
                     "units": [],
                     "cost_owner": "user",
                     "diffwitness_managed_api_used": False,
