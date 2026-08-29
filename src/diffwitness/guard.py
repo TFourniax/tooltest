@@ -124,6 +124,24 @@ def _persist_guard_envelope(
     staged = output.with_suffix(".json.tmp")
     staged.write_text(json.dumps(envelope, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     staged.replace(output)
+
+    # Deterministic IdleProof is generated from the exact same frozen candidate as Proof/Debt.
+    # It is deliberately additive: presentation degradation must never erase accepted evidence.
+    try:
+        from .diffing import parse_file_patches
+        from .idleproof_explanation import write_explanation_artifact
+
+        files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
+        explanation_path = write_explanation_artifact(
+            repo=repo,
+            envelope=envelope,
+            file_patches=files,
+            debt_signals=list(report.signals) if report is not None else (),
+        )
+        print(f"IdleProof explanation: {explanation_path}")
+    except Exception as exc:
+        print(f"IdleProof deterministic explanation deferred: {str(exc)[:300]}", file=sys.stderr)
+
     print(f"Change envelope: {output}")
     return output
 
