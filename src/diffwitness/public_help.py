@@ -4,7 +4,7 @@ Start here:
   dw setup                            Arm native Claude/Codex/Cursor integration for this Git project
   dw setup status                     Verify the installed DiffWitness integration
   dw status                           Show evidence readiness, current change, debt, and next actions
-  dw explain                          Show the latest evidence-backed IdleProof explanation with no LLM
+  dw explain                          Show the latest deterministic evidence-backed IdleProof explanation
   dw view guided                      Prefer simpler language over the same underlying truth
   dw doctor                           Preflight local evidence, debt, continuity, and advisory readiness
 
@@ -14,6 +14,12 @@ After setup, use Claude Code, Codex, or Cursor normally. DiffWitness runs at the
   PROVE       execute evidence against the exact Git change
   OWE         measure and persist software/debt obligations
   CONTINUITY  preserve bounded project memory for the next task/session/device
+
+Optional presentation only (never changes evidence):
+  dw explain --engine agent-session   Export bounded facts for the model already active in your coding session
+  dw explain --engine local           Rephrase with your local Ollama/OpenAI-compatible model
+  dw explain --engine openrouter      Rephrase with your own OpenRouter key/credits
+  dw explain --engine custom          Rephrase with your own compatible endpoint
 
 Portal (optional cloud history):
   dw portal identity [--json]         Show the local project/device enrollment identity
@@ -60,9 +66,10 @@ source code, repository HEAD, privacy boundaries, and machine-readable status co
 `dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
 
 DiffWitness is local-first. Proof, Debt Ledger, deterministic IdleProof understanding, and Project
-Continuity do not require a model API and do not upload source code. Portal sync, when configured,
-carries only the bounded product contract; raw prompts, raw diffs, agent event streams, and source code
-stay out of Portal.
+Continuity do not require a model API and do not upload source code. Optional presentation engines receive
+only bounded evidence-derived facts and are explicitly user-owned unless a paid Portal plan enables
+DiffWitness Managed AI. Portal sync, when configured, carries only the bounded product contract; raw
+prompts, raw diffs, agent event streams, and source code stay out of Portal.
 
 `dw status` is navigation over bounded evidence, Git metadata, and durable obligations; it is not a
 correctness score. `dw guard` remains an explicit fallback for unsupported agents and automation.
@@ -84,6 +91,10 @@ Useful follow-up actions:
   dw guard -- <agent>                Explicitly protect an unsupported agent/process when needed
   dw plan                            See which known technical obligations can be repaid next
   dw repay -- <agent>                Ask an agent to repay selected debt and verify the result
+
+If you want smoother wording, `dw explain --help` shows optional local, current-agent, OpenRouter and
+custom-provider presentation modes. They only rephrase the same evidence; the default remains local and
+AI-free, and a Community user is never silently routed to DiffWitness-paid inference.
 
 Guided view changes wording and disclosure only. It does not weaken verification, hide an UNKNOWN as
 success, or change proof certificates, Debt Ledger state, project source, privacy boundaries, or the
