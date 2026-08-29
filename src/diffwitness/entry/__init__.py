@@ -125,9 +125,9 @@ def main(argv: list[str] | None = None) -> int:
 
         return setup_cli(args[1:])
     if args[0] == "explain":
-        from ..idleproof_explanation import explanation_cli
+        from ..idleproof_user_inference import user_inference_cli
 
-        return explanation_cli(args[1:])
+        return user_inference_cli(args[1:])
     if args[0] == "portal":
         from ..portal_proxy import portal_cli
 
