@@ -37,17 +37,18 @@ _MEASUREMENT_CONFIDENCE = {
 @dataclass(frozen=True, slots=True)
 class ManagedPlanPolicy:
     plan: str
-    monthly_limit: int | None
+    monthly_limit: int
     diffwitness_managed_allowed: bool
 
 
 _MANAGED_POLICIES = {
     "free": ManagedPlanPolicy("free", 0, False),
     "community": ManagedPlanPolicy("community", 0, False),
+    "alpha": ManagedPlanPolicy("alpha", 0, False),
     "builder": ManagedPlanPolicy("builder", 500, True),
     "pro": ManagedPlanPolicy("pro", 1_200, True),
     "team": ManagedPlanPolicy("team", 1_000, True),
-    "enterprise": ManagedPlanPolicy("enterprise", None, True),
+    "enterprise": ManagedPlanPolicy("enterprise", 5_000, True),
 }
 
 
@@ -66,8 +67,6 @@ def managed_inference_allowed(*, plan: str, used: int = 0, seats: int = 1) -> bo
     policy = managed_plan_policy(plan)
     if not policy.diffwitness_managed_allowed:
         return False
-    if policy.monthly_limit is None:
-        return True
     safe_used = max(0, int(used or 0))
     multiplier = max(1, int(seats or 1)) if policy.plan == "team" else 1
     return safe_used < policy.monthly_limit * multiplier
