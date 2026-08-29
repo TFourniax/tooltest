@@ -27,6 +27,7 @@ _LOCAL_TOOL_UNTRACKED = {
     ".codex/hooks.json",
     ".cursor/hooks.json",
     ".cursor/rules/idleproof-continuity.mdc",
+    ".diffwitness/soul.md",
 }
 
 
@@ -136,6 +137,8 @@ def _is_local_tool_untracked(path: PurePosixPath) -> bool:
         return True
     if len(parts) >= 3 and parts[-3:] == (".cursor", "rules", "idleproof-continuity.mdc"):
         return True
+    if len(parts) >= 2 and parts[-2:] == (".diffwitness", "soul.md"):
+        return True
     return normalized in _LOCAL_TOOL_UNTRACKED
 
 
@@ -179,106 +182,56 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
     head = resolve_ref(repo, "HEAD")
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
     os.close(fd)
-    os.unlink(index_name)
-    env = os.environ.copy()
-    env["GIT_INDEX_FILE"] = index_name
+    index_path = Path(index_name)
     try:
-        transient = _transient_untracked_paths(repo)
+        env = os.environ.copy()
+        env["GIT_INDEX_FILE"] = str(index_path)
         _run(["git", "read-tree", head], cwd=repo, env=env)
         _run(["git", "add", "-A", "--", "."], cwd=repo, env=env)
-        exclusions = [*(exclude_paths or []), *transient]
-        for raw in dict.fromkeys(exclusions):
-            rel = Path(raw)
-            if rel.is_absolute() or ".." in rel.parts:
-                raise GitError(f"snapshot exclusion must be a repo-relative path: {raw}")
-            _run(
-                ["git", "reset", "--quiet", head, "--", rel.as_posix()],
-                cwd=repo,
-                env=env,
-                check=False,
-            )
+        excluded = set(_transient_untracked_paths(repo))
+        for value in exclude_paths or []:
+            p = Path(value)
+            try:
+                rel = p.resolve().relative_to(repo.resolve()).as_posix()
+            except (OSError, ValueError):
+                continue
+            excluded.add(rel)
+        if excluded:
+            # Reset excluded paths in the alternate index to HEAD. If they do not exist in HEAD,
+            # remove them from the alternate index. Worktree/staging area are never touched.
+            for rel in sorted(excluded):
+                present = _run(["git", "cat-file", "-e", f"{head}:{rel}"], cwd=repo, check=False)
+                if present.returncode == 0:
+                    _run(["git", "reset", "-q", head, "--", rel], cwd=repo, env=env)
+                else:
+                    _run(["git", "rm", "--cached", "-q", "--ignore-unmatch", "--", rel], cwd=repo, env=env)
         tree = _run(["git", "write-tree"], cwd=repo, env=env).stdout.strip()
-        commit_env = env.copy()
-        commit_env.setdefault("GIT_AUTHOR_NAME", "DiffWitness")
-        commit_env.setdefault("GIT_AUTHOR_EMAIL", "diffwitness@localhost")
-        commit_env.setdefault("GIT_COMMITTER_NAME", "DiffWitness")
-        commit_env.setdefault("GIT_COMMITTER_EMAIL", "diffwitness@localhost")
-        return _run(
+        commit = _run(
             ["git", "commit-tree", tree, "-p", head],
             cwd=repo,
-            env=commit_env,
-            input_text="DiffWitness ephemeral worktree snapshot\n",
+            env=env,
+            input_text="DiffWitness worktree snapshot\n",
         ).stdout.strip()
+        return commit
     finally:
-        try:
-            os.unlink(index_name)
-        except FileNotFoundError:
-            pass
-
-
-def diff_text(repo: Path, base: str, candidate: str) -> str:
-    return git(
-        repo,
-        "-c",
-        "core.quotePath=false",
-        "diff",
-        "--no-color",
-        "--no-ext-diff",
-        "--find-renames",
-        "--binary",
-        "--unified=3",
-        base,
-        candidate,
-        "--",
-    )
+        index_path.unlink(missing_ok=True)
 
 
 @contextmanager
-def detached_worktree(repo: Path, commit: str, label: str) -> Iterator[Path]:
-    parent = Path(tempfile.mkdtemp(prefix=f"diffwitness-{label}-"))
-    worktree = parent / "repo"
-    try:
-        git(repo, "worktree", "add", "--detach", "--quiet", str(worktree), commit)
-        yield worktree
-    finally:
-        if worktree.exists():
-            git(repo, "worktree", "remove", "--force", str(worktree), check=False)
-        shutil.rmtree(parent, ignore_errors=True)
+def materialize(repo: Path, ref: str) -> Iterator[Path]:
+    """Materialize a Git ref in an isolated temporary worktree."""
+    resolved = resolve_ref(repo, ref)
+    with tempfile.TemporaryDirectory(prefix="diffwitness-materialize-") as td:
+        root = Path(td) / "checkout"
+        _run(["git", "worktree", "add", "--detach", str(root), resolved], cwd=repo)
+        try:
+            yield root
+        finally:
+            _run(["git", "worktree", "remove", "--force", str(root)], cwd=repo, check=False)
 
 
-def hard_reset(worktree: Path, commit: str, *, clean_ignored: bool = False) -> None:
-    """Restore a disposable worktree to an exact commit.
-
-    Normal callers preserve ignored dependency/cache state for speed. Stability isolation sets
-    `clean_ignored=True`, which is safe only for DiffWitness-owned disposable worktrees: ignored and
-    untracked state is removed before preparation is recreated for the next evidence repetition.
-    """
-    git(worktree, "reset", "--hard", "--quiet", commit)
-    clean_flags = "-ffdx" if clean_ignored else "-fd"
-    git(worktree, "clean", clean_flags, "--quiet", check=False)
-
-
-def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[bool, str]:
-    args = ["apply", "--whitespace=nowarn"]
-    if reverse:
-        args.append("-R")
-    proc = _run(["git", *args, "-"], cwd=worktree, input_text=patch, check=False)
-    return proc.returncode == 0, proc.stderr.strip()
-
-
-def candidate_delta(worktree: Path, candidate: str) -> str:
-    return git(
-        worktree,
-        "-c",
-        "core.quotePath=false",
-        "diff",
-        "--no-color",
-        "--no-ext-diff",
-        "--binary",
-        candidate,
-        "--",
-    )
-
-
-def git_version(repo: Path) -> str:
-    return git(repo, "--version").strip()
+def ensure_command(command: str) -> str:
+    value = shutil.which(command)
+    if value is None:
+        raise GitError(f"required command not found: {command}")
+    return value
