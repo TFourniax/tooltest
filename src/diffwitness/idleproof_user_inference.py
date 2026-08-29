@@ -5,6 +5,7 @@ import hashlib
 import ipaddress
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -26,6 +27,7 @@ MAX_OUTPUT_TOKENS = 800
 CACHE_SCHEMA = "idleproof.user-ai-cache.v1"
 MAX_CACHE_ENTRIES = 16
 MAX_CACHE_BYTES = 1_000_000
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
 
 
 class UserInferenceError(RuntimeError):
@@ -47,7 +49,10 @@ class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 def _text(value: Any, max_chars: int = 1_600) -> str:
-    normalized = " ".join(str(value or "").split())
+    # Provider output is untrusted terminal text even after JSON/ID validation. Strip C0/C1 control
+    # bytes (including ESC) before normalization so a model/provider cannot inject terminal escapes.
+    cleaned = _CONTROL_CHARS.sub("", str(value or ""))
+    normalized = " ".join(cleaned.split())
     if len(normalized) <= max_chars:
         return normalized
     return normalized[: max(0, max_chars - 1)].rstrip() + "…"
@@ -244,6 +249,7 @@ def call_user_owned_provider(
     rewrites = _parse_rewrites(_extract_content(provider), units)
     return {
         "source": "user-owned-ai",
+        "canonical_source": "deterministic",
         "provider_endpoint": _display_endpoint(endpoint),
         "model": model,
         "units": [
@@ -253,6 +259,7 @@ def call_user_owned_provider(
                 "original": unit.original,
                 "text": rewrites.get(unit.id, unit.original),
                 "rewritten": unit.id in rewrites,
+                "presentation_only": unit.id in rewrites,
             }
             for unit in units
         ],
@@ -356,9 +363,16 @@ def _print_units(result: Mapping[str, Any]) -> None:
         if section != current:
             current = section
             print(f"\n{section_titles.get(section, section)}")
-        print(f"- {unit.get('text')}")
+        original = _text(unit.get("original"))
+        rewritten = _text(unit.get("text"))
+        # The deterministic wording is always the canonical visible statement. AI wording is an
+        # optional labelled paraphrase beneath it and can never replace the evidence-derived text.
+        print(f"- {original}")
+        if bool(unit.get("rewritten")) and rewritten and rewritten != original:
+            print(f"  AI wording (presentation only): {rewritten}")
     cache_note = " · cached" if result.get("cache") == "hit" else ""
     print(f"\nAI provider: user-owned{cache_note}. DiffWitness managed inference cost: €0.")
+    print("Canonical wording above remains the deterministic evidence-derived IdleProof result.")
 
 
 def _fallback_deterministic(*, repo_arg: str, as_json: bool, reason: str) -> int:
@@ -409,6 +423,7 @@ def user_inference_cli(argv: list[str]) -> int:
         if args.engine == "agent-session":
             payload = {
                 "source": "agent-session-context",
+                "canonical_source": "deterministic",
                 "cost_owner": "user-session",
                 "diffwitness_managed_api_used": False,
                 "instruction": "Ask the active coding-session model to rephrase these facts only; evidence remains authoritative.",
