@@ -17,8 +17,8 @@ from diffwitness.idleproof_explanation import (
 
 
 class ManagedInferencePolicyTests(unittest.TestCase):
-    def test_free_and_unknown_plans_can_never_use_diffwitness_managed_inference(self):
-        for plan in ("free", "community", "", "typo-plan"):
+    def test_free_alpha_and_unknown_plans_can_never_use_diffwitness_managed_inference(self):
+        for plan in ("free", "community", "alpha", "", "typo-plan"):
             with self.subTest(plan=plan):
                 self.assertFalse(managed_inference_allowed(plan=plan))
                 self.assertEqual(resolve_inference_mode(requested="managed", plan=plan), "deterministic")
@@ -34,6 +34,16 @@ class ManagedInferencePolicyTests(unittest.TestCase):
         self.assertEqual(policy.monthly_limit, 1200)
         self.assertTrue(managed_inference_allowed(plan="pro", used=1199))
         self.assertFalse(managed_inference_allowed(plan="pro", used=1200))
+
+    def test_team_and_enterprise_are_finite_in_shared_policy(self):
+        team = managed_plan_policy("team")
+        enterprise = managed_plan_policy("enterprise")
+        self.assertEqual(team.monthly_limit, 1000)
+        self.assertEqual(enterprise.monthly_limit, 5000)
+        self.assertTrue(managed_inference_allowed(plan="team", seats=3, used=2999))
+        self.assertFalse(managed_inference_allowed(plan="team", seats=3, used=3000))
+        self.assertTrue(managed_inference_allowed(plan="enterprise", used=4999))
+        self.assertFalse(managed_inference_allowed(plan="enterprise", used=5000))
 
     def test_user_owned_compute_remains_available_on_free(self):
         expected = {
