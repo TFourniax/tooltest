@@ -4,9 +4,11 @@ Start here:
   dw setup                            Arm native Claude/Codex/Cursor integration for this Git project
   dw setup status                     Verify the installed DiffWitness integration
   dw status                           Show evidence readiness, current change, debt, and next actions
+  dw explain                          Show the latest evidence-backed IdleProof explanation with no LLM
   dw view guided                      Prefer simpler language over the same underlying truth
   dw doctor                           Preflight local evidence, debt, continuity, and advisory readiness
 
+Core workflow:
 After setup, use Claude Code, Codex, or Cursor normally. DiffWitness runs at the native task boundary:
   UNDERSTAND  explain what the agent is changing in this project
   PROVE       execute evidence against the exact Git change
@@ -57,9 +59,10 @@ Guided and Technical changes presentation only: proof semantics, certificates, D
 source code, repository HEAD, privacy boundaries, and machine-readable status contracts remain the same.
 `dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
 
-DiffWitness is local-first. Proof, Debt Ledger, understanding, and Project Continuity do not require a
-model API and do not upload source code. Portal sync, when configured, carries only the bounded product
-contract; raw prompts, raw diffs, agent event streams, and source code stay out of Portal.
+DiffWitness is local-first. Proof, Debt Ledger, deterministic IdleProof understanding, and Project
+Continuity do not require a model API and do not upload source code. Portal sync, when configured,
+carries only the bounded product contract; raw prompts, raw diffs, agent event streams, and source code
+stay out of Portal.
 
 `dw status` is navigation over bounded evidence, Git metadata, and durable obligations; it is not a
 correctness score. `dw guard` remains an explicit fallback for unsupported agents and automation.
@@ -73,6 +76,7 @@ GUIDED_HELP = """DiffWitness · Guided view — understand what needs attention 
 Start here:
   dw setup                           Connect DiffWitness to Claude/Codex/Cursor for this Git project
   dw status                          Show what is known, what needs attention, and what to do next
+  dw explain                         Explain the latest change from local evidence, with no AI required
   dw doctor                          Check whether the project is ready to produce executable evidence
   dw view technical                  Switch to exact engineering detail at any time
 
