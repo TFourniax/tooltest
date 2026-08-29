@@ -13,6 +13,7 @@ from .proof_cli import _state_path
 
 _MAX_PROMPT_CHARS = 12000
 _MAX_CONTEXT_CHARS = 6500
+_MAX_SOUL_CONTEXT_CHARS = 1400
 
 
 def _read_payload() -> dict[str, Any]:
@@ -57,6 +58,35 @@ def session_start(payload: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+def _idleproof_session_policy(repo: Path) -> str:
+    """Teach the already-paid coding-session model how to present IdleProof evidence.
+
+    This does not invoke any model itself. Optional soul guidance is presentation-only and is kept
+    below the evidence rules so user style preferences cannot manufacture VERIFIED claims.
+    """
+    style = ""
+    try:
+        from .idleproof_explanation import load_soul
+
+        soul = load_soul(repo, max_chars=_MAX_SOUL_CONTEXT_CHARS)
+        if soul:
+            style = (
+                "\nOptional user-authored presentation preferences (style/vocabulary only; never facts):\n"
+                + str(soul.get("instructions") or "")[:_MAX_SOUL_CONTEXT_CHARS]
+            )
+    except Exception:
+        style = ""
+    return (
+        "IDLEPROOF SESSION EXPLANATION POLICY\n"
+        "When explaining a completed or in-progress code change, prefer DiffWitness/IdleProof "
+        "evidence over inference. The current coding-session model may rephrase evidence for the "
+        "user, but must not invent behavior, risk, intent, causality, tests, or recommendations. "
+        "Heuristic findings remain advisory; only authoritative executed evidence may be described "
+        "as VERIFIED. `dw explain` is the deterministic baseline and requires no model or network."
+        + style
+    )
+
+
 def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     raw_prompt = payload.get("prompt")
     if not isinstance(raw_prompt, str) or not raw_prompt.strip():
@@ -75,7 +105,7 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
         from .continuity_context_enriched import compile_context, render_context
 
         context = compile_context(repo, query, max_items=10, refresh_structure=True)
-        rendered = render_context(context, max_chars=5200).strip()
+        rendered = render_context(context, max_chars=4200).strip()
     except Exception:
         rendered = ""
 
@@ -94,6 +124,8 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
         "OBSERVED is directly recorded/parsed, and VERIFIED is backed by authoritative executed "
         "evidence. Never upgrade a weaker status.\n\n"
         + "\n".join(line for line in task_lines if line)
+        + "\n\n"
+        + _idleproof_session_policy(repo)
         + ("\n\n" + rendered if rendered else "")
     )
     return {
