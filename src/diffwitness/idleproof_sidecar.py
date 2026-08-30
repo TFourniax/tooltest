@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import hashlib
 import json
 import os
@@ -15,7 +16,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Mapping
 
 from .engine_protocol import repository_fingerprint
 from .gitops import repo_root
@@ -26,7 +27,6 @@ LOCAL_PROJECT_SCHEMA = "idleproof.local-project.v1"
 PORTAL_CONFIG_SCHEMA = "idleproof.portal-config.v1"
 SNAPSHOT_SCHEMA = "idleproof.portal-snapshot.v1"
 ACK_SCHEMA = "idleproof.portal-ingest-ack.v1"
-ERROR_SCHEMA = "idleproof.portal-ingest-error.v1"
 MAX_RESPONSE_BYTES = 96 * 1024
 
 
@@ -59,6 +59,31 @@ def _write_json(path: Path, value: Mapping[str, Any]) -> None:
     staged.replace(path)
 
 
+def _write_secret(path: Path, value: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = path.with_suffix(path.suffix + ".tmp")
+    fd = os.open(staged, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(value)
+            handle.write("\n")
+    except Exception:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        raise
+    try:
+        os.chmod(staged, 0o600)
+    except OSError:
+        pass
+    staged.replace(path)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
 def _state_dir(repo: Path) -> Path:
     return repo / ".idleproof"
 
@@ -79,9 +104,25 @@ def _assurance_path(repo: Path) -> Path:
     return _state_dir(repo) / "assurance.json"
 
 
+def _portal_token_path(repo: Path) -> Path:
+    # Scoped ingest credentials are local secrets, not project content. Keeping this under .git
+    # makes accidental source commits impossible while still allowing automatic future syncs.
+    return repo / ".git" / "diffwitness" / "portal-device-token"
+
+
 def _safe_project_name(repo: Path) -> str:
     value = re.sub(r"[^A-Za-z0-9._ -]+", "-", repo.name).strip(" .-") or "project"
     return value[:120]
+
+
+def _existing_local_project(repo: Path) -> dict[str, Any] | None:
+    current = _read_json(_local_project_path(repo))
+    local_id = current.get("localId")
+    if current.get("schema") != LOCAL_PROJECT_SCHEMA:
+        return None
+    if not isinstance(local_id, str) or not re.fullmatch(r"[a-f0-9]{24}", local_id):
+        return None
+    return current
 
 
 def ensure_local_project(repo: Path) -> dict[str, Any]:
@@ -118,23 +159,12 @@ def _shell_command(executable: str, *args: str) -> str:
 
 
 def _agent_commands(dw_command: str) -> dict[str, tuple[str, str, str]]:
-    return {
-        "claude": (
-            _shell_command(dw_command, "ide-hook", "session-start"),
-            _shell_command(dw_command, "ide-hook", "user-prompt-submit"),
-            _shell_command(dw_command, "ide-hook", "session-stop"),
-        ),
-        "codex": (
-            _shell_command(dw_command, "ide-hook", "session-start"),
-            _shell_command(dw_command, "ide-hook", "user-prompt-submit"),
-            _shell_command(dw_command, "ide-hook", "session-stop"),
-        ),
-        "cursor": (
-            _shell_command(dw_command, "ide-hook", "session-start"),
-            _shell_command(dw_command, "ide-hook", "user-prompt-submit"),
-            _shell_command(dw_command, "ide-hook", "session-stop"),
-        ),
-    }
+    triple = (
+        _shell_command(dw_command, "ide-hook", "session-start"),
+        _shell_command(dw_command, "ide-hook", "user-prompt-submit"),
+        _shell_command(dw_command, "ide-hook", "session-stop"),
+    )
+    return {"claude": triple, "codex": triple, "cursor": triple}
 
 
 def _adapter_path(repo: Path, adapter: str) -> Path:
@@ -154,13 +184,6 @@ def _claude_like_entry(command: str, timeout: int, *, additional_context_limit: 
     return {"hooks": [hook]}
 
 
-def _append_unique(items: list[Any], entry: dict[str, Any]) -> None:
-    command = _entry_command(entry)
-    if command and any(_entry_command(item) == command for item in items if isinstance(item, dict)):
-        return
-    items.append(entry)
-
-
 def _entry_command(entry: Mapping[str, Any]) -> str | None:
     direct = entry.get("command")
     if isinstance(direct, str):
@@ -171,6 +194,13 @@ def _entry_command(entry: Mapping[str, Any]) -> str | None:
             if isinstance(item, Mapping) and isinstance(item.get("command"), str):
                 return str(item["command"])
     return None
+
+
+def _append_unique(items: list[Any], entry: dict[str, Any]) -> None:
+    command = _entry_command(entry)
+    if command and any(_entry_command(item) == command for item in items if isinstance(item, dict)):
+        return
+    items.append(entry)
 
 
 def _install_adapter(repo: Path, adapter: str, *, dw_command: str) -> tuple[Path, bool]:
@@ -219,8 +249,6 @@ def _resolve_adapters(raw: str, repo: Path) -> list[str]:
             detected.append("codex")
         if (repo / ".cursor").exists() or shutil.which("cursor"):
             detected.append("cursor")
-        # A fresh repository may not contain editor-local directories yet. Installing all three
-        # project-local hook files is deterministic and keeps `dw setup` useful before first launch.
         return detected or ["claude", "codex", "cursor"]
     values = [item.strip() for item in normalized.split(",") if item.strip()]
     unknown = [value for value in values if value not in {"claude", "codex", "cursor"}]
@@ -271,21 +299,23 @@ def integration_status(repo: Path) -> dict[str, Any]:
         for adapter in adapters
     }
     healthy = bool(adapters) and all(bool(item["installed"]) for item in details.values())
-    local = ensure_local_project(repo)
+    local = _existing_local_project(repo)
     return {
         "schema": INTEGRATION_SCHEMA,
         "healthy": healthy,
         "installed": healthy,
         "expectedAdapters": adapters,
         "adapters": details,
-        "localProjectId": local["localId"],
-        "repositoryFingerprint": local["repositoryFingerprint"],
+        "localProjectId": local.get("localId") if local else None,
+        "repositoryFingerprint": local.get("repositoryFingerprint") if local else repository_fingerprint(repo),
     }
 
 
 def integration_install(repo: Path, *, agent: str, dw_command: str) -> dict[str, Any]:
-    resolved_dw = shutil.which(dw_command) if os.path.sep not in dw_command and not (os.path.altsep and os.path.altsep in dw_command) else dw_command
-    executable = str(Path(resolved_dw or dw_command).expanduser())
+    has_separator = os.path.sep in dw_command or bool(os.path.altsep and os.path.altsep in dw_command)
+    resolved_dw = shutil.which(dw_command) if not has_separator else None
+    executable_path = Path(resolved_dw or dw_command).expanduser()
+    executable = str(executable_path.resolve()) if executable_path.exists() else str(executable_path)
     adapters = _resolve_adapters(agent, repo)
     created: dict[str, bool] = {}
     for adapter in adapters:
@@ -370,20 +400,68 @@ def _validate_endpoint(raw: str) -> str:
     return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", ""))
 
 
-def portal_configure(repo: Path, *, endpoint: str, token_env: str) -> dict[str, Any]:
+def _validate_device_token(token: str) -> str:
+    value = str(token or "").strip()
+    if not re.fullmatch(r"ipd_[A-Za-z0-9_-]{20,}", value):
+        raise IdleProofSidecarError("invalid ingest-only device token")
+    if len(value) > 512:
+        raise IdleProofSidecarError("ingest-only device token is unexpectedly large")
+    return value
+
+
+def portal_configure(
+    repo: Path,
+    *,
+    endpoint: str,
+    token_env: str | None = None,
+    token: str | None = None,
+) -> dict[str, Any]:
     endpoint = _validate_endpoint(endpoint)
-    token_env = str(token_env or "").strip()
-    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,127}", token_env):
-        raise IdleProofSidecarError("--token-env must be a valid environment variable name")
+    if bool(token_env) == bool(token):
+        raise IdleProofSidecarError("choose exactly one token source: --token-env or --token-stdin")
     local = ensure_local_project(repo)
-    payload = {
+    payload: dict[str, Any] = {
         "schema": PORTAL_CONFIG_SCHEMA,
         "endpoint": endpoint,
-        "tokenEnv": token_env,
         "configuredAt": _now(),
     }
+    if token_env:
+        normalized_env = str(token_env).strip()
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,127}", normalized_env):
+            raise IdleProofSidecarError("--token-env must be a valid environment variable name")
+        payload["tokenMode"] = "environment"
+        payload["tokenEnv"] = normalized_env
+        try:
+            _portal_token_path(repo).unlink()
+        except FileNotFoundError:
+            pass
+    else:
+        scoped_token = _validate_device_token(str(token or ""))
+        _write_secret(_portal_token_path(repo), scoped_token)
+        payload["tokenMode"] = "local-file"
+        payload["tokenEnv"] = None
     _write_json(_portal_config_path(repo), payload)
-    return {**payload, "localProjectId": local["localId"], "repositoryFingerprint": local["repositoryFingerprint"]}
+    return {
+        **payload,
+        "localProjectId": local["localId"],
+        "repositoryFingerprint": local["repositoryFingerprint"],
+        "tokenStoredInProjectConfig": False,
+    }
+
+
+def portal_disconnect(repo: Path) -> dict[str, Any]:
+    removed = False
+    for path in (_portal_config_path(repo), _portal_token_path(repo)):
+        try:
+            path.unlink()
+            removed = True
+        except FileNotFoundError:
+            pass
+    return {
+        "schema": "idleproof.portal-disconnect.v1",
+        "configured": False,
+        "credentialRemoved": removed,
+    }
 
 
 def _bounded_path(value: Any) -> str | None:
@@ -478,9 +556,12 @@ def build_portal_snapshot(repo: Path) -> dict[str, Any]:
     coverage = max(0, min(100, coverage))
     feature_coverage = max(0, min(100, feature_coverage))
 
-    file_count = int(summary.get("files", len(files))) if isinstance(summary.get("files", len(files)), int) else len(files)
-    additions = int(summary.get("additions", 0)) if isinstance(summary.get("additions", 0), int) else 0
-    deletions = int(summary.get("deletions", 0)) if isinstance(summary.get("deletions", 0), int) else 0
+    file_count_raw = summary.get("files", len(files))
+    file_count = int(file_count_raw) if isinstance(file_count_raw, int) and not isinstance(file_count_raw, bool) else len(files)
+    additions_raw = summary.get("additions", 0)
+    deletions_raw = summary.get("deletions", 0)
+    additions = int(additions_raw) if isinstance(additions_raw, int) and not isinstance(additions_raw, bool) else 0
+    deletions = int(deletions_raw) if isinstance(deletions_raw, int) and not isinstance(deletions_raw, bool) else 0
     task_summary = (
         f"DiffWitness captured a bounded change affecting {max(0, file_count)} file(s)."
         if change_id
@@ -579,19 +660,44 @@ def _post_snapshot(endpoint: str, token: str, snapshot: Mapping[str, Any]) -> tu
     return status, payload
 
 
+def _resolve_portal_token(repo: Path, config: Mapping[str, Any]) -> str:
+    mode = str(config.get("tokenMode") or "environment")
+    if mode == "environment":
+        token_env = str(config.get("tokenEnv") or "")
+        token = os.environ.get(token_env, "") if token_env else ""
+        if not token:
+            raise IdleProofSidecarError(
+                f"environment variable {token_env or '<unset>'} does not contain the configured ingest-only device token"
+            )
+        return _validate_device_token(token)
+    if mode == "local-file":
+        try:
+            token = _portal_token_path(repo).read_text(encoding="utf-8").strip()
+        except OSError as exc:
+            raise IdleProofSidecarError("locally stored ingest-only device token is unavailable; reconnect this project") from exc
+        return _validate_device_token(token)
+    raise IdleProofSidecarError("Portal token source is invalid; reconnect this project")
+
+
 def portal_status(repo: Path) -> dict[str, Any]:
-    local = ensure_local_project(repo)
+    local = _existing_local_project(repo)
     config = _read_json(_portal_config_path(repo))
     configured = config.get("schema") == PORTAL_CONFIG_SCHEMA
+    token_mode = str(config.get("tokenMode") or "environment") if configured else None
     token_env = str(config.get("tokenEnv") or "") if configured else ""
+    if token_mode == "local-file":
+        token_available = _portal_token_path(repo).is_file()
+    else:
+        token_available = bool(token_env and os.environ.get(token_env))
     return {
         "schema": "idleproof.portal-status.v1",
         "configured": configured,
         "endpoint": config.get("endpoint") if configured else None,
+        "tokenMode": token_mode,
         "tokenEnv": token_env or None,
-        "tokenAvailable": bool(token_env and os.environ.get(token_env)),
-        "localProjectId": local["localId"],
-        "repositoryFingerprint": local["repositoryFingerprint"],
+        "tokenAvailable": token_available,
+        "localProjectId": local.get("localId") if local else None,
+        "repositoryFingerprint": local.get("repositoryFingerprint") if local else repository_fingerprint(repo),
         "lastSnapshotAvailable": bool(_envelope(repo) or _explanation(repo)),
     }
 
@@ -601,10 +707,6 @@ def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
     if config.get("schema") != PORTAL_CONFIG_SCHEMA:
         raise IdleProofSidecarError("Portal is not configured; run `dw portal configure` first")
     endpoint = _validate_endpoint(str(config.get("endpoint") or ""))
-    token_env = str(config.get("tokenEnv") or "")
-    token = os.environ.get(token_env, "")
-    if not dry_run and not re.fullmatch(r"ipd_[A-Za-z0-9_-]{20,}", token):
-        raise IdleProofSidecarError(f"environment variable {token_env or '<unset>'} does not contain a valid ingest-only device token")
     snapshot = build_portal_snapshot(repo)
     if dry_run:
         return {
@@ -616,6 +718,7 @@ def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
             "rawPromptUploaded": False,
             "rawDiffUploaded": False,
         }
+    token = _resolve_portal_token(repo, config)
     status, payload = _post_snapshot(endpoint, token, snapshot)
     if status not in {200, 202} or payload.get("schema") != ACK_SCHEMA or payload.get("status") not in {"accepted", "duplicate"}:
         code = ((payload.get("error") or {}).get("code") if isinstance(payload.get("error"), Mapping) else None) or f"HTTP_{status}"
@@ -653,6 +756,18 @@ def portal_assurance(repo: Path, envelope_path: Path) -> dict[str, Any]:
     return payload
 
 
+def _read_prompted_token() -> str:
+    try:
+        if sys.stdin.isatty():
+            return _validate_device_token(getpass.getpass("Paste the ingest-only Portal token (input hidden): "))
+    except OSError:
+        pass
+    raw = sys.stdin.readline(1024)
+    if not raw:
+        raise IdleProofSidecarError("--token-stdin expected an ingest-only device token on stdin")
+    return _validate_device_token(raw)
+
+
 def _integration_parser(subparsers: argparse._SubParsersAction) -> None:
     integration = subparsers.add_parser("integration", help="install/status/uninstall local IDE hooks")
     actions = integration.add_subparsers(dest="integration_action", required=True)
@@ -669,14 +784,19 @@ def _integration_parser(subparsers: argparse._SubParsersAction) -> None:
 def _portal_parser(subparsers: argparse._SubParsersAction) -> None:
     portal = subparsers.add_parser("portal", help="configure and sync bounded receipts to IdleProof Portal")
     actions = portal.add_subparsers(dest="portal_action", required=True)
-    project_id = actions.add_parser("id", help="show the local project id to paste into Portal enrollment")
-    project_id.add_argument("--json", action="store_true")
+    for name in ("id", "identity"):
+        project_id = actions.add_parser(name, help="show the local project id to paste into Portal enrollment")
+        project_id.add_argument("--json", action="store_true")
     configure = actions.add_parser("configure")
     configure.add_argument("--endpoint", required=True)
-    configure.add_argument("--token-env", required=True)
+    token_source = configure.add_mutually_exclusive_group(required=True)
+    token_source.add_argument("--token-env")
+    token_source.add_argument("--token-stdin", action="store_true")
     configure.add_argument("--json", action="store_true")
     status = actions.add_parser("status")
     status.add_argument("--json", action="store_true")
+    snapshot = actions.add_parser("snapshot", help="render the exact bounded snapshot without network")
+    snapshot.add_argument("--json", action="store_true")
     sync = actions.add_parser("sync")
     sync.add_argument("--dry-run", action="store_true")
     sync.add_argument("--json", action="store_true")
@@ -684,6 +804,8 @@ def _portal_parser(subparsers: argparse._SubParsersAction) -> None:
     assurance.add_argument("--envelope", required=True, type=Path)
     assurance.add_argument("--quiet", action="store_true")
     assurance.add_argument("--json", action="store_true")
+    disconnect = actions.add_parser("disconnect")
+    disconnect.add_argument("--json", action="store_true")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -705,19 +827,27 @@ def _print_result(value: Mapping[str, Any], *, as_json: bool, quiet: bool = Fals
     schema = value.get("schema")
     if schema == INTEGRATION_SCHEMA:
         print(f"IdleProof integration: {'ready' if value.get('healthy') else 'not ready'} · adapters: {', '.join(value.get('expectedAdapters') or []) or 'none'}")
-        print(f"Local project id: {value.get('localProjectId')}")
+        if value.get("localProjectId"):
+            print(f"Local project id: {value.get('localProjectId')}")
     elif schema == PORTAL_CONFIG_SCHEMA:
-        print("IdleProof Portal configured without storing the device token.")
+        mode = value.get("tokenMode")
+        if mode == "local-file":
+            print("IdleProof Portal configured. The scoped device token is stored only under this repository's .git metadata with owner-only permissions where supported.")
+        else:
+            print("IdleProof Portal configured. The scoped device token remains supplied by the configured environment variable.")
         print(f"Local project id: {value.get('localProjectId')}")
         print(f"Endpoint: {value.get('endpoint')}")
     elif schema == "idleproof.portal-status.v1":
-        print(f"Portal: {'configured' if value.get('configured') else 'not configured'} · token {'available' if value.get('tokenAvailable') else 'not present in environment'}")
-        print(f"Local project id: {value.get('localProjectId')}")
+        print(f"Portal: {'configured' if value.get('configured') else 'not configured'} · token {'available' if value.get('tokenAvailable') else 'unavailable'}")
+        if value.get("localProjectId"):
+            print(f"Local project id: {value.get('localProjectId')}")
     elif schema == "idleproof.portal-sync.v1":
         print(f"Portal sync: {value.get('status')} · {value.get('snapshotId')}")
         print("Privacy: no source code, raw prompt, or raw diff uploaded.")
     elif schema == LOCAL_PROJECT_SCHEMA:
         print(value.get("localId"))
+    elif schema == "idleproof.portal-disconnect.v1":
+        print("IdleProof Portal disconnected. Local Proof, Debt, Continuity and project identity were preserved.")
     else:
         print(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True))
 
@@ -749,20 +879,29 @@ def main(argv: list[str] | None = None) -> int:
             _print_result(result, as_json=args.json)
             return 0
 
-        if args.portal_action == "id":
+        if args.portal_action in {"id", "identity"}:
             local = ensure_local_project(repo)
             _print_result(local, as_json=args.json)
             return 0
         if args.portal_action == "configure":
-            result = portal_configure(repo, endpoint=args.endpoint, token_env=args.token_env)
+            token = _read_prompted_token() if args.token_stdin else None
+            result = portal_configure(repo, endpoint=args.endpoint, token_env=args.token_env, token=token)
             _print_result(result, as_json=args.json)
             return 0
         if args.portal_action == "status":
             result = portal_status(repo)
             _print_result(result, as_json=args.json)
             return 0
+        if args.portal_action == "snapshot":
+            result = portal_sync(repo, dry_run=True)
+            _print_result(result, as_json=args.json)
+            return 0
         if args.portal_action == "sync":
             result = portal_sync(repo, dry_run=args.dry_run)
+            _print_result(result, as_json=args.json)
+            return 0
+        if args.portal_action == "disconnect":
+            result = portal_disconnect(repo)
             _print_result(result, as_json=args.json)
             return 0
         result = portal_assurance(repo, args.envelope)
@@ -772,7 +911,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"IdleProof: {exc}", file=sys.stderr)
         return 2
     except Exception as exc:
-        # Fail closed without dumping arbitrary payloads/secrets into logs.
+        # Fail closed without dumping arbitrary request bodies or secret values into logs.
         print(f"IdleProof failed before the requested operation could be completed: {str(exc)[:500]}", file=sys.stderr)
         return 2
 
@@ -789,7 +928,9 @@ __all__ = [
     "integration_status",
     "integration_uninstall",
     "main",
+    "portal_assurance",
     "portal_configure",
+    "portal_disconnect",
     "portal_status",
     "portal_sync",
 ]
