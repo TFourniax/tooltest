@@ -62,7 +62,11 @@ jobs:
           dw ledger --help
           dw envelope --help
           dw explain --help
+          dw portal --help
+          dw setup --help
           dw health --repo . --no-record
+          idleproof --version
+          idleproof --help
       - name: Dogfood DiffWitness project health
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
         run: dw health --repo . --no-record --json diffwitness-self-health.json
@@ -133,18 +137,27 @@ jobs:
           release-wheel-smoke/bin/dw --version
           release-wheel-smoke/bin/dw --help
           release-wheel-smoke/bin/dw explain --help
+          release-wheel-smoke/bin/dw portal --help
+          release-wheel-smoke/bin/dw setup --help
           release-wheel-smoke/bin/dw engine --help
           release-wheel-smoke/bin/dw ledger --help
           release-wheel-smoke/bin/dw envelope --help
           release-wheel-smoke/bin/diffwitness --version
+          release-wheel-smoke/bin/idleproof --version
+          release-wheel-smoke/bin/idleproof --help
           release-wheel-smoke/bin/python -m pip uninstall -y diffwitness
           if release-wheel-smoke/bin/dw --version >/dev/null 2>&1; then
             echo "dw remained executable after uninstall" >&2
             exit 1
           fi
+          if release-wheel-smoke/bin/idleproof --version >/dev/null 2>&1; then
+            echo "idleproof remained executable after uninstall" >&2
+            exit 1
+          fi
           release-wheel-smoke/bin/python -m pip install --no-deps dist/*.whl
           release-wheel-smoke/bin/dw --version
           release-wheel-smoke/bin/dw explain --help
+          release-wheel-smoke/bin/idleproof --version
       - uses: actions/upload-artifact@v6
         with:
           name: preflight-python-distributions
@@ -176,7 +189,7 @@ jobs:
         run: python scripts/engine_artifact_smoke.py
       - name: Exercise human acceptance journeys
         run: python scripts/human_acceptance.py
-      - name: Rehearse IdleProof explanation and user-owned inference boundaries
+      - name: Rehearse IdleProof explanation, bundled setup, Portal and user-owned inference boundaries
         run: python scripts/idleproof_release_acceptance.py
       - name: Exercise fail-closed recovery journeys
         run: python scripts/recovery_acceptance.py
