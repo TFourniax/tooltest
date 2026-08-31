@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
+
 
 class SetupError(RuntimeError):
     pass
@@ -94,6 +96,10 @@ def _status(command: str, cwd: Path) -> dict:
 
 
 def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None) -> dict:
+    try:
+        ensure_local_integration_excludes(cwd)
+    except LocalGitStateError as exc:
+        raise SetupError(f"cannot prepare non-invasive local Git state: {exc}") from exc
     command = _idleproof_executable(idleproof_command)
     _run_sidecar(
         command,
