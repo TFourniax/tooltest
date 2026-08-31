@@ -43,8 +43,8 @@ def ensure_local_integration_excludes(repo: Path) -> Path:
 
     Git's `info/exclude` is repository-local metadata. It does not affect files that are already
     tracked, so a repository that intentionally versions a similarly named path keeps normal Git
-    semantics. The marker block is idempotently replaced while every user-owned rule outside it is
-    preserved byte-for-byte apart from a final newline normalization.
+    semantics. A single well-formed managed block is replaced idempotently and user-owned rules
+    outside it are preserved. Damaged/duplicated markers fail closed instead of guessing.
     """
 
     repo = Path(repo).resolve()
@@ -56,15 +56,23 @@ def ensure_local_integration_excludes(repo: Path) -> Path:
     except OSError as exc:
         raise LocalGitStateError(f"cannot read local Git excludes: {exc}") from exc
 
+    begin_count = current.count(_BLOCK_BEGIN)
+    end_count = current.count(_BLOCK_END)
+    if (begin_count, end_count) not in {(0, 0), (1, 1)}:
+        raise LocalGitStateError(
+            "DiffWitness marker block in Git info/exclude is damaged or duplicated; repair the marker lines before retrying"
+        )
+
     block = _managed_block()
-    begin = current.find(_BLOCK_BEGIN)
-    end = current.find(_BLOCK_END, begin + len(_BLOCK_BEGIN)) if begin >= 0 else -1
-    if begin >= 0 and end >= 0:
+    if begin_count == 1:
+        begin = current.find(_BLOCK_BEGIN)
+        end = current.find(_BLOCK_END)
+        if begin < 0 or end < begin:
+            raise LocalGitStateError(
+                "DiffWitness marker block in Git info/exclude is malformed; repair the marker lines before retrying"
+            )
         end += len(_BLOCK_END)
         updated = current[:begin] + block + current[end:]
-    elif _BLOCK_BEGIN in current or _BLOCK_END in current:
-        # A manually damaged marker block must not cause us to delete surrounding user rules.
-        updated = current.rstrip("\n") + ("\n" if current else "") + block + "\n"
     else:
         updated = current.rstrip("\n") + ("\n" if current else "") + block + "\n"
 
