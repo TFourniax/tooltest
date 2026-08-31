@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import subprocess
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -18,6 +19,7 @@ class PortalProxyTests(unittest.TestCase):
         text = out.getvalue()
         self.assertIn("dw portal configure", text)
         self.assertIn("--token-stdin", text)
+        self.assertIn("no config/network", text)
         self.assertNotIn("idleproof portal", text)
 
     def test_missing_sidecar_is_actionable(self) -> None:
@@ -25,7 +27,39 @@ class PortalProxyTests(unittest.TestCase):
         with patch("diffwitness.portal_proxy.shutil.which", return_value=None), redirect_stderr(err):
             rc = portal_cli(["status", "--json"])
         self.assertEqual(rc, 127)
-        self.assertIn("dw setup", err.getvalue())
+        self.assertIn("Reinstall the matching DiffWitness wheel", err.getvalue())
+
+    def test_snapshot_is_local_and_does_not_require_sidecar_or_portal_config(self) -> None:
+        snapshot = {
+            "schema": "idleproof.portal-snapshot.v1",
+            "snapshotId": "ipsnap_0123456789abcdef01234567",
+            "project": {"localId": "0123456789abcdef01234567"},
+            "privacy": {
+                "sourceCodeIncluded": False,
+                "rawDiffIncluded": False,
+                "rawPromptIncluded": False,
+            },
+        }
+        out = io.StringIO()
+        with (
+            patch("diffwitness.portal_proxy.build_portal_snapshot", return_value=snapshot) as build,
+            patch("diffwitness.portal_proxy.shutil.which", side_effect=AssertionError("snapshot must not resolve sidecar")),
+            redirect_stdout(out),
+        ):
+            rc = portal_cli(["snapshot", "--json"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(json.loads(out.getvalue()), snapshot)
+        build.assert_called_once()
+
+    def test_snapshot_rejects_unknown_options_without_network_or_sidecar(self) -> None:
+        err = io.StringIO()
+        with (
+            patch("diffwitness.portal_proxy.shutil.which", side_effect=AssertionError("snapshot must not resolve sidecar")),
+            redirect_stderr(err),
+        ):
+            rc = portal_cli(["snapshot", "--upload"])
+        self.assertEqual(rc, 2)
+        self.assertIn("unsupported option", err.getvalue())
 
     def test_proxy_forwards_argv_without_shell_or_token_rewriting(self) -> None:
         completed = subprocess.CompletedProcess(["idleproof"], 0)
