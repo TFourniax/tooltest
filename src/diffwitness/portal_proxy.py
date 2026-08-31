@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .gitops import repo_root
 from .idleproof_sidecar import build_portal_snapshot
+from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
 
 _ALLOWED = {
     "id",
@@ -83,6 +84,12 @@ def portal_cli(argv: list[str]) -> int:
     command = argv[0]
     if command not in _ALLOWED:
         print(f"dw portal: unsupported command: {command}", file=sys.stderr)
+        return 2
+
+    try:
+        ensure_local_integration_excludes(repo_root("."))
+    except LocalGitStateError as exc:
+        print(f"dw portal: cannot prepare non-invasive local Git state: {exc}", file=sys.stderr)
         return 2
 
     if command == "snapshot":
