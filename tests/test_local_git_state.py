@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from diffwitness.local_git_state import ensure_local_integration_excludes
+from diffwitness.local_git_state import LocalGitStateError, ensure_local_integration_excludes
 from diffwitness.setup import SetupError, setup_install
 
 
@@ -36,11 +36,15 @@ class LocalGitStateTests(unittest.TestCase):
         )
         return proc.stdout.strip()
 
+    def exclude_path(self) -> Path:
+        path = Path(self.git("rev-parse", "--git-path", "info/exclude"))
+        if not path.is_absolute():
+            path = self.repo / path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
     def test_local_excludes_are_idempotent_preserve_user_rules_and_keep_tracked_files_visible(self) -> None:
-        exclude_path = Path(self.git("rev-parse", "--git-path", "info/exclude"))
-        if not exclude_path.is_absolute():
-            exclude_path = self.repo / exclude_path
-        exclude_path.parent.mkdir(parents=True, exist_ok=True)
+        exclude_path = self.exclude_path()
         exclude_path.write_text("# user rule\n*.scratch\n", encoding="utf-8")
 
         ensure_local_integration_excludes(self.repo)
@@ -72,6 +76,34 @@ class LocalGitStateTests(unittest.TestCase):
         status = self.git("status", "--porcelain", "--untracked-files=all")
         self.assertIn(".idleproof/tracked.json", status)
 
+    def test_damaged_or_duplicate_marker_blocks_fail_closed_without_rewriting_user_rules(self) -> None:
+        exclude_path = self.exclude_path()
+        original = (
+            "# user-before\n"
+            "*.scratch\n"
+            "# >>> DiffWitness local integration >>>\n"
+            ".idleproof/\n"
+            "# user-after-damaged-marker\n"
+        )
+        exclude_path.write_text(original, encoding="utf-8")
+        with self.assertRaises(LocalGitStateError):
+            ensure_local_integration_excludes(self.repo)
+        self.assertEqual(exclude_path.read_text(encoding="utf-8"), original)
+
+        duplicated = (
+            "# user\n"
+            "# >>> DiffWitness local integration >>>\n"
+            ".idleproof/\n"
+            "# <<< DiffWitness local integration <<<\n"
+            "# >>> DiffWitness local integration >>>\n"
+            ".claude/settings.local.json\n"
+            "# <<< DiffWitness local integration <<<\n"
+        )
+        exclude_path.write_text(duplicated, encoding="utf-8")
+        with self.assertRaises(LocalGitStateError):
+            ensure_local_integration_excludes(self.repo)
+        self.assertEqual(exclude_path.read_text(encoding="utf-8"), duplicated)
+
     def test_setup_install_prepares_local_excludes_before_sidecar_runs(self) -> None:
         calls: list[str] = []
 
@@ -95,8 +127,6 @@ class LocalGitStateTests(unittest.TestCase):
         self.assertEqual(calls[:2], ["exclude", "sidecar"])
 
     def test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared(self) -> None:
-        from diffwitness.local_git_state import LocalGitStateError
-
         with (
             mock.patch(
                 "diffwitness.setup.ensure_local_integration_excludes",
