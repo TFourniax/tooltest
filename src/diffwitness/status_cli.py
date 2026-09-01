@@ -189,7 +189,7 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
             "raw_agent_events_included": False,
             "raw_commands_included": False,
         },
-        "non_claim": "Project status is navigation over runtime protection metadata, configured evidence, Git metadata and the Debt Ledger. Protection observations are not proof that the application is correct.",
+        "non_claim": "Project status is navigation over runtime protection metadata, configured evidence, Git metadata and the Debt Ledger. Protection observations are not a proof that the application is correct.",
     }
 
 
