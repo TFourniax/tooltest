@@ -4,21 +4,14 @@ import ast
 from pathlib import Path, PurePosixPath
 
 from .debt_models import DebtReport
-from .debt_sensor import merge_sensor_result
 from .debt_scan import scan_project as _scan_project
 from .diffing import is_test_path
 from .gitops import detached_worktree, snapshot_worktree
-from .semantic_redundancy import SENSOR_ID as SEMANTIC_REDUNDANCY_SENSOR_ID, SemanticRedundancySensor
+from .sensor_runtime import enrich_project_with_sensors
 
 
 def _python_top_level_targets(repo: Path, source: str) -> set[str] | None:
-    """Resolve local Python imports executed during module initialization.
-
-    The low-level cross-language scanner deliberately uses a broad regex to discover possible local
-    edges. For Python health reporting we can be more precise: imports nested in a function are lazy
-    and cannot form an import-initialization cycle merely by existing in the source. Returning None
-    on parse failure preserves the conservative low-level result rather than inventing certainty.
-    """
+    """Resolve local Python imports executed during module initialization."""
     path = repo / source
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="strict"))
@@ -30,8 +23,7 @@ def _python_top_level_targets(repo: Path, source: str) -> set[str] | None:
 
     def add_candidate(base: PurePosixPath) -> None:
         module = base.as_posix()
-        candidates = (module + ".py", module + "/__init__.py")
-        for candidate in candidates:
+        for candidate in (module + ".py", module + "/__init__.py"):
             if (repo / candidate).is_file():
                 targets.add(candidate)
 
@@ -94,17 +86,6 @@ def _filter_project_noise(repo: Path, report: DebtReport) -> tuple[DebtReport, d
     }
 
 
-def _mark_sensor_degraded(report: DebtReport, exc: Exception) -> None:
-    sensors = dict(report.metadata.get("debt_sensors") or {})
-    sensors[SEMANTIC_REDUNDANCY_SENSOR_ID] = {
-        "status": "degraded",
-        "signals": 0,
-        "error": f"{type(exc).__name__}: {exc}"[:240],
-        "non_blocking": True,
-    }
-    report.metadata["debt_sensors"] = sensors
-
-
 def scan_project(
     *,
     repo: Path,
@@ -115,22 +96,25 @@ def scan_project(
     semantic_redundancy_threshold: float = 0.88,
     semantic_redundancy_min_tokens: int = 32,
     max_semantic_redundancy_signals: int = 20,
+    parallel_source_scan: bool = True,
+    max_parallel_source_signals: int = 20,
+    duplicate_security_policy_scan: bool = True,
+    max_security_policy_signals: int = 20,
+    parallel_abstraction_scan: bool = True,
+    max_parallel_abstraction_signals: int = 20,
+    dependency_sprawl_scan: bool = True,
+    max_dependency_sprawl_signals: int = 20,
 ) -> DebtReport:
     """Scan an immutable snapshot of the current worktree.
 
-    Debt health is frequently run before a commit exists. The low-level scanner reads files from
-    the repository it is given and historically labelled those bytes with that repository's HEAD.
-    On a dirty worktree this could make provenance claim HEAD while actually inspecting different
-    content. Snapshot first, then scan a detached worktree of exactly that snapshot so every signal
-    is bound to the tree that was really analysed.
+    The deterministic project scan remains authoritative for deterministic debt rules. Debt Sensors
+    run only after that scan and are advisory extensions: they cannot affect DiffWitness Proof
+    classifications. Current semantic/P1/P2/P3 sensor findings carry zero debt points while precision
+    is benchmarked on real repositories.
 
-    A narrow semantic post-pass removes two known sources of project-level accounting noise without
-    hiding production debt: Python imports that are lazy/function-local rather than initialization
-    edges, and duplicate blocks whose every location is a test file.
-
-    Debt Sensors run only after this deterministic scan. They are advisory extensions and cannot
-    affect DiffWitness Proof classifications. Semantic redundancy findings currently carry zero debt
-    points by design while precision is benchmarked on real repositories.
+    Change-history-dependent sensors such as layer-bypass and orphan-code do not run in project mode
+    because a single snapshot cannot establish that an architectural edge was newly bypassed or that
+    a previously referenced implementation became orphaned.
     """
     candidate_sha = snapshot_worktree(repo)
     with detached_worktree(repo, candidate_sha, "debt-health-snapshot") as snapshot:
@@ -141,20 +125,26 @@ def scan_project(
             max_duplicate_signals=max_duplicate_signals,
         )
         report, filtered = _filter_project_noise(snapshot, report)
-        if semantic_redundancy_scan:
-            try:
-                sensor = SemanticRedundancySensor(
-                    threshold=semantic_redundancy_threshold,
-                    max_files=max_scan_files,
-                    max_signals=max_semantic_redundancy_signals,
-                    min_tokens=semantic_redundancy_min_tokens,
-                )
-                merge_sensor_result(
-                    report,
-                    sensor.scan_project(repo=snapshot, candidate_sha=candidate_sha),
-                )
-            except Exception as exc:  # advisory sensor failure must not regress health/debt
-                _mark_sensor_degraded(report, exc)
+        enrich_project_with_sensors(
+            report,
+            repo=snapshot,
+            candidate_sha=candidate_sha,
+            config={
+                "max_scan_files": max_scan_files,
+                "semantic_redundancy_scan": semantic_redundancy_scan,
+                "semantic_redundancy_threshold": semantic_redundancy_threshold,
+                "semantic_redundancy_min_tokens": semantic_redundancy_min_tokens,
+                "max_semantic_redundancy_signals": max_semantic_redundancy_signals,
+                "parallel_source_scan": parallel_source_scan,
+                "max_parallel_source_signals": max_parallel_source_signals,
+                "duplicate_security_policy_scan": duplicate_security_policy_scan,
+                "max_security_policy_signals": max_security_policy_signals,
+                "parallel_abstraction_scan": parallel_abstraction_scan,
+                "max_parallel_abstraction_signals": max_parallel_abstraction_signals,
+                "dependency_sprawl_scan": dependency_sprawl_scan,
+                "max_dependency_sprawl_signals": max_dependency_sprawl_signals,
+            },
+        )
     report.repo = str(repo)
     report.metadata = {
         **report.metadata,
