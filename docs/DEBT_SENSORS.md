@@ -1,29 +1,89 @@
 # Debt Sensors
 
-Debt Sensors are advisory, pluggable detectors that add maintenance-risk observations to Debt Ledger without participating in DiffWitness causal proof.
+Debt Sensors are advisory detectors downstream of DiffWitness Proof. They can observe maintenance, architecture and AI-generated-code risks, but they cannot mint, override or weaken a proof verdict.
 
 ## Trust boundary
 
-A sensor may report a heuristic finding, but it cannot change `WITNESSED`, `UNWITNESSED`, or `INCONCLUSIVE`, and it cannot fabricate a proof certificate. Sensor failures are non-blocking for the existing proof/debt path.
+A sensor finding is currently **heuristic / OBSERVED**, not VERIFIED. Sensor failures are isolated and fail open for that sensor only. The underlying DiffWitness proof and Debt Ledger accounting path continues unchanged.
 
-The first sensor is `semantic-redundancy-v1`. It looks for independently located code units with strongly overlapping normalized control/token structure, including common agent-generated reimplementations where function and local variable names changed. It uses only Python's standard library, runs locally, and does not export source code.
+Current sensor findings intentionally carry **0 debt points** while precision is benchmarked on real repositories. They may be persisted as inspectable obligations, but they cannot make an otherwise passing debt budget fail during this calibration phase.
 
-The finding is intentionally phrased as **possible semantic reimplementation**. Similarity is not functional equivalence and is never an instruction to delete or merge code.
+## Implemented sensors
 
-## Accounting policy
+### `semantic-redundancy-v1`
 
-Semantic redundancy findings are `heuristic`, category `redundancy`, and carry **0 points by default** during the calibration phase. They are still assigned stable `DW-...` identities and can be stored in Debt Ledger. This gives us real precision/false-positive data before allowing the sensor to affect debt budgets.
+Looks for structurally similar reimplementations that are not exact source copies. It uses local deterministic token normalization, SimHash candidate retrieval and bounded exact scoring. No embedding API, hosted model or external service is required. Exact source copies remain owned by the existing deterministic duplicate detector.
 
-The first calibration ships enabled with conservative internal defaults: similarity threshold `0.88`, minimum unit size `32` normalized tokens, and at most `20` semantic-redundancy signals per scan. `max_scan_files` from the existing debt scanner still bounds repository work.
+### `parallel-source-of-truth-v1`
 
-These calibration knobs are intentionally **not yet part of the public TOML contract**. Exposing thresholds before we have measured precision on a representative real-repository corpus would create a configuration surface we might later need to break. Once the sensor has benchmark evidence, the stable controls can be promoted through the normal validated DiffWitness configuration contract.
+Looks for a domain constant/value concept that becomes independently declared in multiple production files. Change mode compares base and candidate trees and only reports a group when the candidate increases the number of files carrying that same normalized concept/value pair. Values are fingerprinted in evidence rather than exported verbatim.
 
-## Lifecycle
+This is deliberately conservative: it targets explicit constant declarations, not every repeated literal or object property.
 
-For a change, only code units touched by added lines are compared against the candidate repository. For project health, the sensor uses a banded SimHash candidate index before the more precise structural/vocabulary similarity calculation, avoiding an unconditional all-pairs scan.
+### `duplicate-security-policy-v1`
 
-Change and project modes deliberately use the same pair anchor and rule id, so a finding keeps the same Debt Ledger identity and can disappear naturally on a later project-rule recheck after a justified refactor.
+Derives a security-specific observation from an existing semantic-redundancy result when the matched locations are security-sensitive (authorization, permissions, tenant isolation, tokens, sessions, validation, webhooks, policies, and related contexts). It **reuses** the semantic scan instead of scanning the repository a second time.
 
-## Extending
+A finding means “possible policy divergence risk”, not “vulnerability found”.
 
-New sensors should implement the `DebtSensor` protocol and return `DebtSensorResult`. Their output must use `DebtSignal`, state the epistemic level honestly (`heuristic`, `deterministic`, etc.), and remain downstream of the proof engine.
+### `agent-expansion-v1`
+
+Change-scoped breadth detector for unusually large structural expansion: many production files, large added-line surface, structural/new-file growth, and new declarations in one change. It does not infer that the user asked for a simple task and does not claim that a large change is wrong. It asks whether the breadth was intentional and whether the same intended behavior could be delivered with a smaller surface.
+
+### `layer-bypass-v1`
+
+Change-scoped architecture detector. It only reports a new presentation -> persistence local import when the **same source file historically depended on a service/application mediator**. This deliberately avoids declaring every direct database import a violation.
+
+The finding means that a previously visible architectural path may now be bypassed. It does not prove that validation, authorization, transactions or domain policy were actually skipped.
+
+### `parallel-abstraction-v1`
+
+Derives from high-confidence (`>= 0.92`) semantic-redundancy pairs when both locations look like architectural abstractions (service, manager, client, repository, store, provider, gateway, adapter, controller, handler, coordinator, engine, registry or factory).
+
+It reuses semantic evidence rather than performing another similarity scan. A finding asks whether two abstraction entry points now own the same responsibility; it does not require consolidation.
+
+### `dependency-sprawl-v1`
+
+Looks for a newly added direct production dependency when the same package scope already carries another direct dependency from a conservative overlapping family such as HTTP clients, date/time libraries, validation libraries or logging libraries.
+
+Change mode requires a **new overlap** relative to the base tree. Project mode can surface an existing overlap. Package scope and ecosystem are part of the identity, so unrelated monorepo packages are not grouped together.
+
+The curated family list is intentionally narrow. DiffWitness does not infer overlap between arbitrary packages.
+
+### `orphan-code-v1`
+
+Change-scoped migration-residue detector over the local static import graph. It reports an unchanged production module when:
+
+- it had local importers in the base tree;
+- it has no local importers in the candidate;
+- at least one former importer changed in the current diff;
+- the target module itself was left unchanged; and
+- it is either a service/persistence module or had multiple prior importers.
+
+Dynamic imports, framework discovery, reflection, plugin registration and external consumers are explicitly outside this observation. A finding is therefore a removal-review candidate, never a deletion order.
+
+## Shared discovery and cost control
+
+Sensors reuse discovery work where possible:
+
+- `duplicate-security-policy-v1` and `parallel-abstraction-v1` derive from the semantic-redundancy result;
+- `layer-bypass-v1` and `orphan-code-v1` share one bounded local import-graph pass;
+- `agent-expansion-v1` reads only the Git diff;
+- `dependency-sprawl-v1` reads supported direct-dependency manifests only.
+
+This keeps the sensor layer additive without turning every protected change into several independent whole-repository scans.
+
+## Calibration defaults
+
+The sensor tuning values are internal alpha calibration defaults. They are intentionally not part of the stable public TOML configuration contract yet. Public configuration will be promoted only after a labeled precision corpus demonstrates that the controls are useful and stable.
+
+All sensors must preserve:
+
+- local-first source inspection;
+- no raw source export in sensor evidence;
+- stable, inspectable Debt Ledger identities where applicable;
+- zero authority over DiffWitness causal proof;
+- independent failure isolation;
+- high precision over warning volume.
+
+Before any sensor receives non-zero debt points, it must earn that authority through a labeled SensorBench corpus with hard-negative cases from real AI-assisted repositories.
