@@ -1,0 +1,77 @@
+name: patch-protect-live-activation
+
+on:
+  push:
+    branches: ["agent/diffwitness-protect-v1-20260901"]
+    paths:
+      - ".github/workflows/patch-protect-live-activation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/diffwitness-protect-v1-20260901
+          fetch-depth: 0
+
+      - name: Apply bounded readiness patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/diffwitness/protect.py')
+          text = path.read_text(encoding='utf-8')
+
+          anchor = '''def _tool_input(payload: Mapping[str, Any]) -> Mapping[str, Any]:\n'''
+          addition = '''def _mark_provider_active(repo: Path, payload: Mapping[str, Any]) -> None:\n    provider = str(payload.get("provider") or payload.get("agent") or "").strip().lower()\n    if provider not in SUPPORTED_ADAPTERS:\n        return\n    config = load_protect_config(repo)\n    if config.get("mode") != "builtin" or provider not in set(config.get("adapters") or []):\n        return\n    enabled_at = str(config.get("updatedAt") or "")\n    values, _ = _iter_receipts(repo)\n    if any(\n        str(item.get("provider")) == provider\n        and (not enabled_at or str(item.get("ts") or "") >= enabled_at)\n        for item in values\n    ):\n        return\n    append_receipt(\n        repo,\n        payload=payload,\n        phase="runtime",\n        decision="active",\n        category="runtime",\n        rule="hook-live",\n        message="The configured provider invoked DiffWitness Protect.",\n    )\n\n\n'''
+          if addition not in text:
+              if anchor not in text:
+                  raise SystemExit('protect.py tool-input anchor not found')
+              text = text.replace(anchor, addition + anchor, 1)
+
+          pre_old = '''    config = load_protect_config(repo)\n    if config["mode"] != "builtin":\n        return None\n    policy = str(config["policy"])\n'''
+          pre_new = '''    config = load_protect_config(repo)\n    if config["mode"] != "builtin":\n        return None\n    _mark_provider_active(repo, payload)\n    policy = str(config["policy"])\n'''
+          if pre_new not in text:
+              if pre_old not in text:
+                  raise SystemExit('protect.py pre-tool anchor not found')
+              text = text.replace(pre_old, pre_new, 1)
+
+          post_old = '''    config = load_protect_config(repo)\n    if config["mode"] != "builtin":\n        return None\n    raw_path = _candidate_path(payload)\n'''
+          post_new = '''    config = load_protect_config(repo)\n    if config["mode"] != "builtin":\n        return None\n    _mark_provider_active(repo, payload)\n    raw_path = _candidate_path(payload)\n'''
+          if post_new not in text:
+              if post_old not in text:
+                  raise SystemExit('protect.py post-tool anchor not found')
+              text = text.replace(post_old, post_new, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+          tests = Path('tests/test_protect.py')
+          body = tests.read_text(encoding='utf-8')
+          test_anchor = '''    def test_status_is_bounded_and_contains_no_raw_agent_data(self):\n'''
+          test_add = '''    def test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding(self):\n        with tempfile.TemporaryDirectory() as td:\n            repo = self.repo(Path(td))\n            (repo / ".codex").mkdir()\n            with mock.patch("diffwitness.protect.shutil.which", side_effect=lambda name: "/usr/bin/codex" if name == "codex" else None):\n                enabled = set_protect_mode(repo, "builtin", force=True)\n            self.assertEqual(enabled["health"], "degraded")\n            self.assertFalse(enabled["adapters"]["codex"]["ready"])\n\n            result = evaluate_pre_tool(\n                repo,\n                {\n                    "provider": "codex",\n                    "session_id": "safe-live",\n                    "tool_name": "shell",\n                    "tool_input": {"command": "git status --short"},\n                },\n            )\n            self.assertIsNone(result)\n            ready = protect_status(repo)\n            self.assertEqual(ready["health"], "ready")\n            self.assertTrue(ready["adapters"]["codex"]["activeSeen"])\n            self.assertTrue(ready["adapters"]["codex"]["ready"])\n            self.assertEqual(ready["receipts"]["decisions"].get("active"), 1)\n            self.assertNotIn("observed", ready["receipts"]["decisions"])\n            self.assertNotIn("block", ready["receipts"]["decisions"])\n\n            evaluate_pre_tool(\n                repo,\n                {\n                    "provider": "codex",\n                    "session_id": "safe-live",\n                    "tool_name": "shell",\n                    "tool_input": {"command": "git diff --stat"},\n                },\n            )\n            self.assertEqual(protection_summary(repo)["decisions"].get("active"), 1)\n\n'''
+          if test_add not in body:
+              if test_anchor not in body:
+                  raise SystemExit('test_protect.py status anchor not found')
+              body = body.replace(test_anchor, test_add + test_anchor, 1)
+          tests.write_text(body, encoding='utf-8')
+          PY
+
+          python -m py_compile src/diffwitness/protect.py tests/test_protect.py
+          python -m unittest tests.test_protect -v
+          git diff --check
+
+      - name: Commit bounded patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/diffwitness/protect.py tests/test_protect.py
+          git commit -m "fix: record live provider activation separately"
+          git push origin HEAD:agent/diffwitness-protect-v1-20260901
