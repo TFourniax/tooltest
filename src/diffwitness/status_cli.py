@@ -138,16 +138,6 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
                 "reason": f"{len(active)} open obligation(s) account for {ledger.active_points()} debt point(s).",
             }
         )
-    if protection.get("mode") == "off":
-        actions.append(
-            {
-                "priority": "normal",
-                "kind": "consider-protection",
-                "title": "Optionally protect the agent while it works",
-                "command": "dw protect enable",
-                "reason": "Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.",
-            }
-        )
     if not actions:
         actions.append(
             {
@@ -156,6 +146,16 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
                 "title": "Put the next agent change behind the proof boundary",
                 "command": "dw guard -- <agent>",
                 "reason": "Evidence is ready, the working tree is clean, and no open debt is recorded.",
+            }
+        )
+    if protection.get("mode") == "off":
+        actions.append(
+            {
+                "priority": "normal",
+                "kind": "consider-protection",
+                "title": "Optionally protect the agent while it works",
+                "command": "dw protect enable",
+                "reason": "Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.",
             }
         )
 
