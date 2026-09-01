@@ -1,0 +1,38 @@
+name: apply-protect-release-docs
+
+on:
+  push:
+    branches: ["agent/diffwitness-protect-v1-20260901"]
+    paths:
+      - ".github/workflows/apply-protect-release-docs.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/diffwitness-protect-v1-20260901
+          fetch-depth: 0
+      - name: Apply and validate release documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/patch_protect_release_docs.py
+          python -m py_compile src/diffwitness/public_help.py
+          grep -q "DiffWitness never writes Codex project trust" docs/PROTECT.md
+          grep -q "does not safely support.*ask" README.md
+          grep -q "provider-activation receipt" CHANGELOG.md
+          git diff --check
+      - name: Commit release documentation only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs/PROTECT.md docs/60_SECONDS.md src/diffwitness/public_help.py CHANGELOG.md
+          git commit -m "docs: document Codex Protect activation boundary"
+          git push origin HEAD:agent/diffwitness-protect-v1-20260901
