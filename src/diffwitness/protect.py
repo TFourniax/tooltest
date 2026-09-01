@@ -466,10 +466,21 @@ def _receipt_lock(repo: Path, *, timeout: float = 10.0):
     while fd is None:
         try:
             fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        except FileExistsError:
+        except (FileExistsError, PermissionError) as exc:
+            # Windows can report an O_EXCL collision as EACCES/PermissionError while
+            # another thread or process still owns the lock file. Treat that as
+            # contention only on Windows; permission failures remain fatal elsewhere.
+            if isinstance(exc, PermissionError) and os.name != "nt":
+                raise
             try:
                 stale = time.time() - path.stat().st_mtime > 60.0
+            except FileNotFoundError:
+                # The owner may have released the lock between os.open() and stat().
+                # Retry instead of turning that benign release race into a failure.
+                stale = False
             except OSError:
+                if isinstance(exc, PermissionError):
+                    raise
                 stale = False
             if stale:
                 try:
