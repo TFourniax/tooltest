@@ -8,14 +8,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .gitops import git_version
+from .gitops import git, git_version
 from .models import AnalysisOutcome
+
+
+FILESYSTEM_ISOLATION = "reset-before-each-run"
 
 
 def _certificate_id(report: dict[str, Any]) -> str:
     stable = {k: v for k, v in report.items() if k not in {"generated_at", "certificate_id"}}
     encoded = json.dumps(stable, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return "dw2_" + hashlib.sha256(encoded).hexdigest()[:20]
+
+
+def _tree_id(repo: Path, commit: str) -> str:
+    return git(repo, "rev-parse", "--verify", f"{commit}^{{tree}}").strip()
 
 
 def build_report(
@@ -70,10 +77,17 @@ def build_report(
         "tool": "diffwitness",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo": str(repo),
-        "base": {"ref": base_ref, "sha": base_sha},
-        "candidate": {"ref": candidate_ref, "sha": candidate_sha},
+        "base": {"ref": base_ref, "sha": base_sha, "tree": _tree_id(repo, base_sha)},
+        "candidate": {
+            "ref": candidate_ref,
+            "sha": candidate_sha,
+            "tree": _tree_id(repo, candidate_sha),
+        },
         "test_command": test_command,
         "config": config,
+        "execution": {
+            "filesystem_isolation": FILESYSTEM_ISOLATION,
+        },
         "contrast": outcome.contrast,
         "candidate_run": outcome.candidate.to_dict(),
         "baseline_with_candidate_tests_run": outcome.baseline.to_dict(),
@@ -126,7 +140,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"**Certificate:** `{report['certificate_id']}`  ",
         f"**Contrast:** `{report['contrast']}`  ",
         f"**Candidate stability:** `{report['candidate_run']['classification']}`  ",
-        f"**Baseline stability:** `{report['baseline_with_candidate_tests_run']['classification']}`",
+        f"**Baseline stability:** `{report['baseline_with_candidate_tests_run']['classification']}`  ",
+        f"**Filesystem isolation:** `{report.get('execution', {}).get('filesystem_isolation', 'unspecified')}`",
         "",
         "## Evidence summary",
         "",

@@ -1,23 +1,25 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "diffwitness"
-version = "0.2.0"
-description = "Counterfactual evidence for Git diffs: prove which real patch hunks are necessary, sufficient, redundant, or unstable."
+version = "0.4.0a1"
+description = "Proof and debt-control layer for AI-generated code: causal evidence, replayable obligations, and agent guardrails."
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Thomas Fournier"}]
-keywords = ["git", "testing", "ai-coding", "regression", "counterfactual", "code-review", "ci", "mutation-testing"]
+keywords = ["git", "testing", "ai-coding", "coding-agents", "regression", "counterfactual", "code-review", "ci", "mutation-testing", "technical-debt", "claude-code", "codex"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Testing",
   "Topic :: Software Development :: Quality Assurance",
 ]
@@ -25,6 +27,8 @@ dependencies = []
 
 [project.scripts]
 diffwitness = "diffwitness.cli:main"
+dw = "diffwitness.entry:main"
+idleproof = "diffwitness.idleproof_entry:main"
 
 [project.urls]
 Homepage = "https://github.com/TFourniax/tooltest"

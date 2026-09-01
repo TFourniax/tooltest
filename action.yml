@@ -1,5 +1,5 @@
-name: DiffWitness Evidence
-description: Prove which real Git hunks are necessary, sufficient, redundant or unstable under a selected test command.
+name: DiffWitness Proof + Debt Gate
+description: Independent causal proof for a Git patch plus transparent software-debt accounting and budgets.
 author: Thomas Fournier
 inputs:
   base:
@@ -10,44 +10,110 @@ inputs:
     required: false
     default: HEAD
   test:
-    description: Evidence command; optional when .diffwitness.toml contains test
+    description: Evidence command; auto-detected when omitted and not configured in the trusted base .diffwitness.toml
     required: false
     default: ""
   prepare:
-    description: Optional setup command
+    description: Optional setup command executed inside isolated proof worktrees
     required: false
     default: ""
   stability-runs:
     description: Repetitions per evidence variant
     required: false
     default: "2"
+  max-total-seconds:
+    description: Maximum wall-clock seconds for semantic assurance plus causal proof
+    required: false
+    default: "900"
+  policy:
+    description: observe, balanced, or strict
+    required: false
+    default: balanced
   strict:
-    description: Require base→candidate contrast and every analyzed hunk to be witnessed
+    description: Backward-compatible shortcut that forces strict policy when true
     required: false
     default: "false"
+  strategy:
+    description: auto, exhaustive, or adaptive
+    required: false
+    default: auto
+  adaptive-threshold:
+    description: Production mutation count above which auto strategy switches to Adaptive Core
+    required: false
+    default: "16"
+  adaptive-budget:
+    description: Maximum Adaptive Core experiment count
+    required: false
+    default: "40"
+  debt:
+    description: Measure change debt and enforce trusted-base [debt] budgets after proof
+    required: false
+    default: "true"
+  ledger-sync:
+    description: Restore the cumulative Debt Ledger checkpoint before evaluating debt budgets
+    required: false
+    default: "true"
+  ledger-remote:
+    description: Git remote containing the portable Debt Ledger checkpoint
+    required: false
+    default: origin
+  ledger-ref:
+    description: Git ref used for the portable Debt Ledger checkpoint
+    required: false
+    default: refs/diffwitness/debt-ledger
+  upload-certificate:
+    description: Preserve proof and debt JSON/Markdown as a GitHub Actions artifact
+    required: false
+    default: "true"
 outputs:
   certificate_id:
     description: Content-addressed DiffWitness evidence certificate id
     value: ${{ steps.prove.outputs.certificate_id }}
+  proof_mode:
+    description: exhaustive, adaptive-core, assurance, validation-only, or not-required
+    value: ${{ steps.prove.outputs.proof_mode }}
   witness_ratio:
-    description: Fraction of conclusive hunks individually witnessed
+    description: Fraction of conclusive hunks individually witnessed when exhaustive mode is used
     value: ${{ steps.prove.outputs.witness_ratio }}
   minimal_sufficient_order:
-    description: Cardinality of the smallest sufficient real-hunk subset found
+    description: Smallest sufficient order found, or retained Adaptive Core size
     value: ${{ steps.prove.outputs.minimal_sufficient_order }}
   surplus_candidate_hunks:
-    description: Strong surplus candidate count
+    description: Strong surplus/removable candidate count
     value: ${{ steps.prove.outputs.surplus_candidate_hunks }}
+  debt_points:
+    description: New debt points attributed to this change
+    value: ${{ steps.debt.outputs.debt_points }}
+  debt_projected_total:
+    description: Projected total active debt after this change under the restored ledger/config
+    value: ${{ steps.debt.outputs.debt_projected_total }}
+  debt_budget_passed:
+    description: Whether configured debt budgets passed
+    value: ${{ steps.debt.outputs.debt_budget_passed }}
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.12"
     - name: Install DiffWitness
       shell: bash
       run: python -m pip install "$GITHUB_ACTION_PATH"
-    - name: Build patch evidence
+    - name: Materialize trusted base policy
+      id: trusted-config
+      shell: bash
+      env:
+        DW_BASE: ${{ inputs.base }}
+      run: |
+        set -euo pipefail
+        config="$(git rev-parse --git-path diffwitness/ci-base-policy.toml)"
+        mkdir -p "$(dirname "$config")"
+        : > "$config"
+        if git cat-file -e "$DW_BASE:.diffwitness.toml" 2>/dev/null; then
+          git show "$DW_BASE:.diffwitness.toml" > "$config"
+        fi
+        echo "path=$config" >> "$GITHUB_OUTPUT"
+    - name: Build patch proof
       id: prove
       shell: bash
       env:
@@ -56,14 +122,80 @@ runs:
         DW_TEST: ${{ inputs.test }}
         DW_PREPARE: ${{ inputs.prepare }}
         DW_STABILITY: ${{ inputs.stability-runs }}
+        DW_MAX_TOTAL_SECONDS: ${{ inputs.max-total-seconds }}
+        DW_POLICY: ${{ inputs.policy }}
         DW_STRICT: ${{ inputs.strict }}
+        DW_STRATEGY: ${{ inputs.strategy }}
+        DW_ADAPTIVE_THRESHOLD: ${{ inputs.adaptive-threshold }}
+        DW_ADAPTIVE_BUDGET: ${{ inputs.adaptive-budget }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
       run: |
         set -euo pipefail
-        args=(prove --base "$DW_BASE" --candidate "$DW_CANDIDATE" --stability-runs "$DW_STABILITY" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
+        policy="$DW_POLICY"
+        if [[ "$DW_STRICT" == "true" ]]; then policy="strict"; fi
+        args=(gate --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --policy "$policy" --strategy "$DW_STRATEGY" --adaptive-threshold "$DW_ADAPTIVE_THRESHOLD" --adaptive-budget "$DW_ADAPTIVE_BUDGET" --stability-runs "$DW_STABILITY" --max-total-seconds "$DW_MAX_TOTAL_SECONDS" --github-actions --certificate diffwitness-evidence.json --report diffwitness-evidence.md)
         if [[ -n "$DW_TEST" ]]; then args+=(--test "$DW_TEST"); fi
         if [[ -n "$DW_PREPARE" ]]; then args+=(--prepare "$DW_PREPARE"); fi
-        if [[ "$DW_STRICT" == "true" ]]; then args+=(--require-contrast --require-all-witnessed); fi
-        diffwitness "${args[@]}"
+        dw "${args[@]}"
+    - name: Restore cumulative Debt Ledger baseline
+      if: ${{ inputs.debt == 'true' && inputs.ledger-sync == 'true' }}
+      shell: bash
+      env:
+        DW_LEDGER_REMOTE: ${{ inputs.ledger-remote }}
+        DW_LEDGER_REF: ${{ inputs.ledger-ref }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
+      run: |
+        set -euo pipefail
+        dw ledger --config "$DW_CONFIG" pull --remote "$DW_LEDGER_REMOTE" --ref "$DW_LEDGER_REF"
+    - name: Measure change debt
+      id: debt
+      if: ${{ inputs.debt == 'true' }}
+      shell: bash
+      env:
+        DW_BASE: ${{ inputs.base }}
+        DW_CANDIDATE: ${{ inputs.candidate }}
+        DW_CONFIG: ${{ steps.trusted-config.outputs.path }}
+      run: |
+        set +e
+        dw debt --config "$DW_CONFIG" --base "$DW_BASE" --candidate "$DW_CANDIDATE" --certificate diffwitness-evidence.json --no-record --json diffwitness-debt.json
+        debt_rc=$?
+        set -e
+        python - <<'PY'
+        import json, os
+        from pathlib import Path
+        payload = json.loads(Path('diffwitness-debt.json').read_text(encoding='utf-8'))
+        report = payload['report']
+        budget = payload['budget']
+        output = Path(os.environ['GITHUB_OUTPUT'])
+        with output.open('a', encoding='utf-8') as handle:
+            handle.write(f"debt_points={budget['change_points']}\n")
+            handle.write(f"debt_projected_total={budget['projected_total']}\n")
+            handle.write(f"debt_budget_passed={'true' if budget['passed'] else 'false'}\n")
+        summary = os.environ.get('GITHUB_STEP_SUMMARY')
+        if summary:
+            by_category = report.get('summary', {}).get('by_category', {})
+            with Path(summary).open('a', encoding='utf-8') as handle:
+                handle.write('\n## DiffWitness Debt Ledger\n\n')
+                handle.write(f"New debt: **{budget['change_points']}** point(s)  \n")
+                handle.write(f"Projected active debt: **{budget['projected_total']}** point(s)  \n")
+                handle.write(f"Debt budget: **{'PASS' if budget['passed'] else 'EXCEEDED'}**\n\n")
+                if by_category:
+                    handle.write('| Category | Points |\n|---|---:|\n')
+                    for category, points in sorted(by_category.items(), key=lambda item: (-item[1], item[0])):
+                        handle.write(f'| {category} | {points} |\n')
+        PY
+        exit "$debt_rc"
+    - name: Preserve proof + debt artifacts
+      if: ${{ always() && inputs.upload-certificate == 'true' && hashFiles('diffwitness-evidence.json') != '' }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: diffwitness-${{ steps.prove.outputs.certificate_id }}
+        path: |
+          diffwitness-evidence.json
+          diffwitness-evidence.md
+          diffwitness-debt.json
+        if-no-files-found: ignore
+        retention-days: 30
 branding:
-  icon: check-circle
+  icon: shield
   color: purple

@@ -1,0 +1,104 @@
+# Changelog
+
+## 0.4.0a1 — Proof + Debt Control Alpha
+
+DiffWitness extends the proof layer into a replayable software-debt control loop for agent-generated changes and adds an optional runtime protection layer that remains independent from proof.
+
+### Added
+
+- Optional native `dw protect` runtime layer with `builtin`, `external`, and `off` modes.
+- `dw protect detect`, `enable`, `disable`, `use`, `status`, and bounded local `log` surfaces.
+- `observe`, `standard`, and `strict` Protect policies for supported Claude Code / Codex tool hooks.
+- Conservative deterministic guards for destructive Git/filesystem operations, remote pipe-to-shell execution, repository-boundary writes, direct `.git` writes, several high-confidence secret patterns, destructive database/schema commands, and dependency-install observation/confirmation.
+- Post-edit JSON and Python syntax checks plus landed-secret observation.
+- Non-destructive coexistence with existing agent hooks and automatic delegation when a high-confidence external harness signal is detected.
+- Hash-linked bounded Protect receipts under local Git metadata, with no intentional raw command, source, prompt, raw event, or raw session-id persistence; a single bounded provider-activation receipt can establish that a configured live hook actually ran without creating a risk finding.
+- Bounded Portal projection of Protect mode/health/policy, receipt integrity and aggregate decision counts, stored separately from Proof assurance.
+- Event-sourced Debt Ledger with stable `DW-...` lineages, explicit provenance, acceptance, resolution, reopening, history, and budget accounting.
+- `dw debt`, `dw health`, `dw plan`, `dw repay`, `dw recheck`, and public `dw ledger` lifecycle commands.
+- Causal, deterministic, historical, and explicitly bounded heuristic debt measurements.
+- Replay adapters for mutation necessity, historical test discrimination, and project-level rules.
+- Debt budgets for total debt, per-change debt, and category-specific ceilings.
+- Portable Debt Ledger checkpoints on `refs/diffwitness/debt-ledger` with safe pull/push semantics for ephemeral clones and CI.
+- GitHub Action debt outputs plus automatic read-only restoration of the cumulative ledger baseline.
+- Immutable worktree snapshots for project-health provenance.
+
+### Hardened
+
+- Protect receipt appends use a dependency-free inter-process lock and refuse to silently extend a damaged/tampered chain.
+- Codex readiness is fail-closed: an installed hook file is not reported ready until a live Codex hook has actually invoked Protect, and DiffWitness never writes/bypasses Codex project or hook trust on the user's behalf.
+- Protect `off` installs no runtime interception hook; disabling builtin Protect removes only DiffWitness-managed hooks and preserves unrelated agent configuration.
+- Clean runtime actions are never force-allowed by Protect; provider-native permission systems remain authoritative.
+- A configured pre-tool Protect failure fails closed for the action instead of manufacturing success.
+- Protect observations remain `OBSERVED` metadata and cannot mint/override DiffWitness Proof or Debt semantics.
+- Portal rejects raw-command fields at the bounded snapshot boundary and keeps runtime protection telemetry out of proof assurance storage.
+- Local ledger writes are atomic, fsynced where supported, and protected by a dependency-free inter-process lock.
+- State decisions and event appends are transactional, preventing two agents from double-introducing a lineage or acting on stale debt state.
+- Hash-valid but semantically impossible ledger histories fail closed.
+- Remote checkpoint updates are fast-forward only; concurrent writers cannot force-overwrite another ledger history.
+- Failed Git transport cannot masquerade as a missing/empty cumulative ledger.
+- Proof certificates must pass integrity and candidate-content binding before debt accounting trusts their provenance.
+- Merely supplying a certificate file no longer suppresses `unverified_change`; only accepted behavioral evidence can do so.
+- Mutation rechecks reset test side effects before executing the counterfactual variant.
+- Health scans bind findings to the exact immutable tree that was actually inspected, including dirty-worktree content.
+
+### Alpha boundary
+
+- The 0.4 line is intentionally marked alpha while the public repository/distribution path and real-world adopter feedback are exercised.
+- Builtin Protect currently targets supported Claude Code / Codex hook surfaces; generic agents remain fully supported through the independent `dw guard -- <agent>` proof boundary. Current Codex hook execution remains subject to Codex's own feature, repository-trust, and per-hook trust controls.
+- Protect starts with a deliberately bounded high-confidence rule set rather than claiming universal agent safety.
+- Debt points are accounting weights over inspectable obligations, not bug probabilities, engineering-time estimates, or a universal maintainability score.
+- Hash chains are integrity mechanisms, not external signatures against a malicious repository owner.
+
+## 0.3.0 — Proof Layer
+
+DiffWitness moves from a hunk-evidence CLI toward an agent-independent proof layer for code changes.
+
+### Added
+
+- `dw` low-friction frontend.
+- `dw guard -- <agent>` before/after proof boundary for Claude Code, Codex, humans/scripts launched as subprocesses, and other coding agents.
+- `dw gate` unified PR/CI proof gate.
+- Automatic strategy selection: exhaustive real-hunk proof for small patches, budgeted Adaptive Core for large patches.
+- Adaptive Core delta-debugging search over real production mutations with explicit budget and 1-minimality semantics.
+- `observe`, `balanced`, and `strict` downstream proof policies.
+- Zero-config evidence discovery for common Python, JavaScript/TypeScript, Rust, Go, JVM, PHP, Ruby project signals.
+- Formal `proof-not-required` certificates for documentation/test-only changes rather than manufacturing unrelated test evidence.
+- Narrow documentation classifier while keeping build/configuration/migration files in the causal surface.
+- `dw verify` certificate integrity and Git-tree freshness checks.
+- `dw note` verified proof attachment through `refs/notes/diffwitness` without rewriting commit SHAs.
+- Artifact-safe worktree verification for untracked generated evidence files.
+- Claude Code plugin manifest, marketplace manifest, lifecycle hooks, and DiffWitness skill.
+- Codex plugin manifest, lifecycle hook surface, and shared skill.
+- Shared plugin hook bridge with `PLUGIN_ROOT` / `CLAUDE_PLUGIN_ROOT` support.
+- GitHub Action now routes through the same automatic Gate and preserves evidence artifacts.
+- Proof protocol, Guard, Gate, and attestation documentation.
+
+### Hardened
+
+- Candidate and base variants are classified for stability before causal labels are assigned.
+- Adaptive Core refuses causal minimization without stable base-fail -> candidate-pass contrast.
+- Combinatorial searches stream under explicit budgets instead of materializing unbounded combination sets.
+- Public Guard delegates proof decisions to Gate so local and CI policy semantics do not drift.
+- Windows Unicode console handling.
+- Runtime/package version consistency is enforced by CI.
+- Plugin JSON, package compilation, CLI entrypoints, wheel build, and six-platform Python/OS matrix are exercised in CI.
+
+### Evidence boundary
+
+DiffWitness still does not claim mathematical program correctness. All conclusions remain relative to executable evidence, environment, search completeness, and stability. Unknown evidence remains explicit rather than becoming a confidence score.
+
+## 0.2.0 — Causal Evidence Engine
+
+- Repeated-run stability classification.
+- Candidate-test overlay onto base.
+- Real-hunk necessity map.
+- Minimal sufficient subset search.
+- Hidden mutual-backup interaction search.
+- Evidence certificates and GitHub annotations.
+- Greedy patch minimization.
+
+## 0.1.0 — DiffWitness Prototype
+
+- Reverse-ablate each real production Git hunk.
+- Classify changes as witnessed, unwitnessed, or inconclusive under a selected test command.

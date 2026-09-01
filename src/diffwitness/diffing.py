@@ -24,6 +24,19 @@ STRUCTURAL_MARKERS = (
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
+DOCUMENTATION_SUFFIXES = {".md", ".mdx", ".rst", ".adoc", ".asciidoc"}
+DOCUMENTATION_BASENAMES = {
+    "license",
+    "license.txt",
+    "copying",
+    "notice",
+    "authors",
+    "contributors",
+    "code_of_conduct.md",
+    "security.md",
+}
+
+
 def is_test_path(path: str, extra_globs: list[str] | None = None) -> bool:
     p = PurePosixPath(path.lower())
     parts = set(p.parts)
@@ -37,6 +50,30 @@ def is_test_path(path: str, extra_globs: list[str] | None = None) -> bool:
     if any(token in name for token in (".test.", ".spec.")):
         return True
     return bool(extra_globs and any(fnmatch.fnmatch(path, pattern) for pattern in extra_globs))
+
+
+def is_documentation_path(path: str) -> bool:
+    """Conservatively identify files that should not require executable causal evidence.
+
+    Build/configuration files are intentionally *not* excluded: they may alter runtime behavior.
+    The classifier is kept narrow so unusual data/code formats stay inside the proof surface.
+    """
+    p = PurePosixPath(path.lower())
+    name = p.name
+    if p.suffix in DOCUMENTATION_SUFFIXES:
+        return True
+    if name in DOCUMENTATION_BASENAMES:
+        return True
+    if name.startswith("readme") or name.startswith("changelog") or name.startswith("contributing"):
+        return True
+    if p.parts and p.parts[0] in {"docs", "doc"}:
+        return True
+    if len(p.parts) >= 2 and p.parts[0] == ".github" and p.parts[1] in {
+        "issue_template",
+        "discussion_template",
+    }:
+        return True
+    return False
 
 
 def _parse_paths(first_line: str) -> tuple[str | None, str]:
@@ -128,11 +165,14 @@ def make_mutations(
     *,
     include_tests: bool = False,
     ignore_globs: list[str] | None = None,
+    include_docs: bool = False,
 ) -> list[Mutation]:
     ignore_globs = ignore_globs or []
     mutations: list[Mutation] = []
     for file in files:
         if file.is_test and not include_tests:
+            continue
+        if is_documentation_path(file.path) and not include_docs:
             continue
         if any(fnmatch.fnmatch(file.path, pattern) for pattern in ignore_globs):
             continue

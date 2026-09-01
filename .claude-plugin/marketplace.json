@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "diffwitness",
+  "version": "0.3.0",
+  "description": "Proof-carrying code changes for Claude Code and other coding agents.",
+  "owner": {
+    "name": "Thomas Fournier"
+  },
+  "plugins": [
+    {
+      "name": "diffwitness",
+      "description": "Capture the pre-agent state and require causal evidence for the real patch before work is declared complete.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Thomas Fournier"
+      },
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
