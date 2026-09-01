@@ -58,6 +58,8 @@ jobs:
           dw --version
           dw --help
           dw doctor --repo .
+          dw protect --help
+          dw protect status --json
           dw engine --help
           dw ledger --help
           dw envelope --help
@@ -136,6 +138,7 @@ jobs:
           release-wheel-smoke/bin/python -m pip check
           release-wheel-smoke/bin/dw --version
           release-wheel-smoke/bin/dw --help
+          release-wheel-smoke/bin/dw protect --help
           release-wheel-smoke/bin/dw explain --help
           release-wheel-smoke/bin/dw portal --help
           release-wheel-smoke/bin/dw setup --help
@@ -156,6 +159,7 @@ jobs:
           fi
           release-wheel-smoke/bin/python -m pip install --no-deps dist/*.whl
           release-wheel-smoke/bin/dw --version
+          release-wheel-smoke/bin/dw protect --help
           release-wheel-smoke/bin/dw explain --help
           release-wheel-smoke/bin/idleproof --version
       - uses: actions/upload-artifact@v6
@@ -214,6 +218,7 @@ jobs:
           pyinstaller --clean --onefile --name dw packaging/dw_entry.py
           ./dist/dw --version || ./dist/dw.exe --version
           ./dist/dw --help || ./dist/dw.exe --help
+          ./dist/dw protect --help || ./dist/dw.exe protect --help
           ./dist/dw explain --help || ./dist/dw.exe explain --help
           ./dist/dw engine --help || ./dist/dw.exe engine --help
           ./dist/dw ledger --help || ./dist/dw.exe ledger --help
