@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+path = Path("src/diffwitness/protect.py")
+text = path.read_text(encoding="utf-8")
+old = '''        try:\n            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)\n        except FileExistsError:\n            try:\n                stale = time.time() - path.stat().st_mtime > 60.0\n            except OSError:\n                stale = False\n            if stale:\n                try:\n                    path.unlink()\n                    continue\n                except OSError:\n                    pass\n            if time.monotonic() >= deadline:\n                raise ProtectError("timed out waiting for the Protect receipt lock")\n            time.sleep(0.02)\n'''
+new = '''        try:\n            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)\n        except (FileExistsError, PermissionError) as exc:\n            # Windows can report an O_EXCL collision as EACCES/PermissionError while\n            # another thread or process still owns the lock file. Treat that as\n            # contention only on Windows; permission failures remain fatal elsewhere.\n            if isinstance(exc, PermissionError) and os.name != "nt":\n                raise\n            try:\n                stale = time.time() - path.stat().st_mtime > 60.0\n            except FileNotFoundError:\n                # The owner may have released the lock between os.open() and stat().\n                # Retry instead of turning that benign release race into a failure.\n                stale = False\n            except OSError:\n                if isinstance(exc, PermissionError):\n                    raise\n                stale = False\n            if stale:\n                try:\n                    path.unlink()\n                    continue\n                except OSError:\n                    pass\n            if time.monotonic() >= deadline:\n                raise ProtectError("timed out waiting for the Protect receipt lock")\n            time.sleep(0.02)\n'''
+if text.count(old) != 1:
+    raise SystemExit(f"expected exactly one Protect lock snippet, found {text.count(old)}")
+path.write_text(text.replace(old, new), encoding="utf-8")
