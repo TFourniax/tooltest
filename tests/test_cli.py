@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness import __version__
+
 
 SRC = str(Path(__file__).resolve().parents[1] / "src")
 
@@ -57,13 +59,14 @@ class CliTests(unittest.TestCase):
             ]
             proc = run(cmd, cwd=repo, check=False)
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertIn(f"DiffWitness {__version__} - counterfactual patch evidence", proc.stdout)
             report = json.loads(cert.read_text(encoding="utf-8"))
             self.assertEqual(report["schema_version"], 2)
             self.assertEqual(report["summary"]["witnessed"], 1)
             self.assertTrue(report["certificate_id"].startswith("dw2_"))
             self.assertIn("DiffWitness evidence certificate", md.read_text(encoding="utf-8"))
 
-    def test_init_creates_config_and_workflow(self) -> None:
+    def test_init_creates_pinned_workflow_with_explicit_commands(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
             run(["git", "init", "-q"], cwd=repo)
@@ -73,12 +76,37 @@ class CliTests(unittest.TestCase):
                 "git", "-c", "user.name=Test", "-c", "user.email=test@example.com",
                 "commit", "-q", "-m", "initial"
             ], cwd=repo)
-            proc = run([sys.executable, "-m", "diffwitness", "init", "--repo", str(repo), "--test", "pytest -q"], cwd=repo, check=False)
+            test_command = 'pytest -q "tests/smoke suite"'
+            prepare_command = "python -m pip install -e ."
+            proc = run(
+                [
+                    sys.executable,
+                    "-m",
+                    "diffwitness",
+                    "init",
+                    "--repo",
+                    str(repo),
+                    "--test",
+                    test_command,
+                    "--prepare",
+                    prepare_command,
+                ],
+                cwd=repo,
+                check=False,
+            )
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
-            self.assertIn('test = "pytest -q"', (repo / ".diffwitness.toml").read_text(encoding="utf-8"))
+            config = (repo / ".diffwitness.toml").read_text(encoding="utf-8")
+            self.assertIn('test = "pytest -q \\"tests/smoke suite\\""', config)
+            self.assertIn('prepare = "python -m pip install -e ."', config)
+
             workflow = (repo / ".github" / "workflows" / "diffwitness.yml").read_text(encoding="utf-8")
-            self.assertIn("uses: TFourniax/tooltest@main", workflow)
-            self.assertIn("strict: false", workflow)
+            self.assertIn("uses: actions/checkout@v7", workflow)
+            self.assertIn(f"uses: TFourniax/tooltest@v{__version__}", workflow)
+            self.assertNotIn("TFourniax/tooltest@main", workflow)
+            self.assertIn('test: "pytest -q \\"tests/smoke suite\\""', workflow)
+            self.assertIn('prepare: "python -m pip install -e ."', workflow)
+            self.assertIn("policy: balanced", workflow)
+            self.assertIn("strategy: auto", workflow)
 
 
 if __name__ == "__main__":

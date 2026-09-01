@@ -1,0 +1,45 @@
+name: continuitybench
+on:
+  pull_request:
+  push:
+    branches: ["agent/continuity-kernel-v1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: continuitybench-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  continuitybench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install exact branch package
+        run: python -m pip install -e .
+      - name: Benchmark 10k-event longitudinal project
+        run: >-
+          python scripts/continuity_bench.py
+          --events 10000
+          --batch-size 2000
+          --context-runs 7
+          --max-append-seconds 10
+          --max-verify-seconds 2
+          --max-rebuild-seconds 5
+          --max-context-cold-ms 1000
+          --max-context-hot-p95-ms 300
+          --json continuitybench.json
+      - name: Preserve ContinuityBench result
+        if: ${{ always() && hashFiles('continuitybench.json') != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: continuitybench-10k
+          path: continuitybench.json
+          if-no-files-found: error
+          retention-days: 30

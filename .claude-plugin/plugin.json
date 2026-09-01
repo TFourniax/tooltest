@@ -1,0 +1,14 @@
+{
+  "name": "diffwitness",
+  "version": "0.3.0",
+  "description": "Proof-carrying code changes: automatically validate the real patch before an agent declares work complete.",
+  "author": {
+    "name": "Thomas Fournier"
+  },
+  "homepage": "https://github.com/TFourniax/tooltest",
+  "repository": "https://github.com/TFourniax/tooltest",
+  "license": "MIT",
+  "keywords": ["testing", "verification", "coding-agents", "proof", "git"],
+  "skills": "./skills/",
+  "hooks": "./hooks/claude-hooks.json"
+}

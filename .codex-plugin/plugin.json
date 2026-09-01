@@ -1,0 +1,7 @@
+{
+  "name": "diffwitness",
+  "version": "0.3.0",
+  "description": "Independent causal verification for code produced by Codex and other coding agents.",
+  "skills": "./skills/",
+  "hooks": "./hooks/codex-hooks.json"
+}

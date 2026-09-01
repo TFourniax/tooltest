@@ -1,0 +1,27 @@
+{
+  "schema": "diffwitness.real-repo-corpus.v1",
+  "cases": [
+    {
+      "id": "click-posixify-regression",
+      "repository": "https://github.com/pallets/click.git",
+      "sha": "2c8cd3ac958a7eb316d67f2d316c27086c4c0369",
+      "target": "src/click/utils.py",
+      "pythonpath": ["src"],
+      "needle": "return \"-\".join(name.split()).lower()",
+      "replacement": "return \"-\".join(name.split()).upper()",
+      "validation": "from click.utils import _posixify; assert _posixify('Hello World') == 'hello-world'; assert _posixify('  Mixed\\tCase  ') == 'mixed-case'; assert _posixify('single') == 'single'",
+      "task": "A regression broke Click command-name normalization. _posixify must collapse whitespace with hyphens and return lowercase names. Fix the regression in src/click/utils.py only; preserve the surrounding implementation and do not change tests or configuration."
+    },
+    {
+      "id": "boltons-mode-regression",
+      "repository": "https://github.com/mahmoud/boltons.git",
+      "sha": "967864f89791509f9eb36b22b4579d36b72a6df2",
+      "target": "boltons/statsutils.py",
+      "pythonpath": ["."],
+      "needle": "return Counter(self.data).most_common(1)[0][0]",
+      "replacement": "return Counter(self.data).most_common()[-1][0]",
+      "validation": "from boltons.statsutils import Stats, mode; assert mode([2, 1, 3, 1]) == 1; assert mode(['a', 'b', 'b', 'c', 'c', 'c']) == 'c'; assert mode([1, 1, 2, 2, 3]) == 1; assert Stats([], default=None).mode is None",
+      "task": "A regression in boltons.statsutils.mode makes it return the least common value instead of the most common value. Restore the documented most-common behavior, including first-seen tie behavior and the existing empty-data default, by changing boltons/statsutils.py only. Do not change tests or configuration."
+    }
+  ]
+}
