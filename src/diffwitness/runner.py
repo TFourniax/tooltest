@@ -107,12 +107,11 @@ def _popen_group_kwargs() -> dict[str, object]:
 
 
 def _windows_job_for_process(proc: subprocess.Popen[str]) -> int | None:
-    """Attach a Windows process to a kill-on-close Job Object when possible.
+    """Attach a Windows evidence process to a kill-on-close Job Object when possible.
 
-    `taskkill /T` is kept as a fallback, but a Job Object is the stronger boundary because every
-    descendant created after assignment inherits membership. Closing the job then terminates the
-    complete evidence tree even if the shell/root process exits or is re-parented during timeout
-    handling. This uses only the Windows API from the Python standard library.
+    `taskkill /T` remains the fallback. A Job Object is stronger because descendants inherit job
+    membership, so closing the job tears down the complete evidence tree even when the shell exits
+    or a worker becomes re-parented while a timeout is being handled. This uses only stdlib ctypes.
     """
     if os.name != "nt":
         return None
@@ -171,8 +170,7 @@ def _windows_job_for_process(proc: subprocess.Popen[str]) -> int | None:
         if not job:
             return None
         info = _JobExtendedLimitInformation()
-        # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-        info.BasicLimitInformation.LimitFlags = 0x00002000
+        info.BasicLimitInformation.LimitFlags = 0x00002000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         if not set_job_info(job, 9, ctypes.byref(info), ctypes.sizeof(info)):
             close_handle(job)
             return None
@@ -280,7 +278,6 @@ def run_command(
         )
     except subprocess.TimeoutExpired:
         if windows_job is not None:
-            # Closing a KILL_ON_JOB_CLOSE job is the authoritative Windows tree termination path.
             _close_windows_job(windows_job)
             windows_job = None
         else:
@@ -288,8 +285,6 @@ def run_command(
         try:
             stdout, stderr = proc.communicate(timeout=_COMMUNICATE_GRACE_SECONDS)
         except subprocess.TimeoutExpired:
-            # Defensive fallback for an unusual platform/process-tree failure. The direct child
-            # must not survive even when the operating system could not terminate descendants.
             try:
                 proc.kill()
             except OSError:
@@ -303,7 +298,55 @@ def run_command(
             timed_out=True,
         )
     finally:
-        # Also reap descendants that outlive an otherwise successful evidence shell. Proof variants
-        # must not inherit background workers from a previous command.
+        # Evidence commands must not leave background workers alive after a variant finishes.
         if windows_job is not None:
             _close_windows_job(windows_job)
+
+
+def classify_runs(runs: list[CommandResult]) -> str:
+    if any(run.timed_out for run in runs):
+        return "timeout"
+    passed = [run.passed for run in runs]
+    if all(passed):
+        return "stable-pass"
+    if not any(passed):
+        return "stable-fail"
+    return "flaky"
+
+
+def run_repeated(
+    command: str,
+    *,
+    cwd: Path,
+    source_repo: Path,
+    timeout: float,
+    repetitions: int,
+    before_each: Callable[[], None] | None = None,
+    deadline: float | None = None,
+) -> RunSet:
+    """Run evidence repeatedly, optionally rebuilding an identical sandbox before every run.
+
+    `before_each` is intentionally executed before *every* repetition, including the first. Proof
+    callers use it to restore an immutable variant and rerun preparation so a test that mutates
+    files, caches, fixtures, or ignored state cannot influence the next stability observation.
+
+    The active wall-clock budget is checked before both preparation and command execution, so a
+    proof never starts a fresh repetition after its global deadline has expired.
+    """
+    if repetitions < 1:
+        raise ValueError("repetitions must be >= 1")
+    runs: list[CommandResult] = []
+    for _ in range(repetitions):
+        bounded_timeout(timeout, deadline)
+        if before_each is not None:
+            before_each()
+        runs.append(
+            run_command(
+                command,
+                cwd=cwd,
+                source_repo=source_repo,
+                timeout=timeout,
+                deadline=deadline,
+            )
+        )
+    return RunSet(runs=runs, classification=classify_runs(runs))
