@@ -14,6 +14,7 @@ from .proof_cli import _state_path
 _MAX_PROMPT_CHARS = 12000
 _MAX_CONTEXT_CHARS = 6500
 _MAX_SOUL_CONTEXT_CHARS = 1400
+_PROTECT_PROVIDERS = {"claude", "codex"}
 
 
 def _read_payload() -> dict[str, Any]:
@@ -177,16 +178,35 @@ def session_stop(payload: dict[str, Any], *, policy: str = "balanced") -> dict[s
     return finalize_ide_session(payload, policy=policy)
 
 
+def _protect_provider(argv: list[str]) -> str | None:
+    if "--provider" not in argv[1:]:
+        return None
+    index = argv.index("--provider", 1)
+    if index + 1 >= len(argv):
+        raise ValueError("--provider requires claude or codex")
+    provider = str(argv[index + 1]).strip().lower()
+    if provider not in _PROTECT_PROVIDERS:
+        raise ValueError("--provider must be claude or codex")
+    return provider
+
+
 def ide_hook_cli(argv: list[str]) -> int:
     commands = {"session-start", "user-prompt-submit", "protect-pre", "protect-post", "session-stop"}
     if not argv or argv[0] not in commands:
         print(
-            "Usage: dw ide-hook session-start|user-prompt-submit|protect-pre|protect-post|session-stop",
+            "Usage: dw ide-hook session-start|user-prompt-submit|protect-pre|protect-post|session-stop [--provider claude|codex]",
             file=sys.stderr,
         )
         return 2
     command = argv[0]
+    try:
+        provider = _protect_provider(argv) if command in {"protect-pre", "protect-post"} else None
+    except ValueError as exc:
+        print(f"DiffWitness IDE bridge: {exc}", file=sys.stderr)
+        return 2
     payload = _read_payload()
+    if provider is not None:
+        payload["provider"] = provider
     try:
         if command == "session-start":
             session_start(payload)
