@@ -1,0 +1,37 @@
+name: apply-protect-windows-lock
+
+on:
+  push:
+    branches: ["agent/diffwitness-protect-v1-20260901"]
+    paths:
+      - ".github/workflows/apply-protect-windows-lock.yml"
+      - "scripts/patch_protect_windows_lock.py"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Apply bounded patch
+        run: |
+          python scripts/patch_protect_windows_lock.py
+          python -m py_compile src/diffwitness/protect.py
+          git diff --check
+      - name: Commit product fix only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/diffwitness/protect.py
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: make Protect receipt lock portable on Windows"
+          git push origin HEAD:agent/diffwitness-protect-v1-20260901
