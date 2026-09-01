@@ -8,6 +8,8 @@ import re
 import shlex
 import shutil
 import sys
+import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -138,8 +140,12 @@ def _entry_command(entry: Mapping[str, Any]) -> str | None:
     return None
 
 
-def _managed_command(dw_command: str, event: str) -> str:
+def _managed_command(dw_command: str, event: str, provider: str | None = None) -> str:
     values = [dw_command, "ide-hook", event]
+    if provider is not None:
+        if provider not in SUPPORTED_ADAPTERS:
+            raise ProtectError(f"unsupported Protect provider: {provider}")
+        values.extend(["--provider", provider])
     if os.name == "nt":
         import subprocess
         return subprocess.list2cmdline(values)
@@ -182,7 +188,7 @@ def _detect_adapters(repo: Path) -> list[str]:
         found.append("claude")
     if (repo / ".codex").exists() or shutil.which("codex"):
         found.append("codex")
-    return found or ["claude", "codex"]
+    return found
 
 
 def detect_external_harness(repo: Path) -> dict[str, Any]:
@@ -239,9 +245,9 @@ def detect_external_harness(repo: Path) -> dict[str, Any]:
 
 def _install_hooks(repo: Path, adapters: Iterable[str], *, dw_command: str) -> dict[str, bool]:
     created: dict[str, bool] = {}
-    pre = _managed_command(dw_command, "protect-pre")
-    post = _managed_command(dw_command, "protect-post")
     for adapter in adapters:
+        pre = _managed_command(dw_command, "protect-pre", adapter)
+        post = _managed_command(dw_command, "protect-post", adapter)
         path = _adapter_path(repo, adapter)
         existed = path.exists()
         data = _read_hook_file(path)
@@ -273,6 +279,9 @@ def _remove_hooks(repo: Path, config: Mapping[str, Any]) -> None:
         _managed_command(dw_command, "protect-pre"),
         _managed_command(dw_command, "protect-post"),
     }
+    for provider in SUPPORTED_ADAPTERS:
+        commands.add(_managed_command(dw_command, "protect-pre", provider))
+        commands.add(_managed_command(dw_command, "protect-post", provider))
     created = config.get("managedHooks") if isinstance(config.get("managedHooks"), Mapping) else {}
     adapters = config.get("adapters") if isinstance(config.get("adapters"), list) else list(SUPPORTED_ADAPTERS)
     for adapter in adapters:
@@ -361,8 +370,8 @@ def _hook_installed(repo: Path, adapter: str, config: Mapping[str, Any]) -> bool
         return False
     dw_command = str(config.get("diffwitnessCommand") or _resolve_dw_command())
     expected = {
-        _managed_command(dw_command, "protect-pre"),
-        _managed_command(dw_command, "protect-post"),
+        _managed_command(dw_command, "protect-pre", adapter),
+        _managed_command(dw_command, "protect-post", adapter),
     }
     found: set[str] = set()
     for event in ("PreToolUse", "PostToolUse"):
@@ -382,15 +391,34 @@ def protect_status(repo: Path) -> dict[str, Any]:
     mode = str(config["mode"])
     detection = detect_external_harness(repo)
     adapters = list(config.get("adapters") or [])
-    details = {
-        adapter: {
-            "path": _adapter_path(repo, adapter).relative_to(repo).as_posix(),
-            "installed": _hook_installed(repo, adapter, config),
-        }
-        for adapter in adapters
+    receipt_values, _ = _iter_receipts(repo)
+    enabled_at = str(config.get("updatedAt") or "")
+    active_providers = {
+        str(item.get("provider"))
+        for item in receipt_values
+        if str(item.get("provider")) in SUPPORTED_ADAPTERS
+        and (not enabled_at or str(item.get("ts") or "") >= enabled_at)
     }
+    details: dict[str, dict[str, Any]] = {}
+    for adapter in adapters:
+        installed = _hook_installed(repo, adapter, config)
+        active_seen = adapter in active_providers
+        requires_activation = adapter == "codex" and not active_seen
+        details[adapter] = {
+            "path": _adapter_path(repo, adapter).relative_to(repo).as_posix(),
+            "installed": installed,
+            "activeSeen": active_seen,
+            "ready": installed and not requires_activation,
+            "activation": (
+                "observed"
+                if active_seen
+                else "requires-provider-feature-and-trust"
+                if adapter == "codex"
+                else "installed"
+            ),
+        }
     if mode == "builtin":
-        health = "ready" if adapters and all(item["installed"] for item in details.values()) else "degraded"
+        health = "ready" if adapters and all(item["ready"] for item in details.values()) else "degraded"
     elif mode == "external":
         health = "delegated"
     else:
@@ -414,23 +442,74 @@ def _canonical(value: Mapping[str, Any]) -> str:
     return json.dumps(dict(value), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _receipt_lock_path(repo: Path) -> Path:
+    return _state_dir(repo) / "protection.lock"
+
+
+@contextmanager
+def _receipt_lock(repo: Path, *, timeout: float = 10.0):
+    path = _receipt_lock_path(repo)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + timeout
+    fd: int | None = None
+    while fd is None:
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            try:
+                stale = time.time() - path.stat().st_mtime > 60.0
+            except OSError:
+                stale = False
+            if stale:
+                try:
+                    path.unlink()
+                    continue
+                except OSError:
+                    pass
+            if time.monotonic() >= deadline:
+                raise ProtectError("timed out waiting for the Protect receipt lock")
+            time.sleep(0.02)
+    try:
+        os.write(fd, f"{os.getpid()}\n".encode("ascii", errors="ignore"))
+    finally:
+        os.close(fd)
+    try:
+        yield
+    finally:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            pass
+
+
 def _last_receipt_hash(path: Path) -> str | None:
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
         return None
-    except OSError:
-        return None
+    except OSError as exc:
+        raise ProtectError(f"cannot read Protect receipt tail: {exc}") from exc
     for line in reversed(lines):
         if not line.strip():
             continue
         try:
             value = json.loads(line)
-        except json.JSONDecodeError:
-            return None
-        if isinstance(value, dict) and isinstance(value.get("hash"), str):
-            return str(value["hash"])
-        return None
+        except json.JSONDecodeError as exc:
+            raise ProtectError("refusing to extend a damaged Protect receipt chain") from exc
+        if not isinstance(value, dict) or value.get("schema") != RECEIPT_SCHEMA:
+            raise ProtectError("refusing to extend an invalid Protect receipt chain")
+        claimed = value.get("hash")
+        if not isinstance(claimed, str):
+            raise ProtectError("refusing to extend a Protect receipt chain with no tail hash")
+        stable = dict(value)
+        stable.pop("hash", None)
+        stable.pop("id", None)
+        calculated = hashlib.sha256(_canonical(stable).encode("utf-8")).hexdigest()
+        if claimed != calculated:
+            raise ProtectError("refusing to extend a tampered Protect receipt chain")
+        return claimed
     return None
 
 
@@ -461,28 +540,29 @@ def append_receipt(
         or "unknown"
     )[:80]
     provider = str(payload.get("provider") or payload.get("agent") or "unknown")[:40]
-    previous = _last_receipt_hash(receipt_path)
-    stable = {
-        "schema": RECEIPT_SCHEMA,
-        "ts": _now(),
-        "sessionDigest": hashlib.sha256(session.encode("utf-8")).hexdigest()[:16],
-        "provider": provider,
-        "phase": phase[:24],
-        "decision": decision[:24],
-        "category": category[:80],
-        "rule": rule[:100],
-        "tool": tool,
-        "path": path[:300] if isinstance(path, str) else None,
-        "message": message[:240],
-        "prev": previous,
-    }
-    digest = hashlib.sha256(_canonical(stable).encode("utf-8")).hexdigest()
-    receipt = {**stable, "id": "dwpr_" + digest[:20], "hash": digest}
-    try:
-        with receipt_path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(_canonical(receipt) + "\n")
-    except OSError:
-        pass
+    with _receipt_lock(repo):
+        previous = _last_receipt_hash(receipt_path)
+        stable = {
+            "schema": RECEIPT_SCHEMA,
+            "ts": _now(),
+            "sessionDigest": hashlib.sha256(session.encode("utf-8")).hexdigest()[:16],
+            "provider": provider,
+            "phase": phase[:24],
+            "decision": decision[:24],
+            "category": category[:80],
+            "rule": rule[:100],
+            "tool": tool,
+            "path": path[:300] if isinstance(path, str) else None,
+            "message": message[:240],
+            "prev": previous,
+        }
+        digest = hashlib.sha256(_canonical(stable).encode("utf-8")).hexdigest()
+        receipt = {**stable, "id": "dwpr_" + digest[:20], "hash": digest}
+        try:
+            with receipt_path.open("a", encoding="utf-8", newline="\n") as handle:
+                handle.write(_canonical(receipt) + "\n")
+        except OSError as exc:
+            raise ProtectError(f"cannot append Protect receipt: {exc}") from exc
     return receipt
 
 
@@ -656,8 +736,17 @@ def evaluate_pre_tool(repo: Path, payload: Mapping[str, Any]) -> dict[str, Any] 
     if finding is not None:
         decision = "observed" if policy == "observe" else "block"
     elif _DEPENDENCY_RE.search(_command(payload)):
+        provider = str(payload.get("provider") or "").strip().lower()
         finding = ("supply-chain", "dependency-install", "The agent requested a dependency installation.")
-        decision = "ask" if policy == "strict" else "observed"
+        if policy == "strict" and provider == "codex":
+            finding = (
+                "supply-chain",
+                "dependency-install",
+                "The dependency installation was blocked because the current Codex PreToolUse hook cannot safely request confirmation.",
+            )
+            decision = "block"
+        else:
+            decision = "ask" if policy == "strict" else "observed"
 
     if finding is None or decision is None:
         return None
@@ -802,6 +891,10 @@ def protect_cli(argv: list[str]) -> int:
     else:
         adapters = ", ".join(result["adapters"]) or "none"
         print(f"Builtin runtime guards: {adapters}")
+        codex = result.get("adapters", {}).get("codex") if isinstance(result.get("adapters"), dict) else None
+        if isinstance(codex, dict) and codex.get("installed") and not codex.get("ready"):
+            print("Codex hook files are installed but no trusted live hook has been observed since enablement.")
+            print("Current Codex requires its hooks feature plus explicit user approval in `/hooks`; DiffWitness never bypasses Codex hook trust.")
     return 0 if result["health"] != "degraded" else 1
 
 
