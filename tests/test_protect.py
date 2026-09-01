@@ -340,6 +340,44 @@ class ProtectTests(unittest.TestCase):
             self.assertEqual(summary["count"], 40)
             self.assertFalse((repo / ".git" / "diffwitness" / "protection.lock").exists())
 
+    def test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self.repo(Path(td))
+            (repo / ".codex").mkdir()
+            with mock.patch("diffwitness.protect.shutil.which", side_effect=lambda name: "/usr/bin/codex" if name == "codex" else None):
+                enabled = set_protect_mode(repo, "builtin", force=True)
+            self.assertEqual(enabled["health"], "degraded")
+            self.assertFalse(enabled["adapters"]["codex"]["ready"])
+
+            result = evaluate_pre_tool(
+                repo,
+                {
+                    "provider": "codex",
+                    "session_id": "safe-live",
+                    "tool_name": "shell",
+                    "tool_input": {"command": "git status --short"},
+                },
+            )
+            self.assertIsNone(result)
+            ready = protect_status(repo)
+            self.assertEqual(ready["health"], "ready")
+            self.assertTrue(ready["adapters"]["codex"]["activeSeen"])
+            self.assertTrue(ready["adapters"]["codex"]["ready"])
+            self.assertEqual(ready["receipts"]["decisions"].get("active"), 1)
+            self.assertNotIn("observed", ready["receipts"]["decisions"])
+            self.assertNotIn("block", ready["receipts"]["decisions"])
+
+            evaluate_pre_tool(
+                repo,
+                {
+                    "provider": "codex",
+                    "session_id": "safe-live",
+                    "tool_name": "shell",
+                    "tool_input": {"command": "git diff --stat"},
+                },
+            )
+            self.assertEqual(protection_summary(repo)["decisions"].get("active"), 1)
+
     def test_status_is_bounded_and_contains_no_raw_agent_data(self):
         with tempfile.TemporaryDirectory() as td:
             repo = self.repo(Path(td))

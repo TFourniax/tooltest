@@ -620,6 +620,32 @@ def protection_summary(repo: Path) -> dict[str, Any]:
     }
 
 
+def _mark_provider_active(repo: Path, payload: Mapping[str, Any]) -> None:
+    provider = str(payload.get("provider") or payload.get("agent") or "").strip().lower()
+    if provider not in SUPPORTED_ADAPTERS:
+        return
+    config = load_protect_config(repo)
+    if config.get("mode") != "builtin" or provider not in set(config.get("adapters") or []):
+        return
+    enabled_at = str(config.get("updatedAt") or "")
+    values, _ = _iter_receipts(repo)
+    if any(
+        str(item.get("provider")) == provider
+        and (not enabled_at or str(item.get("ts") or "") >= enabled_at)
+        for item in values
+    ):
+        return
+    append_receipt(
+        repo,
+        payload=payload,
+        phase="runtime",
+        decision="active",
+        category="runtime",
+        rule="hook-live",
+        message="The configured provider invoked DiffWitness Protect.",
+    )
+
+
 def _tool_input(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     for key in ("tool_input", "toolInput", "input", "arguments"):
         value = payload.get(key)
@@ -717,6 +743,7 @@ def evaluate_pre_tool(repo: Path, payload: Mapping[str, Any]) -> dict[str, Any] 
     config = load_protect_config(repo)
     if config["mode"] != "builtin":
         return None
+    _mark_provider_active(repo, payload)
     policy = str(config["policy"])
     tool = _tool_name(payload)
     raw_path = _candidate_path(payload)
@@ -775,6 +802,7 @@ def evaluate_post_tool(repo: Path, payload: Mapping[str, Any]) -> dict[str, Any]
     config = load_protect_config(repo)
     if config["mode"] != "builtin":
         return None
+    _mark_provider_active(repo, payload)
     raw_path = _candidate_path(payload)
     rel_path, confined = _repo_relative(repo, raw_path)
     if not confined or not rel_path:
