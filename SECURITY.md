@@ -10,6 +10,46 @@ This means a malicious base or candidate revision can execute arbitrary code wit
 
 Use the same isolation policy you would use for normal CI on untrusted pull requests: disposable runners/containers/VMs, least-privilege tokens, and no sensitive secrets.
 
+## Protect runtime layer
+
+`dw protect` is an optional local guard layer for supported agent hooks. It is **not** a sandbox and it is not the proof engine.
+
+Modes:
+
+- `builtin` — DiffWitness installs its own supported `PreToolUse` / `PostToolUse` hooks;
+- `external` — live runtime safety is delegated to another harness;
+- `off` — no DiffWitness Protect interception is installed.
+
+Protect starts with a deliberately bounded high-confidence rule set. It cannot guarantee that every dangerous command, supply-chain action, secret, semantic bug or malicious tool invocation is detected.
+
+A clean Protect result must never be interpreted as proof that the software is correct. Proof remains the independent post-change executable evidence boundary.
+
+### Permission authority
+
+Protect does not issue an allow decision for clean actions. It stays silent and leaves the coding agent's own permission system authoritative.
+
+When builtin Protect is configured, failure of the pre-tool evaluation path fails closed for the affected action rather than manufacturing an allow decision. Post-tool checks are advisory and do not create a false clean claim if they fail.
+
+### Hook coexistence
+
+Builtin Protect modifies only the supported local hook configuration files and tracks the commands it manages. Disable/uninstall removes only DiffWitness-managed Protect hooks and preserves unrelated hooks.
+
+High-confidence external-harness detection causes builtin activation to delegate by default unless `--force` is explicit. Existing foreign hooks without a high-confidence harness marker are treated as coexistence signals and are not deleted.
+
+### Protect receipts
+
+Bounded local runtime receipts live under:
+
+```text
+.git/diffwitness/protection.jsonl
+```
+
+They form a SHA-256 hash-linked chain for local integrity checks. They intentionally do not store raw commands, source-file contents, raw prompts, raw agent-event streams or raw session identifiers. Session identity is represented by a short digest.
+
+The local receipt chain is an integrity mechanism, not an external signature. A repository owner with filesystem access can replace local metadata.
+
+When Portal sync is configured, only aggregate Protect metadata may cross the boundary: mode, policy, health, receipt count/integrity and aggregate blocked/observed/confirmation counts. Detailed runtime categories, commands and raw events remain local.
+
 ## GitHub Actions
 
 For pull requests from untrusted contributors:
@@ -67,6 +107,8 @@ Unreachable snapshot commits may eventually be garbage-collected by Git. Reports
 Evidence certificates and debt reports can include command strings, repository paths, output tails, environment metadata, Git SHAs, rule evidence and agent/executable provenance. Review artifacts before publishing if those fields could reveal sensitive information.
 
 Agent prompts and full command arguments are intentionally not persisted in Debt Ledger provenance by default because they can contain secrets or private data.
+
+Protect receipts use a stricter bounded runtime schema and intentionally exclude raw commands/content as described above.
 
 ## Reporting vulnerabilities
 
