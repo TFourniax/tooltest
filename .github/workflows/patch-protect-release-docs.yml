@@ -1,0 +1,127 @@
+name: patch-protect-release-docs
+
+on:
+  push:
+    branches: ["agent/diffwitness-protect-v1-20260901"]
+    paths:
+      - ".github/workflows/patch-protect-release-docs.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/diffwitness-protect-v1-20260901
+          fetch-depth: 0
+
+      - name: Align public Protect contract with current provider semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected exactly one replacement anchor, found {count}: {old[:100]!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "README.md",
+              """```bash\ndw protect enable\n```\n\nKeep an existing external harness:\n""",
+              """```bash\ndw protect enable\n```\n\nFor current Codex builds, installing the hook file is only the first step: Codex itself must have its `hooks` feature enabled, the repository must pass Codex's normal project-trust flow, and the DiffWitness hooks must be approved through Codex's own hook-trust UI. DiffWitness never grants itself that trust. `dw protect status` stays conservative until a live Codex hook has actually invoked Protect. See [`docs/PROTECT.md`](docs/PROTECT.md).\n\nKeep an existing external harness:\n""",
+          )
+          replace_once(
+              "README.md",
+              """Builtin Protect currently supports Claude Code and Codex hook surfaces. It starts with a bounded deterministic rule set for high-confidence cases such as destructive Git/filesystem operations, remote pipe-to-shell execution, writes outside the repository, direct `.git` writes, several credential/private-key patterns, destructive database/schema commands, dependency-install observation/confirmation, and lightweight post-edit JSON/Python syntax checks.\n""",
+              """Builtin Protect currently supports Claude Code and Codex hook surfaces. Current Codex hooks are provider-feature/trust gated: DiffWitness can install its hook configuration, but it never enables project trust or approves its own hooks. Until a live trusted Codex hook reaches DiffWitness, the Codex adapter is reported conservatively rather than pretending runtime protection is active.\n\nProtect starts with a bounded deterministic rule set for high-confidence cases such as destructive Git/filesystem operations, remote pipe-to-shell execution, writes outside the repository, direct `.git` writes, several credential/private-key patterns, destructive database/schema commands, dependency-install observation/confirmation, and lightweight post-edit JSON/Python syntax checks.\n""",
+          )
+          replace_once(
+              "README.md",
+              """- `strict` additionally asks for confirmation on dependency installation.\n""",
+              """- `strict` additionally asks for confirmation on dependency installation where the provider hook protocol supports it; current Codex `PreToolUse` does not safely support `ask`, so Protect blocks that dependency-install action instead.\n""",
+          )
+          replace_once(
+              "README.md",
+              """Protect receipts intentionally exclude raw commands, source contents, raw prompts, raw agent-event streams and raw session identifiers. Portal receives only aggregate mode/health/policy and decision counts when sync is configured.\n""",
+              """Protect receipts intentionally exclude raw commands, source contents, raw prompts, raw agent-event streams and raw session identifiers. A provider's first live hook may add one bounded `active` receipt so readiness can mean \"the hook actually ran\" without inventing a risk finding. Portal receives only aggregate mode/health/policy and decision counts when sync is configured.\n""",
+          )
+
+          replace_once(
+              "docs/PROTECT.md",
+              """- Claude Code;\n- Codex.\n\n### External\n""",
+              """- Claude Code;\n- Codex.\n\n#### Codex activation and trust\n\nCurrent Codex builds keep lifecycle hooks behind Codex-owned feature and trust boundaries. `dw protect enable` installs DiffWitness's project hook configuration, but DiffWitness deliberately does **not** grant itself Codex trust.\n\nFor Codex builtin Protect, complete Codex's own flow:\n\n1. enable Codex's `hooks` feature (for example, `codex --enable hooks`, or the equivalent user-owned Codex configuration);\n2. accept Codex's normal project-trust decision for the repository;\n3. review and approve the DiffWitness hooks in Codex's `/hooks` surface;\n4. let Codex invoke a tool, then check `dw protect status`.\n\nUntil a live trusted Codex hook actually invokes DiffWitness, the Codex adapter remains conservatively not-ready rather than claiming protection that has not run. DiffWitness never writes Codex project trust, never writes a trusted hook hash on the user's behalf, and never uses Codex's dangerous hook-trust bypass in product code.\n\n### External\n""",
+          )
+          replace_once(
+              "docs/PROTECT.md",
+              """High-confidence dangerous actions are blocked and dependency-install requests ask for confirmation.\n""",
+              """High-confidence dangerous actions are blocked. Dependency-install requests ask for confirmation when the provider hook protocol safely supports that decision. Current Codex `PreToolUse` rejects `ask`, so strict Protect blocks that dependency-install action instead of silently downgrading the policy.\n""",
+          )
+          replace_once(
+              "docs/PROTECT.md",
+              """Session identifiers are represented only by a short digest.\n\nCheck aggregate state:\n""",
+              """Session identifiers are represented only by a short digest.\n\nThe first live invocation from a configured provider may add one bounded activation receipt (`decision=active`, `category=runtime`). That is a transport/readiness marker, **not** a risky-action finding and not a proof claim. Subsequent safe calls do not need to create repeated activation receipts.\n\nCheck aggregate state:\n""",
+          )
+          replace_once(
+              "docs/PROTECT.md",
+              """For a repository already using its own harness:\n""",
+              """For Codex builtin Protect, after enabling Protect complete Codex's provider-owned hook/trust flow before expecting runtime interception:\n\n```bash\ndw protect enable --policy standard\ncodex --enable hooks\n# In Codex: accept the repository trust prompt, then review/approve DiffWitness in /hooks.\ndw protect status\n```
+\nFor a repository already using its own harness:\n""",
+          )
+
+          replace_once(
+              "docs/60_SECONDS.md",
+              """```bash\ndw protect enable\n```\n\nDelegate live protection to an existing harness:\n""",
+              """```bash\ndw protect enable\n```\n\nWith current Codex builds, also enable Codex's own `hooks` feature and complete Codex's normal repository + hook trust flow. DiffWitness installs its hooks but never approves itself. After a live Codex tool call, `dw protect status` confirms whether the adapter has actually been observed. See [`PROTECT.md`](PROTECT.md).\n\nDelegate live protection to an existing harness:\n""",
+          )
+
+          replace_once(
+              "src/diffwitness/public_help.py",
+              """Protect policy is independent from Guard proof policy. Clean actions are never force-allowed by\nDiffWitness; provider-native permissions remain authoritative. `off` installs no Protect interception.\n""",
+              """Protect policy is independent from Guard proof policy. Clean actions are never force-allowed by\nDiffWitness; provider-native permissions remain authoritative. `off` installs no Protect interception.\nCurrent Codex hooks are provider-feature/trust gated: DiffWitness installs configuration but never writes\nCodex project/hook trust. Complete Codex's own trust flow (including `/hooks`) and use `dw protect status`\nto confirm that a live hook has actually reached Protect.\n""",
+          )
+          replace_once(
+              "src/diffwitness/public_help.py",
+              """Runtime protection is optional:\n  dw protect use external            Keep your existing harness and let DiffWitness verify the result\n  dw protect disable                 Use no DiffWitness live interception; Proof and Debt still work\n\nA blocked or observed runtime action is not proof that the final software works. DiffWitness verifies the\n""",
+              """Runtime protection is optional:\n  dw protect use external            Keep your existing harness and let DiffWitness verify the result\n  dw protect disable                 Use no DiffWitness live interception; Proof and Debt still work\n\nCurrent Codex requires its own hook feature and trust flow before project hooks execute. DiffWitness never\napproves itself; `dw protect status` stays conservative until a live Codex hook reaches Protect.\n\nA blocked or observed runtime action is not proof that the final software works. DiffWitness verifies the\n""",
+          )
+
+          replace_once(
+              "CHANGELOG.md",
+              """- Hash-linked bounded Protect receipts under local Git metadata, with no intentional raw command, source, prompt, raw event, or raw session-id persistence.\n""",
+              """- Hash-linked bounded Protect receipts under local Git metadata, with no intentional raw command, source, prompt, raw event, or raw session-id persistence; a single bounded provider-activation receipt can establish that a configured live hook actually ran without creating a risk finding.\n""",
+          )
+          replace_once(
+              "CHANGELOG.md",
+              """### Hardened\n\n- Protect `off` installs no runtime interception hook; disabling builtin Protect removes only DiffWitness-managed hooks and preserves unrelated agent configuration.\n""",
+              """### Hardened\n\n- Protect receipt appends use a dependency-free inter-process lock and refuse to silently extend a damaged/tampered chain.\n- Codex readiness is fail-closed: an installed hook file is not reported ready until a live Codex hook has actually invoked Protect, and DiffWitness never writes/bypasses Codex project or hook trust on the user's behalf.\n- Protect `off` installs no runtime interception hook; disabling builtin Protect removes only DiffWitness-managed hooks and preserves unrelated agent configuration.\n""",
+          )
+          replace_once(
+              "CHANGELOG.md",
+              """- Builtin Protect currently targets supported Claude Code / Codex hook surfaces; generic agents remain fully supported through the independent `dw guard -- <agent>` proof boundary.\n""",
+              """- Builtin Protect currently targets supported Claude Code / Codex hook surfaces; generic agents remain fully supported through the independent `dw guard -- <agent>` proof boundary. Current Codex hook execution remains subject to Codex's own feature, repository-trust, and per-hook trust controls.\n""",
+          )
+          PY
+
+          python -m py_compile src/diffwitness/public_help.py
+          grep -q "DiffWitness never writes Codex project trust" docs/PROTECT.md
+          grep -q "current Codex .*does not safely support.*ask" README.md
+          grep -q "provider-activation receipt" CHANGELOG.md
+          git diff --check
+
+      - name: Commit release-boundary documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs/PROTECT.md docs/60_SECONDS.md src/diffwitness/public_help.py CHANGELOG.md
+          git commit -m "docs: document Codex Protect activation boundary"
+          git push origin HEAD:agent/diffwitness-protect-v1-20260901
