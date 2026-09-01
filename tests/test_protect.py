@@ -378,6 +378,44 @@ class ProtectTests(unittest.TestCase):
             )
             self.assertEqual(protection_summary(repo)["decisions"].get("active"), 1)
 
+    def test_parallel_first_codex_hooks_record_one_durable_activation(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self.repo(Path(td))
+            (repo / ".codex").mkdir()
+            with mock.patch("diffwitness.protect.shutil.which", side_effect=lambda name: "/usr/bin/codex" if name == "codex" else None):
+                enabled = set_protect_mode(repo, "builtin", force=True)
+            self.assertEqual(enabled["health"], "degraded")
+
+            def safe_hook(index: int) -> None:
+                result = evaluate_pre_tool(
+                    repo,
+                    {
+                        "provider": "codex",
+                        "session_id": f"activation-{index}",
+                        "tool_name": "shell",
+                        "tool_input": {"command": "git status --short"},
+                    },
+                )
+                self.assertIsNone(result)
+
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                list(pool.map(safe_hook, range(40)))
+
+            summary = protection_summary(repo)
+            self.assertTrue(summary["integrity"])
+            self.assertEqual(summary["count"], 1)
+            self.assertEqual(summary["decisions"].get("active"), 1)
+            config = load_protect_config(repo)
+            self.assertIn("codex", config["providerActivation"])
+            ready = protect_status(repo)
+            self.assertTrue(ready["adapters"]["codex"]["activeSeen"])
+            self.assertTrue(ready["adapters"]["codex"]["ready"])
+
+            with mock.patch("diffwitness.protect._iter_receipts", return_value=([], True)):
+                durable = protect_status(repo)
+            self.assertTrue(durable["adapters"]["codex"]["activeSeen"])
+            self.assertTrue(durable["adapters"]["codex"]["ready"])
+
     def test_status_is_bounded_and_contains_no_raw_agent_data(self):
         with tempfile.TemporaryDirectory() as td:
             repo = self.repo(Path(td))

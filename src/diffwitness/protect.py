@@ -99,6 +99,7 @@ def load_protect_config(repo: Path) -> dict[str, Any]:
             "policy": "standard",
             "adapters": [],
             "managedHooks": {},
+            "providerActivation": {},
         }
     if raw.get("schema") != PROTECT_SCHEMA:
         raise ProtectError("unsupported Protect configuration schema")
@@ -111,12 +112,19 @@ def load_protect_config(repo: Path) -> dict[str, Any]:
         for item in raw.get("adapters", [])
         if str(item) in SUPPORTED_ADAPTERS
     ]
+    activation_raw = raw.get("providerActivation")
+    provider_activation = {
+        str(provider): str(seen_at)
+        for provider, seen_at in activation_raw.items()
+        if str(provider) in SUPPORTED_ADAPTERS and isinstance(seen_at, str)
+    } if isinstance(activation_raw, Mapping) else {}
     return {
         **raw,
         "mode": mode,
         "policy": policy,
         "adapters": list(dict.fromkeys(adapters)),
         "managedHooks": raw.get("managedHooks") if isinstance(raw.get("managedHooks"), dict) else {},
+        "providerActivation": provider_activation,
     }
 
 
@@ -349,11 +357,13 @@ def set_protect_mode(
         "policy": policy,
         "adapters": adapters,
         "managedHooks": managed,
+        "providerActivation": {},
         "diffwitnessCommand": dw_command,
         "externalDetection": detection,
         "updatedAt": _now(),
     }
-    _write_json(_config_path(repo), config)
+    with _receipt_lock(repo):
+        _write_json(_config_path(repo), config)
     return protect_status(repo)
 
 
@@ -391,14 +401,15 @@ def protect_status(repo: Path) -> dict[str, Any]:
     mode = str(config["mode"])
     detection = detect_external_harness(repo)
     adapters = list(config.get("adapters") or [])
-    receipt_values, _ = _iter_receipts(repo)
     enabled_at = str(config.get("updatedAt") or "")
+    provider_activation = config.get("providerActivation")
     active_providers = {
-        str(item.get("provider"))
-        for item in receipt_values
-        if str(item.get("provider")) in SUPPORTED_ADAPTERS
-        and (not enabled_at or str(item.get("ts") or "") >= enabled_at)
-    }
+        str(provider)
+        for provider, seen_at in provider_activation.items()
+        if str(provider) in SUPPORTED_ADAPTERS
+        and isinstance(seen_at, str)
+        and (not enabled_at or seen_at >= enabled_at)
+    } if isinstance(provider_activation, Mapping) else set()
     details: dict[str, dict[str, Any]] = {}
     for adapter in adapters:
         installed = _hook_installed(repo, adapter, config)
@@ -513,7 +524,7 @@ def _last_receipt_hash(path: Path) -> str | None:
     return None
 
 
-def append_receipt(
+def _append_receipt_locked(
     repo: Path,
     *,
     payload: Mapping[str, Any],
@@ -540,30 +551,53 @@ def append_receipt(
         or "unknown"
     )[:80]
     provider = str(payload.get("provider") or payload.get("agent") or "unknown")[:40]
-    with _receipt_lock(repo):
-        previous = _last_receipt_hash(receipt_path)
-        stable = {
-            "schema": RECEIPT_SCHEMA,
-            "ts": _now(),
-            "sessionDigest": hashlib.sha256(session.encode("utf-8")).hexdigest()[:16],
-            "provider": provider,
-            "phase": phase[:24],
-            "decision": decision[:24],
-            "category": category[:80],
-            "rule": rule[:100],
-            "tool": tool,
-            "path": path[:300] if isinstance(path, str) else None,
-            "message": message[:240],
-            "prev": previous,
-        }
-        digest = hashlib.sha256(_canonical(stable).encode("utf-8")).hexdigest()
-        receipt = {**stable, "id": "dwpr_" + digest[:20], "hash": digest}
-        try:
-            with receipt_path.open("a", encoding="utf-8", newline="\n") as handle:
-                handle.write(_canonical(receipt) + "\n")
-        except OSError as exc:
-            raise ProtectError(f"cannot append Protect receipt: {exc}") from exc
+    previous = _last_receipt_hash(receipt_path)
+    stable = {
+        "schema": RECEIPT_SCHEMA,
+        "ts": _now(),
+        "sessionDigest": hashlib.sha256(session.encode("utf-8")).hexdigest()[:16],
+        "provider": provider,
+        "phase": phase[:24],
+        "decision": decision[:24],
+        "category": category[:80],
+        "rule": rule[:100],
+        "tool": tool,
+        "path": path[:300] if isinstance(path, str) else None,
+        "message": message[:240],
+        "prev": previous,
+    }
+    digest = hashlib.sha256(_canonical(stable).encode("utf-8")).hexdigest()
+    receipt = {**stable, "id": "dwpr_" + digest[:20], "hash": digest}
+    try:
+        with receipt_path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(_canonical(receipt) + "\n")
+    except OSError as exc:
+        raise ProtectError(f"cannot append Protect receipt: {exc}") from exc
     return receipt
+
+
+def append_receipt(
+    repo: Path,
+    *,
+    payload: Mapping[str, Any],
+    phase: str,
+    decision: str,
+    category: str,
+    rule: str,
+    message: str,
+    path: str | None = None,
+) -> dict[str, Any]:
+    with _receipt_lock(repo):
+        return _append_receipt_locked(
+            repo,
+            payload=payload,
+            phase=phase,
+            decision=decision,
+            category=category,
+            rule=rule,
+            message=message,
+            path=path,
+        )
 
 
 def _iter_receipts(repo: Path, limit: int = _MAX_RECEIPTS) -> tuple[list[dict[str, Any]], bool]:
@@ -624,26 +658,26 @@ def _mark_provider_active(repo: Path, payload: Mapping[str, Any]) -> None:
     provider = str(payload.get("provider") or payload.get("agent") or "").strip().lower()
     if provider not in SUPPORTED_ADAPTERS:
         return
-    config = load_protect_config(repo)
-    if config.get("mode") != "builtin" or provider not in set(config.get("adapters") or []):
-        return
-    enabled_at = str(config.get("updatedAt") or "")
-    values, _ = _iter_receipts(repo)
-    if any(
-        str(item.get("provider")) == provider
-        and (not enabled_at or str(item.get("ts") or "") >= enabled_at)
-        for item in values
-    ):
-        return
-    append_receipt(
-        repo,
-        payload=payload,
-        phase="runtime",
-        decision="active",
-        category="runtime",
-        rule="hook-live",
-        message="The configured provider invoked DiffWitness Protect.",
-    )
+    with _receipt_lock(repo):
+        config = load_protect_config(repo)
+        if config.get("mode") != "builtin" or provider not in set(config.get("adapters") or []):
+            return
+        enabled_at = str(config.get("updatedAt") or "")
+        activation = dict(config.get("providerActivation") or {})
+        seen_at = activation.get(provider)
+        if isinstance(seen_at, str) and (not enabled_at or seen_at >= enabled_at):
+            return
+        receipt = _append_receipt_locked(
+            repo,
+            payload=payload,
+            phase="runtime",
+            decision="active",
+            category="runtime",
+            rule="hook-live",
+            message="The configured provider invoked DiffWitness Protect.",
+        )
+        activation[provider] = str(receipt["ts"])
+        _write_json(_config_path(repo), {**config, "providerActivation": activation})
 
 
 def _tool_input(payload: Mapping[str, Any]) -> Mapping[str, Any]:
