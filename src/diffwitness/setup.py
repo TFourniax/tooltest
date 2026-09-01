@@ -95,6 +95,35 @@ def _status(command: str, cwd: Path) -> dict:
     return payload
 
 
+def _protect_recommendation(cwd: Path) -> dict:
+    """Return a non-mutating recommendation; setup never silently enables runtime blocking."""
+    try:
+        from .protect import detect_external_harness, protect_status
+
+        detection = detect_external_harness(cwd)
+        status = protect_status(cwd)
+        if status.get("mode") != "off":
+            recommendation = str(status.get("mode"))
+            reason = "Protect already has an explicit local mode."
+        elif detection.get("externalHarnessDetected"):
+            recommendation = "external"
+            reason = "A high-confidence external harness signal was detected."
+        else:
+            recommendation = "builtin"
+            reason = "No high-confidence external harness signal was detected."
+        return {
+            "mode": status.get("mode", "off"),
+            "recommendation": recommendation,
+            "reason": reason,
+        }
+    except Exception as exc:
+        return {
+            "mode": "unknown",
+            "recommendation": "inspect",
+            "reason": f"Protect recommendation unavailable: {str(exc)[:200]}",
+        }
+
+
 def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None) -> dict:
     try:
         ensure_local_integration_excludes(cwd)
@@ -117,7 +146,7 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
     status = _status(command, cwd)
     if not status.get("healthy"):
         raise SetupError(f"DiffWitness integration installed but failed its health check: {json.dumps(status, sort_keys=True)[:1200]}")
-    return status
+    return {**status, "protect": _protect_recommendation(cwd)}
 
 
 def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
@@ -133,13 +162,14 @@ def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
         "installed": False,
         "sidecar": command,
         "message": (proc.stdout or "").strip(),
+        "protectPreserved": True,
     }
 
 
 def setup_status(*, cwd: Path, idleproof_command: str | None = None) -> dict:
     command = _idleproof_executable(idleproof_command)
     status = _status(command, cwd)
-    return {**status, "sidecar": command}
+    return {**status, "sidecar": command, "protect": _protect_recommendation(cwd)}
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -190,18 +220,27 @@ def setup_cli(argv: list[str] | None = None) -> int:
         return 0
 
     if args.action == "uninstall":
-        print("DiffWitness native IDE integration removed. Historical evidence and project continuity were preserved.")
+        print("DiffWitness native IDE integration removed. Historical evidence, project continuity, and the separately configured Protect mode were preserved.")
         return 0
 
     healthy = bool(result.get("healthy"))
     expected = result.get("expectedAdapters") or []
     adapters = ", ".join(expected) if expected else "none"
+    protect = result.get("protect") or {}
     if args.action == "status":
         print(f"DiffWitness setup: {'ready' if healthy else 'not ready'} · adapters: {adapters}")
+        print(f"Protect: {protect.get('mode', 'unknown')} · recommendation {protect.get('recommendation', 'inspect')}")
         return 0 if healthy else 1
 
     print(f"DiffWitness is ready · adapters: {adapters}")
     print("Use Claude Code, Codex, or Cursor normally. DiffWitness will UNDERSTAND · PROVE · OWE · preserve CONTINUITY at the native task boundary.")
+    if protect.get("mode") == "off":
+        if protect.get("recommendation") == "external":
+            print("Protect remains off by design. An external harness signal was detected; use `dw protect use external` to record delegation.")
+        else:
+            print("Protect remains off by design. Use `dw protect enable` for builtin runtime guardrails, or `dw protect use external` if you already use a harness.")
+    else:
+        print(f"Protect keeps its explicit mode: {protect.get('mode')}.")
     return 0
 
 
