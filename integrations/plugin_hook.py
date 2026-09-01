@@ -105,6 +105,37 @@ def _user_prompt_submit() -> int:
     return 0
 
 
+def _protect(command: str) -> int:
+    """Run the native Protect evaluator; off/external modes intentionally produce no hook output."""
+    payload = _read_hook_payload()
+    try:
+        from diffwitness.ide_plugin import protect_post, protect_pre
+
+        result = protect_pre(payload) if command == "protect-pre" else protect_post(payload)
+    except Exception:
+        if command == "protect-pre":
+            print(
+                json.dumps(
+                    {
+                        "hookSpecificOutput": {
+                            "hookEventName": "PreToolUse",
+                            "permissionDecision": "deny",
+                            "permissionDecisionReason": (
+                                "DiffWitness Protect could not safely evaluate this mutating action; "
+                                "inspect `dw protect status`."
+                            ),
+                        }
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        return 0
+    if result is not None:
+        print(json.dumps(result, ensure_ascii=False))
+    return 0
+
+
 def _session_stop() -> int:
     """Converge native IDE completion on Proof + Debt + Continuity + optional IdleProof Portal."""
     payload = _read_hook_payload()
@@ -124,15 +155,18 @@ def _session_stop() -> int:
 
 
 def run() -> int:
-    if len(sys.argv) < 2 or sys.argv[1] not in {"session-start", "session-stop", "user-prompt-submit"}:
+    commands = {"session-start", "session-stop", "user-prompt-submit", "protect-pre", "protect-post"}
+    if len(sys.argv) < 2 or sys.argv[1] not in commands:
         print(
-            "DiffWitness plugin hook requires session-start, session-stop, or user-prompt-submit",
+            "DiffWitness plugin hook requires session-start, user-prompt-submit, protect-pre, protect-post, or session-stop",
             file=sys.stderr,
         )
         return 2
     command = sys.argv[1]
     if command == "user-prompt-submit":
         return _user_prompt_submit()
+    if command in {"protect-pre", "protect-post"}:
+        return _protect(command)
     if command == "session-stop":
         return _session_stop()
     return proof_main(["session-start"])

@@ -14,6 +14,7 @@ from .proof_cli import _state_path
 _MAX_PROMPT_CHARS = 12000
 _MAX_CONTEXT_CHARS = 6500
 _MAX_SOUL_CONTEXT_CHARS = 1400
+_PROTECT_PROVIDERS = {"claude", "codex"}
 
 
 def _read_payload() -> dict[str, Any]:
@@ -136,16 +137,76 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
+def protect_pre(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Evaluate deterministic runtime safety without overriding provider-native allow decisions."""
+    from .protect import evaluate_pre_tool
+
+    repo = repo_root(_cwd(payload))
+    result = evaluate_pre_tool(repo, payload)
+    if result is None:
+        return None
+    decision = str(result.get("decision") or "block")
+    if decision not in {"block", "ask"}:
+        return None
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny" if decision == "block" else "ask",
+            "permissionDecisionReason": str(result.get("reason") or "DiffWitness Protect rejected this action.")[:500],
+        }
+    }
+
+
+def protect_post(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Return bounded model-visible feedback for deterministic landed-file findings."""
+    from .protect import evaluate_post_tool
+
+    repo = repo_root(_cwd(payload))
+    result = evaluate_post_tool(repo, payload)
+    if result is None:
+        return None
+    reason = str(result.get("reason") or "DiffWitness Protect observed a post-edit issue.")[:500]
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "additionalContext": f"DiffWitness Protect · OBSERVED: {reason}",
+        }
+    }
+
+
 def session_stop(payload: dict[str, Any], *, policy: str = "balanced") -> dict[str, Any]:
     return finalize_ide_session(payload, policy=policy)
 
 
+def _protect_provider(argv: list[str]) -> str | None:
+    if "--provider" not in argv[1:]:
+        return None
+    index = argv.index("--provider", 1)
+    if index + 1 >= len(argv):
+        raise ValueError("--provider requires claude or codex")
+    provider = str(argv[index + 1]).strip().lower()
+    if provider not in _PROTECT_PROVIDERS:
+        raise ValueError("--provider must be claude or codex")
+    return provider
+
+
 def ide_hook_cli(argv: list[str]) -> int:
-    if not argv or argv[0] not in {"session-start", "user-prompt-submit", "session-stop"}:
-        print("Usage: dw ide-hook session-start|user-prompt-submit|session-stop", file=sys.stderr)
+    commands = {"session-start", "user-prompt-submit", "protect-pre", "protect-post", "session-stop"}
+    if not argv or argv[0] not in commands:
+        print(
+            "Usage: dw ide-hook session-start|user-prompt-submit|protect-pre|protect-post|session-stop [--provider claude|codex]",
+            file=sys.stderr,
+        )
         return 2
     command = argv[0]
+    try:
+        provider = _protect_provider(argv) if command in {"protect-pre", "protect-post"} else None
+    except ValueError as exc:
+        print(f"DiffWitness IDE bridge: {exc}", file=sys.stderr)
+        return 2
     payload = _read_payload()
+    if provider is not None:
+        payload["provider"] = provider
     try:
         if command == "session-start":
             session_start(payload)
@@ -155,19 +216,50 @@ def ide_hook_cli(argv: list[str]) -> int:
             if result is not None:
                 print(json.dumps(result, ensure_ascii=False))
             return 0
+        if command == "protect-pre":
+            result = protect_pre(payload)
+            if result is not None:
+                print(json.dumps(result, ensure_ascii=False))
+            return 0
+        if command == "protect-post":
+            result = protect_post(payload)
+            if result is not None:
+                print(json.dumps(result, ensure_ascii=False))
+            return 0
         policy = os.environ.get("DIFFWITNESS_POLICY", "balanced")
         result = session_stop(payload, policy=policy)
         print(json.dumps(result, ensure_ascii=False))
         return 0
     except Exception as exc:
-        # A packaged orchestrator must never manufacture VERIFIED evidence after an internal error.
-        # For stop events, fail closed so the coding agent cannot silently report success.
-        message = f"DiffWitness IDE bridge failed before evidence could be established: {str(exc)[:1200]}"
+        # Stop and pre-tool events are correctness/security boundaries. Never manufacture success.
+        message = f"DiffWitness IDE bridge failed before the requested assurance step completed: {str(exc)[:1000]}"
         if command == "session-stop":
             print(json.dumps({"decision": "block", "reason": message, "systemMessage": message}, ensure_ascii=False))
             return 0
+        if command == "protect-pre":
+            print(
+                json.dumps(
+                    {
+                        "hookSpecificOutput": {
+                            "hookEventName": "PreToolUse",
+                            "permissionDecision": "deny",
+                            "permissionDecisionReason": "DiffWitness Protect could not safely evaluate this mutating action; inspect `dw protect status`.",
+                        }
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        # Context/post-tool helpers are advisory and fail open without claiming a clean result.
         print(message, file=sys.stderr)
         return 1
 
 
-__all__ = ["ide_hook_cli", "session_start", "session_stop", "user_prompt_submit"]
+__all__ = [
+    "ide_hook_cli",
+    "protect_post",
+    "protect_pre",
+    "session_start",
+    "session_stop",
+    "user_prompt_submit",
+]

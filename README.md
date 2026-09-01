@@ -2,17 +2,22 @@
 
 > **Don't trust the agent. Don't trust the green check. Prove the change — and keep the debt it creates accountable.**
 
-DiffWitness is a local-first **proof and debt-control layer for AI-generated code**.
+DiffWitness is a local-first **runtime protection, proof and debt-control layer for AI-generated code**.
 
-Claude Code, Codex, humans and scripts can all produce convincing patches. DiffWitness sits *after generation* and asks two harder questions:
+Claude Code, Codex, humans, scripts and other harnesses can all produce convincing patches. DiffWitness separates four jobs that are easy to blur together:
 
-1. **What does the executable evidence actually prove about this exact Git diff?**
-2. **What engineering obligations did this change leave behind, and how will we prove they were repaid?**
+1. **PROTECT — optional:** should a supported agent action be blocked, observed or confirmed while the agent works?
+2. **PROVE:** what does executable evidence actually establish about this exact Git diff?
+3. **OWE:** what engineering obligations did the change leave behind, and how will we prove they were repaid?
+4. **UNDERSTAND:** how should those bounded signals be explained to a human without upgrading uncertainty into fact?
 
-It does not ask one LLM to review another LLM. Its strongest claims come from controlled experiments on the **real Git patch**, then those claims can become replayable `DW-...` debt lineages instead of disappearing into a one-off CI log.
+It does not ask one LLM to review another LLM. Its strongest claims come from controlled experiments on the **real Git patch**. Runtime Protect observations remain `OBSERVED`; only the independent proof boundary can mint bounded proof claims.
 
 ```text
-                    Claude / Codex / human
+                    Claude / Codex / other agent
+                              |
+                   optional Protect layer
+                  builtin / external / off
                               |
                               v
                        changed repository
@@ -56,13 +61,15 @@ but not necessarily:
 - which future obligations were introduced by this agent session;
 - whether a later cleanup genuinely repaid an obligation or merely made a warning disappear.
 
-DiffWitness is built around one principle: **unknown evidence stays unknown**. It should fail closed or label a claim heuristic/inconclusive rather than manufacture certainty.
+Likewise, a runtime harness can tell you that an agent attempted a dangerous command, but that still does not prove the final software works.
+
+DiffWitness is built around one principle: **unknown evidence stays unknown**. It should fail closed or label a claim observed/heuristic/inconclusive rather than manufacture certainty.
 
 ## Alpha status
 
 Current version: **`0.4.0a1` — Proof + Debt Control Alpha**.
 
-The alpha is intended for real repositories and real agent workflows, with conservative semantics. The project is not yet claiming a stable public API or universal debt model.
+The alpha is intended for real repositories and real agent workflows, with conservative semantics. The project is not yet claiming a stable public API, universal agent safety model or universal debt model.
 
 Core characteristics:
 
@@ -70,11 +77,14 @@ Core characteristics:
 - zero Python runtime dependencies;
 - local execution by default;
 - no hosted DiffWitness account required;
-- no model API required for proof or debt accounting;
+- no model API required for Protect, proof or debt accounting;
 - no source-code upload required by the core engine;
-- Claude Code / Codex integration plus a generic process wrapper;
+- optional builtin Claude Code / Codex runtime Protect hooks;
+- external-harness delegation and a true `off` mode;
+- Claude Code / Codex native integration plus a generic process wrapper;
 - GitHub Action support;
-- append-only, hash-chained Debt Ledger with replayable lineages.
+- append-only, hash-chained Debt Ledger with replayable lineages;
+- bounded Portal projection that keeps Protect observations separate from Proof assurance.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the exact alpha boundary.
 
@@ -107,9 +117,9 @@ pipx install git+https://github.com/TFourniax/tooltest.git
 
 For production/community distribution, prefer a tagged release or package-registry release over pinning workflows to `main`.
 
-## The 60-second path
+## The fast path
 
-### 1. See what evidence DiffWitness would run
+### 1. Inspect evidence and local integration
 
 ```bash
 dw doctor
@@ -137,7 +147,37 @@ max_per_change = 12
 max = 10
 ```
 
-### 2. Launch your normal agent through the proof boundary
+### 2. Choose live runtime protection — optional
+
+Inspect the environment:
+
+```bash
+dw protect detect
+```
+
+Use builtin DiffWitness guards:
+
+```bash
+dw protect enable
+```
+
+For current Codex builds, installing the hook file is only the first step: Codex itself must have its `hooks` feature enabled, the repository must pass Codex's normal project-trust flow, and the DiffWitness hooks must be approved through Codex's own hook-trust UI. DiffWitness never grants itself that trust. `dw protect status` stays conservative until a live Codex hook has actually invoked Protect. See [`docs/PROTECT.md`](docs/PROTECT.md).
+
+Keep an existing external harness:
+
+```bash
+dw protect use external
+```
+
+Or use no DiffWitness live interception:
+
+```bash
+dw protect disable
+```
+
+All three paths keep the same Proof, Debt Ledger, Continuity and IdleProof semantics. `off` means no DiffWitness Protect interception hook is installed.
+
+### 3. Launch your normal agent through the proof boundary
 
 ```bash
 dw guard -- claude
@@ -151,13 +191,14 @@ dw guard -- codex
 
 Guard captures the repository before the agent starts, leaves the agent interactive, then evaluates the exact resulting repository state after the agent exits.
 
-### 3. Inspect project debt
+### 4. Inspect project state and debt
 
 ```bash
+dw status
 dw health
 ```
 
-### 4. Pick a repayment mission
+### 5. Pick a repayment mission
 
 ```bash
 dw plan
@@ -175,9 +216,50 @@ or let it run the agent, gate the resulting patch, re-measure debt and replay th
 dw repay -- claude
 ```
 
+See [`docs/60_SECONDS.md`](docs/60_SECONDS.md).
+
+## Protect — optional runtime safety
+
+Protect is deliberately not mandatory and deliberately not the proof engine.
+
+```text
+builtin   DiffWitness installs supported live runtime hooks
+external  another harness owns live runtime protection
+off       no DiffWitness live interception
+```
+
+Builtin Protect currently supports Claude Code and Codex hook surfaces. Current Codex hooks are provider-feature/trust gated: DiffWitness can install its hook configuration, but it never enables project trust or approves its own hooks. Until a live trusted Codex hook reaches DiffWitness, the Codex adapter is reported conservatively rather than pretending runtime protection is active.
+
+Protect starts with a bounded deterministic rule set for high-confidence cases such as destructive Git/filesystem operations, remote pipe-to-shell execution, writes outside the repository, direct `.git` writes, several credential/private-key patterns, destructive database/schema commands, dependency-install observation/confirmation, and lightweight post-edit JSON/Python syntax checks.
+
+Policies:
+
+```bash
+dw protect enable --policy observe
+dw protect enable --policy standard
+dw protect enable --policy strict
+```
+
+- `observe` records findings without blocking;
+- `standard` blocks high-confidence dangerous actions;
+- `strict` additionally asks for confirmation on dependency installation where the provider hook protocol supports it; current Codex `PreToolUse` does not safely support `ask`, so Protect blocks that dependency-install action instead.
+
+Clean actions are **not force-allowed by DiffWitness**. Protect stays silent and the provider's native permission system remains authoritative.
+
+Inspect state and bounded local receipts:
+
+```bash
+dw protect status
+dw protect log
+```
+
+Protect receipts intentionally exclude raw commands, source contents, raw prompts, raw agent-event streams and raw session identifiers. A provider's first live hook may add one bounded `active` receipt so readiness can mean "the hook actually ran" without inventing a risk finding. Portal receives only aggregate mode/health/policy and decision counts when sync is configured.
+
+Full contract: [`docs/PROTECT.md`](docs/PROTECT.md).
+
 ## Proof Guard
 
-`dw guard` is the lowest-friction local workflow.
+`dw guard` is the stable before/after proof workflow and works independently of Protect mode.
 
 ### Balanced — default
 
@@ -202,6 +284,8 @@ dw guard --policy observe -- claude
 ```
 
 Does not block on proof policy. Use it to learn what an existing test suite actually demonstrates before enforcing a merge gate.
+
+Protect policy and Guard proof policy are separate controls even when they use similar words.
 
 See [`docs/GUARD.md`](docs/GUARD.md) and [`docs/GATE.md`](docs/GATE.md).
 
@@ -279,84 +363,33 @@ The semantic contract is documented in [`docs/PROOF_PROTOCOL.md`](docs/PROOF_PRO
 
 Proof answers a question about one change. The Debt Ledger keeps the obligations discovered across changes alive.
 
-A debt item has a stable `DW-...` identity and carries:
-
-```text
-category         evidence / test / security / architecture / ...
-rule             why the obligation exists
-measurement      causal / deterministic / historical / heuristic
-points           accounting weight
-path + line       when meaningful
-introduced_by    Git / certificate / agent provenance
-observed evidence
-verification     how the claim can be replayed
-status           open / resolved
-accepted         acknowledged debt remains debt
-history          append-only lifecycle
-```
+A debt item has a stable `DW-...` identity and carries category, rule, measurement provenance, points, location, introduction provenance, observed evidence, replay/verification semantics, lifecycle status and append-only history.
 
 The aggregate score is intentionally **not** the product. The durable lineage plus replayable verification is.
 
-### Measure one change
+Measure one change:
 
 ```bash
 dw debt --base origin/main --candidate HEAD
 ```
 
-With a DiffWitness certificate:
-
-```bash
-dw gate \
-  --base origin/main \
-  --candidate HEAD \
-  --certificate evidence.json
-
-dw debt \
-  --base origin/main \
-  --candidate HEAD \
-  --certificate evidence.json
-```
-
-A certificate must pass integrity/content binding before debt accounting trusts it. Merely placing a JSON file at `--certificate` does not waive `unverified_change` debt.
-
-### Project health
+Project health:
 
 ```bash
 dw health
 ```
 
-Health scans are executed against an immutable snapshot of the current worktree. The report is therefore bound to the tree that was actually inspected, including uncommitted source changes, rather than incorrectly claiming that dirty content was `HEAD`.
-
-### Inspect an obligation
+Inspect and govern obligations:
 
 ```bash
 dw ledger list
 dw ledger show DW-...
 dw ledger history DW-...
-```
-
-### Accept deliberate debt
-
-```bash
-dw ledger accept DW-... \
-  --reason "temporary provider migration; removal scheduled after cutover"
-```
-
-Acceptance is governance, not deletion. Accepted debt remains visible and counted by default.
-
-### Recheck without an agent
-
-```bash
+dw ledger accept DW-... --reason "temporary migration debt"
 dw recheck DW-...
 ```
 
-or:
-
-```bash
-dw recheck --all
-```
-
-An item closes automatically only when its verification adapter establishes the required condition. Unsupported, unavailable or unstable replays remain open/inconclusive.
+Acceptance is governance, not deletion. An item closes automatically only when its verification adapter establishes the required condition.
 
 Full model: [`docs/DEBT_LEDGER.md`](docs/DEBT_LEDGER.md).
 
@@ -368,7 +401,7 @@ The default local ledger lives outside the candidate diff:
 .git/diffwitness/debt-ledger.jsonl
 ```
 
-That is safe for local experimentation but ephemeral CI runners and new clones need a shared baseline. DiffWitness can checkpoint the same hash-chained event history on a dedicated Git ref without rewriting `HEAD`:
+For ephemeral CI runners and fresh clones, the same hash-chained history can be checkpointed on:
 
 ```text
 refs/diffwitness/debt-ledger
@@ -379,28 +412,10 @@ Typical trusted workflow:
 ```bash
 dw ledger pull
 dw health
-# or record accepted change debt with `dw debt ...`
 dw ledger push
 ```
 
-Useful diagnostics:
-
-```bash
-dw ledger status
-dw ledger checkpoint
-```
-
-Safety properties:
-
-- local writes use atomic replacement and an inter-process lock;
-- stale processes re-read the latest history before state transitions;
-- semantically impossible histories fail closed even if their hash chain is internally valid;
-- remote updates are non-force fast-forwards;
-- concurrent/divergent histories are never guessed together automatically;
-- network/authentication failures cannot silently reset the cumulative baseline;
-- a genuinely absent remote ref is treated as first use unless `--required` is requested.
-
-The public PR action is intentionally **read-only** with respect to the shared ledger ref. Publish a new checkpoint only from a trusted post-merge/default-branch workflow or an explicit maintainer operation.
+Remote updates are non-force fast-forwards and divergent histories are never guessed together automatically.
 
 ## GitHub Action
 
@@ -418,17 +433,7 @@ Example PR gate:
     candidate: ${{ github.event.pull_request.head.sha }}
 ```
 
-When the repository exposes a conventional evidence command, the Action can auto-detect it. Otherwise pass `test:` or commit `.diffwitness.toml`.
-
-The Action:
-
-- runs the same public Gate semantics as local usage;
-- annotates unwitnessed/inconclusive changed hunks;
-- writes proof + debt information into the job summary;
-- emits machine-readable proof/debt outputs;
-- restores the cumulative Debt Ledger checkpoint by default before evaluating debt budgets;
-- preserves JSON + Markdown evidence as an Actions artifact by default;
-- **never pushes the shared Debt Ledger from a PR run**.
+The Action runs the same public Gate semantics as local usage, annotates relevant findings, emits machine-readable proof/debt outputs, restores the cumulative Debt Ledger baseline by default, preserves evidence artifacts, and **never pushes the shared Debt Ledger from a PR run**.
 
 For a hard proof gate:
 
@@ -436,8 +441,6 @@ For a hard proof gate:
 with:
   strict: true
 ```
-
-For a repository that has not initialized a portable ledger ref yet, the Action starts from an empty baseline. Use `ledger-sync: false` only when cumulative debt is intentionally out of scope.
 
 ## Proof certificates
 
@@ -470,14 +473,24 @@ skills/diffwitness/SKILL.md
 hooks/
 ```
 
-The native hooks make the workflow convenient, but the process wrapper remains the reference trust boundary:
+The native hooks make the workflow convenient, while the process wrapper remains the stable explicit trust boundary:
 
 ```bash
 dw guard -- claude
 dw guard -- codex
 ```
 
-because DiffWitness then owns the before/after boundary rather than delegating it to a particular agent runtime.
+Builtin Protect hooks are installed separately and only after explicit opt-in, so Protect can be disabled or delegated without removing the proof/continuity integration.
+
+## IdleProof + Portal
+
+`dw explain` provides the deterministic local evidence-first explanation. Optional user-owned inference can rephrase bounded evidence without changing truth classes.
+
+Portal is an optional commercial coordination/history layer. Its bounded snapshot contract does not require source code, raw prompts, raw diffs, raw commands or raw agent events.
+
+Protect is projected only as aggregate `OBSERVED` runtime metadata and is stored separately from Proof assurance. Guided and Technical Portal views change presentation, not proof semantics.
+
+See [`docs/PRODUCT_SURFACES.md`](docs/PRODUCT_SURFACES.md).
 
 ## Security model
 
@@ -485,7 +498,7 @@ DiffWitness executes repository-controlled test/setup commands. Treat those comm
 
 Disposable Git worktrees isolate code variants from the active checkout. `--share` deliberately links selected paths such as dependency caches and therefore weakens isolation for those paths.
 
-The Debt Ledger hash chain detects accidental/silent history mutation; it is **not** an external cryptographic signature proving that a malicious repository owner did not rewrite the ledger.
+The Protect and Debt Ledger hash chains detect accidental/silent local history mutation; they are **not** external cryptographic signatures proving that a malicious repository owner did not rewrite local metadata.
 
 Core analysis does not require code to leave the machine.
 
@@ -493,21 +506,15 @@ See [`SECURITY.md`](SECURITY.md).
 
 ## What DiffWitness does not claim
 
-DiffWitness is not a mathematical proof that software is correct.
+DiffWitness is not a mathematical proof that software is correct and Protect is not a universal sandbox.
 
 It cannot establish requirements absent from the selected executable evidence. A weak test suite still produces weak evidence. External services can be nondeterministic. Environment differences matter. Security properties can require dedicated analysis.
 
-Debt points are not:
-
-- bug probabilities;
-- percentages of code quality;
-- engineering-hour estimates;
-- confidence probabilities;
-- CVSS or another security-severity standard.
+Debt points are not bug probabilities, percentages of code quality, engineering-hour estimates, confidence probabilities or CVSS.
 
 The intended claim is narrower and useful:
 
-> **Make it substantially harder for a green check — human or AI-generated — to masquerade as evidence it never provided, and make the remaining obligations difficult to silently forget.**
+> **Make dangerous agent actions harder to execute accidentally, make it substantially harder for a green check to masquerade as evidence it never provided, and make the remaining obligations difficult to silently forget.**
 
 ## Development
 

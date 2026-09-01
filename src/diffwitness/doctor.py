@@ -10,6 +10,7 @@ from .continuity_state import state_status
 from .engine_capabilities import EngineCapabilityError, inspect_engine_capabilities
 from .engine_protocol import EngineProtocolError
 from .gitops import GitError, repo_root
+from .protect import ProtectError, protect_status
 
 
 DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
@@ -18,7 +19,7 @@ DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
 def doctor_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw doctor",
-        description="Preflight evidence, optional advisory engine, and local project continuity without executing tests.",
+        description="Preflight evidence, optional runtime protection, advisory engine, and local project continuity without executing tests.",
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
@@ -49,6 +50,35 @@ def doctor_cli(argv: list[str]) -> int:
         else:
             print("Evidence:   none detected")
             print("Action:     configure [diffwitness].test or pass --test")
+
+        protect_ok = True
+        try:
+            protection = protect_status(repo)
+        except ProtectError as exc:
+            protect_ok = False
+            print(f"Protect:    INVALID - {exc}")
+            print("Action:     inspect or reset local Protect state with `dw protect status` / `dw protect disable`")
+        else:
+            mode = protection.get("mode")
+            health = protection.get("health")
+            policy = protection.get("policy")
+            receipts = protection.get("receipts") or {}
+            if mode == "builtin":
+                adapters = ", ".join(protection.get("adapters") or {}) or "none"
+                print(f"Protect:    builtin - {health} · policy {policy} · adapters {adapters}")
+                if health != "ready":
+                    protect_ok = False
+                    print("Action:     repair installed runtime hooks with `dw protect disable` then `dw protect enable`")
+            elif mode == "external":
+                print("Protect:    external - delegated; Proof/Debt remain DiffWitness-owned")
+            else:
+                print("Protect:    off - optional; Proof/Debt remain fully available")
+            if receipts.get("integrity") is False:
+                protect_ok = False
+                print("Receipts:   INVALID - local protection receipt integrity check failed")
+            elif int(receipts.get("count") or 0):
+                print(f"Receipts:   {int(receipts.get('count') or 0)} bounded runtime observation(s); integrity ok")
+            print("Boundary:   Protect observations never become VERIFIED software behavior without executable evidence")
 
         engine_config: dict[str, Any] = dict(config.get("engine") or {})
         engine_command = [args.engine] if args.engine else list(engine_config.get("command") or [])
@@ -114,14 +144,16 @@ def doctor_cli(argv: list[str]) -> int:
                     )
             print("Context:    local + bounded + advisory; `dw context <task>`")
             print("Trust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED")
-            print("Privacy:    ProjectEvent history excludes raw prompts and raw diffs")
+            print("Privacy:    ProjectEvent and Protect history exclude raw prompts, raw diffs and raw commands")
 
         if evidence_ok:
-            print("\nAgent guard examples:")
-            print("  dw guard --policy strict -- claude")
+            print("\nAgent workflow examples:")
+            print("  dw protect enable                    # optional builtin live guard")
+            print("  dw protect use external              # keep your existing harness")
+            print("  dw guard --policy strict -- claude   # independent before/after proof boundary")
             print("  dw guard --policy strict -- codex")
             print("Claude/Codex plugins can inject task-specific Project Continuity at UserPromptSubmit.")
-        return 0 if evidence_ok and engine_ok and continuity_ok else 1
+        return 0 if evidence_ok and protect_ok and engine_ok and continuity_ok else 1
     except (GitError, ValueError, OSError) as exc:
         print(f"DiffWitness doctor: {exc}")
         return 2

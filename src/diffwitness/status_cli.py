@@ -10,6 +10,7 @@ from .config import load_config
 from .debt_budget import ledger_path, merged_debt_config
 from .gitops import git, repo_root
 from .ledger import DebtLedger
+from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
 
 
@@ -59,6 +60,32 @@ def _latest_envelope(repo: Path) -> dict[str, Any] | None:
     }
 
 
+def _protection_status(repo: Path) -> dict[str, Any]:
+    try:
+        value = protect_status(repo)
+    except ProtectError as exc:
+        return {
+            "schema": "diffwitness.protect-status.v1",
+            "mode": "unknown",
+            "policy": "unknown",
+            "health": "invalid",
+            "enabled": False,
+            "delegated": False,
+            "externalHarnessDetected": False,
+            "otherHookActivityDetected": False,
+            "adapters": {},
+            "receipts": {
+                "schema": "diffwitness.protection-summary.v1",
+                "count": 0,
+                "integrity": False,
+                "decisions": {},
+                "categories": {},
+            },
+            "error": str(exc)[:300],
+        }
+    return value
+
+
 def build_project_status(repo: Path, *, explicit_config: str | None = None) -> dict[str, Any]:
     config = load_config(repo, explicit_config)
     debt_config = merged_debt_config(config.get("debt") or {})
@@ -68,6 +95,7 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
     active = ledger.active_items()
     categories = ledger.active_by_category()
     envelope = _latest_envelope(repo)
+    protection = _protection_status(repo)
 
     actions: list[dict[str, str]] = []
     if evidence_command is None:
@@ -78,6 +106,16 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
                 "title": "Tell DiffWitness how to verify this project",
                 "command": "dw doctor",
                 "reason": "No executable evidence command is configured or safely auto-detected.",
+            }
+        )
+    if protection.get("health") in {"degraded", "invalid"}:
+        actions.append(
+            {
+                "priority": "high",
+                "kind": "repair-protection",
+                "title": "Repair the optional runtime protection layer",
+                "command": "dw protect status",
+                "reason": "Protect is configured but its local state or installed hooks are not healthy. Proof remains independent.",
             }
         )
     if dirty:
@@ -110,10 +148,21 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
                 "reason": "Evidence is ready, the working tree is clean, and no open debt is recorded.",
             }
         )
+    if protection.get("mode") == "off":
+        actions.append(
+            {
+                "priority": "normal",
+                "kind": "consider-protection",
+                "title": "Optionally protect the agent while it works",
+                "command": "dw protect enable",
+                "reason": "Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.",
+            }
+        )
 
     return {
         "schema": "diffwitness.project-status.v1",
         "project": {"name": repo.name, "branch": _branch(repo)},
+        "protection": protection,
         "evidence": {
             "ready": evidence_command is not None,
             "source": evidence_source,
@@ -138,12 +187,27 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
             "raw_diff_included": False,
             "raw_prompt_included": False,
             "raw_agent_events_included": False,
+            "raw_commands_included": False,
         },
-        "non_claim": "Project status is navigation over configured evidence, Git metadata and the Debt Ledger. It is not a proof that the application is correct.",
+        "non_claim": "Project status is navigation over runtime protection metadata, configured evidence, Git metadata and the Debt Ledger. Protection observations are not a proof that the application is correct.",
     }
 
 
+def _protect_line(protection: dict[str, Any]) -> str:
+    mode = protection.get("mode")
+    health = protection.get("health")
+    policy = protection.get("policy")
+    if mode == "builtin":
+        return f"Protect       builtin · {health} · policy {policy}"
+    if mode == "external":
+        return "Protect       external · delegated"
+    if mode == "off":
+        return "Protect       off · optional"
+    return f"Protect       {mode or 'unknown'} · {health or 'unknown'}"
+
+
 def _render_technical(value: dict[str, Any]) -> str:
+    protection = value["protection"]
     evidence = value["evidence"]
     tree = value["working_tree"]
     debt = value["debt"]
@@ -151,6 +215,7 @@ def _render_technical(value: dict[str, Any]) -> str:
     lines = [
         "DIFFWITNESS STATUS · TECHNICAL VIEW",
         "",
+        _protect_line(protection),
         f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}" + (
             f" ({evidence['source']}: {evidence['command']})" if evidence['ready'] else ""
         ),
@@ -167,7 +232,7 @@ def _render_technical(value: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "Status is a navigation summary, not a correctness verdict. Use Gate / Proof for executable claims.",
+            "Protect observations are runtime guard metadata, not executable proof. Use Gate / Proof for change claims.",
             "Prefer less detail? `dw view guided` (or one-off: `dw status --view guided`).",
         ]
     )
@@ -178,16 +243,32 @@ def _guided_heading(value: dict[str, Any]) -> tuple[str, str]:
     evidence = value["evidence"]
     tree = value["working_tree"]
     debt = value["debt"]
+    protection = value["protection"]
     if not evidence["ready"]:
         return "Setup needs attention", "DiffWitness does not yet know how to run executable checks for this project."
+    if protection.get("health") in {"degraded", "invalid"}:
+        return "Runtime protection needs attention", "The optional live guard layer is configured but is not healthy. Verification after the change remains independent."
     if tree["dirty"]:
         return "A change is waiting to be verified", f"{tree['changed_file_count']} changed file(s) are currently present."
     if debt["open_obligations"]:
         return "Some known items need attention", f"{debt['open_obligations']} technical obligation(s) are still open."
-    return "Ready for the next protected change", "Verification setup is available, the working tree is clean, and no open obligation is recorded."
+    return "Ready for the next change", "Verification setup is available, the working tree is clean, and no open obligation is recorded."
+
+
+def _guided_protect_line(protection: dict[str, Any]) -> str:
+    mode = protection.get("mode")
+    health = protection.get("health")
+    if mode == "builtin" and health == "ready":
+        return "✓ Runtime protection is active while supported agents work."
+    if mode == "external":
+        return "• Runtime protection is delegated to your external harness; DiffWitness still verifies the resulting change."
+    if mode == "off":
+        return "• Runtime protection is off; DiffWitness can still verify the resulting change and track debt."
+    return "⚠ Runtime protection is configured but needs attention."
 
 
 def _render_guided(value: dict[str, Any]) -> str:
+    protection = value["protection"]
     evidence = value["evidence"]
     tree = value["working_tree"]
     debt = value["debt"]
@@ -200,10 +281,11 @@ def _render_guided(value: dict[str, Any]) -> str:
         summary,
         "",
         "What we know",
+        _guided_protect_line(protection),
         "✓ Verification setup is ready." if evidence["ready"] else "⚠ Verification setup is not ready yet.",
         f"⚠ {tree['changed_file_count']} changed file(s) are waiting for verification." if tree["dirty"] else "✓ No uncommitted software change is currently visible.",
         f"⚠ {debt['open_obligations']} technical obligation(s) remain to review." if debt["open_obligations"] else "✓ No open technical obligation is recorded in the Debt Ledger.",
-        "✓ A previous protected change is recorded." if envelope.get("present") else "• No protected change receipt is recorded yet.",
+        "✓ A previous verified change record is available." if envelope.get("present") else "• No previous change envelope is recorded yet.",
         "",
         "What to do next",
     ]
@@ -214,7 +296,7 @@ def _render_guided(value: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "This is guidance over bounded project signals, not a claim that the application is complete or correct.",
+            "Runtime protection tells you what was blocked or observed; it does not prove the software works.",
             "Want the engineering details? `dw view technical` (or one-off: `dw status --view technical`).",
         ]
     )

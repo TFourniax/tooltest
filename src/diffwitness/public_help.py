@@ -1,19 +1,36 @@
-TECHNICAL_HELP = """DiffWitness — understand, prove, control debt, and preserve continuity for AI-assisted code
+TECHNICAL_HELP = """DiffWitness — protect agent actions, understand, prove, control debt, and preserve continuity for AI-assisted code
 
 Start here:
   dw setup                            Arm native Claude/Codex/Cursor integration for this Git project
   dw setup status                     Verify the installed DiffWitness integration
-  dw status                           Show evidence readiness, current change, debt, and next actions
+  dw status                           Show Protect, evidence readiness, current change, debt, and next actions
+  dw protect detect                   Detect external harness / hook activity and recommend a runtime mode
+  dw protect enable                   Enable optional builtin runtime guards for supported agents
   dw explain                          Show the latest deterministic evidence-backed IdleProof explanation
   dw view guided                      Prefer simpler language over the same underlying truth
-  dw doctor                           Preflight local evidence, debt, continuity, and advisory readiness
+  dw doctor                           Preflight runtime protection, evidence, debt, continuity, and readiness
 
 Core workflow:
-After setup, use Claude Code, Codex, or Cursor normally. DiffWitness runs at the native task boundary:
+After setup, use Claude Code, Codex, or Cursor normally. DiffWitness keeps distinct boundaries:
+  PROTECT     optional runtime safety: builtin / external / off; observations are not proof
   UNDERSTAND  explain what the agent is changing in this project
   PROVE       execute evidence against the exact Git change
   OWE         measure and persist software/debt obligations
   CONTINUITY  preserve bounded project memory for the next task/session/device
+
+Protect (optional live runtime layer):
+  dw protect detect                   Inspect harness/hook signals without changing configuration
+  dw protect enable [--policy ...]    Install builtin Claude/Codex PreTool/PostTool guards
+  dw protect use external             Delegate live safety to another harness; keep Proof/Debt active
+  dw protect disable                  Remove DiffWitness Protect hooks; keep Proof/Debt active
+  dw protect status [--json]          Inspect mode, health and aggregate bounded receipts
+  dw protect log [--json]             Inspect local bounded runtime receipts
+
+Protect policy is independent from Guard proof policy. Clean actions are never force-allowed by
+DiffWitness; provider-native permissions remain authoritative. `off` installs no Protect interception.
+Current Codex hooks are provider-feature/trust gated: DiffWitness installs configuration but never writes
+Codex project/hook trust. Complete Codex's own trust flow (including `/hooks`) and use `dw protect status`
+to confirm that a live hook has actually reached Protect.
 
 Optional presentation only (never changes evidence):
   dw explain --engine agent-session   Export bounded facts for the model already active in your coding session
@@ -58,22 +75,22 @@ Evidence / interoperability:
   dw note <certificate> [options]      Attach a verified proof reference using git notes
   dw core [options]                    Budgeted Adaptive Core / 1-minimal reduction search
   dw recheck <DW-...> [options]        Replay verification for historical debt lineages
-  dw ide-hook <event>                  Native IDE protocol (normally installed by `dw setup`)
+  dw ide-hook <event>                  Native IDE protocol (normally installed by `dw setup` / Protect)
 
 The saved view is a local presentation preference stored under `.git/diffwitness/`. Switching between
-Guided and Technical changes presentation only: proof semantics, certificates, Debt Ledger state,
-source code, repository HEAD, privacy boundaries, and machine-readable status contracts remain the same.
-`dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
+Guided and Technical changes presentation only: Protect mode, proof semantics, certificates, Debt Ledger
+state, source code, repository HEAD, privacy boundaries, and machine-readable status contracts remain the
+same. `dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
 
-DiffWitness is local-first. Proof, Debt Ledger, deterministic IdleProof understanding, and Project
+DiffWitness is local-first. Protect, Proof, Debt Ledger, deterministic IdleProof understanding, and Project
 Continuity do not require a model API and do not upload source code. Optional presentation engines receive
 only bounded evidence-derived facts and are explicitly user-owned unless a paid Portal plan enables
 DiffWitness Managed AI. Portal sync, when configured, carries only the bounded product contract; raw
-prompts, raw diffs, agent event streams, and source code stay out of Portal.
+prompts, raw diffs, raw commands, agent event streams, and source code stay out of Portal.
 
-`dw status` is navigation over bounded evidence, Git metadata, and durable obligations; it is not a
-correctness score. `dw guard` remains an explicit fallback for unsupported agents and automation.
-Normal Claude/Codex/Cursor users should not need to wrap their agent after `dw setup`.
+`dw status` is navigation over bounded runtime observations, evidence, Git metadata, and durable obligations;
+it is not a correctness score. `dw guard` remains the stable explicit before/after proof boundary for any
+agent/process. Builtin Protect currently targets supported Claude/Codex live hook surfaces.
 
 Use `dw <command> --help` for command-specific options.
 """
@@ -83,12 +100,24 @@ GUIDED_HELP = """DiffWitness · Guided view — understand what needs attention 
 Start here:
   dw setup                           Connect DiffWitness to Claude/Codex/Cursor for this Git project
   dw status                          Show what is known, what needs attention, and what to do next
+  dw protect detect                  Check whether live protection should be builtin, external, or off
+  dw protect enable                  Optionally protect supported agent actions while the AI works
   dw explain                         Explain the latest change from local evidence, with no AI required
-  dw doctor                          Check whether the project is ready to produce executable evidence
+  dw doctor                          Check whether runtime protection and executable evidence are ready
   dw view technical                  Switch to exact engineering detail at any time
 
+Runtime protection is optional:
+  dw protect use external            Keep your existing harness and let DiffWitness verify the result
+  dw protect disable                 Use no DiffWitness live interception; Proof and Debt still work
+
+Current Codex requires its own hook feature and trust flow before project hooks execute. DiffWitness never
+approves itself; `dw protect status` stays conservative until a live Codex hook reaches Protect.
+
+A blocked or observed runtime action is not proof that the final software works. DiffWitness verifies the
+resulting change independently after generation.
+
 Useful follow-up actions:
-  dw guard -- <agent>                Explicitly protect an unsupported agent/process when needed
+  dw guard -- <agent>                Put any agent/process behind an explicit before/after proof boundary
   dw plan                            See which known technical obligations can be repaid next
   dw repay -- <agent>                Ask an agent to repay selected debt and verify the result
 
@@ -97,8 +126,8 @@ custom-provider presentation modes. They only rephrase the same evidence; the de
 AI-free, and a Community user is never silently routed to DiffWitness-paid inference.
 
 Guided view changes wording and disclosure only. It does not weaken verification, hide an UNKNOWN as
-success, or change proof certificates, Debt Ledger state, project source, privacy boundaries, or the
-machine-readable status contract. Source code and raw prompts/diffs stay local by default.
+success, change Protect mode, or change proof certificates, Debt Ledger state, project source, privacy
+boundaries, or the machine-readable status contract. Source code and raw prompts/diffs stay local by default.
 
 Need the complete engineering command surface now? Run `dw view technical`, then `dw --help` again.
 You can switch back with `dw view guided` without reinstalling or changing the project.
