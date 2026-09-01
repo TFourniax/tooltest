@@ -28,6 +28,9 @@ Protect (optional live runtime layer):
 
 Protect policy is independent from Guard proof policy. Clean actions are never force-allowed by
 DiffWitness; provider-native permissions remain authoritative. `off` installs no Protect interception.
+Current Codex hooks are provider-feature/trust gated: DiffWitness installs configuration but never writes
+Codex project/hook trust. Complete Codex's own trust flow (including `/hooks`) and use `dw protect status`
+to confirm that a live hook has actually reached Protect.
 
 Optional presentation only (never changes evidence):
   dw explain --engine agent-session   Export bounded facts for the model already active in your coding session
@@ -106,6 +109,9 @@ Start here:
 Runtime protection is optional:
   dw protect use external            Keep your existing harness and let DiffWitness verify the result
   dw protect disable                 Use no DiffWitness live interception; Proof and Debt still work
+
+Current Codex requires its own hook feature and trust flow before project hooks execute. DiffWitness never
+approves itself; `dw protect status` stays conservative until a live Codex hook reaches Protect.
 
 A blocked or observed runtime action is not proof that the final software works. DiffWitness verifies the
 resulting change independently after generation.

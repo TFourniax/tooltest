@@ -12,7 +12,7 @@ DiffWitness extends the proof layer into a replayable software-debt control loop
 - Conservative deterministic guards for destructive Git/filesystem operations, remote pipe-to-shell execution, repository-boundary writes, direct `.git` writes, several high-confidence secret patterns, destructive database/schema commands, and dependency-install observation/confirmation.
 - Post-edit JSON and Python syntax checks plus landed-secret observation.
 - Non-destructive coexistence with existing agent hooks and automatic delegation when a high-confidence external harness signal is detected.
-- Hash-linked bounded Protect receipts under local Git metadata, with no intentional raw command, source, prompt, raw event, or raw session-id persistence.
+- Hash-linked bounded Protect receipts under local Git metadata, with no intentional raw command, source, prompt, raw event, or raw session-id persistence; a single bounded provider-activation receipt can establish that a configured live hook actually ran without creating a risk finding.
 - Bounded Portal projection of Protect mode/health/policy, receipt integrity and aggregate decision counts, stored separately from Proof assurance.
 - Event-sourced Debt Ledger with stable `DW-...` lineages, explicit provenance, acceptance, resolution, reopening, history, and budget accounting.
 - `dw debt`, `dw health`, `dw plan`, `dw repay`, `dw recheck`, and public `dw ledger` lifecycle commands.
@@ -25,6 +25,8 @@ DiffWitness extends the proof layer into a replayable software-debt control loop
 
 ### Hardened
 
+- Protect receipt appends use a dependency-free inter-process lock and refuse to silently extend a damaged/tampered chain.
+- Codex readiness is fail-closed: an installed hook file is not reported ready until a live Codex hook has actually invoked Protect, and DiffWitness never writes/bypasses Codex project or hook trust on the user's behalf.
 - Protect `off` installs no runtime interception hook; disabling builtin Protect removes only DiffWitness-managed hooks and preserves unrelated agent configuration.
 - Clean runtime actions are never force-allowed by Protect; provider-native permission systems remain authoritative.
 - A configured pre-tool Protect failure fails closed for the action instead of manufacturing success.
@@ -43,7 +45,7 @@ DiffWitness extends the proof layer into a replayable software-debt control loop
 ### Alpha boundary
 
 - The 0.4 line is intentionally marked alpha while the public repository/distribution path and real-world adopter feedback are exercised.
-- Builtin Protect currently targets supported Claude Code / Codex hook surfaces; generic agents remain fully supported through the independent `dw guard -- <agent>` proof boundary.
+- Builtin Protect currently targets supported Claude Code / Codex hook surfaces; generic agents remain fully supported through the independent `dw guard -- <agent>` proof boundary. Current Codex hook execution remains subject to Codex's own feature, repository-trust, and per-hook trust controls.
 - Protect starts with a deliberately bounded high-confidence rule set rather than claiming universal agent safety.
 - Debt points are accounting weights over inspectable obligations, not bug probabilities, engineering-time estimates, or a universal maintainability score.
 - Hash chains are integrity mechanisms, not external signatures against a malicious repository owner.

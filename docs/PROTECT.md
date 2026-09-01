@@ -34,6 +34,19 @@ Current builtin adapters in this alpha:
 - Claude Code;
 - Codex.
 
+#### Codex activation and trust
+
+Current Codex builds keep lifecycle hooks behind Codex-owned feature and trust boundaries. `dw protect enable` installs DiffWitness's project hook configuration, but DiffWitness deliberately does **not** grant itself Codex trust.
+
+For Codex builtin Protect, complete Codex's own flow:
+
+1. enable Codex's `hooks` feature (for example, `codex --enable hooks`, or the equivalent user-owned Codex configuration);
+2. accept Codex's normal project-trust decision for the repository;
+3. review and approve the DiffWitness hooks in Codex's `/hooks` surface;
+4. let Codex invoke a tool, then check `dw protect status`.
+
+Until a live trusted Codex hook actually invokes DiffWitness, the Codex adapter remains conservatively not-ready rather than claiming protection that has not run. DiffWitness never writes Codex project trust, never writes a trusted hook hash on the user's behalf, and never uses Codex's dangerous hook-trust bypass in product code.
+
 ### External
 
 ```bash
@@ -96,7 +109,7 @@ High-confidence dangerous actions are blocked. Dependency installation is observ
 dw protect enable --policy strict
 ```
 
-High-confidence dangerous actions are blocked and dependency-install requests ask for confirmation.
+High-confidence dangerous actions are blocked. Dependency-install requests ask for confirmation when the provider hook protocol safely supports that decision. Current Codex `PreToolUse` rejects `ask`, so strict Protect blocks that dependency-install action instead of silently downgrading the policy.
 
 ### `observe`
 
@@ -149,6 +162,8 @@ They do **not** intentionally store:
 
 Session identifiers are represented only by a short digest.
 
+The first live invocation from a configured provider may add one bounded activation receipt (`decision=active`, `category=runtime`). That is a transport/readiness marker, **not** a risky-action finding and not a proof claim. Subsequent safe calls do not need to create repeated activation receipts.
+
 Check aggregate state:
 
 ```bash
@@ -193,6 +208,15 @@ dw doctor
 dw protect detect
 dw protect enable --policy standard
 dw guard -- claude
+```
+
+For Codex builtin Protect, after enabling Protect complete Codex's provider-owned hook/trust flow before expecting runtime interception:
+
+```bash
+dw protect enable --policy standard
+codex --enable hooks
+# In Codex: accept the repository trust prompt, then review/approve DiffWitness in /hooks.
+dw protect status
 ```
 
 For a repository already using its own harness:

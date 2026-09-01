@@ -161,6 +161,8 @@ Use builtin DiffWitness guards:
 dw protect enable
 ```
 
+For current Codex builds, installing the hook file is only the first step: Codex itself must have its `hooks` feature enabled, the repository must pass Codex's normal project-trust flow, and the DiffWitness hooks must be approved through Codex's own hook-trust UI. DiffWitness never grants itself that trust. `dw protect status` stays conservative until a live Codex hook has actually invoked Protect. See [`docs/PROTECT.md`](docs/PROTECT.md).
+
 Keep an existing external harness:
 
 ```bash
@@ -226,7 +228,9 @@ external  another harness owns live runtime protection
 off       no DiffWitness live interception
 ```
 
-Builtin Protect currently supports Claude Code and Codex hook surfaces. It starts with a bounded deterministic rule set for high-confidence cases such as destructive Git/filesystem operations, remote pipe-to-shell execution, writes outside the repository, direct `.git` writes, several credential/private-key patterns, destructive database/schema commands, dependency-install observation/confirmation, and lightweight post-edit JSON/Python syntax checks.
+Builtin Protect currently supports Claude Code and Codex hook surfaces. Current Codex hooks are provider-feature/trust gated: DiffWitness can install its hook configuration, but it never enables project trust or approves its own hooks. Until a live trusted Codex hook reaches DiffWitness, the Codex adapter is reported conservatively rather than pretending runtime protection is active.
+
+Protect starts with a bounded deterministic rule set for high-confidence cases such as destructive Git/filesystem operations, remote pipe-to-shell execution, writes outside the repository, direct `.git` writes, several credential/private-key patterns, destructive database/schema commands, dependency-install observation/confirmation, and lightweight post-edit JSON/Python syntax checks.
 
 Policies:
 
@@ -238,7 +242,7 @@ dw protect enable --policy strict
 
 - `observe` records findings without blocking;
 - `standard` blocks high-confidence dangerous actions;
-- `strict` additionally asks for confirmation on dependency installation.
+- `strict` additionally asks for confirmation on dependency installation where the provider hook protocol supports it; current Codex `PreToolUse` does not safely support `ask`, so Protect blocks that dependency-install action instead.
 
 Clean actions are **not force-allowed by DiffWitness**. Protect stays silent and the provider's native permission system remains authoritative.
 
@@ -249,7 +253,7 @@ dw protect status
 dw protect log
 ```
 
-Protect receipts intentionally exclude raw commands, source contents, raw prompts, raw agent-event streams and raw session identifiers. Portal receives only aggregate mode/health/policy and decision counts when sync is configured.
+Protect receipts intentionally exclude raw commands, source contents, raw prompts, raw agent-event streams and raw session identifiers. A provider's first live hook may add one bounded `active` receipt so readiness can mean "the hook actually ran" without inventing a risk finding. Portal receives only aggregate mode/health/policy and decision counts when sync is configured.
 
 Full contract: [`docs/PROTECT.md`](docs/PROTECT.md).
 

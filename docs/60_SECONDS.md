@@ -41,6 +41,8 @@ Use DiffWitness builtin protection:
 dw protect enable
 ```
 
+With current Codex builds, also enable Codex's own `hooks` feature and complete Codex's normal repository + hook trust flow. DiffWitness installs its hooks but never approves itself. After a live Codex tool call, `dw protect status` confirms whether the adapter has actually been observed. See [`PROTECT.md`](PROTECT.md).
+
 Delegate live protection to an existing harness:
 
 ```bash
