@@ -124,6 +124,10 @@ def main(argv: list[str] | None = None) -> int:
         from ..setup import setup_cli
 
         return setup_cli(args[1:])
+    if args[0] == "protect":
+        from ..protect import protect_cli
+
+        return protect_cli(args[1:])
     if args[0] == "explain":
         from ..idleproof_user_inference import user_inference_cli
 
