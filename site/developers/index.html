@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DiffWitness for Developers — Executable evidence for AI changes</title>
+  <meta name="description" content="Interrogate AI-generated Git patches with executable contrast, necessity, sufficiency, interaction and stability evidence.">
+  <meta name="theme-color" content="#030303"><link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header><div class="wrap header-inner">
+    <a class="brand" href="../" aria-label="DiffWitness home"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>DiffWitness</span><small>instrument 01 · Sphaira Lab</small></a>
+    <nav class="site-nav" data-nav aria-label="Main navigation"><a href="./" aria-current="page">Developers</a><a href="../builders/">Builders</a><a href="../docs/">Docs</a><a href="../manifesto/">Manifesto</a><a href="../pricing/">Pricing</a><a href="../lab/">Lab</a></nav>
+    <div class="header-actions"><a class="button ghost small" href="https://github.com/TFourniax/tooltest">GitHub</a><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false">Menu</button><a class="button primary small" href="../docs/#quickstart">Try locally</a></div>
+  </div></header>
+
+  <main id="main">
+    <section class="hero compact">
+      <canvas class="scene-canvas" data-sphaira aria-hidden="true"></canvas>
+      <div class="hero-index">TECHNICAL VIEW<br>exact evidence first</div>
+      <div class="wrap hero-content"><div class="hero-copy"><p class="eyebrow">DiffWitness for developers</p><h1>Your agent says done. <em>Ask the patch.</em></h1><p class="hero-lede">Run independent, executable experiments on the exact Git change. See what the selected evidence distinguishes, what remains unwitnessed, and where the proof stops.</p><div class="hero-actions"><div class="install-command"><code id="dev-command">dw guard -- claude</code><button class="copy-button" type="button" data-copy="#dev-command">Copy</button></div><a class="button primary" href="../docs/#quickstart">Open quickstart <span class="arrow">→</span></a></div></div></div>
+    </section>
+
+    <section class="section" aria-labelledby="output-title"><div class="wrap split wide-right">
+      <div><p class="eyebrow">One independent boundary</p><h2 id="output-title">Green is a result. <em>Proof is a process.</em></h2><p class="soft">The coding agent may write implementation and tests in one trajectory. DiffWitness freezes the resulting change, runs the evidence independently, and records exactly which claim class it earned.</p><ul class="feature-list"><li><b>LOCAL</b><span>Core execution stays in your repository and requires no hosted account.</span></li><li><b>MODEL-FREE</b><span>Protect, Proof and Debt do not require an LLM or model API.</span></li><li><b>BOUND</b><span>Certificates belong to the exact Git tree and evidence command.</span></li><li><b>HONEST</b><span>Budgets, instability and inconclusive evidence remain explicit.</span></li></ul></div>
+      <div class="terminal" aria-label="Illustrative DiffWitness terminal output"><div class="terminal-bar"><span>project · checkout-fix</span><span class="terminal-dots"><i></i><i></i><i></i></span></div><pre><span class="prompt">$</span> dw gate --base origin/main --candidate HEAD
+
+change          8f31d9a → b07c542
+evidence        pytest -q
+policy          balanced
+
+candidate       <span class="pass">PASS · stable 2/2</span>
+base + tests    <span class="warn">FAIL · discriminating</span>
+
+contrast        <span class="pass">VERIFIED</span>
+mutations       6 real Git hunks
+causal core     2 retained
+removable       4 under selected evidence
+
+completeness    bounded exhaustive
+certificate     evidence.json
+
+<span class="dim">This is illustrative output, not a live run.</span></pre></div>
+    </div></section>
+
+    <section class="section section-glow" aria-labelledby="protocol-title"><div class="wrap"><div class="section-head"><div><p class="eyebrow">DWPP v1</p><h2 id="protocol-title">Five questions. <em>No confidence theatre.</em></h2></div><p>The protocol does not compress unlike claims into a single score. Each experiment answers a different, bounded question.</p></div><div class="proof-map"><div class="proof-node"><b>01 · CONTRAST</b><span>Does candidate evidence fail on the base and pass on the candidate?</span></div><div class="proof-node"><b>02 · NECESSITY</b><span>Which actual production hunks can be removed before evidence fails?</span></div><div class="proof-node"><b>03 · SUFFICIENCY</b><span>Which real-hunk subset is enough to satisfy the selected evidence?</span></div><div class="proof-node"><b>04 · INTERACTION</b><span>Do individually removable hunks secretly depend on each other?</span></div><div class="proof-node"><b>05 · STABILITY</b><span>Do repeated isolated runs agree before a causal label is emitted?</span></div></div><a class="text-link" href="../docs/#proof-model">Read the proof model <span>→</span></a></div></section>
+
+    <section class="section" id="protect" aria-labelledby="protect-title"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Protect · optional runtime layer</p><h2 id="protect-title">Use our hooks. Keep your harness. <em>Or use neither.</em></h2></div><p>Protect can observe or stop supported high-confidence actions while an agent works. It never becomes proof of final software behavior.</p></div><div class="protect-grid"><article class="protect-mode"><div class="mode-code">builtin</div><h3>DiffWitness hooks</h3><p>Install supported Claude Code and Codex hook surfaces with an explicit policy. Provider trust remains provider-owned.</p><code>dw protect enable --policy standard</code></article><article class="protect-mode"><div class="mode-code">external</div><h3>Your existing harness</h3><p>Delegate live interception without changing Proof, Debt, Continuity or IdleProof semantics.</p><code>dw protect use external</code></article><article class="protect-mode"><div class="mode-code">off</div><h3>No DiffWitness interception</h3><p>Remove DiffWitness-managed hooks. Post-change evidence and debt accounting remain available.</p><code>dw protect disable</code></article></div></div></section>
+
+    <section class="section" id="debt" aria-labelledby="debt-title"><div class="wrap split wide-left"><div><p class="eyebrow">Debt as an obligation</p><h2 id="debt-title">A shortcut is not repaid because the warning <em>disappeared.</em></h2><p class="soft">The append-only, hash-chained Debt Ledger stores stable lineages, provenance and — where available — a replayable verification adapter. A repayment runs through the gate again.</p><ul class="feature-list"><li><b>MEASURE</b><span><code>dw debt</code> records causal, deterministic, historical and bounded heuristic signals separately.</span></li><li><b>PRIORITIZE</b><span><code>dw health</code> and <code>dw plan</code> surface the next bounded repayment mission.</span></li><li><b>REPAY</b><span><code>dw repay -- claude</code> constrains the task, evaluates the patch and replays the original claim.</span></li><li><b>VERIFY</b><span>Closure requires the matching adapter or an explicit externally justified resolution.</span></li></ul></div><div class="terminal"><div class="terminal-bar"><span>debt repayment</span><span class="terminal-dots"><i></i><i></i><i></i></span></div><pre><span class="prompt">$</span> dw plan
+
+next mission     DW-01J-AUTH
+obligation       session token never rotates
+provenance       deterministic
+age              42 days
+repayment gate   project rule + tests
+
+<span class="prompt">$</span> dw repay -- claude
+scope locked     auth/session.py
+agent session    running
+candidate gate   <span class="pass">PASS</span>
+debt replay      <span class="pass">VERIFIED RESOLVED</span>
+
+<span class="dim">Illustrative sequence.</span></pre></div></div></section>
+
+    <section class="section" aria-labelledby="ci-title"><div class="wrap split"><div class="terminal"><div class="terminal-bar"><span>.github/workflows/diffwitness.yml</span><span>yaml</span></div><pre>- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- uses: TFourniax/tooltest@main
+  with:
+    base: ${{ github.event.pull_request.base.sha }}
+    candidate: ${{ github.event.pull_request.head.sha }}</pre></div><div><p class="eyebrow">The same gate in CI</p><h2 id="ci-title">Local workflow. <em>Repository rule.</em></h2><p class="soft">Use Guard around an interactive agent and Gate on a pull request. The certificate format and proof vocabulary remain the same.</p><div class="callout warn"><p><strong>Alpha note.</strong> The temporary repository name and moving branch shown here must be replaced by the final repository identity and a pinned release before production use.</p></div><a class="text-link" href="../docs/#ci">Configure CI <span>→</span></a></div></div></section>
+
+    <section class="section" aria-labelledby="claims-title"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Exact boundaries</p><h2 id="claims-title">What this proves. <em>What it never will.</em></h2></div></div><div class="truth-strip"><div class="truth-item"><span class="truth-label green">IT CAN</span><p>Establish bounded claims under your selected executable evidence and environment.</p></div><div class="truth-item"><span class="truth-label green">IT CAN</span><p>Invalidate a certificate when the bound content changes after proof.</p></div><div class="truth-item"><span class="truth-label red">IT CANNOT</span><p>Prove the whole program correct or make weak evidence strong.</p></div><div class="truth-item"><span class="truth-label red">IT CANNOT</span><p>Authenticate the author merely because a record is content-addressed.</p></div></div></div></section>
+
+    <section class="cta-band"><div class="wrap"><p class="eyebrow">Keep your agent. Add an independent witness.</p><p class="statement">Run one preflight. See exactly which evidence DiffWitness would use <em>before it executes a test.</em></p><div class="hero-actions"><div class="install-command"><code id="bottom-command">dw doctor</code><button class="copy-button" type="button" data-copy="#bottom-command">Copy</button></div><a class="button primary" href="../docs/#quickstart">Get started <span class="arrow">→</span></a><a class="button ghost" href="https://github.com/TFourniax/tooltest">Inspect the source</a></div></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="wrap"><div class="footer-grid"><div class="footer-brand"><a class="brand" href="../"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>Sphaira Lab</span></a><p>Instruments for software written by machines. DiffWitness is instrument 01.</p></div><div class="footer-col"><b>Product</b><ul><li><a href="./">Developers</a></li><li><a href="../builders/">Builders</a></li><li><a href="../pricing/">Pricing</a></li></ul></div><div class="footer-col"><b>Learn</b><ul><li><a href="../docs/">Documentation</a></li><li><a href="../guides/">Guides</a></li><li><a href="../manifesto/">Manifesto</a></li></ul></div><div class="footer-col"><b>Open core</b><ul><li><a href="https://github.com/TFourniax/tooltest">GitHub</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/SECURITY.md">Security</a></li><li><a href="https://github.com/TFourniax/tooltest/issues">Issues</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 Sphaira Lab</span><span>Technical view · exact evidence first</span></div></div></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="../assets/sphaira.js"></script><script src="../assets/app.js"></script>
+</body>
+</html>

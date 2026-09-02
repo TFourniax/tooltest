@@ -1,229 +1,109 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DiffWitness. The control layer for AI coding. By Sphaira Lab</title>
-<meta name="description" content="DiffWitness protects what agents touch, proves what a change actually needed, explains it in plain language and remembers what you accepted. Open core, runs offline.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#000;
-  --ink:#ECE9E2;
-  --mute:#6F6C66;
-  --rule:#242320;
-  --violet:#A78BFF;
-  --violet-deep:#5B3FD9;
-  --lilac:#E3D9FF;
-  --amber:#F2B25A;
-  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-  --serif:"Instrument Serif",Georgia,serif;
-  --measure:66ch;
-}
-*{box-sizing:border-box}
-html{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
-body{margin:0;overflow-x:hidden}
-a{color:inherit}
-::selection{background:var(--violet-deep);color:#fff}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-.measure{max-width:var(--measure)}
-button,.btn{font:inherit}
-:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
-.top{position:fixed;inset:0 0 auto 0;z-index:30;border-bottom:1px solid transparent;transition:background .3s,border-color .3s}
-.top.solid{background:rgba(0,0,0,.82);backdrop-filter:blur(10px);border-color:var(--rule)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:500}
-.brand svg{width:22px;height:22px}
-.brand small{color:var(--mute);font-weight:400;font-size:12px}
-.nav{display:flex;gap:22px;font-size:13px}
-.nav a{text-decoration:none;color:var(--mute)}
-.nav a:hover,.nav a[aria-current]{color:var(--ink)}
-.menu-toggle{display:none;background:transparent;border:1px solid var(--rule);color:var(--ink);padding:7px 10px;cursor:pointer}
-@media(max-width:820px){.brand small{display:none}.navcta .btn:not(.fill){display:none}.menu-toggle{display:inline-flex}.nav{display:none;position:absolute;top:60px;left:0;right:0;padding:18px 24px 22px;background:rgba(0,0,0,.96);border-bottom:1px solid var(--rule);flex-direction:column;gap:14px}.nav.open{display:flex}}
-.navcta{display:flex;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);color:var(--ink);background:transparent;padding:8px 14px;font-size:13px;text-decoration:none;cursor:pointer;white-space:nowrap}
-.btn.fill{background:var(--ink);color:#000;border-color:var(--ink);font-weight:500}
-.btn.violet{background:var(--violet);color:#000;border-color:var(--violet);font-weight:500}
-.btn.sm{padding:6px 11px;font-size:12px}
-.hero{position:relative;min-height:100vh;display:grid;align-items:end;padding:120px 0 64px;overflow:hidden;background:radial-gradient(120% 80% at 70% 30%,#170E3A 0%,#0A0620 38%,#000 72%)}
-#scene{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hero .wrap{position:relative;z-index:2}
-.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,7.2vw,96px);line-height:.98;letter-spacing:-.015em;margin:0 0 20px;max-width:14ch}
-.hero h1 em{font-style:italic;color:var(--lilac)}
-.hero .lede{font-size:16px;color:#B9B4AB;max-width:50ch;margin:0 0 30px}
-.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.install{display:inline-flex;align-items:stretch;border:1px solid var(--ink);background:rgba(0,0,0,.35)}
-.install code{padding:11px 16px;font-size:14px}
-.install code::before{content:"$ ";color:var(--mute)}
-.install button{background:var(--ink);color:#000;border:0;padding:0 16px;font-weight:500;cursor:pointer}
-.orbits{position:absolute;right:24px;bottom:64px;z-index:2;font-size:12px;color:var(--mute);text-align:right;line-height:1.8}
-.orbits b{color:var(--violet);font-weight:500}
-@media(max-width:820px){.orbits{display:none}}
-.legend{position:absolute;left:24px;top:84px;z-index:2;font-size:12px;color:var(--mute);line-height:1.8}
-.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
-@media(max-width:820px){.legend{display:none}}
-section{padding:96px 0;border-top:1px solid var(--rule)}
-section.tight{padding-top:72px}
-h2{font-family:var(--serif);font-weight:400;font-size:clamp(34px,4.6vw,58px);line-height:1.04;letter-spacing:-.012em;margin:0 0 20px;max-width:20ch}
-h2 em{font-style:italic;color:var(--violet)}
-p{margin:0 0 16px;max-width:var(--measure)}
-p.mute{color:var(--mute)}
-.manifesto{font-family:var(--serif);font-size:clamp(28px,3.8vw,48px);line-height:1.16;max-width:24ch;margin:0}
-.manifesto em{color:var(--violet);font-style:italic}
-.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:40px}
-@media(max-width:960px){.loop{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.loop{grid-template-columns:1fr}}
-.step{background:#000;padding:24px 22px 26px;position:relative}
-.step .n{font-family:var(--serif);font-size:44px;line-height:1;color:var(--violet-deep);margin:0 0 14px}
-.step h3{margin:0 0 6px;font-size:16px;font-weight:500}
-.step .when{font-size:12px;color:var(--mute);margin:0 0 14px}
-.step p{font-size:13px;line-height:1.6;margin:0}
-.step svg{display:block;width:100%;height:110px;margin:0 0 18px}
-.step .tech{margin-top:14px;font-size:12px;color:var(--mute);line-height:1.6}
-.step .tech b{color:var(--ink);font-weight:500}
-.bench{border:1px solid var(--rule);margin:40px 0 0;display:grid;grid-template-columns:1.35fr 1fr;background:#000}
-@media(max-width:820px){.bench{grid-template-columns:1fr}}
-.bench-head{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--rule);font-size:12.5px;color:var(--mute);flex-wrap:wrap;gap:10px}
-.bench-head b{color:var(--ink);font-weight:500}
-.tag{display:inline-block;border:1px solid var(--amber);color:var(--amber);padding:1px 8px;font-size:11px;margin-right:8px}
-.hunks{padding:6px 0;border-right:1px solid var(--rule)}
-@media(max-width:820px){.hunks{border-right:0;border-bottom:1px solid var(--rule)}}
-.hunk{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;color:var(--ink);padding:9px 16px 9px 13px}
-.hunk .file{font-size:12px;color:var(--mute);display:flex;justify-content:space-between}
-.hunk pre{margin:5px 0 0;font-size:12.5px;line-height:1.5;white-space:pre-wrap}
-.hunk .add::before{content:"+ ";color:var(--mute)}
-.hunk .del{color:var(--mute);text-decoration:line-through}
-.hunk .del::before{content:"- "}
-.hunk .verdict{font-size:12px;color:var(--mute);min-height:1em;display:block}
-.hunk[data-state="removed"] pre{opacity:.35;text-decoration:line-through}
-.hunk[data-verdict="core"]{border-left-color:var(--violet)}
-.hunk[data-verdict="core"] .verdict{color:var(--violet)}
-.hunk[data-verdict="core"] .verdict::before{content:"needed. evidence fails without it."}
-.hunk[data-verdict="noise"] .verdict::before{content:"not needed. evidence holds without it."}
-.hunk[data-verdict="testing"]{border-left-color:var(--amber)}
-.hunk[data-verdict="testing"] .verdict{color:var(--amber)}
-.hunk[data-verdict="testing"] .verdict::before{content:"running without this hunk"}
-.evidence{padding:16px}
-.evidence h3{margin:0 0 10px;font-weight:500;font-size:13px;color:var(--mute)}
-.tests{list-style:none;margin:0;padding:0}
-.tests li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--rule);font-size:13px}
-.tests li:last-child{border-bottom:1px solid var(--rule)}
-.tests .res{color:var(--mute)}
-.tests li[data-res="pass"] .res{color:var(--ink)}
-.tests li[data-res="pass"] .res::before{content:"pass"}
-.tests li[data-res="fail"] .res::before{content:"fail"}
-.tests li[data-res="fail"] .name{text-decoration:line-through;color:var(--mute)}
-.tests li[data-res="run"] .res{color:var(--amber)}
-.tests li[data-res="run"] .res::before{content:"running"}
-.log{margin:14px 0 0;font-size:12px;color:var(--mute);line-height:1.7;min-height:8em;white-space:pre-wrap}
-.log .ok{color:var(--violet)}
-.record{margin-top:12px;border:1px solid var(--violet-deep);padding:12px;font-size:12px;line-height:1.7;display:none}
-.record.show{display:block}
-.record .stamp{color:var(--violet);font-weight:500}
-.protect{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px;align-items:start}
-@media(max-width:820px){.protect{grid-template-columns:1fr}}
-.policy{border:1px solid var(--rule);padding:16px;font-size:12.5px;line-height:1.7;margin:0;white-space:pre;overflow:auto}
-.policy .k{color:var(--mute)}
-.policy .review{color:var(--amber)}
-.policy .block{color:var(--mute);text-decoration:underline;text-underline-offset:3px}
-.zones{border:1px solid var(--rule)}
-.zone{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 16px;border-top:1px solid var(--rule);font-size:13px}
-.zone:first-child{border-top:0}
-.zone span:last-child{color:var(--mute)}
-.zone[data-mode="review"] span:last-child{color:var(--amber)}
-.zone[data-mode="block"] span:last-child{text-decoration:underline;text-underline-offset:3px}
-.zone .path{color:var(--mute);display:block;font-size:12px}
-.claims{margin:32px 0 0;padding:0;list-style:none;max-width:var(--measure)}
-.claims li{border-top:1px solid var(--rule);padding:16px 0;display:grid;grid-template-columns:9ch 1fr;gap:16px;font-size:14px}
-.claims li:last-child{border-bottom:1px solid var(--rule)}
-.claims li b{font-weight:500;color:var(--mute)}
-.claims li[data-yes] b{color:var(--violet)}
-.ledger{margin-top:36px;border:1px solid var(--rule);background:repeating-linear-gradient(to bottom,transparent 0 41px,var(--rule) 41px 42px)}
-.ledger .row{display:grid;grid-template-columns:1.6fr 1fr 1fr 8ch;gap:16px;padding:0 16px;height:42px;align-items:center;font-size:13px}
-@media(max-width:820px){.ledger .row{grid-template-columns:1.4fr 1fr 6ch}.ledger .row .risk{display:none}}
-.ledger .head{color:var(--mute);font-size:12px}
-.ledger .age{text-align:right;color:var(--violet)}
-.ledger .area{color:var(--mute)}
-.ledger .risk.med{color:var(--amber)}
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:40px}
-@media(max-width:820px){.plans{grid-template-columns:1fr}}
-.plan{background:#000;padding:26px 22px}
-.plan h3{margin:0;font-size:15px;font-weight:500}
-.plan .price{font-family:var(--serif);font-size:44px;line-height:1;margin:14px 0 4px}
-.plan .price small{font-family:var(--mono);font-size:12px;color:var(--mute)}
-.plan .for{font-size:12px;color:var(--mute);margin:0 0 18px}
-.plan ul{list-style:none;margin:0 0 22px;padding:0;font-size:13px;line-height:1.7}
-.plan li::before{content:"";display:inline-block;width:6px;height:6px;background:var(--mute);margin-right:10px;vertical-align:middle}
-.plan.pro{outline:1px solid var(--violet);outline-offset:-1px}
-.plan.pro li::before{background:var(--violet)}
-.docs{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px;align-items:start}
-@media(max-width:820px){.docs{grid-template-columns:1fr}}
-.tree{border:1px solid var(--rule);padding:16px;font-size:12.5px;line-height:1.75;margin:0;white-space:pre;overflow:auto}
-.tree .k{color:var(--mute)}
-.tree .md{color:var(--violet)}
-.docs .side p{font-size:14px}
-.docs .side code{color:var(--lilac)}
-.final{padding:110px 0;background:radial-gradient(90% 70% at 30% 100%,#12093A 0%,#000 60%)}
-.final .manifesto{margin-bottom:36px}
-footer{border-top:1px solid var(--rule);padding:40px 0 48px;font-size:12px;color:var(--mute)}
-footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
-@media(max-width:820px){footer .cols{grid-template-columns:1fr 1fr}}
-footer ul{list-style:none;margin:8px 0 0;padding:0;line-height:2}
-footer a{text-decoration:none}
-footer a:hover{color:var(--ink)}
-footer b{color:var(--ink);font-weight:500}
-.seal{display:flex;align-items:center;gap:10px;color:var(--ink)}
-.seal svg{width:20px;height:20px}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-.skip{position:fixed;left:12px;top:-60px;z-index:100;background:var(--ink);color:#000;padding:8px 12px;text-decoration:none}.skip:focus{top:12px}
-.eyebrow{margin:0 0 12px;color:var(--violet);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DiffWitness — Control what AI changes</title>
+  <meta name="description" content="DiffWitness protects AI coding sessions, proves what a change actually needed, explains it clearly, and keeps accepted software debt accountable.">
+  <meta name="theme-color" content="#030303">
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<header class="top" id="top"><div class="wrap"><a class="brand" href="#main" aria-label="DiffWitness home"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#ECE9E2"/><ellipse cx="10" cy="10" rx="8.5" ry="3.2" fill="none" stroke="#6F6C66"/><circle cx="10" cy="10" r="1.7" fill="#A78BFF"/></svg>DiffWitness <small>instrument 01, Sphaira Lab</small></a><nav class="nav" id="siteNav" aria-label="Site"><a href="#loop">Product</a><a href="#developers" aria-current="page">Developers</a><a href="#builders">Builders</a><a href="#docs">Docs</a><a href="#manifesto">Manifesto</a><a href="#pricing">Pricing</a></nav><div class="navcta"><a class="btn sm" href="https://github.com/TFourniax/tooltest">GitHub</a><button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button><a class="btn sm fill" href="#start">Try locally</a></div></div></header>
-<main id="main">
-<section class="hero" style="border-top:0"><canvas id="scene" aria-hidden="true"></canvas><div class="legend" aria-hidden="true"><div><i style="background:#ECE9E2"></i>agent changes arriving</div><div><i style="background:#6F6C66"></i>structure drifting</div><div><i style="background:#A78BFF"></i>witnessed, back under control</div></div><div class="wrap"><h1>Software now changes faster than you can <em>understand it.</em></h1><p class="lede">DiffWitness is the local-first control layer for AI coding. Protect constrains supported agent actions, Proof tests what executable evidence establishes, IdleProof explains the result, and the Debt Ledger keeps unresolved obligations alive.</p><div class="cta-row"><div class="install"><code>dw doctor</code><button type="button" onclick="copyCmd(this)">Copy</button></div><a class="btn violet" href="#start">Try it locally</a><a class="btn" href="https://github.com/TFourniax/tooltest">View on GitHub</a></div></div><div class="orbits" aria-hidden="true">open core, local-first<br>Protect / Proof / Debt need no model API<br>native: <b>claude-code</b> + codex · other agents via generic wrapper</div></section>
-<section class="tight" id="manifesto"><div class="wrap"><p class="manifesto">AI increased the speed of software creation. It did not increase the speed of <em>human understanding.</em> DiffWitness closes that gap.</p></div></section>
-<section id="loop"><div class="wrap"><p class="eyebrow">The assurance loop</p><h2>One instrument. <em>Four moments.</em></h2><p class="mute">Not four products. One loop that runs while the agent works, when you accept its change, and long after.</p><div class="loop">
-<div class="step"><p class="n">1</p><svg viewBox="0 0 220 110" aria-hidden="true"><rect x="10" y="20" width="60" height="70" fill="none" stroke="#3A3834"/><rect x="80" y="20" width="60" height="70" fill="none" stroke="#F2B25A"/><rect x="150" y="20" width="60" height="70" fill="none" stroke="#6F6C66" stroke-dasharray="3 3"/><circle cx="40" cy="55" r="5" fill="#ECE9E2"/><path d="M45 55 L 78 55" stroke="#ECE9E2"/><path d="M78 50 v10" stroke="#F2B25A" stroke-width="2"/><text x="10" y="106" font-size="10" fill="#6F6C66" font-family="JetBrains Mono">allow</text><text x="80" y="106" font-size="10" fill="#F2B25A" font-family="JetBrains Mono">review</text><text x="150" y="106" font-size="10" fill="#6F6C66" font-family="JetBrains Mono">block</text></svg><h3>Protect</h3><p class="when">while the agent works</p><p>Contextual autonomy. Free where a mistake is cheap, a pause where it isn't, a wall where it's unacceptable.</p><div class="tech"><b>.diffwitness.toml</b> + runtime policy. builtin, external, or off.</div></div>
-<div class="step"><p class="n">2</p><svg viewBox="0 0 220 110" aria-hidden="true"><g stroke="#3A3834" fill="none"><circle cx="40" cy="30" r="9"/><circle cx="110" cy="22" r="9"/><circle cx="180" cy="34" r="9"/><circle cx="70" cy="80" r="9"/><circle cx="150" cy="82" r="9"/></g><g stroke="#A78BFF" fill="none" stroke-width="1.5"><circle cx="110" cy="55" r="11"/><circle cx="150" cy="82" r="9"/><path d="M118 62 L142 76"/></g><path d="M40 30 L100 50 M180 34 L120 50 M70 80 L100 60" stroke="#3A3834" stroke-dasharray="2 3" fill="none"/></svg><h3>Witness</h3><p class="when">before you accept</p><p>Counterfactual runs on your own evidence. Pieces are removed, tests observed, the causal core isolated.</p><div class="tech"><b>proof certificate</b>, bound to the exact Git change and executable evidence.</div></div>
-<div class="step"><p class="n">3</p><svg viewBox="0 0 220 110" aria-hidden="true"><rect x="10" y="15" width="200" height="80" fill="none" stroke="#3A3834"/><path d="M24 38 h120 M24 54 h150 M24 70 h90" stroke="#6F6C66"/><path d="M24 38 h48" stroke="#A78BFF" stroke-width="2"/><text x="168" y="88" font-size="10" fill="#A78BFF" font-family="JetBrains Mono">explain</text></svg><h3>Explain</h3><p class="when">when you ask</p><p>IdleProof turns the record into intent, assumptions, trade-offs and risk, at the depth you choose. Closed by default.</p><div class="tech"><b>no LLM required</b>. deterministic first; reuse your agent, BYOK/local, or managed AI on eligible paid plans.</div></div>
-<div class="step"><p class="n">4</p><svg viewBox="0 0 220 110" aria-hidden="true"><path d="M10 30 h200 M10 52 h200 M10 74 h200 M10 96 h200" stroke="#3A3834"/><text x="14" y="46" font-size="10" fill="#ECE9E2" font-family="JetBrains Mono">token never rotates</text><text x="14" y="68" font-size="10" fill="#ECE9E2" font-family="JetBrains Mono">refund outside txn</text><text x="172" y="46" font-size="10" fill="#A78BFF" font-family="JetBrains Mono">42d</text><text x="172" y="68" font-size="10" fill="#A78BFF" font-family="JetBrains Mono">24d</text></svg><h3>Remember</h3><p class="when">after merge, for good</p><p>The Debt Ledger keeps every shortcut you accepted, why, where, and how long it has been there.</p><div class="tech"><b>Debt Ledger</b>, append-only, hash-chained, replayable across the project history.</div></div>
-</div></div></section>
-<section id="developers"><div class="wrap"><p class="eyebrow">For developers</p><h2>A diff tells you what changed. <em>A record proves what was needed.</em></h2><p>This is a replay of an illustrative witness record. DiffWitness runs in your environment, on your evidence. Nothing runs here.</p><div class="bench" id="bench"><div class="bench-head"><div><span class="tag">demo replay</span><b>fix: reject expired coupons at checkout</b> &nbsp; 6 hunks, 3 evidence tests</div><div><button class="btn violet sm" id="runBtn" type="button" onclick="runAblation()">Replay the record</button> <button class="btn sm" type="button" onclick="resetBench()">Reset</button></div></div><div class="hunks" id="hunks"><div class="hunk" data-id="1"><span class="file"><span>src/checkout.ts</span></span><pre><span class="add">if (isExpired(coupon)) throw new CheckoutError("coupon_expired")</span></pre><span class="verdict"></span></div><div class="hunk" data-id="2"><span class="file"><span>src/coupon.ts</span></span><pre><span class="add">export const isExpired = (c) => c.expiresAt &lt; Date.now()</span></pre><span class="verdict"></span></div><div class="hunk" data-id="3"><span class="file"><span>src/checkout.ts</span></span><pre><span class="del">import { Cart, Coupon } from "./types"</span>
-<span class="add">import type { Cart, Coupon } from "./types"</span></pre><span class="verdict"></span></div><div class="hunk" data-id="4"><span class="file"><span>package.json</span></span><pre><span class="add">"dayjs": "^1.11.13",</span></pre><span class="verdict"></span></div><div class="hunk" data-id="5"><span class="file"><span>src/utils/date.ts</span></span><pre><span class="add">export const now = () => dayjs().valueOf()</span></pre><span class="verdict"></span></div><div class="hunk" data-id="6"><span class="file"><span>src/checkout.ts</span></span><pre><span class="add">console.log("[checkout] coupon", coupon.code)</span></pre><span class="verdict"></span></div></div><div class="evidence"><h3>Evidence</h3><ul class="tests" id="tests"><li data-res="pass"><span class="name">rejects an expired coupon</span><span class="res"></span></li><li data-res="pass"><span class="name">accepts a valid coupon</span><span class="res"></span></li><li data-res="pass"><span class="name">total is unchanged without coupon</span><span class="res"></span></li></ul><pre class="log" id="log">full change applied. 3/3 pass.
-this is where most review stops.</pre><div class="record" id="record"><div class="stamp">witnessed</div>causal core: hunks 1, 2 (2 of 6)<br>not needed: 3, 4, 5, 6. one new dependency for zero evidence.<br>6 counterfactual runs, 18 tests, 4.2s. demo replay.</div></div></div></div></section>
-<section id="builders"><div class="wrap"><p class="eyebrow">For every AI builder</p><h2>Let agents move fast. <em>Not everywhere.</em></h2><p>Protect is optional and local. Use DiffWitness builtin hooks, delegate live protection to another harness, or turn interception off without changing Proof, Debt or IdleProof semantics.</p><div class="protect"><pre class="policy"><span class="k"># runtime Protect — current alpha</span>
-<span class="k">mode:</span> builtin | external | off
-<span class="k">policy:</span> standard | strict | observe
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header>
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="DiffWitness home">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg>
+        <span>DiffWitness</span><small>instrument 01 · Sphaira Lab</small>
+      </a>
+      <nav class="site-nav" data-nav aria-label="Main navigation">
+        <a href="developers/">Developers</a><a href="builders/">Builders</a><a href="docs/">Docs</a><a href="manifesto/">Manifesto</a><a href="pricing/">Pricing</a><a href="lab/">Lab</a>
+      </nav>
+      <div class="header-actions"><a class="button ghost small" href="https://github.com/TFourniax/tooltest">GitHub</a><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false">Menu</button><a class="button primary small" href="docs/#quickstart">Try locally</a></div>
+    </div>
+  </header>
 
-<span class="k">$</span> dw protect detect
-<span class="k">$</span> dw protect enable --policy standard
-<span class="k">$</span> dw protect use external
-<span class="k">$</span> dw protect disable</pre><div class="zones"><div class="zone"><span>Destructive Git operation<span class="path">hard reset / force clean / force push</span></span><span>blocked in protected policy</span></div><div class="zone" data-mode="review"><span>Dependency install<span class="path">supported provider hook</span></span><span>observe / confirm / block by policy</span></div><div class="zone" data-mode="block"><span>Direct write into Git metadata<span class="path">.git/**</span></span><span>blocked</span></div><div class="zone"><span>Safe agent action<span class="path">no high-confidence rule match</span></span><span>agent permission system remains authoritative</span></div></div></div></div></section>
-<section><div class="wrap"><h2>What we claim, <em>and what we don't.</em></h2><p>The public runner remains the verification authority. The private planner may prioritize counterfactual experiments, but it is advisory, never authoritative.</p><ul class="claims"><li data-yes><b>we claim</b><span>Proof claims come from executed evidence on the bound Git change. No presentation model may upgrade OBSERVED, SUGGESTED or UNKNOWN into VERIFIED.</span></li><li data-yes><b>we claim</b><span>Protect, Proof and Debt accounting require no model API. The core is local-first and does not require source-code upload.</span></li><li><b>we don't</b><span>That the planner saves 20% of experiments in production. It clears that bar on our controlled benchmark corpus with zero recovered-core mismatch; real-repository measurement remains a separate release gate.</span></li><li><b>we don't</b><span>That DiffWitness replaces review. It narrows what the evidence establishes, exposes unknowns, and keeps unresolved obligations visible.</span></li></ul></div></section>
-<section><div class="wrap"><h2>Accepted risk shouldn't disappear <em>after merge.</em></h2><p>Git keeps what happened. It does not keep why you accepted it. The ledger does, and it keeps counting.</p><div class="ledger" aria-label="Illustrative Debt Ledger"><div class="row head"><span>illustrative shortcut</span><span class="area">area</span><span class="risk">risk today</span><span class="age" style="color:var(--mute)">age</span></div><div class="row"><span>Session token never rotates</span><span class="area">auth</span><span class="risk">low</span><span class="age">42d</span></div><div class="row"><span>Refund runs outside the transaction</span><span class="area">billing</span><span class="risk med">medium</span><span class="age">24d</span></div><div class="row"><span>dayjs added for one call</span><span class="area">deps</span><span class="risk">low</span><span class="age">2d</span></div></div></div></section>
-<section id="pricing"><div class="wrap"><h2>Community proves locally. <em>Paid adds coordination and convenience.</em></h2><p class="mute">The core assurance loop stays useful without paid inference. Paid plans add managed AI, longitudinal Portal surfaces and team coordination.</p><div class="plans"><div class="plan"><h3>Community</h3><p class="price">0<small> core</small></p><p class="for">local-first assurance, no DiffWitness-paid inference</p><ul><li>Protect builtin / external / off</li><li>Proof and certificates</li><li>Debt Ledger</li><li>deterministic IdleProof + user-owned providers</li></ul><a class="btn" href="https://github.com/TFourniax/tooltest">Install</a></div><div class="plan pro"><h3>Builder</h3><p class="price">Paid<small> pricing to finalize</small></p><p class="for">AI builders who want the guided experience</p><ul><li>Guided IdleProof experience</li><li>managed explanations with finite quota</li><li>Portal history and project state</li><li>same local Proof + Debt truth model</li><li>switch to Technical view at any time</li></ul><a class="btn violet" href="https://github.com/TFourniax/tooltest/issues/new?title=Builder%20alpha%20access">Request alpha access</a></div><div class="plan"><h3>Team</h3><p class="price">Paid<small> pricing to finalize</small></p><p class="for">teams shipping with agents</p><ul><li>shared project visibility</li><li>PR checks and CI integration</li><li>technical + guided views</li><li>bounded team managed-AI pool</li></ul><a class="btn" href="https://github.com/TFourniax/tooltest/issues/new?title=Team%20alpha%20conversation">Talk to us</a></div></div><p class="mute" style="margin-top:14px;font-size:12px">Paid pricing is intentionally not claimed yet; this alpha branch validates the product narrative and conversion surfaces first.</p></div></section>
-<section id="docs"><div class="wrap"><h2>Documentation for humans, <em>and for the agents they work with.</em></h2><div class="docs"><div class="side"><p>The documentation architecture is being prepared so human-readable pages and agent-readable Markdown resolve from the same source of truth. The existing repository docs remain authoritative during alpha.</p><p><code>/llms.txt</code> and <code>/llms-full.txt</code> are planned site surfaces, not shipped product claims yet.</p><div class="cta-row"><a class="btn" href="https://github.com/TFourniax/tooltest/tree/rc/human-test-final-2026-09-01/docs">Read current docs</a></div></div><pre class="tree">planned site
-diffwitness.dev
-├── /                         <span class="k">home</span>
-├── /developers               <span class="k">technical narrative</span>
-├── /builders                 <span class="k">guided narrative</span>
-├── /manifesto                <span class="k">20th Prompt Problem</span>
-├── /docs                     <span class="md">same-source rendered + md</span>
-├── /guides                   <span class="k">seo long tail</span>
-├── /pricing
-├── /llms.txt                 <span class="md">planned</span>
-└── /llms-full.txt            <span class="md">planned</span></pre></div></div></section>
-<section class="final" id="start"><div class="wrap"><p class="eyebrow">Start with what is real today</p><p class="manifesto">More autonomy. <em>More control.</em></p><p class="mute">Run the local preflight first. It checks evidence configuration, Protect state, the optional advisory engine and project continuity without executing your tests.</p><div class="cta-row"><div class="install"><code>dw doctor</code><button type="button" onclick="copyCmd(this)">Copy</button></div><a class="btn violet" href="https://github.com/TFourniax/tooltest#60-second-path">Open the 60-second path</a></div></div></section>
-<footer><div class="wrap"><div class="cols"><div><div class="seal"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#ECE9E2"/><ellipse cx="10" cy="10" rx="8.5" ry="3.2" fill="none" stroke="#6F6C66"/><circle cx="10" cy="10" r="1.7" fill="#A78BFF"/></svg>Sphaira Lab</div><p style="margin-top:10px;max-width:34ch">Instruments for software written by machines. DiffWitness is instrument 01.</p></div><div><b>Product</b><ul><li><a href="#developers">Developers</a></li><li><a href="#builders">Builders</a></li><li><a href="#pricing">Pricing</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/CHANGELOG.md">Changelog</a></li></ul></div><div><b>Learn</b><ul><li><a href="#docs">Docs</a></li><li><a href="#manifesto">Manifesto</a></li><li><a href="https://github.com/TFourniax/tooltest/tree/rc/human-test-final-2026-09-01/docs">Guides</a></li></ul></div><div><b>Lab</b><ul><li><a href="#main">Sphaira Lab</a></li><li><a href="https://github.com/TFourniax/tooltest">GitHub</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/SECURITY.md">Security</a></li><li><a href="https://github.com/TFourniax/tooltest/issues/new">Contact</a></li></ul></div></div></div></footer>
-</main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-(function(){if(!window.THREE)return;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;const canvas=document.getElementById('scene');const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(0,.2,6.2);const mobile=innerWidth<820;const N=mobile?900:1800;const R=1.9;const base=new Float32Array(N*3),pos=new Float32Array(N*3),col=new Float32Array(N*3),disorder=new Float32Array(N),witnessed=new Float32Array(N),jitter=new Float32Array(N*3);const golden=Math.PI*(3-Math.sqrt(5));for(let i=0;i<N;i++){const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),t=golden*i;base[i*3]=Math.cos(t)*r*R;base[i*3+1]=y*R;base[i*3+2]=Math.sin(t)*r*R;jitter[i*3]=Math.random()-.5;jitter[i*3+1]=Math.random()-.5;jitter[i*3+2]=Math.random()-.5;}pos.set(base);const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));const mat=new THREE.PointsMaterial({size:mobile?.045:.035,vertexColors:true,transparent:true,opacity:.95,sizeAttenuation:true});const points=new THREE.Points(geo,mat);const group=new THREE.Group();group.add(points);scene.add(group);const wire=new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(R*.985,2)),new THREE.LineBasicMaterial({color:0x2a2340,transparent:true,opacity:.55}));group.add(wire);const ring=new THREE.Mesh(new THREE.TorusGeometry(R*1.06,.006,8,160),new THREE.MeshBasicMaterial({color:0xA78BFF}));ring.rotation.x=Math.PI/2;group.add(ring);const ringGlow=new THREE.Mesh(new THREE.TorusGeometry(R*1.06,.03,8,160),new THREE.MeshBasicMaterial({color:0x5B3FD9,transparent:true,opacity:.25}));ringGlow.rotation.x=Math.PI/2;group.add(ringGlow);const pulses=[];const pulseGeo=new THREE.SphereGeometry(.03,8,8);const pulseMat=new THREE.MeshBasicMaterial({color:0xECE9E2});function spawnPulse(){const i=Math.floor(Math.random()*N);const m=new THREE.Mesh(pulseGeo,pulseMat.clone());const dir=new THREE.Vector3(base[i*3],base[i*3+1],base[i*3+2]).normalize();m.position.copy(dir).multiplyScalar(R*2.6);m.userData={i,dir,t:0};group.add(m);pulses.push(m)}const ink=new THREE.Color(0xECE9E2),grey=new THREE.Color(0x4A4844),violet=new THREE.Color(0xA78BFF),tmp=new THREE.Color();let sweepY=-R,sweepDir=1,last=performance.now(),acc=0,mx=0,my=0,scrollPos=0;addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5},{passive:true});addEventListener('scroll',()=>{scrollPos=window.scrollY},{passive:true});function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}addEventListener('resize',resize);resize();function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!reduced){acc+=dt;while(acc>.09){acc-=.09;if(pulses.length<40)spawnPulse()}for(let k=pulses.length-1;k>=0;k--){const p=pulses[k];p.userData.t+=dt*1.6;const d=R*2.6-(R*2.6-R)*Math.min(1,p.userData.t);p.position.copy(p.userData.dir).multiplyScalar(d);p.material.opacity=1-Math.max(0,p.userData.t-.7)/.3;p.material.transparent=true;if(p.userData.t>=1){const i=p.userData.i;for(let j=0;j<N;j++){const dx=base[j*3]-base[i*3],dy=base[j*3+1]-base[i*3+1],dz=base[j*3+2]-base[i*3+2],dd=dx*dx+dy*dy+dz*dz;if(dd<.35){disorder[j]=Math.min(1,disorder[j]+.55*(1-dd/.35));witnessed[j]=Math.max(0,witnessed[j]-.6)}}group.remove(p);pulses.splice(k,1)}}sweepY+=sweepDir*dt*.55;if(sweepY>R*1.05)sweepDir=-1;if(sweepY<-R*1.05)sweepDir=1;ring.position.y=sweepY;ringGlow.position.y=sweepY;const rr=Math.sqrt(Math.max(0,R*R-Math.min(R*R,sweepY*sweepY)))/R;ring.scale.set(rr,rr,1);ringGlow.scale.set(rr,rr,1);group.rotation.y+=dt*.06}const t=now/1000;for(let i=0;i<N;i++){const d=disorder[i];if(!reduced){const band=Math.abs(base[i*3+1]-sweepY)<.12;if(band){disorder[i]=Math.max(0,d-dt*2.2);witnessed[i]=Math.min(1,witnessed[i]+dt*3)}witnessed[i]=Math.max(0,witnessed[i]-dt*.05)}const j=d*.55,wob=Math.sin(t*2+i)*.02*d;pos[i*3]=base[i*3]+jitter[i*3]*j+wob;pos[i*3+1]=base[i*3+1]+jitter[i*3+1]*j;pos[i*3+2]=base[i*3+2]+jitter[i*3+2]*j-wob;tmp.copy(ink).lerp(grey,Math.min(1,d*1.4)).lerp(violet,witnessed[i]);col[i*3]=tmp.r;col[i*3+1]=tmp.g;col[i*3+2]=tmp.b}geo.attributes.position.needsUpdate=true;geo.attributes.color.needsUpdate=true;const targetX=mx*.6;camera.position.x+=(targetX-camera.position.x)*.04;camera.position.y+=((.2-my*.4-scrollPos*.0012)-camera.position.y)*.04;camera.lookAt(0,0,0);group.position.x=mobile?0:1.15;renderer.render(scene,camera);if(!reduced||scrollPos<innerHeight)requestAnimationFrame(frame)}requestAnimationFrame(frame)})();
-const topBar=document.getElementById('top'),menuToggle=document.getElementById('menuToggle'),siteNav=document.getElementById('siteNav');addEventListener('scroll',()=>topBar.classList.toggle('solid',scrollY>24),{passive:true});menuToggle?.addEventListener('click',()=>{const open=siteNav.classList.toggle('open');menuToggle.setAttribute('aria-expanded',String(open));menuToggle.textContent=open?'Close':'Menu'});siteNav?.addEventListener('click',()=>{siteNav.classList.remove('open');menuToggle?.setAttribute('aria-expanded','false');if(menuToggle)menuToggle.textContent='Menu'});let removed=new Set(),busy=false;const sleep=ms=>new Promise(r=>setTimeout(r,ms));function evaluate(rem){return[!rem.has(1)&&!rem.has(2),!(rem.has(2)&&!rem.has(1)),true]}async function runTests(){const lis=document.querySelectorAll('#tests li');lis.forEach(li=>li.dataset.res='run');await sleep(420);const res=evaluate(removed);res.forEach((ok,i)=>lis[i].dataset.res=ok?'pass':'fail');return res.every(Boolean)}async function runAblation(){if(busy)return;busy=true;document.getElementById('runBtn').disabled=true;resetState();log('replaying 6 counterfactual runs.');for(let id=1;id<=6;id++){const el=document.querySelector(`.hunk[data-id="${id}"]`);removed=new Set([id]);el.dataset.state='removed';el.dataset.verdict='testing';const pass=await runTests();el.dataset.verdict=pass?'noise':'core';el.dataset.state='';log(`hunk ${id} removed: ${pass?'evidence holds':'evidence fails'}.`,true);await sleep(220)}removed=new Set();await runTests();document.getElementById('record').classList.add('show');log('<span class="ok">causal core isolated: hunks 1, 2.</span>',true);busy=false}function resetState(){removed=new Set();document.querySelectorAll('.hunk').forEach(h=>{h.dataset.state='';h.dataset.verdict=''});document.getElementById('record').classList.remove('show')}async function resetBench(){if(busy)return;resetState();document.getElementById('runBtn').disabled=false;await runTests();log('full change applied. 3/3 pass.\nthis is where most review stops.')}function log(html,append){const el=document.getElementById('log');el.innerHTML=append?el.innerHTML+'\n'+html:html}function copyCmd(btn){navigator.clipboard?.writeText('dw doctor');const t=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=t,1400)}
-</script>
+  <main id="main">
+    <section class="hero">
+      <canvas class="scene-canvas" data-sphaira aria-hidden="true"></canvas>
+      <div class="scene-legend" aria-hidden="true"><div style="color:#efede8"><i></i>agent changes arriving</div><div style="color:#77736d"><i></i>structure drifting</div><div style="color:#a98cff"><i></i>witnessed, back under control</div></div>
+      <div class="wrap hero-content">
+        <div class="hero-copy">
+          <p class="eyebrow">Control layer for AI coding</p>
+          <h1>Software now changes faster than you can <em>understand it.</em></h1>
+          <p class="hero-lede">DiffWitness optionally constrains supported agent actions, tests what a change actually needed, explains the result at your level, and remembers every shortcut you chose to accept.</p>
+          <div class="hero-actions">
+            <div class="install-command"><code id="hero-command">dw doctor</code><button class="copy-button" type="button" data-copy="#hero-command">Copy</button></div>
+            <a class="button primary" href="builders/">I build with AI <span class="arrow">→</span></a><a class="button ghost" href="developers/">I’m a developer</a>
+          </div>
+        </div>
+        <div class="hero-aside" aria-hidden="true">local-first · open core<br>Protect / Proof / Debt need no model API<br>Claude Code · Codex · generic wrapper</div>
+      </div>
+    </section>
+
+    <section class="section compact"><div class="wrap"><p class="statement">AI made software creation faster. It did not make <em>trust</em> faster.</p></div></section>
+
+    <section class="section" aria-labelledby="choose-title">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">One truth, two ways in</p><h2 id="choose-title">Start from the question <em>you actually have.</em></h2></div><p>The interface can be plain or technical. The underlying evidence, change identity and debt history never change with the view.</p></div>
+        <div class="audience-grid">
+          <a class="audience-card" href="builders/"><span class="number">01</span><h3>I need to know if my AI-built project is safe to keep shipping.</h3><p>See what changed, what is known, what still needs attention and the exact next action — without reading Git hunks or proof certificates.</p><span class="text-link">Open the guided path <span>→</span></span></a>
+          <a class="audience-card" href="developers/"><span class="number">02</span><h3>I need evidence I can inspect, reproduce and put in CI.</h3><p>Interrogate the real Git patch with contrast, necessity, sufficiency, interaction and stability experiments. Keep the limits visible.</p><span class="text-link">Open the technical path <span>→</span></span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-glow" aria-labelledby="loop-title">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">The assurance loop</p><h2 id="loop-title">One instrument. <em>Four moments.</em></h2></div><p>Not four disconnected products. One loop before, during and after a software change.</p></div>
+        <div class="moment-grid">
+          <article class="moment"><div class="moment-number">1</div><h3>Protect</h3><p class="when">while the agent works · optional</p><p>Block high-confidence dangerous actions, observe them, delegate to your harness, or leave interception off.</p></article>
+          <article class="moment"><div class="moment-number">2</div><h3>Witness</h3><p class="when">before you accept</p><p>Run controlled counterfactuals on the real patch and the executable evidence you selected.</p></article>
+          <article class="moment"><div class="moment-number">3</div><h3>Explain</h3><p class="when">when you ask</p><p>Translate bounded facts into plain language locally, through your model, or with managed AI on eligible plans.</p></article>
+          <article class="moment"><div class="moment-number">4</div><h3>Remember</h3><p class="when">after merge, for good</p><p>Keep accepted obligations alive, rank the next repayment and verify whether the debt was actually repaid.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="replay-title">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow amber">Illustrative record replay</p><h2 id="replay-title">A green suite says it passes. <em>Not why.</em></h2></div><p>This is a browser replay of an illustrative record. DiffWitness itself runs locally, against your repository and evidence. Nothing is tested on this page.</p></div>
+        <div class="replay" data-replay>
+          <div class="replay-head"><div><span class="tag">demo replay</span><strong>fix: reject expired coupons at checkout</strong> · 6 hunks</div><div><button class="button primary small" type="button" data-replay-run>Replay record</button> <button class="button ghost small" type="button" data-replay-reset>Reset</button></div></div>
+          <div class="hunks">
+            <div class="hunk" data-hunk="1"><span class="file">src/checkout.ts</span><pre><span class="add">if (isExpired(coupon)) throw new CheckoutError("coupon_expired")</span></pre><span class="verdict"></span></div>
+            <div class="hunk" data-hunk="2"><span class="file">src/coupon.ts</span><pre><span class="add">export const isExpired = (c) =&gt; c.expiresAt &lt; Date.now()</span></pre><span class="verdict"></span></div>
+            <div class="hunk" data-hunk="3"><span class="file">src/checkout.ts</span><pre><span class="del">import { Cart, Coupon } from "./types"</span>
+<span class="add">import type { Cart, Coupon } from "./types"</span></pre><span class="verdict"></span></div>
+            <div class="hunk" data-hunk="4"><span class="file">package.json</span><pre><span class="add">"dayjs": "^1.11.13"</span></pre><span class="verdict"></span></div>
+            <div class="hunk" data-hunk="5"><span class="file">src/utils/date.ts</span><pre><span class="add">export const now = () =&gt; dayjs().valueOf()</span></pre><span class="verdict"></span></div>
+            <div class="hunk" data-hunk="6"><span class="file">src/checkout.ts</span><pre><span class="add">console.log("[checkout] coupon", coupon.code)</span></pre><span class="verdict"></span></div>
+          </div>
+          <div class="evidence-panel"><h3>Selected executable evidence</h3><ul class="test-list"><li data-test data-result="pass"><span class="test-name">rejects an expired coupon</span><span class="test-result"></span></li><li data-test data-result="pass"><span class="test-name">accepts a valid coupon</span><span class="test-result"></span></li><li data-test data-result="pass"><span class="test-name">total without a coupon is unchanged</span><span class="test-result"></span></li></ul><pre class="run-log" data-run-log>Full change applied. 3/3 pass.
+This is where most review stops.</pre><div class="witness-record" data-record><b>WITNESSED</b><br>Causal core: hunks 1 and 2.<br>Evidence-removable: hunks 3–6.<br>Bound to this illustrative change and evidence command.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="truth-title">
+      <div class="wrap"><div class="section-head"><div><p class="eyebrow">Trust vocabulary</p><h2 id="truth-title">Uncertainty remains <em>visible.</em></h2></div><p>Plain language can change. The evidence class underneath it cannot.</p></div><div class="truth-strip"><div class="truth-item"><span class="truth-label green">VERIFIED</span><p>Established by an executed verification adapter for the bound change.</p></div><div class="truth-item"><span class="truth-label violet">OBSERVED</span><p>Present in bounded project or runtime metadata, but not causal proof.</p></div><div class="truth-item"><span class="truth-label amber">SUGGESTED</span><p>A useful next action or question. Recommendation is not evidence.</p></div><div class="truth-item"><span class="truth-label muted">UNKNOWN</span><p>The selected evidence cannot support a stronger statement yet.</p></div></div></div>
+    </section>
+
+    <section class="section" aria-labelledby="ledger-title">
+      <div class="wrap split wide-left"><div><p class="eyebrow">Debt Ledger</p><h2 id="ledger-title">Accepted risk should not disappear <em>after merge.</em></h2><p class="soft">Git remembers what happened. It does not reliably preserve why a shortcut was accepted, what would repay it, or whether that repayment was later proved.</p><a class="text-link" href="developers/#debt">Explore the repayment loop <span>→</span></a></div><div class="ledger" aria-label="Illustrative Debt Ledger"><div class="ledger-row"><span>illustrative obligation</span><span>area</span><span class="ledger-risk">risk</span><span class="ledger-age">age</span></div><div class="ledger-row"><span>Session token never rotates</span><span class="ledger-area">auth</span><span class="ledger-risk">low</span><span class="ledger-age">42d</span></div><div class="ledger-row"><span>Refund outside transaction</span><span class="ledger-area">billing</span><span class="ledger-risk amber">medium</span><span class="ledger-age">24d</span></div><div class="ledger-row"><span>Dependency for one call</span><span class="ledger-area">deps</span><span class="ledger-risk">low</span><span class="ledger-age">2d</span></div></div></div>
+    </section>
+
+    <section class="quote-band"><div class="wrap"><blockquote>More agent autonomy requires <em>more legible control</em>, not more blind trust.</blockquote></div></section>
+    <section class="cta-band"><div class="wrap"><p class="eyebrow">Start with the local core</p><p class="statement">Your agent can generate the change. DiffWitness asks what the change <em>earned the right to claim.</em></p><div class="hero-actions"><a class="button primary" href="docs/#quickstart">Install the alpha <span class="arrow">→</span></a><a class="button ghost" href="pricing/">Compare paths</a></div></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="wrap"><div class="footer-grid">
+    <div class="footer-brand"><a class="brand" href="./"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>Sphaira Lab</span></a><p>Instruments for software written by machines. DiffWitness is instrument 01.</p></div>
+    <div class="footer-col"><b>Product</b><ul><li><a href="developers/">Developers</a></li><li><a href="builders/">Builders</a></li><li><a href="pricing/">Pricing</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/CHANGELOG.md">Changelog</a></li></ul></div>
+    <div class="footer-col"><b>Learn</b><ul><li><a href="docs/">Documentation</a></li><li><a href="guides/">Guides</a></li><li><a href="manifesto/">Manifesto</a></li><li><a href="lab/">Sphaira Lab</a></li></ul></div>
+    <div class="footer-col"><b>Open core</b><ul><li><a href="https://github.com/TFourniax/tooltest">GitHub</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/SECURITY.md">Security</a></li><li><a href="https://github.com/TFourniax/tooltest/issues">Issues</a></li><li><a href="https://github.com/TFourniax/tooltest/issues/new">Contact</a></li></ul></div>
+  </div><div class="footer-bottom"><span>© 2026 Sphaira Lab</span><span>Local-first · Evidence-bound · Unknown stays unknown</span></div></div></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="assets/sphaira.js"></script><script src="assets/app.js"></script>
 </body>
 </html>

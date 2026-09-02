@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DiffWitness Guides — Practical workflows for AI coding</title>
+  <meta name="description" content="Practical DiffWitness guides for Claude Code, Codex, CI proof, Protect modes, plain-language explanations and software-debt repayment.">
+  <meta name="theme-color" content="#030303"><link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header><div class="wrap header-inner">
+    <a class="brand" href="../" aria-label="DiffWitness home"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>DiffWitness</span><small>instrument 01 · Sphaira Lab</small></a>
+    <nav class="site-nav" data-nav aria-label="Main navigation"><a href="../developers/">Developers</a><a href="../builders/">Builders</a><a href="../docs/">Docs</a><a href="../manifesto/">Manifesto</a><a href="../pricing/">Pricing</a><a href="../lab/">Lab</a></nav>
+    <div class="header-actions"><a class="button ghost small" href="https://github.com/TFourniax/tooltest">GitHub</a><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false">Menu</button><a class="button primary small" href="../docs/#quickstart">Try locally</a></div>
+  </div></header>
+
+  <main id="main">
+    <section class="hero compact"><div class="hero-index">GUIDES<br>task first</div><div class="wrap hero-content"><div class="hero-copy"><p class="eyebrow">Practical guides</p><h1>Start with the job. <em>Keep the evidence.</em></h1><p class="hero-lede">Short paths for the moment you are in: starting an agent session, protecting a risky repository, deciding whether to merge, or repaying old debt.</p></div></div></section>
+
+    <section class="section"><div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Choose a workflow</p><h2>One product. <em>Different starting points.</em></h2></div><p>These guide cards route into the current alpha documentation. Longer standalone guides will keep the same structure and truth vocabulary.</p></div>
+      <div class="guide-toolbar" role="group" aria-label="Filter guides"><button class="filter-button active" type="button" data-guide-filter="all">All</button><button class="filter-button" type="button" data-guide-filter="workflow">Agent workflow</button><button class="filter-button" type="button" data-guide-filter="protect">Protect</button><button class="filter-button" type="button" data-guide-filter="proof">Proof</button><button class="filter-button" type="button" data-guide-filter="debt">Debt</button><button class="filter-button" type="button" data-guide-filter="guided">Guided</button></div>
+      <div class="guide-grid">
+        <a class="guide-card" data-guide-category="workflow" href="../docs/#guard"><span class="meta">Agent workflow · 4 min</span><h3>Run Claude Code through an independent proof boundary</h3><p>Keep the interactive session, then evaluate the exact repository state it produced.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="workflow" href="../docs/#guard"><span class="meta">Agent workflow · 4 min</span><h3>Use DiffWitness with Codex without changing Codex trust</h3><p>Install project hooks while leaving repository and hook approval under Codex control.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" id="protect" data-guide-category="protect" href="../docs/#protect-mode"><span class="meta">Protect · 5 min</span><h3>Choose builtin, external or off without breaking the proof loop</h3><p>Understand exactly what each runtime mode changes — and what it does not.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="protect" href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/docs/PROTECT.md"><span class="meta">Protect · reference</span><h3>Move from observe to standard or strict policy safely</h3><p>Start by recording bounded events, then enable blocking only for supported high-confidence rules.</p><span class="text-link">Read reference <span>↗</span></span></a>
+        <a class="guide-card" data-guide-category="proof" href="../docs/#gate"><span class="meta">Proof · 6 min</span><h3>Tell a real fix from a test that also passes on the old code</h3><p>Use candidate-test overlay and contrast before claiming the patch repaired behavior.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="proof" href="../docs/#proof-model"><span class="meta">Proof · 8 min</span><h3>Read necessity, sufficiency and interaction without a confidence score</h3><p>Each experiment answers a different question; learn where every label stops.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="proof" href="../docs/#ci"><span class="meta">Proof · CI · 5 min</span><h3>Make the same DiffWitness gate a pull-request rule</h3><p>Carry the local evidence model into CI and pin the final released action.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="debt" href="../docs/#debt"><span class="meta">Debt · 7 min</span><h3>Turn an accepted shortcut into a replayable obligation</h3><p>Preserve stable lineage, provenance and the check that would prove repayment.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="debt" href="../developers/#debt"><span class="meta">Debt · agent mission · 6 min</span><h3>Give an agent one bounded debt-repayment mission</h3><p>Generate the constrained prompt or run the agent, then gate and replay the original claim.</p><span class="text-link">Open workflow <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="guided" href="../builders/#guided-report"><span class="meta">Guided · 3 min</span><h3>Read a project report without learning proof vocabulary first</h3><p>Start from consequences, unknowns and next action, then drill into provenance only when needed.</p><span class="text-link">See guided report <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="guided" href="../docs/#explain"><span class="meta">Guided · AI choices · 5 min</span><h3>Get a plain-language explanation without paying for another model</h3><p>Use deterministic rendering, your active session, a local model, BYOK or finite managed AI.</p><span class="text-link">Open guide <span>→</span></span></a>
+        <a class="guide-card" data-guide-category="workflow" href="../docs/#verify"><span class="meta">Verification · 4 min</span><h3>Check whether a certificate still belongs to the code</h3><p>Detect stale evidence after a content change and attach valid proof to Git history.</p><span class="text-link">Open guide <span>→</span></span></a>
+      </div>
+    </div></section>
+
+    <section class="cta-band"><div class="wrap"><p class="eyebrow">Need the exact contract?</p><p class="statement">Guides shorten the route. The reference keeps every <em>boundary visible.</em></p><div class="hero-actions"><a class="button primary" href="../docs/">Open documentation <span class="arrow">→</span></a><a class="button ghost" href="https://github.com/TFourniax/tooltest/tree/rc/human-test-final-2026-09-01/docs">Repository docs</a></div></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="wrap"><div class="footer-grid"><div class="footer-brand"><a class="brand" href="../"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>Sphaira Lab</span></a><p>Instruments for software written by machines. DiffWitness is instrument 01.</p></div><div class="footer-col"><b>Product</b><ul><li><a href="../developers/">Developers</a></li><li><a href="../builders/">Builders</a></li><li><a href="../pricing/">Pricing</a></li></ul></div><div class="footer-col"><b>Learn</b><ul><li><a href="../docs/">Documentation</a></li><li><a href="./">Guides</a></li><li><a href="../manifesto/">Manifesto</a></li></ul></div><div class="footer-col"><b>Open core</b><ul><li><a href="https://github.com/TFourniax/tooltest">GitHub</a></li><li><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/SECURITY.md">Security</a></li><li><a href="https://github.com/TFourniax/tooltest/issues">Issues</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 Sphaira Lab</span><span>Guides · task first, evidence intact</span></div></div></footer>
+  <script src="../assets/app.js"></script>
+</body>
+</html>

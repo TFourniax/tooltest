@@ -1,0 +1,28 @@
+# DiffWitness
+
+> DiffWitness is a local-first runtime protection, executable proof, explanation and software-debt control layer for AI-generated code.
+
+Canonical human pages:
+- / — Product overview and audience routing
+- /developers/ — Technical assurance, proof protocol, Protect, CI and Debt Ledger
+- /builders/ — Guided plain-language experience for AI builders
+- /manifesto/ — The 20th Prompt Problem
+- /docs/ — Alpha quickstart and core reference
+- /guides/ — Task-based workflows
+- /pricing/ — Proposed commercial-alpha packaging
+- /lab/ — Sphaira Lab and the conceptual complexity field
+
+Agent-readable summaries:
+- /llms-full.txt — Consolidated product and trust contract
+- /developers.md — Technical product summary
+- /builders.md — Guided product summary
+- /docs.md — Quickstart and command index
+- /manifesto.md — Manifesto summary
+- /pricing.md — Proposed plan structure and commercial caveat
+
+Authoritative implementation sources:
+- https://github.com/TFourniax/tooltest
+- https://github.com/TFourniax/tooltest/tree/rc/human-test-final-2026-09-01/docs
+
+Core trust rule:
+VERIFIED comes from an executed verification adapter for the bound change or obligation. OBSERVED, SUGGESTED and UNKNOWN must never be upgraded to VERIFIED by presentation code or an LLM.

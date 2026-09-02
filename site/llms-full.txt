@@ -1,0 +1,90 @@
+# DiffWitness — consolidated product context
+
+## Product
+
+DiffWitness is a local-first control layer for AI-generated code. It separates four jobs:
+
+1. PROTECT (optional): observe, confirm or block supported high-confidence agent actions while the agent works.
+2. PROVE: run executable counterfactual experiments on the exact Git change.
+3. UNDERSTAND: explain bounded Proof, Protect and Debt facts without upgrading uncertainty.
+4. OWE: preserve unresolved engineering obligations in the Debt Ledger and verify repayment.
+
+The current alpha is 0.4.0a1. It requires Python 3.11+ and Git and has zero Python runtime dependencies. Core execution is local by default and does not require a hosted DiffWitness account, a model API or source-code upload.
+
+## Audiences and views
+
+Guided view starts from consequences, unknowns and next actions. Technical view starts from Git identity, experiment type, completeness, certificates, provenance and commands. Both views read the same underlying records. Switching view must not change Protect mode, the bound change, proof execution, certificates, Debt Ledger history, readiness inputs or privacy boundaries.
+
+## Trust vocabulary
+
+- VERIFIED: established by an executed DiffWitness verification adapter for the bound change or obligation.
+- OBSERVED: directly present in bounded project or runtime metadata but not causal proof. Protect findings are OBSERVED.
+- SUGGESTED: a recommended next action, test or question.
+- UNKNOWN: the system lacks evidence for a stronger statement.
+
+No presentation layer or language model may upgrade OBSERVED, SUGGESTED or UNKNOWN to VERIFIED.
+
+## Protect
+
+Protect is optional and separate from proof:
+
+- builtin: DiffWitness installs supported Claude Code or Codex hooks.
+- external: another harness owns live runtime protection.
+- off: DiffWitness installs no live interception.
+
+All modes keep Proof, Debt Ledger, Continuity and IdleProof available. Provider trust remains provider-owned. A blocked action is not proof of final software behavior.
+
+Commands:
+dw protect detect
+dw protect enable --policy standard
+dw protect use external
+dw protect disable
+
+## Proof
+
+DiffWitness may execute five distinct experiment families:
+
+- contrast: candidate evidence passes while candidate tests overlaid on the base fail;
+- necessity: reverse-ablate actual production hunks;
+- sufficiency: build bounded real-hunk subsets from the base;
+- interaction: test groups of individually removable hunks;
+- stability: repeat isolated runs before stable causal labeling.
+
+Small changes may be searched exhaustively inside configured bounds. Large changes may use budgeted Adaptive Core. Completeness, instability and exhausted budgets remain visible. DiffWitness does not prove the whole program correct, guarantee the globally smallest patch, turn Git worktrees into a hostile-code sandbox or authenticate a certificate author merely through content addressing.
+
+Commands:
+dw doctor
+dw guard -- claude
+dw guard -- codex
+dw gate --base origin/main --candidate HEAD
+dw verify evidence.json
+
+## Debt Ledger
+
+Debt items are future engineering obligations with stable identity, provenance, bounded claims and, where possible, replayable verification. Debt points are prioritization units, not bug probabilities, confidence percentages, CVSS or engineering-hour estimates.
+
+Commands:
+dw debt
+dw health
+dw plan
+dw repay --prompt-only
+dw repay -- claude
+
+## IdleProof and inference
+
+The deterministic explanation is the product baseline and requires no model, network or account. Optional wording can use the current coding-agent session, a local OpenAI-compatible model, OpenRouter/BYOK, a custom endpoint or finite managed AI on an eligible paid plan. Community managed-inference allowance is zero. Provider failure or exhausted quota falls back to deterministic output.
+
+Commands:
+dw explain
+dw explain --json
+dw view guided
+dw view technical
+
+## Commercial structure
+
+The site mockup proposes Community, Builder, Pro and Team tiers. Community retains the local assurance core. Paid tiers add guided Portal experience, longitudinal history, finite managed explanation quotas and collaboration. The displayed prices are a commercial-alpha design proposal, not an announced public offer.
+
+## Authoritative implementation
+
+Repository: https://github.com/TFourniax/tooltest
+Alpha docs: https://github.com/TFourniax/tooltest/tree/rc/human-test-final-2026-09-01/docs

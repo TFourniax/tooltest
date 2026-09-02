@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DiffWitness Documentation — Get started</title>
+  <meta name="description" content="Install DiffWitness, choose a Protect mode, run an agent through Guard, inspect proof and keep software debt accountable.">
+  <meta name="theme-color" content="#030303"><link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to documentation</a>
+  <header class="site-header is-solid" data-header><div class="wrap header-inner">
+    <a class="brand" href="../" aria-label="DiffWitness home"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#efede8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" fill="none" stroke="#77736d"/><circle cx="12" cy="12" r="2" fill="#a98cff"/></svg><span>DiffWitness</span><small>documentation · alpha 0.4.0a1</small></a>
+    <nav class="site-nav" data-nav aria-label="Main navigation"><a href="../developers/">Developers</a><a href="../builders/">Builders</a><a href="./" aria-current="page">Docs</a><a href="../manifesto/">Manifesto</a><a href="../pricing/">Pricing</a><a href="../lab/">Lab</a></nav>
+    <div class="header-actions"><a class="button ghost small" href="https://github.com/TFourniax/tooltest">GitHub</a><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false">Menu</button><a class="button primary small" href="https://github.com/TFourniax/tooltest/issues">Get help</a></div>
+  </div></header>
+
+  <main id="main" class="docs-layout">
+    <aside class="docs-sidebar"><nav aria-label="Documentation navigation">
+      <p class="section-title">Start</p><a class="active" href="#quickstart">Quickstart</a><a href="#mental-model">Mental model</a><a href="#protect-mode">Choose Protect mode</a>
+      <p class="section-title">Use</p><a href="#guard">Guard an agent</a><a href="#gate">Gate a change</a><a href="#proof-model">Proof model</a><a href="#debt">Debt loop</a><a href="#explain">IdleProof</a>
+      <p class="section-title">Ship</p><a href="#ci">GitHub Action</a><a href="#verify">Verify a certificate</a><a href="#boundaries">Security boundaries</a>
+      <p class="section-title">Reference</p><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/docs/PROTECT.md">Protect reference ↗</a><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/docs/PROOF_PROTOCOL.md">DWPP v1 ↗</a><a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/docs/DEBT_LEDGER.md">Debt Ledger ↗</a>
+    </nav></aside>
+
+    <div class="docs-main"><article>
+      <p class="eyebrow">Documentation</p><h1>From agent output to <em>bounded evidence.</em></h1><p class="soft">This page gives the shortest coherent path through the current alpha. Repository documentation remains the exact implementation contract while the final documentation site is being assembled.</p>
+
+      <section id="quickstart"><h2>Quickstart</h2><p>DiffWitness currently installs from a source checkout. It requires Python 3.11+ and Git, with zero Python runtime dependencies.</p><div class="code-block"><button class="code-copy" type="button" data-copy="#install-code">Copy</button><pre id="install-code">pipx install .
+dw --version
+dw doctor</pre></div><p><code>dw doctor</code> inspects your repository, suggests an evidence command and reports integration readiness. It does not execute your test suite.</p><div class="callout warn"><p><strong>Alpha distribution:</strong> the repository still uses a temporary public identity. Use the source checkout for evaluation; use a pinned tag or immutable commit when the first public package is released.</p></div></section>
+
+      <section id="mental-model"><h2>Mental model</h2><p>DiffWitness separates four jobs that should never be blurred:</p><ol><li><strong>Protect</strong> optionally handles bounded runtime actions while the agent works.</li><li><strong>Proof</strong> runs independent executable experiments after the change exists.</li><li><strong>Debt</strong> records unresolved engineering obligations and their repayment checks.</li><li><strong>IdleProof</strong> explains those facts without changing their evidence class.</li></ol><div class="callout"><p><strong>The invariant:</strong> OBSERVED, SUGGESTED and UNKNOWN are never upgraded to VERIFIED by the interface or an LLM.</p></div></section>
+
+      <section id="protect-mode"><h2>Choose a Protect mode</h2><p>Live interception is optional and reversible. Inspect the environment before choosing:</p><div class="code-block"><button class="code-copy" type="button" data-copy="#protect-code">Copy</button><pre id="protect-code">dw protect detect
+
+# DiffWitness owns supported hooks
+dw protect enable --policy standard
+
+# another harness owns live protection
+dw protect use external
+
+# no DiffWitness live interception
+dw protect disable</pre></div><p>All three modes retain Proof, Debt Ledger, Continuity and IdleProof. With current Codex builds, Codex feature, repository and hook trust remain controlled by Codex; DiffWitness never grants itself that trust.</p></section>
+
+      <section id="guard"><h2>Guard an agent</h2><p>Wrap the interactive agent command you already use:</p><div class="code-block"><button class="code-copy" type="button" data-copy="#guard-code">Copy</button><pre id="guard-code">dw guard -- claude
+# or
+dw guard -- codex</pre></div><p>Guard captures repository state before and after the session, keeps the agent interactive, then evaluates the exact resulting state through the same Gate used in CI.</p></section>
+
+      <section id="gate"><h2>Gate a change</h2><div class="code-block"><button class="code-copy" type="button" data-copy="#gate-code">Copy</button><pre id="gate-code">dw gate --base origin/main --candidate HEAD</pre></div><p>Gate first classifies the evidence situation. A documentation-only change does not receive a fabricated causal claim. Tests that also pass on the base are marked non-discriminating. A stable base-fail/candidate-pass contrast may enter real-hunk analysis.</p><p>Small changes can be searched exhaustively within configured bounds. Larger changes may use the budgeted Adaptive Core. Completeness and exhausted budgets remain part of the output.</p></section>
+
+      <section id="proof-model"><h2>Proof model</h2><h3>Contrast</h3><p>Candidate evidence passes while the same candidate tests overlaid on the base fail. This distinguishes repair evidence from simple preservation.</p><h3>Necessity</h3><p>Actual production hunks are reverse-ablated. If evidence fails without a hunk, that hunk is necessary under this evidence and environment.</p><h3>Sufficiency</h3><p>Real-hunk subsets are added to the base to search for a bounded sufficient core.</p><h3>Interaction</h3><p>Individually removable hunks are tested together so mutually backing-up changes are not mislabeled as independent surplus.</p><h3>Stability</h3><p>Repeated, isolated executions must agree before stable causal labels are emitted.</p><div class="callout warn"><p>DiffWitness does not prove the entire program correct, guarantee a globally minimal patch, turn Git worktrees into a security sandbox, or authenticate the author of a certificate.</p></div></section>
+
+      <section id="debt"><h2>Debt loop</h2><p>Debt is represented as an explicit future obligation with stable identity, provenance and — when available — a replayable verification adapter.</p><div class="code-block"><button class="code-copy" type="button" data-copy="#debt-code">Copy</button><pre id="debt-code">dw debt
+dw health
+dw plan
+dw repay --prompt-only
+# or run the constrained mission
+dw repay -- claude</pre></div><p>Debt points are prioritization units. They are not bug probabilities, confidence percentages, CVSS scores or estimates of engineering hours.</p></section>
+
+      <section id="explain"><h2>IdleProof</h2><p>The deterministic explanation is the baseline and needs no model, network or account.</p><div class="code-block"><button class="code-copy" type="button" data-copy="#explain-code">Copy</button><pre id="explain-code">dw explain
+dw explain --json
+
+# switch presentation, not truth
+dw view guided
+dw view technical</pre></div><p>Optional wording layers may reuse an active coding-agent session, a local OpenAI-compatible endpoint, OpenRouter/BYOK, a custom gateway or finite managed AI on eligible Portal plans. Provider failure always falls back to deterministic output.</p></section>
+
+      <section id="ci"><h2>GitHub Action</h2><div class="code-block"><button class="code-copy" type="button" data-copy="#ci-code">Copy</button><pre id="ci-code">- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- uses: TFourniax/tooltest@main
+  with:
+    base: ${{ github.event.pull_request.base.sha }}
+    candidate: ${{ github.event.pull_request.head.sha }}</pre></div><p>Replace the temporary repository identity and moving branch with the final release tag or immutable commit once published.</p></section>
+
+      <section id="verify"><h2>Verify a certificate</h2><div class="code-block"><button class="code-copy" type="button" data-copy="#verify-code">Copy</button><pre id="verify-code">dw verify evidence.json
+dw verify evidence.json --against HEAD
+
+dw note evidence.json --commit HEAD
+git push origin refs/notes/diffwitness</pre></div><p>A content change after proof makes the certificate stale. An identical proved Git tree may remain valid after commit because the binding is content-based.</p></section>
+
+      <section id="boundaries"><h2>Security boundaries</h2><ul><li>The test command is trusted code and runs locally with the invoking user’s permissions.</li><li>Git worktrees isolate candidate variants; they are not a hostile-code sandbox.</li><li>The core does not require source upload, raw prompts or a hosted DiffWitness account.</li><li>Protect receipts intentionally omit raw commands, source, prompts and raw agent-event streams.</li><li>The private planner, when enabled, is advisory and cannot mint or override proof.</li></ul><p>Report potential vulnerabilities through the repository’s <a href="https://github.com/TFourniax/tooltest/blob/rc/human-test-final-2026-09-01/SECURITY.md">security policy</a>.</p></section>
+
+      <div class="doc-next"><a href="../guides/"><small>Next</small>Choose a workflow guide →</a><a href="https://github.com/TFourniax/tooltest"><small>Source</small>Inspect the open core →</a></div>
+    </article></div>
+  </main>
+  <script src="../assets/app.js"></script>
+</body>
+</html>
