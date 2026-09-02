@@ -9,11 +9,50 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from .gitops import repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
 
 
 class SetupError(RuntimeError):
     pass
+
+
+_SETUP_SCOPE_SCHEMA = "diffwitness.setup-scope.v1"
+
+
+def _setup_scope_path(cwd: Path) -> Path:
+    return cwd / ".git" / "diffwitness" / "setup-scope.json"
+
+
+def _persist_setup_scope(cwd: Path, adapters: Sequence[str]) -> None:
+    path = _setup_scope_path(cwd)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": _SETUP_SCOPE_SCHEMA,
+        "adapters": list(dict.fromkeys(str(item) for item in adapters if str(item))),
+    }
+    staged = path.with_suffix(".json.tmp")
+    staged.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    staged.replace(path)
+
+
+def _clear_setup_scope(cwd: Path) -> None:
+    try:
+        _setup_scope_path(cwd).unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
+
+
+def _git_project(cwd: Path) -> Path:
+    try:
+        return repo_root(cwd)
+    except Exception as exc:
+        raise SetupError(
+            "DiffWitness setup must be run inside a Git project. Change into the project directory "
+            "or run `git init` there first."
+        ) from exc
 
 
 def _idleproof_executable(explicit: str | None = None) -> str:
@@ -125,6 +164,7 @@ def _protect_recommendation(cwd: Path) -> dict:
 
 
 def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None) -> dict:
+    cwd = _git_project(cwd)
     try:
         ensure_local_integration_excludes(cwd)
     except LocalGitStateError as exc:
@@ -146,10 +186,12 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
     status = _status(command, cwd)
     if not status.get("healthy"):
         raise SetupError(f"DiffWitness integration installed but failed its health check: {json.dumps(status, sort_keys=True)[:1200]}")
+    _persist_setup_scope(cwd, status.get("expectedAdapters") or [])
     return {**status, "protect": _protect_recommendation(cwd)}
 
 
 def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
+    cwd = _git_project(cwd)
     command = _idleproof_executable(idleproof_command)
     proc = _run_sidecar(
         command,
@@ -157,6 +199,7 @@ def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
         cwd=cwd,
         timeout=60.0,
     )
+    _clear_setup_scope(cwd)
     return {
         "schema": "diffwitness.setup-uninstall.v1",
         "installed": False,
@@ -167,6 +210,7 @@ def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
 
 
 def setup_status(*, cwd: Path, idleproof_command: str | None = None) -> dict:
+    cwd = _git_project(cwd)
     command = _idleproof_executable(idleproof_command)
     status = _status(command, cwd)
     return {**status, "sidecar": command, "protect": _protect_recommendation(cwd)}
@@ -196,6 +240,16 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--json", action="store_true", help="emit machine-readable status")
     return parser
+
+
+def _agent_names(adapters: Sequence[str]) -> str:
+    names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
+    rendered = [names.get(str(adapter), str(adapter)) for adapter in adapters]
+    if not rendered:
+        return "your configured coding agent"
+    if len(rendered) == 1:
+        return rendered[0]
+    return ", ".join(rendered[:-1]) + " and " + rendered[-1]
 
 
 def setup_cli(argv: list[str] | None = None) -> int:
@@ -233,7 +287,10 @@ def setup_cli(argv: list[str] | None = None) -> int:
         return 0 if healthy else 1
 
     print(f"DiffWitness is ready · adapters: {adapters}")
-    print("Use Claude Code, Codex, or Cursor normally. DiffWitness will UNDERSTAND · PROVE · OWE · preserve CONTINUITY at the native task boundary.")
+    print(
+        f"Use {_agent_names(expected)} normally. DiffWitness will UNDERSTAND · PROVE · OWE · preserve "
+        "CONTINUITY at the native task boundary."
+    )
     if protect.get("mode") == "off":
         if protect.get("recommendation") == "external":
             print("Protect remains off by design. An external harness signal was detected; use `dw protect use external` to record delegation.")
