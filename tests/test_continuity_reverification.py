@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import sqlite3
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
 from diffwitness.continuity_events import append_project_events, continuity_paths, read_project_events
+from diffwitness.continuity_state import ensure_state
 
 
 class ContinuityReverificationTests(unittest.TestCase):
@@ -110,6 +112,31 @@ class ContinuityReverificationTests(unittest.TestCase):
             self.assertEqual(len(events), 4)
             self.assertEqual([event["subject"]["id"] for event in proofs], ["dw2_first", "dw2_second"])
             self.assertTrue(all(event["epistemic_status"] == "VERIFIED" for event in proofs))
+
+            # The journal is only half of the public contract. Rebuild the derived state and prove
+            # that consumers selecting the current proof by epistemic strength + recency see the
+            # second certificate, while the stable tree identity remains singular.
+            state_path = ensure_state(repo)
+            db = sqlite3.connect(state_path)
+            db.row_factory = sqlite3.Row
+            try:
+                rows = db.execute(
+                    "select certificate_id,change_id,epistemic_status,updated_at from proofs "
+                    "where change_id=? order by "
+                    "case epistemic_status when 'VERIFIED' then 4 when 'OBSERVED' then 3 when 'INFERRED' then 2 else 1 end desc, "
+                    "updated_at desc, certificate_id desc",
+                    ("dwchg_1234567890abcdef12345678",),
+                ).fetchall()
+                self.assertEqual([row["certificate_id"] for row in rows], ["dw2_second", "dw2_first"])
+                change_rows = db.execute(
+                    "select change_id,base_tree,candidate_tree from changes where change_id=?",
+                    ("dwchg_1234567890abcdef12345678",),
+                ).fetchall()
+                self.assertEqual(len(change_rows), 1)
+                self.assertEqual(change_rows[0]["base_tree"], "tree-base")
+                self.assertEqual(change_rows[0]["candidate_tree"], "tree-candidate")
+            finally:
+                db.close()
 
 
 if __name__ == "__main__":
