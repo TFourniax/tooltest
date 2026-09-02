@@ -19,7 +19,7 @@ def _evidence_command(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
     configured = config.get("test")
     if isinstance(configured, str) and configured.strip():
         command = configured.strip()
-        ready = command_available(command)
+        ready = command_available(command, cwd=repo)
         return {
             "ready": ready,
             "source": "configured",
@@ -36,7 +36,7 @@ def _evidence_command(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
             "suggestion": None,
             "problem": "No executable evidence command is configured or safely auto-detected.",
         }
-    ready = command_available(detected.command)
+    ready = command_available(detected.command, cwd=repo)
     return {
         "ready": ready,
         "source": "detected",
@@ -69,8 +69,6 @@ def _working_tree(repo: Path) -> tuple[list[str], bool, list[str]]:
         if " -> " in value:
             value = value.split(" -> ", 1)[1]
         value = value.strip()
-        # Only untracked generated noise is filtered. A tracked cache/generated file remains a real
-        # change because silently hiding tracked content would change Git semantics.
         if status == "??" and _generated_untracked(value):
             generated.append(value)
             continue
@@ -174,8 +172,10 @@ def _setup_scope(repo: Path) -> list[str]:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return []
-    adapters = value.get("adapters") if isinstance(value, dict) else None
-    if value.get("schema") != "diffwitness.setup-scope.v1" or not isinstance(adapters, list):
+    if not isinstance(value, dict) or value.get("schema") != "diffwitness.setup-scope.v1":
+        return []
+    adapters = value.get("adapters")
+    if not isinstance(adapters, list):
         return []
     return [str(item) for item in adapters if str(item)]
 
@@ -207,14 +207,10 @@ def _protection_status(repo: Path) -> dict[str, Any]:
     value = dict(value)
     value["ready_adapters"] = sorted(name for name, item in adapters.items() if isinstance(item, dict) and item.get("ready"))
     value["pending_adapters"] = sorted(
-        name
-        for name, item in adapters.items()
-        if isinstance(item, dict) and item.get("installed") and not item.get("ready")
+        name for name, item in adapters.items() if isinstance(item, dict) and item.get("installed") and not item.get("ready")
     )
     value["broken_adapters"] = sorted(
-        name
-        for name, item in adapters.items()
-        if isinstance(item, dict) and not item.get("installed")
+        name for name, item in adapters.items() if isinstance(item, dict) and not item.get("installed")
     )
     return value
 
@@ -353,7 +349,7 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
         )
 
     return {
-        "schema": "diffwitness.project-status.v2",
+        "schema": "diffwitness.project-status.v1",
         "project": {"name": repo.name, "branch": _branch(repo)},
         "setup": {"native_adapters": setup_scope, "native_ready": bool(setup_scope)},
         "protection": protection,
@@ -529,9 +525,7 @@ def _render_guided(value: dict[str, Any]) -> str:
 
 
 def render_project_status(value: dict[str, Any], *, view: str) -> str:
-    if view == "guided":
-        return _render_guided(value)
-    return _render_technical(value)
+    return _render_guided(value) if view == "guided" else _render_technical(value)
 
 
 def status_cli(argv: list[str]) -> int:
