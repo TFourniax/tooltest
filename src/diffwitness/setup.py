@@ -209,11 +209,12 @@ def _verification_readiness(cwd: Path) -> dict:
 
 
 def _with_readiness(cwd: Path, status: dict) -> dict:
+    verification = _verification_readiness(cwd)
     return {
         **status,
         "protect": _protect_recommendation(cwd),
-        "verification": _verification_readiness(cwd),
-        "productReady": bool(status.get("healthy") and _verification_readiness(cwd).get("ready")),
+        "verification": verification,
+        "productReady": bool(status.get("healthy") and verification.get("ready")),
     }
 
 
@@ -357,7 +358,6 @@ def setup_cli(argv: list[str] | None = None) -> int:
     expected = result.get("expectedAdapters") or []
     verification = result.get("verification") or {}
     protect = result.get("protect") or {}
-    guided = False
     try:
         guided = get_view_mode(_git_project(cwd)) == "guided"
     except Exception:
@@ -392,6 +392,7 @@ def setup_cli(argv: list[str] | None = None) -> int:
         print("Utilise ton agent normalement : DiffWitness vérifiera la modification exacte à la fin de la tâche.")
         if verification.get("ready"):
             print(f"✓ Vérification prête : {verification.get('command')}")
+            print("DiffWitness is ready · agent integration + executable verification.")
             print("Le projet est prêt pour une première tâche agentique.")
         else:
             print("⚠ L’intégration agent est prête, mais les vérifications du projet ne le sont pas encore.")
@@ -411,11 +412,15 @@ def setup_cli(argv: list[str] | None = None) -> int:
             f"Verification {'ready' if verification.get('ready') else 'NOT READY'}"
             + (f" · {verification.get('command')}" if verification.get("command") else "")
         )
-        if not verification.get("ready"):
+        if verification.get("ready"):
+            print("DiffWitness is ready · agent integration + executable verification.")
+        else:
             print("Run `dw doctor` before treating the project as fully ready.")
         for line in _protect_human_lines(protect, guided=False):
             print(line)
-    return 0 if result.get("productReady") else 1
+    # Installing a healthy adapter set succeeded even when project evidence still needs configuration.
+    # `dw setup status` remains the stricter product-readiness check.
+    return 0 if healthy else 1
 
 
 __all__ = ["SetupError", "setup_cli", "setup_install", "setup_status", "setup_uninstall"]
