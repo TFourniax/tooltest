@@ -272,7 +272,7 @@ def main(argv: list[str] | None = None) -> int:
         root = Path(td)
         try:
             python, dw, node, idleproof_bin, tarball = install_exact_artifacts(root, idleproof_repo)
-            hook_bin = idleproof_bin.parent / "bin" / "idleproof-hook.mjs" if False else idleproof_bin.parent / "idleproof-hook.mjs"
+            hook_bin = idleproof_bin.parent / "idleproof-hook.mjs"
             invocation_log = root / "idleproof-invocations.log"
             idleproof_shim = create_idleproof_shim(root, node=node, idleproof_bin=idleproof_bin, invocation_log=invocation_log)
             env = os.environ.copy()
