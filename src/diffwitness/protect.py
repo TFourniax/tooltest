@@ -24,6 +24,7 @@ POLICIES = ("observe", "standard", "strict")
 SUPPORTED_ADAPTERS = ("claude", "codex")
 _MAX_CONTENT_SCAN = 2 * 1024 * 1024
 _MAX_RECEIPTS = 2000
+_SETUP_SCOPE_SCHEMA = "diffwitness.setup-scope.v1"
 
 _SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("private-key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
@@ -49,6 +50,18 @@ _PIPE_TO_SHELL_RE = re.compile(
     re.IGNORECASE,
 )
 _DROP_DATABASE_RE = re.compile(r"\bDROP\s+(?:DATABASE|SCHEMA)\b", re.IGNORECASE)
+_SHELL_SEPARATORS = {";", "&&", "||", "|", "&", "(", ")"}
+_GIT_GLOBAL_OPTIONS_WITH_VALUE = {
+    "-C",
+    "-c",
+    "--git-dir",
+    "--work-tree",
+    "--namespace",
+    "--exec-path",
+    "--config-env",
+    "--super-prefix",
+}
+_SHELL_COMMAND_NAMES = {"sh", "bash", "zsh", "fish", "dash", "ksh", "pwsh", "powershell", "cmd", "cmd.exe"}
 
 
 class ProtectError(RuntimeError):
@@ -69,6 +82,10 @@ def _config_path(repo: Path) -> Path:
 
 def _receipts_path(repo: Path) -> Path:
     return _state_dir(repo) / "protection.jsonl"
+
+
+def _setup_scope_path(repo: Path) -> Path:
+    return _state_dir(repo) / "setup-scope.json"
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -190,7 +207,27 @@ def _resolve_dw_command() -> str:
     return shutil.which("dw") or "dw"
 
 
+def _configured_adapter_scope(repo: Path) -> list[str] | None:
+    """Return the explicit adapter scope established by ``dw setup`` when available."""
+    path = _setup_scope_path(repo)
+    if not path.is_file():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, Mapping) or value.get("schema") != _SETUP_SCOPE_SCHEMA:
+        return None
+    raw = value.get("adapters")
+    if not isinstance(raw, list):
+        return None
+    return list(dict.fromkeys(str(item) for item in raw if str(item) in SUPPORTED_ADAPTERS))
+
+
 def _detect_adapters(repo: Path) -> list[str]:
+    scoped = _configured_adapter_scope(repo)
+    if scoped is not None:
+        return scoped
     found: list[str] = []
     if (repo / ".claude").exists() or shutil.which("claude"):
         found.append("claude")
@@ -467,16 +504,11 @@ def _receipt_lock(repo: Path, *, timeout: float = 10.0):
         try:
             fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         except (FileExistsError, PermissionError) as exc:
-            # Windows can report an O_EXCL collision as EACCES/PermissionError while
-            # another thread or process still owns the lock file. Treat that as
-            # contention only on Windows; permission failures remain fatal elsewhere.
             if isinstance(exc, PermissionError) and os.name != "nt":
                 raise
             try:
                 stale = time.time() - path.stat().st_mtime > 60.0
             except FileNotFoundError:
-                # The owner may have released the lock between os.open() and stat().
-                # Retry instead of turning that benign release race into a failure.
                 stale = False
             except OSError:
                 if isinstance(exc, PermissionError):
@@ -743,12 +775,143 @@ def _repo_relative(repo: Path, raw: str | None) -> tuple[str | None, bool]:
     return rel.as_posix(), True
 
 
+def _shell_tokens(command: str) -> list[str]:
+    try:
+        lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|()")
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        return list(lexer)
+    except (ValueError, TypeError):
+        try:
+            return shlex.split(command, posix=True)
+        except ValueError:
+            return []
+
+
+def _command_name(token: str) -> str:
+    normalized = str(token or "").replace("\\", "/").rstrip("/")
+    return normalized.rsplit("/", 1)[-1].lower()
+
+
+def _short_flag(args: Iterable[str], flag: str, *, case_sensitive: bool = False) -> bool:
+    needle = flag if case_sensitive else flag.lower()
+    for raw in args:
+        token = str(raw)
+        if token.startswith("--") or not token.startswith("-") or token == "-":
+            continue
+        flags = token[1:] if case_sensitive else token[1:].lower()
+        if needle in flags:
+            return True
+    return False
+
+
+def _git_subcommand(tokens: list[str], git_index: int) -> tuple[str, list[str]] | None:
+    index = git_index + 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token in _SHELL_SEPARATORS:
+            return None
+        if token in _GIT_GLOBAL_OPTIONS_WITH_VALUE:
+            index += 2
+            continue
+        if any(token.startswith(option + "=") for option in _GIT_GLOBAL_OPTIONS_WITH_VALUE if option.startswith("--")):
+            index += 1
+            continue
+        if (token.startswith("-C") and token != "-C") or (token.startswith("-c") and token != "-c"):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        subcommand = token.lower()
+        args: list[str] = []
+        for value in tokens[index + 1 :]:
+            if value in _SHELL_SEPARATORS:
+                break
+            args.append(value)
+        return subcommand, args
+    return None
+
+
+def _classify_git_tokens(tokens: list[str]) -> tuple[str, str, str] | None:
+    for index, token in enumerate(tokens):
+        if _command_name(token) != "git":
+            continue
+        parsed = _git_subcommand(tokens, index)
+        if parsed is None:
+            continue
+        subcommand, args = parsed
+        lowered = [value.lower() for value in args]
+        if subcommand == "push" and (
+            any(value == "--force" or value.startswith("--force-with-lease") for value in lowered)
+            or _short_flag(args, "f")
+        ):
+            return ("destructive-git", "force-push", "A force-push command was blocked.")
+        if subcommand == "reset" and "--hard" in lowered:
+            return ("destructive-git", "hard-reset", "A hard reset command was blocked.")
+        if subcommand == "clean" and ("--force" in lowered or _short_flag(args, "f")):
+            return ("destructive-git", "forced-clean", "A forced Git clean command was blocked.")
+        if subcommand == "branch" and ("-D" in args or _short_flag(args, "D", case_sensitive=True)):
+            return ("destructive-git", "force-delete-branch", "A forced branch deletion was blocked.")
+        if subcommand == "worktree" and lowered and lowered[0] == "remove" and (
+            "--force" in lowered[1:] or _short_flag(args[1:], "f")
+        ):
+            return ("destructive-git", "force-remove-worktree", "A forced worktree removal was blocked.")
+        if subcommand in {"checkout", "restore"} and "." in args:
+            return ("destructive-git", "discard-worktree", "A command that can discard repository-wide working changes was blocked.")
+    return None
+
+
+def _nested_shell_scripts(tokens: list[str]) -> list[str]:
+    scripts: list[str] = []
+    for index, token in enumerate(tokens):
+        name = _command_name(token)
+        if name not in _SHELL_COMMAND_NAMES:
+            continue
+        for option_index in range(index + 1, min(len(tokens), index + 5)):
+            option = tokens[option_index]
+            if option in _SHELL_SEPARATORS:
+                break
+            lower = option.lower()
+            takes_script = False
+            if name in {"cmd", "cmd.exe"}:
+                takes_script = lower in {"/c", "/k"}
+            elif name in {"pwsh", "powershell"}:
+                takes_script = lower in {"-c", "-command", "-commandwithargs"}
+            else:
+                takes_script = lower.startswith("-") and "c" in lower[1:]
+            if takes_script and option_index + 1 < len(tokens):
+                script = tokens[option_index + 1]
+                if script not in _SHELL_SEPARATORS:
+                    scripts.append(script)
+                break
+    return scripts
+
+
+def _semantic_git_rule(command: str, *, depth: int = 0) -> tuple[str, str, str] | None:
+    if not command or depth > 2:
+        return None
+    tokens = _shell_tokens(command)
+    rule = _classify_git_tokens(tokens)
+    if rule is not None:
+        return rule
+    for script in _nested_shell_scripts(tokens):
+        nested = _semantic_git_rule(script, depth=depth + 1)
+        if nested is not None:
+            return nested
+    return None
+
+
 def _destructive_command_rule(command: str) -> tuple[str, str, str] | None:
     lower = command.lower()
     if _PIPE_TO_SHELL_RE.search(command):
         return ("remote-execution", "pipe-to-shell", "Remote content was piped directly into a shell.")
     if _DROP_DATABASE_RE.search(command):
         return ("destructive-command", "drop-database", "A database/schema destructive command was blocked.")
+    semantic_git = _semantic_git_rule(command)
+    if semantic_git is not None:
+        return semantic_git
+    # Keep conservative legacy fallbacks when a shell string is too malformed for tokenization.
     if re.search(r"\bgit\s+push\b[^\n]*(?:--force(?:-with-lease)?|\s-f(?:\s|$))", lower):
         return ("destructive-git", "force-push", "A force-push command was blocked.")
     if re.search(r"\bgit\s+reset\b[^\n]*--hard\b", lower):
