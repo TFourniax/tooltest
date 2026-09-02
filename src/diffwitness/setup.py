@@ -9,8 +9,11 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from .autodetect import command_available, default_evidence, suggested_available_command
+from .config import load_config
 from .gitops import repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
+from .view_mode import get_view_mode
 
 
 class SetupError(RuntimeError):
@@ -39,9 +42,7 @@ def _persist_setup_scope(cwd: Path, adapters: Sequence[str]) -> None:
 def _clear_setup_scope(cwd: Path) -> None:
     try:
         _setup_scope_path(cwd).unlink()
-    except FileNotFoundError:
-        pass
-    except OSError:
+    except (FileNotFoundError, OSError):
         pass
 
 
@@ -135,7 +136,7 @@ def _status(command: str, cwd: Path) -> dict:
 
 
 def _protect_recommendation(cwd: Path) -> dict:
-    """Return a non-mutating recommendation; setup never silently enables runtime blocking."""
+    """Return a non-mutating recommendation and provider readiness; setup never enables blocking."""
     try:
         from .protect import detect_external_harness, protect_status
 
@@ -150,17 +151,70 @@ def _protect_recommendation(cwd: Path) -> dict:
         else:
             recommendation = "builtin"
             reason = "No high-confidence external harness signal was detected."
+        adapters = status.get("adapters") if isinstance(status.get("adapters"), dict) else {}
+        bounded = {
+            name: {
+                "installed": bool(item.get("installed")),
+                "ready": bool(item.get("ready")),
+                "activation": item.get("activation"),
+            }
+            for name, item in adapters.items()
+            if isinstance(item, dict)
+        }
         return {
             "mode": status.get("mode", "off"),
+            "health": status.get("health", "unknown"),
             "recommendation": recommendation,
             "reason": reason,
+            "adapters": bounded,
         }
     except Exception as exc:
         return {
             "mode": "unknown",
+            "health": "unknown",
             "recommendation": "inspect",
             "reason": f"Protect recommendation unavailable: {str(exc)[:200]}",
+            "adapters": {},
         }
+
+
+def _verification_readiness(cwd: Path) -> dict:
+    try:
+        config = load_config(cwd, None)
+    except Exception as exc:
+        return {"ready": False, "source": "invalid-config", "command": None, "reason": str(exc)[:300]}
+    configured = config.get("test")
+    if isinstance(configured, str) and configured.strip():
+        command = configured.strip()
+        ready = command_available(command, cwd=cwd)
+        return {
+            "ready": ready,
+            "source": "configured",
+            "command": command,
+            "reason": None if ready else "configured executable is unavailable",
+            "suggestion": None if ready else suggested_available_command(command),
+        }
+    plan = default_evidence(cwd)
+    if plan is None:
+        return {"ready": False, "source": "missing", "command": None, "reason": "no safe evidence command detected"}
+    ready = command_available(plan.command, cwd=cwd)
+    return {
+        "ready": ready,
+        "source": "detected",
+        "command": plan.command,
+        "confidence": plan.confidence,
+        "reason": plan.reason if ready else "detected command executable is unavailable",
+        "suggestion": None if ready else suggested_available_command(plan.command),
+    }
+
+
+def _with_readiness(cwd: Path, status: dict) -> dict:
+    return {
+        **status,
+        "protect": _protect_recommendation(cwd),
+        "verification": _verification_readiness(cwd),
+        "productReady": bool(status.get("healthy") and _verification_readiness(cwd).get("ready")),
+    }
 
 
 def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None) -> dict:
@@ -187,7 +241,7 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
     if not status.get("healthy"):
         raise SetupError(f"DiffWitness integration installed but failed its health check: {json.dumps(status, sort_keys=True)[:1200]}")
     _persist_setup_scope(cwd, status.get("expectedAdapters") or [])
-    return {**status, "protect": _protect_recommendation(cwd)}
+    return _with_readiness(cwd, status)
 
 
 def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
@@ -213,13 +267,13 @@ def setup_status(*, cwd: Path, idleproof_command: str | None = None) -> dict:
     cwd = _git_project(cwd)
     command = _idleproof_executable(idleproof_command)
     status = _status(command, cwd)
-    return {**status, "sidecar": command, "protect": _protect_recommendation(cwd)}
+    return {**_with_readiness(cwd, status), "sidecar": command}
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dw setup",
-        description="Arm DiffWitness native IDE integration without wrapping Claude, Codex, or Cursor.",
+        description="Connect DiffWitness to Claude Code/Codex/Cursor without wrapping the coding agent.",
     )
     parser.add_argument(
         "action",
@@ -233,11 +287,7 @@ def _parser() -> argparse.ArgumentParser:
         default="auto",
         help="auto, all, claude, codex, cursor, or a comma-separated combination",
     )
-    parser.add_argument(
-        "--idleproof-command",
-        default=None,
-        help=argparse.SUPPRESS,
-    )
+    parser.add_argument("--idleproof-command", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--json", action="store_true", help="emit machine-readable status")
     return parser
 
@@ -250,6 +300,32 @@ def _agent_names(adapters: Sequence[str]) -> str:
     if len(rendered) == 1:
         return rendered[0]
     return ", ".join(rendered[:-1]) + " and " + rendered[-1]
+
+
+def _protect_human_lines(protect: dict, *, guided: bool) -> list[str]:
+    mode = protect.get("mode")
+    if mode == "off":
+        return ["• Protection live désactivée (optionnelle)." if guided else "Protect: off · optional"]
+    if mode == "external":
+        return ["✓ Protection live déléguée à ton harness." if guided else "Protect: external · delegated"]
+    if mode != "builtin":
+        return ["⚠ État Protect à inspecter avec `dw protect status`." if guided else "Protect: unknown/invalid · inspect `dw protect status`"]
+    lines: list[str] = []
+    names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
+    for adapter, item in sorted((protect.get("adapters") or {}).items()):
+        if not isinstance(item, dict):
+            continue
+        label = names.get(adapter, adapter)
+        if item.get("ready"):
+            state = "prête" if guided else "ready"
+        elif item.get("installed") and item.get("activation") == "requires-provider-feature-and-trust":
+            state = "en attente d’approbation du provider" if guided else "pending provider trust"
+        elif item.get("installed"):
+            state = "installée, pas encore observée" if guided else "installed, not observed"
+        else:
+            state = "hooks manquants" if guided else "MISSING HOOKS"
+        lines.append(("• " if guided else "  ") + f"{label}: {state}")
+    return lines or (["• Protection live activée."] if guided else ["Protect: builtin"])
 
 
 def setup_cli(argv: list[str] | None = None) -> int:
@@ -279,26 +355,67 @@ def setup_cli(argv: list[str] | None = None) -> int:
 
     healthy = bool(result.get("healthy"))
     expected = result.get("expectedAdapters") or []
-    adapters = ", ".join(expected) if expected else "none"
+    verification = result.get("verification") or {}
     protect = result.get("protect") or {}
-    if args.action == "status":
-        print(f"DiffWitness setup: {'ready' if healthy else 'not ready'} · adapters: {adapters}")
-        print(f"Protect: {protect.get('mode', 'unknown')} · recommendation {protect.get('recommendation', 'inspect')}")
-        return 0 if healthy else 1
+    guided = False
+    try:
+        guided = get_view_mode(_git_project(cwd)) == "guided"
+    except Exception:
+        guided = False
 
-    print(f"DiffWitness is ready · adapters: {adapters}")
-    print(
-        f"Use {_agent_names(expected)} normally. DiffWitness will UNDERSTAND · PROVE · OWE · preserve "
-        "CONTINUITY at the native task boundary."
-    )
-    if protect.get("mode") == "off":
-        if protect.get("recommendation") == "external":
-            print("Protect remains off by design. An external harness signal was detected; use `dw protect use external` to record delegation.")
+    if args.action == "status":
+        if guided:
+            print("DIFFWITNESS · SETUP")
+            print(f"{'✓' if healthy else '⚠'} Agent connecté : {_agent_names(expected)}")
+            if verification.get("ready"):
+                print(f"✓ Vérification prête : {verification.get('command')}")
+            else:
+                print("⚠ Vérification encore à configurer.")
+                if verification.get("suggestion"):
+                    print(f"  Commande disponible suggérée : {verification['suggestion']}")
+                print("  Lance `dw doctor` pour le diagnostic exact.")
+            for line in _protect_human_lines(protect, guided=True):
+                print(line)
         else:
-            print("Protect remains off by design. Use `dw protect enable` for builtin runtime guardrails, or `dw protect use external` if you already use a harness.")
+            adapters = ", ".join(expected) if expected else "none"
+            print(f"Agent integration: {'ready' if healthy else 'not ready'} · adapters: {adapters}")
+            print(
+                f"Verification: {'ready' if verification.get('ready') else 'NOT READY'}"
+                + (f" · {verification.get('command')}" if verification.get("command") else "")
+            )
+            for line in _protect_human_lines(protect, guided=False):
+                print(line)
+        return 0 if result.get("productReady") else 1
+
+    if guided:
+        print(f"✓ {_agent_names(expected)} connecté à DiffWitness.")
+        print("Utilise ton agent normalement : DiffWitness vérifiera la modification exacte à la fin de la tâche.")
+        if verification.get("ready"):
+            print(f"✓ Vérification prête : {verification.get('command')}")
+            print("Le projet est prêt pour une première tâche agentique.")
+        else:
+            print("⚠ L’intégration agent est prête, mais les vérifications du projet ne le sont pas encore.")
+            if verification.get("suggestion"):
+                print(f"Commande disponible suggérée : {verification['suggestion']} (non appliquée automatiquement)")
+            print("Lance `dw doctor` pour terminer cette étape avant de considérer DiffWitness pleinement prêt.")
+        for line in _protect_human_lines(protect, guided=True):
+            print(line)
     else:
-        print(f"Protect keeps its explicit mode: {protect.get('mode')}.")
-    return 0
+        adapters = ", ".join(expected) if expected else "none"
+        print(f"Agent integration ready · adapters: {adapters}")
+        print(
+            f"Use {_agent_names(expected)} normally. Native Stop runs PROVE · OWE · UNDERSTAND · CONTINUITY; "
+            "`dw guard` is a manual fallback only."
+        )
+        print(
+            f"Verification {'ready' if verification.get('ready') else 'NOT READY'}"
+            + (f" · {verification.get('command')}" if verification.get("command") else "")
+        )
+        if not verification.get("ready"):
+            print("Run `dw doctor` before treating the project as fully ready.")
+        for line in _protect_human_lines(protect, guided=False):
+            print(line)
+    return 0 if result.get("productReady") else 1
 
 
 __all__ = ["SetupError", "setup_cli", "setup_install", "setup_status", "setup_uninstall"]
