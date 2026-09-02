@@ -148,18 +148,35 @@ def run_native_hook(
     env: dict[str, str],
     session: str,
     event: dict,
+    provider: str = "claude",
     timeout: float = 240.0,
 ) -> tuple[subprocess.CompletedProcess[str], dict | None]:
+    require(provider in {"claude", "codex"}, f"unsupported native smoke provider: {provider}")
     payload = {"cwd": str(project), "session_id": session, **event}
     proc = run(
-        [str(node), str(hook_bin), "claude"],
+        [str(node), str(hook_bin), provider],
         cwd=project,
         env=env,
         timeout=timeout,
         input_text=json.dumps(payload) + "\n",
     )
-    require(proc.returncode == 0, f"native hook failed for {event.get('hook_event_name')}", proc)
+    require(proc.returncode == 0, f"native {provider} hook failed for {event.get('hook_event_name')}", proc)
     return proc, last_json(proc.stdout)
+
+
+def setup_status_json(*, dw: Path, idleproof_shim: Path, project: Path, env: dict[str, str]) -> tuple[subprocess.CompletedProcess[str], dict]:
+    status = run(
+        [str(dw), "setup", "status", "--idleproof-command", str(idleproof_shim), "--json"],
+        cwd=project,
+        env=env,
+        timeout=30,
+    )
+    require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
+    try:
+        payload = json.loads(status.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"dw setup status returned invalid JSON: {status.stdout[:1000]}") from exc
+    return status, payload
 
 
 def assert_successful_stop(
@@ -255,7 +272,7 @@ def main(argv: list[str] | None = None) -> int:
         root = Path(td)
         try:
             python, dw, node, idleproof_bin, tarball = install_exact_artifacts(root, idleproof_repo)
-            hook_bin = idleproof_bin.parent / "idleproof-hook.mjs"
+            hook_bin = idleproof_bin.parent / "bin" / "idleproof-hook.mjs" if False else idleproof_bin.parent / "idleproof-hook.mjs"
             invocation_log = root / "idleproof-invocations.log"
             idleproof_shim = create_idleproof_shim(root, node=node, idleproof_bin=idleproof_bin, invocation_log=invocation_log)
             env = os.environ.copy()
@@ -294,21 +311,19 @@ def main(argv: list[str] | None = None) -> int:
                 env=env,
                 timeout=120,
             )
-            require(setup.returncode == 0, "dw setup did not arm the exact installed artifacts", setup)
-            require("DiffWitness is ready" in setup.stdout, "dw setup did not expose the release-ready user message", setup)
-            status = run(
-                [str(dw), "setup", "status", "--idleproof-command", str(idleproof_shim), "--json"],
-                cwd=project,
-                env=env,
-                timeout=30,
+            require(setup.returncode == 0, "dw setup did not configure the exact installed artifacts", setup)
+            require(
+                "DiffWitness is ready" not in setup.stdout,
+                "setup claimed full readiness before Codex provider trust/observation",
+                setup,
             )
-            require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
-            try:
-                status_json = json.loads(status.stdout)
-            except json.JSONDecodeError as exc:
-                raise RuntimeError(f"dw setup status returned invalid JSON: {status.stdout[:1000]}") from exc
+            status, status_json = setup_status_json(dw=dw, idleproof_shim=idleproof_shim, project=project, env=env)
             require(status_json.get("healthy") is True, "dw setup status is not healthy", status)
-            require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not arm all supported adapters")
+            require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not configure all supported adapters")
+            native = status_json.get("nativeActivation") or {}
+            require(native.get("observedAdapters") == [], "fresh installation fabricated a live native provider observation", status)
+            require("codex" in (native.get("pendingTrustAdapters") or []), "fresh Codex setup did not expose provider trust as pending", status)
+            require(native.get("fullyObserved") is False, "fresh integration incorrectly claimed all native providers were observed", status)
 
             integration_config = read_json(project / ".idleproof" / "diffwitness.json")
             require(integration_config.get("schema") == "diffwitness.integration-config.v1", "setup did not write canonical integration config")
@@ -316,6 +331,28 @@ def main(argv: list[str] | None = None) -> int:
             require("defitness" not in json.dumps(integration_config).lower(), "canonical setup config still exposes the experimental product name")
             claude_settings = read_json(project / ".claude" / "settings.local.json")
             require("idleproof-hook.mjs" in json.dumps(claude_settings), "dw setup did not install the convergent Claude hook")
+
+            # Directly exercising the installed Codex hook represents the provider actually running
+            # an already-approved project hook. DiffWitness itself never edits provider trust state;
+            # liveness becomes observed only because this native callback reached the core.
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session="native-codex-activation",
+                provider="codex",
+                event={"hook_event_name": "SessionStart"},
+            )
+            status_after_codex, status_after_codex_json = setup_status_json(
+                dw=dw,
+                idleproof_shim=idleproof_shim,
+                project=project,
+                env=env,
+            )
+            native_after_codex = status_after_codex_json.get("nativeActivation") or {}
+            require("codex" in (native_after_codex.get("observedAdapters") or []), "executed Codex SessionStart was not recorded as observed", status_after_codex)
+            require("codex" not in (native_after_codex.get("pendingTrustAdapters") or []), "Codex remained trust-pending after its hook actually executed", status_after_codex)
 
             session1 = "native-alpha-fix"
             run_native_hook(node=node, hook_bin=hook_bin, project=project, env=env, session=session1, event={"hook_event_name": "SessionStart"})
@@ -432,7 +469,7 @@ def main(argv: list[str] | None = None) -> int:
             require((project / ".git" / "diffwitness" / "change-envelope.json").is_file(), "uninstall destroyed historical Proof/Debt evidence")
 
             print(
-                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact sidecar artifact · dw setup · "
+                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact sidecar artifact · setup trust lifecycle · "
                 "native hooks without guard · dirty baseline · UNDERSTAND/PROVE/OWE/CONTINUITY · uninstall preserves evidence"
             )
             return 0
