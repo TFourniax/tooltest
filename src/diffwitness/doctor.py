@@ -12,6 +12,7 @@ from .continuity_state import state_status
 from .engine_capabilities import EngineCapabilityError, inspect_engine_capabilities
 from .engine_protocol import EngineProtocolError
 from .gitops import GitError, repo_root
+from .native_activation import native_activation_summary
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
 
@@ -112,6 +113,23 @@ def _engine_state(repo: Path, config: dict[str, Any], args: argparse.Namespace) 
     return {"configured": True, "ready": True, "required": bool(engine_config.get("required")), "capabilities": capabilities}, True
 
 
+def _native_lines(native: dict[str, Any], *, guided: bool) -> list[str]:
+    names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
+    adapters = native.get("adapters") if isinstance(native.get("adapters"), dict) else {}
+    lines: list[str] = []
+    for adapter, item in sorted(adapters.items()):
+        if not isinstance(item, dict):
+            continue
+        label = names.get(adapter, adapter)
+        if item.get("observed"):
+            lines.append(("✓ " if guided else "  ") + f"{label}: {'hook natif observé en session' if guided else 'native hook observed live'}")
+        elif item.get("requiresProviderTrust"):
+            lines.append(("⚠ " if guided else "  ") + f"{label}: {'configuré, approbation des hooks requise dans Codex' if guided else 'configured; provider trust + live observation required'}")
+        else:
+            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, première session pas encore observée' if guided else 'configured; first live session not observed yet'}")
+    return lines
+
+
 def _render_guided(
     repo: Path,
     *,
@@ -123,6 +141,7 @@ def _render_guided(
     continuity_error: str | None,
     engine: dict[str, Any],
     setup_scope: list[str],
+    native: dict[str, Any],
 ) -> None:
     names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
     print("DIFFWITNESS · CHECK-UP GUIDÉ")
@@ -142,8 +161,11 @@ def _render_guided(
             print("  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt.")
 
     if setup_scope:
-        print("✓ Intégration agent : " + ", ".join(names.get(item, item) for item in setup_scope))
-        print("  Utilise ces agents normalement : leur fin de tâche déclenche Proof, Debt et Continuity.")
+        print("✓ Intégration agent configurée : " + ", ".join(names.get(item, item) for item in setup_scope))
+        for line in _native_lines(native, guided=True):
+            print(line)
+        if native.get("pendingTrustAdapters"):
+            print("  DiffWitness ne peut ni approuver ni contourner la confiance Codex : ouvre Codex, examine `/hooks` et approuve-les avant la première tâche.")
     else:
         print("• Intégration agent non configurée. Lance `dw setup` pour Claude Code/Codex.")
 
@@ -186,10 +208,14 @@ def _render_guided(
             print("• Planner optionnel : indisponible, le planner Community reste utilisable")
 
     print()
-    if evidence["ready"] and setup_scope:
-        print("PRÊT À CODER")
+    if evidence["ready"] and setup_scope and native.get("pendingTrustAdapters"):
+        print("ACTION AVANT LA PREMIÈRE TÂCHE CODEX")
+        print("Ouvre Codex, examine `/hooks`, puis approuve explicitement les hooks du projet.")
+        print("Dès que SessionStart est réellement exécuté, DiffWitness marquera l’intégration comme observée live.")
+    elif evidence["ready"] and setup_scope:
+        print("PRÊT À LANCER L’AGENT")
         print(f"Ouvre simplement `{setup_scope[0]}` dans ce projet et travaille normalement.")
-        print("DiffWitness vérifiera la modification exacte à la fin de la tâche.")
+        print("SessionStart armera la frontière native; Stop vérifiera la modification exacte à la fin de la tâche.")
     elif evidence["ready"]:
         print("Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper.")
     else:
@@ -214,6 +240,7 @@ def _render_technical(
     continuity_error: str | None,
     engine: dict[str, Any],
     setup_scope: list[str],
+    native: dict[str, Any],
 ) -> None:
     print(f"Repository: {repo}")
     if evidence["ready"]:
@@ -225,6 +252,10 @@ def _render_technical(
         if evidence.get("suggestion"):
             print(f"Repair:     {evidence['suggestion']} (suggestion only; config unchanged)")
     print(f"Native:     {', '.join(setup_scope) if setup_scope else 'not configured'}")
+    for line in _native_lines(native, guided=False):
+        print(line)
+    if native.get("pendingTrustAdapters"):
+        print("  Codex trust is still user-controlled; approve project hooks in `/hooks` before relying on native execution.")
 
     mode = protection.get("mode")
     health = protection.get("health")
@@ -281,7 +312,11 @@ def _render_technical(
     if evidence["ready"]:
         print("\nWorkflow:")
         if setup_scope:
-            print(f"  {setup_scope[0]}                                # primary native workflow")
+            if native.get("pendingTrustAdapters"):
+                print("  codex                                 # open project, review `/hooks`, approve explicitly")
+                print("  dw setup status                       # after SessionStart, confirm native observation")
+            else:
+                print(f"  {setup_scope[0]}                                # primary native workflow")
             print("  dw guard -- <agent>                   # explicit/manual fallback only")
         else:
             print("  dw setup                               # install native Claude/Codex integration")
@@ -310,11 +345,21 @@ def doctor_cli(argv: list[str]) -> int:
         continuity, continuity_ok, continuity_error = _continuity_state(repo)
         engine, engine_ok = _engine_state(repo, config, args)
         scope = _setup_scope(repo)
+        native = native_activation_summary(repo, scope)
         result = {
             "schema": "diffwitness.doctor.v1",
             "repository": str(repo),
             "evidence": evidence,
-            "native": {"adapters": scope, "ready": bool(scope)},
+            "native": {
+                "adapters": scope,
+                "configured": bool(scope),
+                # Kept for compatibility: ready means installation is present, not that a provider
+                # has already executed a trusted hook. The activation fields below are authoritative
+                # for live-provider readiness.
+                "ready": bool(scope),
+                **native,
+                "requiresActionBeforeTask": bool(native.get("pendingTrustAdapters")),
+            },
             "protect": protection,
             "continuity": {"ready": continuity_ok, "status": continuity, "error": continuity_error},
             "engine": engine,
@@ -335,6 +380,7 @@ def doctor_cli(argv: list[str]) -> int:
                 continuity_error=continuity_error,
                 engine=engine,
                 setup_scope=scope,
+                native=native,
             )
         else:
             _render_technical(
@@ -347,6 +393,7 @@ def doctor_cli(argv: list[str]) -> int:
                 continuity_error=continuity_error,
                 engine=engine,
                 setup_scope=scope,
+                native=native,
             )
         return 0 if result["ready"] else 1
     except (GitError, ValueError, OSError) as exc:
