@@ -9,6 +9,7 @@ from typing import Any
 from .continuity_task_session import task_context_query, update_task_session
 from .gitops import repo_root, snapshot_worktree
 from .ide_handoff import finalize_ide_session
+from .native_activation import record_native_activation
 from .proof_cli import _state_path
 
 _MAX_PROMPT_CHARS = 12000
@@ -56,6 +57,10 @@ def session_start(payload: dict[str, Any]) -> dict[str, Any] | None:
     staged = path.with_suffix(path.suffix + ".tmp")
     staged.write_text(json.dumps(state), encoding="utf-8")
     staged.replace(path)
+    # This marker is informational readiness state, never Proof. Recording it only after the exact
+    # SessionStart boundary was successfully armed means "observed" really means the provider ran
+    # the hook. In particular, a Codex hook file merely present on disk never bypasses Codex trust.
+    record_native_activation(repo, str(payload.get("source") or payload.get("provider") or ""))
     return None
 
 
