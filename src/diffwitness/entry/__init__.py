@@ -46,7 +46,7 @@ def _option_value(argv: list[str], name: str, default: str | None = None) -> str
 
 
 def _root_help(*, explicit_view: str | None = None) -> str:
-    from ..public_help import GUIDED_HELP, TECHNICAL_HELP, help_for_view
+    from ..public_help import GUIDED_HELP, help_for_view
 
     if explicit_view in {"guided", "technical"}:
         return help_for_view(explicit_view)
@@ -57,8 +57,6 @@ def _root_help(*, explicit_view: str | None = None) -> str:
         repo = repo_root(".")
         return help_for_view(get_view_mode(repo))
     except Exception:
-        # First contact outside a repository should explain the shortest path to success, not dump
-        # the entire engineering surface before the user has even entered a Git project.
         return GUIDED_HELP
 
 
@@ -158,6 +156,29 @@ def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
     return rc
 
 
+def _explain(argv: list[str]) -> int:
+    engine = _option_value(argv, "--engine", "deterministic") or "deterministic"
+    if engine == "deterministic":
+        # Keep the deterministic command lightweight and view-aware. Remove an explicit engine flag
+        # before delegating because explain_ui has no inference semantics.
+        cleaned: list[str] = []
+        skip = False
+        for index, value in enumerate(argv):
+            if skip:
+                skip = False
+                continue
+            if value == "--engine" and index + 1 < len(argv):
+                skip = True
+                continue
+            if value.startswith("--engine="):
+                continue
+            cleaned.append(value)
+        from ..explain_ui import explain_ui_cli
+        return explain_ui_cli(cleaned)
+    from ..idleproof_user_inference import user_inference_cli
+    return user_inference_cli(argv)
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
@@ -186,8 +207,7 @@ def main(argv: list[str] | None = None) -> int:
         from ..protect import protect_cli
         return protect_cli(args[1:])
     if args[0] == "explain":
-        from ..idleproof_user_inference import user_inference_cli
-        return user_inference_cli(args[1:])
+        return _explain(args[1:])
     if args[0] == "portal":
         from ..portal_proxy import portal_cli
         return portal_cli(args[1:])
