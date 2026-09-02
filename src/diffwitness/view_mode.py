@@ -8,7 +8,7 @@ from pathlib import Path
 from .gitops import repo_root
 
 VIEW_MODES = ("guided", "technical")
-DEFAULT_VIEW_MODE = "technical"
+DEFAULT_VIEW_MODE = "guided"
 
 
 def _preference_path(repo: Path) -> Path:
