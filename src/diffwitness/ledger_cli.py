@@ -17,6 +17,7 @@ from .ledger_transport import (
     push_checkpoint,
     read_checkpoint,
 )
+from .view_mode import get_view_mode
 
 
 def _context(repo: Path, explicit_config: str | None) -> tuple[dict[str, Any], DebtLedger]:
@@ -85,11 +86,7 @@ def ledger_cli(argv: list[str]) -> int:
     resolve = sub.add_parser("resolve", help="Manual last-resort resolution override")
     resolve.add_argument("debt_id")
     resolve.add_argument("--reason", required=True)
-    resolve.add_argument(
-        "--force",
-        action="store_true",
-        help="Explicit manual override; automatic resolution always requires verification",
-    )
+    resolve.add_argument("--force", action="store_true", help="Explicit manual override; automatic resolution always requires verification")
 
     status = sub.add_parser("status", help="Inspect local ledger and Git checkpoint relationship")
     status.add_argument("--ref", default=DEFAULT_LEDGER_REF)
@@ -101,11 +98,7 @@ def ledger_cli(argv: list[str]) -> int:
     pull = sub.add_parser("pull", help="Fetch and fast-forward the ledger from a remote Git ref")
     pull.add_argument("--remote", default="origin")
     pull.add_argument("--ref", default=DEFAULT_LEDGER_REF)
-    pull.add_argument(
-        "--required",
-        action="store_true",
-        help="Fail if the remote checkpoint does not exist instead of treating first use as empty",
-    )
+    pull.add_argument("--required", action="store_true", help="Fail if the remote checkpoint does not exist instead of treating first use as empty")
 
     push = sub.add_parser("push", help="Checkpoint and push the ledger without force")
     push.add_argument("--remote", default="origin")
@@ -118,12 +111,19 @@ def ledger_cli(argv: list[str]) -> int:
     if args.action == "list":
         values = list(ledger.items().values()) if args.all else ledger.active_items()
         if args.json:
+            # Stable machine contract: empty remains [] rather than a presentation object.
             print(json.dumps([item.to_dict() for item in values], indent=2, ensure_ascii=False))
+        elif not values:
+            if args.all:
+                print("No Debt Ledger obligations have been recorded yet.")
+            elif get_view_mode(repo) == "guided":
+                print("✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger.")
+                print("Cela signifie zéro obligation connue/enregistrée, pas la preuve qu’aucune dette inconnue n’existe.")
+            else:
+                print("No open Debt Ledger obligations.")
+                print("Zero recorded/open obligations is not a claim that unknown technical debt cannot exist.")
         else:
-            for item in sorted(
-                values,
-                key=lambda value: (value.status != "open", -value.points, value.debt_id),
-            ):
+            for item in sorted(values, key=lambda value: (value.status != "open", -value.points, value.debt_id)):
                 _print_item(item)
         return 0
 
@@ -228,3 +228,6 @@ def ledger_cli(argv: list[str]) -> int:
         return 0
 
     return 2
+
+
+__all__ = ["ledger_cli"]
