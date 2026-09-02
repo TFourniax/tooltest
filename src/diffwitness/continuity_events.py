@@ -95,7 +95,7 @@ def _validate_subject(subject: Any) -> None:
 
 def _validate_relations(relations: Any) -> None:
     if not isinstance(relations, list) or len(relations) > 256:
-        raise ContinuityError("project event relations must be a list with at most 256 items")
+        raise ContinuityError("project relation must be a list with at most 256 items")
     for relation in relations:
         if not isinstance(relation, dict):
             raise ContinuityError("project relation must be an object")
@@ -224,7 +224,7 @@ def _event_lock(paths: ContinuityPaths, *, timeout: float = _LOCK_TIMEOUT_SECOND
 
 
 def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
-    return {
+    core = {
         key: event.get(key)
         for key in (
             "event_type",
@@ -237,6 +237,17 @@ def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
             "dedupe_key",
         )
     }
+    # A software change is identified by repository fingerprint + base/candidate trees (the
+    # tree-derived ``dwchg_*`` identity), not by the temporary commit objects used to snapshot a
+    # dirty worktree. Re-verifying the same trees legitimately creates fresh ephemeral commit SHAs.
+    # Ignore those transport/provenance SHAs only for idempotency comparison so an existing
+    # change.observed event can be reused while a new proof.completed certificate is appended.
+    if event.get("event_type") == "change.observed" and str(event.get("dedupe_key") or "").startswith("change:dwchg_"):
+        payload = dict(core.get("payload") or {})
+        payload.pop("base_sha", None)
+        payload.pop("candidate_sha", None)
+        core["payload"] = payload
+    return core
 
 
 def _candidate_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
