@@ -95,7 +95,7 @@ def _validate_subject(subject: Any) -> None:
 
 def _validate_relations(relations: Any) -> None:
     if not isinstance(relations, list) or len(relations) > 256:
-        raise ContinuityError("project relation must be a list with at most 256 items")
+        raise ContinuityError("project event relations must be a list with at most 256 items")
     for relation in relations:
         if not isinstance(relation, dict):
             raise ContinuityError("project relation must be an object")
@@ -237,6 +237,13 @@ def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
             "dedupe_key",
         )
     }
+    provenance = dict(core.get("provenance") or {})
+    if provenance.get("source") == "change-envelope":
+        # The digest identifies one serialized envelope instance. Re-verifying the same semantic
+        # change can produce another valid envelope/certificate without changing the event's
+        # dedupe identity, so this transport digest must not manufacture a semantic conflict.
+        provenance.pop("artifact_digest", None)
+        core["provenance"] = provenance
     # A software change is identified by repository fingerprint + base/candidate trees (the
     # tree-derived ``dwchg_*`` identity), not by the temporary commit objects used to snapshot a
     # dirty worktree. Re-verifying the same trees legitimately creates fresh ephemeral commit SHAs.
