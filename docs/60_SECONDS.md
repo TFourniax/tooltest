@@ -1,24 +1,62 @@
 # DiffWitness in 60 seconds
 
-DiffWitness is designed to sit between **code generation** and **trust**. Live runtime protection is optional; post-change proof remains independent.
+DiffWitness sits between **AI code generation** and **trust**. Native agent integration can run the proof boundary automatically; live Protect interception remains optional and independent.
 
-## 1. Install
+## 1. Install and verify the command
 
 During development from the repository:
 
 ```bash
 pipx install .
+pipx ensurepath
 ```
+
+After `pipx ensurepath`, open a new shell (or reload your shell profile), then verify the executable before continuing:
+
+```bash
+command -v dw
+dw --version
+```
+
+If `command -v dw` prints nothing on macOS/Linux/WSL, reload the current shell first, for example:
+
+```bash
+source ~/.bashrc
+```
+
+Then run `command -v dw` again. On Windows, open a new PowerShell/Terminal after `pipx ensurepath` and use:
+
+```powershell
+Get-Command dw
+dw --version
+```
+
+A successful `pipx install` with an unavailable `dw` command is a PATH setup issue, not a failed DiffWitness installation.
 
 After public release, install the published package or a pinned Git tag rather than tracking a moving branch.
 
-## 2. See what evidence and integrations DiffWitness would use
+## 2. Connect DiffWitness to the current Git project
+
+Run these commands **inside the Git repository you want to use**:
+
+```bash
+dw setup --agent auto
+dw setup status
+```
+
+`dw setup` installs only the detected/configured native integration scope. It does not silently enable Protect.
+
+For Codex, configuration is not the same as provider trust: Codex must complete its own project/hook approval flow before DiffWitness can truthfully report a live Codex hook as observed. DiffWitness never self-approves that trust.
+
+## 3. Check executable evidence readiness
 
 ```bash
 dw doctor
 ```
 
-If the suggested evidence command is right, continue. If not, make the evidence explicit once:
+If DiffWitness can safely detect an executable project check, it reports it. An explicit `.diffwitness.toml` always wins.
+
+Example:
 
 ```toml
 [diffwitness]
@@ -27,7 +65,9 @@ policy = "balanced"
 strategy = "auto"
 ```
 
-## 3. Choose runtime protection — optional
+DiffWitness checks that the configured executable exists before calling verification `ready`. It does not silently rewrite a broken command.
+
+## 4. Choose runtime protection — optional
 
 Inspect the local agent/harness environment:
 
@@ -41,7 +81,7 @@ Use DiffWitness builtin protection:
 dw protect enable
 ```
 
-With current Codex builds, also enable Codex's own `hooks` feature and complete Codex's normal repository + hook trust flow. DiffWitness installs its hooks but never approves itself. After a live Codex tool call, `dw protect status` confirms whether the adapter has actually been observed. See [`PROTECT.md`](PROTECT.md).
+Protect follows the project adapter scope established by `dw setup`. With current Codex builds, also complete Codex's own hooks/project-trust flow. After a live Codex hook reaches DiffWitness, `dw protect status` records that provider as observed.
 
 Delegate live protection to an existing harness:
 
@@ -55,27 +95,31 @@ Or keep live interception fully off:
 dw protect disable
 ```
 
-All three modes keep the same Proof, Debt Ledger and IdleProof semantics. `off` means DiffWitness installs no Protect interception hooks.
+All three modes keep the same Proof, Debt Ledger, UNDERSTAND and Continuity semantics. Protect observations never become VERIFIED software behavior by themselves.
 
-## 4A. Using a coding agent locally
+## 5A. Use Claude Code / Codex normally
 
-Keep your normal workflow:
+Once `dw setup status` says the project integration and executable evidence are ready, open the configured coding agent normally:
 
 ```bash
-dw guard -- claude
+claude
 ```
 
 or:
 
 ```bash
-dw guard -- codex
+codex
 ```
 
-The agent remains interactive. DiffWitness captures repository state before and after, then sends the exact produced diff through the same Gate used by CI.
+The native SessionStart boundary captures the starting repository state. The native Stop boundary evaluates the exact resulting change and connects PROVE · OWE · UNDERSTAND · CONTINUITY.
 
-If builtin Protect is enabled, supported agent hooks can additionally block high-confidence dangerous actions while the agent works. Those runtime observations are **not** proof of the final change.
+`dw guard` remains an explicit fallback when you intentionally want a process wrapper or when native integration is unavailable:
 
-## 4B. Protect a pull request
+```bash
+dw guard -- claude
+```
+
+## 5B. Protect a pull request
 
 ```bash
 dw gate --base origin/main --candidate HEAD
@@ -95,15 +139,24 @@ large causal patch         -> budgeted Adaptive Core
 
 No confidence score hides these categories.
 
-## 5. Verify that a proof still belongs to the code
+## 6. Inspect the current state
+
+```bash
+dw status
+dw explain
+dw health
+dw ledger list
+```
+
+If the current worktree has drifted since an accepted Proof, `dw explain` scopes that Proof as historical/stale and tells you to re-verify. Returning exactly to the previously proved tree can make the exact content current again.
+
+## 7. Verify or attach a certificate explicitly
 
 ```bash
 dw verify evidence.json
 ```
 
-A content change after proof makes the certificate stale.
-
-After committing the identical proved tree:
+A content change after proof makes the certificate stale. After committing the identical proved tree:
 
 ```bash
 dw verify evidence.json --against HEAD
@@ -111,7 +164,7 @@ dw verify evidence.json --against HEAD
 
 can remain valid because DiffWitness binds to Git tree content rather than requiring an ephemeral snapshot commit to survive.
 
-## 6. Attach proof to Git history
+Attach proof to Git history when desired:
 
 ```bash
 dw note evidence.json --commit HEAD
@@ -137,10 +190,11 @@ Once public releases exist, pin a release tag or immutable commit instead of `ma
 
 ## What to choose
 
-- **I want DiffWitness to guard supported agent actions live:** `dw protect enable`.
-- **I already use another harness:** `dw protect use external`.
+- **I use Claude Code / Codex interactively:** `dw setup`, then use the agent normally.
+- **I want live blocking/observation too:** `dw protect enable`.
+- **I already use another runtime harness:** `dw protect use external`.
 - **I do not want live interception:** `dw protect disable`.
-- **I use Claude Code / Codex:** `dw guard`.
+- **I need an explicit process-wrapper boundary:** `dw guard`.
 - **I own CI / branch protection:** `dw gate`.
 - **I want maximum hunk detail:** `dw prove`.
 - **My causal patch is huge:** `dw core` or Gate `strategy=auto`.
@@ -148,6 +202,6 @@ Once public releases exist, pin a release tag or immutable commit instead of `ma
 
 The important boundary is:
 
-> optional runtime protection first, independent executable evidence after generation, persistent obligations after proof.
+> optional runtime protection while the agent works, independent executable evidence on the exact change, persistent obligations and bounded human explanation afterward.
 
 See [`PROTECT.md`](PROTECT.md) for the runtime protection contract.
