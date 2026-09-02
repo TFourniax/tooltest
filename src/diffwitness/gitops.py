@@ -166,20 +166,65 @@ def _transient_untracked_paths(repo: Path) -> list[str]:
     return sorted(path for path in raw.split("\0") if path and _is_transient_untracked(path))
 
 
+def _meaningful_worktree_matches_head(repo: Path) -> bool:
+    """Return True only when porcelain proves the meaningful worktree is exactly HEAD.
+
+    This is a conservative fast path for the common read-only/status case. Git reports every tracked
+    or staged mutation as a non-``??`` entry, which immediately makes the worktree dirty. Untracked
+    entries are ignored only through the same narrow transient/tool filter used by the exact alternate
+    index snapshot below. Unknown/malformed porcelain records fail closed to the exact slow path.
+
+    The NUL-delimited form avoids path quoting ambiguities. Rename/copy records cannot be mistaken for
+    clean state because their first tracked record already returns False before the extra path token is
+    considered.
+    """
+    raw = git(
+        repo,
+        "-c",
+        "core.quotePath=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=all",
+    )
+    if not raw:
+        return True
+    for record in raw.split("\0"):
+        if not record:
+            continue
+        if len(record) < 4 or record[2] != " ":
+            return False
+        status = record[:2]
+        path = record[3:]
+        if status == "??" and _is_transient_untracked(path):
+            continue
+        return False
+    return True
+
+
 def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> str:
-    """Create an unreachable commit representing meaningful worktree content.
+    """Return a commit representing the exact meaningful worktree content.
 
-    An alternate index is used, so the user's real staging area is untouched. Git-ignored files are
-    not captured. Narrow, known *untracked* runtime/test/tool artifacts are also omitted because a
+    For a semantically clean worktree with no caller-owned exclusions, ``HEAD`` is already the exact
+    snapshot and is returned directly. This avoids creating an alternate index and unreachable commit
+    on hot read paths such as status/explain/session-start. The fast path is conservative: any tracked,
+    staged, meaningful untracked, malformed, or otherwise uncertain state falls back to the original
+    exact algorithm.
+
+    The exact path uses an alternate index, so the user's real staging area is untouched. Git-ignored
+    files are not captured. Narrow, known *untracked* runtime/test/tool artifacts are omitted because a
     preceding evidence run or local agent integration must not change the semantic candidate being
-    proved. Deliberately tracked files are never auto-excluded, even if their names resemble those
-    local artifacts.
+    proved. Deliberately tracked files are never auto-excluded, even if their names resemble those local
+    artifacts.
 
-    `exclude_paths` is reserved for caller-owned generated artifacts such as the certificate being
-    verified. All exclusions affect only the ephemeral alternate index and never mutate the user's
-    real staging area or working files.
+    ``exclude_paths`` is reserved for caller-owned generated artifacts such as the certificate being
+    verified. All exclusions affect only the ephemeral alternate index and never mutate the user's real
+    staging area or working files.
     """
     head = resolve_ref(repo, "HEAD")
+    if not exclude_paths and _meaningful_worktree_matches_head(repo):
+        return head
+
     fd, index_name = tempfile.mkstemp(prefix="diffwitness-index-")
     os.close(fd)
     os.unlink(index_name)
@@ -253,7 +298,7 @@ def hard_reset(worktree: Path, commit: str, *, clean_ignored: bool = False) -> N
     """Restore a disposable worktree to an exact commit.
 
     Normal callers preserve ignored dependency/cache state for speed. Stability isolation sets
-    `clean_ignored=True`, which is safe only for DiffWitness-owned disposable worktrees: ignored and
+    ``clean_ignored=True``, which is safe only for DiffWitness-owned disposable worktrees: ignored and
     untracked state is removed before preparation is recreated for the next evidence repetition.
     """
     git(worktree, "reset", "--hard", "--quiet", commit)
