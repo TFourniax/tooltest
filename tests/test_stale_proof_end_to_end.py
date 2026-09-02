@@ -142,6 +142,8 @@ class StaleProofEndToEndTests(unittest.TestCase):
                         "gate",
                         "--repo",
                         str(repo),
+                        "--base",
+                        "HEAD",
                         "--candidate",
                         "WORKTREE",
                         "--stability-runs",
