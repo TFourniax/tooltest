@@ -28,8 +28,15 @@ _MAX_RETRIES = 3
 
 
 def _decision(decision: str, message: str) -> dict[str, Any]:
-    payload: dict[str, Any] = {"decision": decision, "systemMessage": message}
+    """Render a portable Claude/Codex Stop-hook decision.
+
+    Both current providers use ``decision: block`` to request continuation, while a successful
+    Stop must omit the decision field entirely.  Keeping ``systemMessage`` on success preserves a
+    concise user-visible completion notice without relying on an unsupported ``approve`` value.
+    """
+    payload: dict[str, Any] = {"systemMessage": message}
     if decision == "block":
+        payload["decision"] = "block"
         payload["reason"] = message
     return payload
 
