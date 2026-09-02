@@ -84,7 +84,7 @@ def _token_overlap(left: set[str], right: set[str]) -> int:
 def _fallback_related_changes(repo: Path, task: str, *, limit: int) -> list[dict[str, Any]]:
     """Recover recent change relevance from bounded file-name semantics when graph seeding is empty.
 
-    This is deliberately conservative: no source or raw prompt is persisted.  It handles natural
+    This is deliberately conservative: no source or raw prompt is persisted. It handles natural
     queries such as French ``calcul`` against ``calculator.py`` without returning every recent
     change merely because it is recent.
     """
@@ -162,6 +162,45 @@ def _fallback_related_changes(repo: Path, task: str, *, limit: int) -> list[dict
     return result
 
 
+def _seeded_base_changes(context: dict[str, Any]) -> list[dict[str, Any]]:
+    """Keep base-layer recent changes only when the task actually seeded their relevance.
+
+    The historical base compiler intentionally had a recency fallback: when neither a graph relation
+    nor a related component existed it returned recent changes anyway. That is useful for browsing,
+    but unsafe for a task context because recency is not evidence of relevance. The enriched product
+    surface therefore requires either an explicit graph link to the change or overlap with a task-
+    selected component path. Unknown relevance fails closed and lets the bounded lexical fallback try.
+    """
+    component_paths = {
+        str(item.get("path") or "")
+        for item in context.get("components", [])
+        if isinstance(item, dict) and item.get("path")
+    }
+    graph_change_ids: set[str] = set()
+    for relation in context.get("relations", []):
+        if not isinstance(relation, dict):
+            continue
+        for endpoint in (relation.get("source"), relation.get("target")):
+            value = str(endpoint or "")
+            if value.startswith("dwchg_"):
+                graph_change_ids.add(value)
+
+    result: list[dict[str, Any]] = []
+    for raw in context.get("recentRelatedChanges", []):
+        if not isinstance(raw, dict):
+            continue
+        change_id = str(raw.get("changeId") or "")
+        files = {str(value) for value in raw.get("files", []) if str(value)}
+        graph_match = change_id in graph_change_ids
+        file_match = bool(component_paths & files)
+        if not (graph_match or file_match):
+            continue
+        item = dict(raw)
+        item["relevanceBasis"] = "graph-relation" if graph_match else "component-path-overlap"
+        result.append(item)
+    return result
+
+
 def _native_setup_scope(repo: Path) -> list[str]:
     path = repo / ".git" / "diffwitness" / "setup-scope.json"
     try:
@@ -207,7 +246,7 @@ def compile_context(
     max_items: int = 12,
     refresh_structure: bool = True,
 ) -> dict[str, Any]:
-    """Compile base context with bounded debt and recent-change retrieval enrichment."""
+    """Compile base context with bounded debt and fail-closed recent-change relevance."""
     root = repo_root(repo)
     context = _compile_base_context(
         root,
@@ -227,8 +266,12 @@ def compile_context(
     debts.sort(key=lambda item: (-int(item.get("points") or 0), str(item.get("updated_at") or "")), reverse=False)
     context["knownDebt"] = debts[: max(1, max_items)]
 
-    if not context.get("recentRelatedChanges"):
-        context["recentRelatedChanges"] = _fallback_related_changes(root, task, limit=min(8, max_items))
+    seeded = _seeded_base_changes(context)
+    context["recentRelatedChanges"] = seeded or _fallback_related_changes(
+        root,
+        task,
+        limit=min(8, max_items),
+    )
     _coherent_evidence_guidance(root, context)
     context["context_id"] = _context_id(context)
     return context
