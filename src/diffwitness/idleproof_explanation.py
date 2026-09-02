@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from .gitops import git, repo_root, snapshot_worktree
+
 
 EXPLANATION_SCHEMA = "idleproof.explanation.v2"
 LLM_CONTEXT_SCHEMA = "idleproof.llm-context.v1"
@@ -255,7 +257,6 @@ def _verification_steps(signals: list[dict[str, Any]], proof: Mapping[str, Any])
             break
     if not steps:
         steps.append("No additional verification action was derived beyond the accepted DiffWitness evidence.")
-    # Preserve order while removing duplicate suggestions.
     return list(dict.fromkeys(steps))
 
 
@@ -316,6 +317,121 @@ def build_deterministic_explanation(
     }
 
 
+def _commit_tree(repo: Path, commit: str) -> str | None:
+    try:
+        value = git(repo, "rev-parse", "--verify", f"{commit}^{{tree}}").strip()
+    except Exception:
+        return None
+    return value or None
+
+
+def _current_coverage(repo: Path, envelope: Mapping[str, Any] | None) -> dict[str, Any]:
+    candidate = envelope.get("candidate") if isinstance(envelope, Mapping) and isinstance(envelope.get("candidate"), Mapping) else {}
+    candidate_tree = str(candidate.get("tree") or "").strip() or None
+    try:
+        current_commit = snapshot_worktree(repo)
+        current_tree = _commit_tree(repo, current_commit)
+    except Exception:
+        current_tree = None
+    if candidate_tree and current_tree:
+        covered = candidate_tree == current_tree
+        return {
+            "scope": "current" if covered else "historical",
+            "freshness": "current" if covered else "stale",
+            "current_worktree_covered": covered,
+            "candidate_tree": candidate_tree,
+            "current_tree": current_tree,
+        }
+    return {
+        "scope": "unknown",
+        "freshness": "unknown",
+        "current_worktree_covered": None,
+        "candidate_tree": candidate_tree,
+        "current_tree": current_tree,
+    }
+
+
+def scope_explanation_to_current_worktree(
+    *,
+    repo: Path,
+    explanation: Mapping[str, Any],
+    envelope: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Bind presentation trust to the current meaningful worktree without rewriting history.
+
+    The accepted certificate remains authoritative for its exact candidate tree.  This overlay only
+    answers the separate question users naturally ask of ``dw explain``: whether that historical
+    evidence still covers the code currently in front of them.
+    """
+    result = dict(explanation)
+    coverage = _current_coverage(repo, envelope)
+    result["coverage"] = coverage
+    proof = dict(result.get("proof") or {})
+    proof["scope"] = coverage["scope"]
+    proof["current_worktree_covered"] = coverage["current_worktree_covered"]
+    result["proof"] = proof
+
+    if coverage["freshness"] == "current":
+        return result
+
+    if coverage["freshness"] == "stale":
+        warning = (
+            "The accepted DiffWitness Proof applies to a previous exact code state. The current "
+            "worktree has changed and is NOT covered by that Proof."
+        )
+        result["confidence"] = "historical" if proof.get("accepted") else "advisory"
+        result["why_it_matters"] = [warning, *[str(item) for item in result.get("why_it_matters") or []]]
+        result["verify_next"] = [
+            "Verify the current worktree before treating the current code as verified.",
+            *[
+                str(item)
+                for item in result.get("verify_next") or []
+                if "No additional verification action" not in str(item)
+            ],
+        ]
+        return result
+
+    warning = (
+        "DiffWitness could not establish whether the current worktree still matches the captured "
+        "Proof. Treat the Proof as historical until current coverage is established."
+    )
+    result["confidence"] = "unknown"
+    result["why_it_matters"] = [warning, *[str(item) for item in result.get("why_it_matters") or []]]
+    result["verify_next"] = [
+        "Re-establish current worktree coverage before treating the current code as verified.",
+        *[
+            str(item)
+            for item in result.get("verify_next") or []
+            if "No additional verification action" not in str(item)
+        ],
+    ]
+    return result
+
+
+def load_current_explanation(repo: str | Path = ".") -> dict[str, Any]:
+    """Load the latest deterministic explanation with a live current-worktree trust overlay."""
+    root = repo_root(repo)
+    explanation_path = root / ".git" / "diffwitness" / "idleproof-explanation.json"
+    if not explanation_path.is_file():
+        raise FileNotFoundError("No captured IdleProof explanation yet. Run a guarded/IDE task first.")
+    try:
+        explanation = json.loads(explanation_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"IdleProof explanation cannot be read: {exc}") from exc
+    if not isinstance(explanation, dict):
+        raise ValueError("IdleProof explanation is not a JSON object.")
+
+    envelope_path = root / ".git" / "diffwitness" / "change-envelope.json"
+    envelope: dict[str, Any] | None = None
+    try:
+        raw = json.loads(envelope_path.read_text(encoding="utf-8"))
+        if isinstance(raw, dict) and raw.get("change_id") == explanation.get("change_id"):
+            envelope = raw
+    except (OSError, json.JSONDecodeError):
+        envelope = None
+    return scope_explanation_to_current_worktree(repo=root, explanation=explanation, envelope=envelope)
+
+
 def _soul_candidates(repo: Path) -> tuple[Path, ...]:
     return (
         repo / ".diffwitness" / "soul.md",
@@ -334,8 +450,6 @@ def load_soul(repo: Path, *, max_chars: int = DEFAULT_SOUL_MAX_CHARS) -> dict[st
             text = path.read_text(encoding="utf-8")
         except OSError:
             continue
-        # A soul is presentation guidance only. Bound it aggressively so it can never dominate the
-        # evidence context or create unbounded model cost.
         text = text.strip()[: max(0, int(max_chars))]
         if text:
             try:
@@ -361,6 +475,7 @@ def build_llm_context(
     allowed = {
         "change_id": explanation.get("change_id"),
         "confidence": explanation.get("confidence"),
+        "coverage": explanation.get("coverage"),
         "proof": explanation.get("proof"),
         "summary": explanation.get("summary"),
         "what_changed": explanation.get("what_changed"),
@@ -371,7 +486,12 @@ def build_llm_context(
     }
     payload: dict[str, Any] = {
         "schema": LLM_CONTEXT_SCHEMA,
-        "role": "You are a presentation layer. Rephrase only the supplied evidence-backed facts. Do not add behavior, risk, intent, causality, or recommendations not present in the facts.",
+        "role": (
+            "You are a presentation layer. Rephrase only the supplied evidence-backed facts. Do not "
+            "add behavior, risk, intent, causality, or recommendations not present in the facts. "
+            "Coverage is authoritative: when current_worktree_covered is false or unknown, never "
+            "describe a historical accepted Proof as verification of the current code."
+        ),
         "facts": allowed,
     }
     if soul:
@@ -381,17 +501,16 @@ def build_llm_context(
         }
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if len(encoded) > max_chars:
-        # First shed optional detail rather than truncate JSON or facts mid-field.
         facts = dict(allowed)
         facts["findings"] = list(facts.get("findings") or [])[:8]
         facts["files"] = list(facts.get("files") or [])[:12]
         payload["facts"] = facts
         encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if len(encoded) > max_chars:
-        # The deterministic explanation remains complete; the LLM gets a bounded synopsis.
         payload["facts"] = {
             "change_id": explanation.get("change_id"),
             "confidence": explanation.get("confidence"),
+            "coverage": explanation.get("coverage"),
             "proof": explanation.get("proof"),
             "summary": explanation.get("summary"),
             "what_changed": list(explanation.get("what_changed") or [])[:3],
@@ -429,23 +548,19 @@ def explanation_cli(argv: list[str]) -> int:
     parser.add_argument("--repo", default=".")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
-    from .gitops import repo_root
-
-    root = repo_root(args.repo)
-    path = root / ".git" / "diffwitness" / "idleproof-explanation.json"
-    if not path.is_file():
-        print("No captured IdleProof explanation yet. Run a guarded/IDE task first.")
-        return 2
     try:
-        explanation = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        print(f"IdleProof explanation cannot be read: {exc}")
+        explanation = load_current_explanation(args.repo)
+    except (FileNotFoundError, ValueError) as exc:
+        print(str(exc))
         return 2
     if args.json:
         print(json.dumps(explanation, indent=2, ensure_ascii=False))
         return 0
     print("IdleProof · evidence-backed explanation")
     print(f"Confidence: {explanation.get('confidence', 'unknown')}")
+    coverage = explanation.get("coverage") if isinstance(explanation.get("coverage"), Mapping) else {}
+    if coverage:
+        print(f"Coverage: {coverage.get('scope', 'unknown')} · {coverage.get('freshness', 'unknown')}")
     for title, key in (("What changed", "what_changed"), ("Why it matters", "why_it_matters"), ("Verify next", "verify_next")):
         print(f"\n{title}")
         for item in explanation.get(key) or []:
