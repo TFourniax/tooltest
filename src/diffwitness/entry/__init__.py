@@ -187,6 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     if help_view is not None:
         print(_root_help(explicit_view=None if help_view == "auto" else help_view), end="")
         return 0
+    # Preserve the established packaging/CLI contract. These global options are implemented by the
+    # canonical frontend and must be routed before typo handling sees them as unknown switches.
+    if args[0] in {"-V", "--version"}:
+        return _frontend_main(args)
 
     friendly = _friendly_unknown(args)
     if friendly is not None:
