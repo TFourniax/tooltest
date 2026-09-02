@@ -69,7 +69,11 @@ def evidence_command(python: Path) -> str:
 def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Path, Path, Path, Path | None]:
     artifacts = root / "artifacts"
     artifacts.mkdir()
-    check([sys.executable, "-m", "pip", "wheel", str(ROOT), "--no-deps", "--wheel-dir", str(artifacts)], cwd=ROOT, timeout=180)
+    check(
+        [sys.executable, "-m", "pip", "wheel", str(ROOT), "--no-deps", "--wheel-dir", str(artifacts)],
+        cwd=ROOT,
+        timeout=180,
+    )
     wheels = sorted(artifacts.glob("diffwitness-*.whl"))
     require(len(wheels) == 1, f"expected exactly one DiffWitness wheel, found {len(wheels)}")
 
@@ -156,6 +160,46 @@ def run_native_hook(
     )
     require(proc.returncode == 0, f"native hook failed for {event.get('hook_event_name')}", proc)
     return proc, last_json(proc.stdout)
+
+
+def assert_successful_stop(
+    proc: subprocess.CompletedProcess[str],
+    payload: dict | None,
+    *,
+    label: str,
+) -> str:
+    """Validate the current Claude/Codex success contract without inventing an allow decision.
+
+    Native Stop success is represented by a successful hook process plus optional informational
+    output. A top-level decision is reserved for an actual block. Re-introducing `approve` here
+    would recreate the provider-contract bug found in human qualification (#25/#30).
+    """
+    require(payload is not None, f"{label} produced no structured native handoff", proc)
+    assert payload is not None
+    require("decision" not in payload, f"{label} emitted an unsupported top-level success decision", proc)
+    message = str(payload.get("systemMessage") or "")
+    require("Proof accepted" in message, f"{label} did not surface Proof acceptance", proc)
+    return message
+
+
+def assert_no_unrelated_auth_claim(repo: Path, message: str) -> None:
+    """Regression gate for the calculator false-positive found during release qualification."""
+    lower = message.lower()
+    for forbidden in (
+        "identity and permissions",
+        "who the user is",
+        "what that user is allowed to do",
+        "authenticated-but-unauthorized",
+    ):
+        require(forbidden not in lower, f"IdleProof fabricated unrelated auth semantics in calculator handoff: {forbidden}")
+
+    receipt = read_json(repo / ".idleproof" / "receipt.json")
+    concepts = {
+        str(item.get("id") or "")
+        for item in (receipt.get("session", {}).get("concepts") or [])
+        if isinstance(item, dict)
+    }
+    require("auth" not in concepts, "calculator-only task was incorrectly persisted as an auth concept")
 
 
 def assert_integrated_envelope(repo: Path, *, previous_change_id: str | None = None) -> str:
@@ -309,9 +353,9 @@ def main(argv: list[str] | None = None) -> int:
                 session=session1,
                 event={"hook_event_name": "Stop"},
             )
-            require(stop1 is not None and stop1.get("decision") == "approve", "native task handoff was not approved", stop1_proc)
-            require("Proof accepted" in str(stop1.get("systemMessage") or ""), "native handoff did not surface Proof acceptance")
+            stop1_message = assert_successful_stop(stop1_proc, stop1, label="native task handoff")
             first_change_id = assert_integrated_envelope(project)
+            assert_no_unrelated_auth_claim(project, stop1_message)
             assert_continuity(project, first_change_id)
 
             # Do not commit the first task. Add a new failing regression test before SessionStart as
@@ -367,8 +411,7 @@ def main(argv: list[str] | None = None) -> int:
                 session=session2,
                 event={"hook_event_name": "Stop"},
             )
-            require(stop2 is not None and stop2.get("decision") == "approve", "dirty-baseline native handoff was not approved", stop2_proc)
-            require("Proof accepted" in str(stop2.get("systemMessage") or ""), "dirty-baseline handoff did not surface Proof acceptance")
+            assert_successful_stop(stop2_proc, stop2, label="dirty-baseline native handoff")
             second_change_id = assert_integrated_envelope(project, previous_change_id=first_change_id)
             assert_continuity(project, second_change_id)
 
