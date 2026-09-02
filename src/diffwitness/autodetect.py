@@ -33,18 +33,17 @@ def _split_command(command: str) -> list[str]:
         return []
 
 
-def command_executable(command: str) -> str | None:
-    """Resolve the executable a configured evidence command would start, without running it."""
+def command_executable(command: str, *, cwd: Path | None = None) -> str | None:
+    """Resolve the executable an evidence command would start, without executing evidence."""
     tokens = _split_command(command)
     if not tokens:
         return None
     executable = tokens[0]
-    # Common explicit wrappers remain ordinary executables and are preflighted as such.  We avoid
-    # shell execution here: readiness means "can start", never "tests already pass".
     if os.path.sep in executable or (os.path.altsep and os.path.altsep in executable):
+        base = (cwd or Path.cwd()).resolve()
         path = Path(executable).expanduser()
         if not path.is_absolute():
-            path = Path.cwd() / path
+            path = base / path
         try:
             resolved = path.resolve(strict=True)
         except OSError:
@@ -57,8 +56,8 @@ def command_executable(command: str) -> str | None:
     return shutil.which(executable)
 
 
-def command_available(command: str) -> bool:
-    return command_executable(command) is not None
+def command_available(command: str, *, cwd: Path | None = None) -> bool:
+    return command_executable(command, cwd=cwd) is not None
 
 
 def suggested_available_command(command: str) -> str | None:
@@ -68,23 +67,20 @@ def suggested_available_command(command: str) -> str | None:
         return None
     first = tokens[0]
     if first in {"python", "python.exe"} and not shutil.which(first):
-        replacement = shutil.which("python3")
-        if replacement:
+        if shutil.which("python3"):
             tokens[0] = "python3"
             return shlex.join(tokens)
     if first == "python3" and not shutil.which(first):
-        replacement = shutil.which("python")
-        if replacement:
+        if shutil.which("python"):
             tokens[0] = "python"
             return shlex.join(tokens)
     return None
 
 
 def _python_launcher() -> str:
-    # Prefer the platform convention only when it is actually available.  This keeps generated
-    # onboarding commands copy/pasteable on WSL/Linux while preserving Windows/macOS behavior.
-    if os.name != "nt" and shutil.which("python3"):
-        return "python3"
+    # Preserve the long-standing command when a `python` launcher exists.  On WSL/Linux systems
+    # that expose only `python3`, generate a command that can actually start instead of a false-ready
+    # `python ...` command.
     if shutil.which("python"):
         return "python"
     if shutil.which("python3"):
@@ -104,7 +100,7 @@ def detect_evidence(repo: Path) -> list[EvidencePlan]:
     """Return conservative, ordered evidence commands inferred from repository metadata.
 
     Detection intentionally prefers explicit project scripts/configuration over guesses. Commands
-    use an actually available Python launcher when one can be resolved.  Metadata detection itself
+    use an actually available Python launcher when one can be resolved. Metadata detection itself
     never executes the test suite.
     """
     repo = repo.resolve()
@@ -179,9 +175,8 @@ def detect_evidence(repo: Path) -> list[EvidencePlan]:
 
 def default_evidence(repo: Path) -> EvidencePlan | None:
     plans = detect_evidence(repo)
-    # Never advertise a zero-config default that cannot even start on this machine.
     for plan in plans:
-        if command_available(plan.command):
+        if command_available(plan.command, cwd=repo):
             return plan
     return plans[0] if plans else None
 
