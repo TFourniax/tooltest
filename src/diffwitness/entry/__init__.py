@@ -159,8 +159,6 @@ def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
 def _explain(argv: list[str]) -> int:
     engine = _option_value(argv, "--engine", "deterministic") or "deterministic"
     if engine == "deterministic":
-        # Keep the deterministic command lightweight and view-aware. Remove an explicit engine flag
-        # before delegating because explain_ui has no inference semantics.
         cleaned: list[str] = []
         skip = False
         for index, value in enumerate(argv):
@@ -204,8 +202,8 @@ def main(argv: list[str] | None = None) -> int:
         from ..setup import setup_cli
         return setup_cli(args[1:])
     if args[0] == "protect":
-        from ..protect import protect_cli
-        return protect_cli(args[1:])
+        from ..protect_ui import protect_surface_cli
+        return protect_surface_cli(args[1:])
     if args[0] == "explain":
         return _explain(args[1:])
     if args[0] == "portal":
