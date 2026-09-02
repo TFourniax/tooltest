@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +64,142 @@ def _debt_rows(repo: Path, identities: set[str]) -> list[dict[str, Any]]:
         conn.close()
 
 
+def _search_tokens(value: str) -> set[str]:
+    normalized = unicodedata.normalize("NFKD", str(value or ""))
+    asciiish = "".join(char for char in normalized if not unicodedata.combining(char)).lower()
+    return {token for token in re.findall(r"[a-z0-9]+", asciiish) if len(token) >= 4}
+
+
+def _token_overlap(left: set[str], right: set[str]) -> int:
+    score = 0
+    for one in left:
+        for two in right:
+            if one == two:
+                score += 3
+            elif len(one) >= 5 and len(two) >= 5 and (one.startswith(two) or two.startswith(one)):
+                score += 2
+    return score
+
+
+def _fallback_related_changes(repo: Path, task: str, *, limit: int) -> list[dict[str, Any]]:
+    """Recover recent change relevance from bounded file-name semantics when graph seeding is empty.
+
+    This is deliberately conservative: no source or raw prompt is persisted.  It handles natural
+    queries such as French ``calcul`` against ``calculator.py`` without returning every recent
+    change merely because it is recent.
+    """
+    task_tokens = _search_tokens(task)
+    if not task_tokens:
+        return []
+    state = continuity_paths(repo).state
+    conn = sqlite3.connect(state)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            select c.change_id,c.updated_at,c.changed_files_json,
+                   p.claim,p.accepted,p.epistemic_status as proof_epistemic_status,
+                   ds.points,ds.obligations,ds.budget_passed,
+                   u.coverage,u.knowledge_debt
+            from changes c
+            left join proofs p on p.certificate_id = (
+              select p2.certificate_id from proofs p2 where p2.change_id=c.change_id
+              order by case p2.epistemic_status when 'VERIFIED' then 4 when 'OBSERVED' then 3 when 'INFERRED' then 2 else 1 end desc,
+                       p2.updated_at desc, p2.certificate_id desc limit 1
+            )
+            left join debt_snapshots ds on ds.change_id=c.change_id
+            left join understanding u on u.change_id=c.change_id
+            order by c.updated_at desc
+            limit 40
+            """
+        ).fetchall()
+    finally:
+        conn.close()
+
+    ranked: list[tuple[int, str, sqlite3.Row, list[str]]] = []
+    for row in rows:
+        try:
+            loaded = json.loads(row["changed_files_json"])
+            files = [str(value) for value in loaded] if isinstance(loaded, list) else []
+        except Exception:
+            files = []
+        file_tokens: set[str] = set()
+        for path in files[:20]:
+            file_tokens.update(_search_tokens(path.replace("/", " ").replace("_", " ").replace("-", " ")))
+        score = _token_overlap(task_tokens, file_tokens)
+        if score:
+            verified_bonus = 1 if row["proof_epistemic_status"] == "VERIFIED" and bool(row["accepted"]) else 0
+            ranked.append((score + verified_bonus, str(row["updated_at"] or ""), row, files))
+    ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
+
+    result: list[dict[str, Any]] = []
+    for _, _, row, files in ranked[: max(1, limit)]:
+        result.append(
+            {
+                "changeId": row["change_id"],
+                "updatedAt": row["updated_at"],
+                "files": files[:20],
+                "proof": None
+                if row["claim"] is None
+                else {
+                    "claim": row["claim"],
+                    "accepted": bool(row["accepted"]),
+                    "epistemicStatus": row["proof_epistemic_status"],
+                },
+                "softwareDebt": None
+                if row["points"] is None
+                else {
+                    "points": row["points"],
+                    "obligations": row["obligations"],
+                    "budgetPassed": None if row["budget_passed"] is None else bool(row["budget_passed"]),
+                },
+                "understanding": None
+                if row["coverage"] is None
+                else {"coverage": row["coverage"], "knowledgeDebt": row["knowledge_debt"]},
+                "relevanceBasis": "bounded-file-name-overlap",
+            }
+        )
+    return result
+
+
+def _native_setup_scope(repo: Path) -> list[str]:
+    path = repo / ".git" / "diffwitness" / "setup-scope.json"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(value, dict) or value.get("schema") != "diffwitness.setup-scope.v1":
+        return []
+    adapters = value.get("adapters")
+    return [str(item) for item in adapters if str(item)] if isinstance(adapters, list) else []
+
+
+def _coherent_evidence_guidance(repo: Path, context: dict[str, Any]) -> None:
+    adapters = _native_setup_scope(repo)
+    if not adapters:
+        return
+    required = context.get("requiredEvidence")
+    if not isinstance(required, list):
+        return
+    filtered = [
+        item
+        for item in required
+        if not (isinstance(item, dict) and str(item.get("kind") or "") == "change-proof")
+    ]
+    filtered.append(
+        {
+            "kind": "native-task-boundary",
+            "authority": "diffwitness",
+            "note": (
+                "Use the configured coding agent normally; its native Stop boundary runs DiffWitness "
+                "Proof, Debt and Continuity. `dw guard` is only a manual fallback outside native integration."
+            ),
+            "adapters": adapters,
+        }
+    )
+    context["requiredEvidence"] = filtered
+
+
 def compile_context(
     repo: str | Path,
     task: str,
@@ -69,13 +207,7 @@ def compile_context(
     max_items: int = 12,
     refresh_structure: bool = True,
 ) -> dict[str, Any]:
-    """Compile base context and promote explicitly graph-linked open debt into the agent view.
-
-    A decision/objective/invariant can therefore explain a durable DW-* obligation even when the
-    debt is old and its introducing change would not otherwise rank among the task's recent changes.
-    The human relation remains DECLARED; the debt's own accounting status remains OBSERVED/verified
-    only according to the authoritative Debt Ledger projection.
-    """
+    """Compile base context with bounded debt and recent-change retrieval enrichment."""
     root = repo_root(repo)
     context = _compile_base_context(
         root,
@@ -94,6 +226,10 @@ def compile_context(
     debts = list(existing.values())
     debts.sort(key=lambda item: (-int(item.get("points") or 0), str(item.get("updated_at") or "")), reverse=False)
     context["knownDebt"] = debts[: max(1, max_items)]
+
+    if not context.get("recentRelatedChanges"):
+        context["recentRelatedChanges"] = _fallback_related_changes(root, task, limit=min(8, max_items))
+    _coherent_evidence_guidance(root, context)
     context["context_id"] = _context_id(context)
     return context
 
