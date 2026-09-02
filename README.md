@@ -96,34 +96,53 @@ For the current repository build:
 python -m pip install -e .
 ```
 
-or:
+or install the isolated CLI with pipx:
 
 ```bash
 pipx install .
+pipx ensurepath
 ```
 
-Verify the install:
+After `pipx ensurepath`, open a new shell or reload your shell profile before using `dw`. On macOS/Linux/WSL, verify the command explicitly:
 
 ```bash
+command -v dw
 dw --version
-dw doctor
 ```
+
+If `command -v dw` prints nothing, reload the current shell first (for Bash, commonly `source ~/.bashrc`) and run the check again. On Windows, open a new PowerShell/Terminal and verify with:
+
+```powershell
+Get-Command dw
+dw --version
+```
+
+A successful `pipx install` followed by `dw: command not found` means the pipx application directory is not active in the current shell PATH; it is not a failed DiffWitness package installation.
 
 Once the repository is public, a Git install can be used without cloning manually:
 
 ```bash
 pipx install git+https://github.com/TFourniax/tooltest.git
+pipx ensurepath
 ```
 
 For production/community distribution, prefer a tagged release or package-registry release over pinning workflows to `main`.
 
 ## The fast path
 
-### 1. Inspect evidence and local integration
+### 1. Connect DiffWitness to the Git project and inspect evidence
+
+Run setup **inside the Git repository you want DiffWitness to protect/verify**:
 
 ```bash
+dw setup --agent auto
+dw setup status
 dw doctor
 ```
+
+`dw setup` installs the native integration scope detected/selected for this project. It does **not** silently enable Protect. `dw setup status` distinguishes configured integration from live provider observation and executable verification readiness.
+
+For Codex, hook files on disk do not mean the provider has trusted or executed them. Codex must complete its own normal project/hook approval flow. DiffWitness never grants itself that trust and stays conservative until a live Codex hook is actually observed.
 
 DiffWitness conservatively detects explicit repository signals for common Python, JavaScript/TypeScript, Rust, Go, JVM, PHP and Ruby projects. An explicit `.diffwitness.toml` always wins.
 
@@ -147,6 +166,8 @@ max_per_change = 12
 max = 10
 ```
 
+A configured evidence command is only reported as ready when its executable is available. DiffWitness can suggest a safe equivalent when one is detected, but it does not silently rewrite project configuration.
+
 ### 2. Choose live runtime protection — optional
 
 Inspect the environment:
@@ -161,7 +182,7 @@ Use builtin DiffWitness guards:
 dw protect enable
 ```
 
-For current Codex builds, installing the hook file is only the first step: Codex itself must have its `hooks` feature enabled, the repository must pass Codex's normal project-trust flow, and the DiffWitness hooks must be approved through Codex's own hook-trust UI. DiffWitness never grants itself that trust. `dw protect status` stays conservative until a live Codex hook has actually invoked Protect. See [`docs/PROTECT.md`](docs/PROTECT.md).
+Protect follows the project provider scope established by setup instead of silently adding unrelated agents. For current Codex builds, installing the hook file is only the first step: Codex itself must have its `hooks` feature enabled, the repository must pass Codex's normal project-trust flow, and the DiffWitness hooks must be approved through Codex's own hook-trust UI. DiffWitness never grants itself that trust. `dw protect status` stays conservative until a live Codex hook has actually invoked Protect. See [`docs/PROTECT.md`](docs/PROTECT.md).
 
 Keep an existing external harness:
 
@@ -177,26 +198,38 @@ dw protect disable
 
 All three paths keep the same Proof, Debt Ledger, Continuity and IdleProof semantics. `off` means no DiffWitness Protect interception hook is installed.
 
-### 3. Launch your normal agent through the proof boundary
+### 3. Use the configured coding agent normally
+
+After setup/evidence readiness, open the configured provider normally:
 
 ```bash
-dw guard -- claude
+claude
 ```
 
 or:
 
 ```bash
-dw guard -- codex
+codex
 ```
 
-Guard captures the repository before the agent starts, leaves the agent interactive, then evaluates the exact resulting repository state after the agent exits.
+The native SessionStart boundary captures the starting repository state. The native Stop boundary evaluates the exact resulting change and connects **PROVE · OWE · UNDERSTAND · CONTINUITY** without requiring a nested wrapper agent.
+
+`dw guard` remains the stable explicit before/after wrapper when native integration is unavailable or when you intentionally want a process boundary:
+
+```bash
+dw guard -- claude
+```
 
 ### 4. Inspect project state and debt
 
 ```bash
 dw status
+dw explain
 dw health
+dw ledger list
 ```
+
+If the current code has drifted after an accepted Proof, `dw explain` keeps the historical Proof intact but clearly scopes it as historical/stale relative to the current worktree and requires re-verification. Returning exactly to the proved tree restores exact-content coverage.
 
 ### 5. Pick a repayment mission
 
@@ -259,7 +292,7 @@ Full contract: [`docs/PROTECT.md`](docs/PROTECT.md).
 
 ## Proof Guard
 
-`dw guard` is the stable before/after proof workflow and works independently of Protect mode.
+`dw guard` is the stable explicit before/after proof workflow and works independently of Protect mode. Native Claude/Codex integration uses the same proof semantics at the provider task boundary; Guard is useful as a manual fallback or deliberate wrapper.
 
 ### Balanced — default
 
@@ -473,14 +506,23 @@ skills/diffwitness/SKILL.md
 hooks/
 ```
 
-The native hooks make the workflow convenient, while the process wrapper remains the stable explicit trust boundary:
+For interactive use, configure the project once and then use the provider normally:
+
+```bash
+dw setup --agent auto
+claude   # or: codex
+```
+
+The native hooks share the same canonical task boundary, Proof/Debt/Continuity semantics and bounded UNDERSTAND layer. A successful Stop does not invent a provider `approve` decision; rejected handoffs use the provider's blocking contract.
+
+The process wrapper remains available as an explicit fallback:
 
 ```bash
 dw guard -- claude
 dw guard -- codex
 ```
 
-Builtin Protect hooks are installed separately and only after explicit opt-in, so Protect can be disabled or delegated without removing the proof/continuity integration.
+Builtin Protect is enabled separately and only after explicit opt-in, so Protect can be disabled or delegated without removing the proof/continuity integration.
 
 ## IdleProof + Portal
 
