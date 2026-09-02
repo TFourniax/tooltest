@@ -147,7 +147,6 @@ class IdleProofUserInferenceTests(unittest.TestCase):
         self.assertIn("Bearer user-secret", opener.last_request.headers.get("Authorization", ""))
 
     def test_provider_control_characters_are_neutralized_before_display_or_cache(self):
-        context = self.context()
         payload = {
             "choices": [
                 {
@@ -162,7 +161,7 @@ class IdleProofUserInferenceTests(unittest.TestCase):
         opener = _Opener(payload)
         with mock.patch("urllib.request.build_opener", return_value=opener):
             result = call_user_owned_provider(
-                context=context,
+                context=self.context(),
                 endpoint="https://provider.example/v1/chat/completions",
                 model="user/model",
                 api_key="user-secret",
@@ -208,7 +207,7 @@ class IdleProofUserInferenceTests(unittest.TestCase):
             repo = self.repo(Path(td))
             out = io.StringIO()
             with mock.patch("urllib.request.build_opener") as build_opener, contextlib.redirect_stdout(out):
-                self.assertEqual(main(["explain", "--repo", str(repo)]), 0)
+                self.assertEqual(main(["explain", "--repo", str(repo), "--view", "technical"]), 0)
             build_opener.assert_not_called()
             self.assertIn("No LLM or paid API was used", out.getvalue())
 
@@ -217,12 +216,19 @@ class IdleProofUserInferenceTests(unittest.TestCase):
             repo = self.repo(Path(td))
             out = io.StringIO()
             err = io.StringIO()
-            with mock.patch("urllib.request.build_opener") as build_opener, contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            with (
+                mock.patch("urllib.request.build_opener") as build_opener,
+                contextlib.redirect_stdout(out),
+                contextlib.redirect_stderr(err),
+            ):
                 self.assertEqual(main(["explain", "--repo", str(repo), "--engine", "managed"]), 0)
             build_opener.assert_not_called()
             self.assertIn("deliberately unavailable in the OSS CLI", err.getvalue())
             self.assertIn("No DiffWitness-paid API was contacted", err.getvalue())
-            self.assertIn("No LLM or paid API was used", out.getvalue())
+            self.assertTrue(
+                "No LLM or paid API was used" in out.getvalue()
+                or "Aucun LLM ni API payante" in out.getvalue()
+            )
 
     def test_openrouter_uses_only_user_key_and_cache_prevents_second_provider_call(self):
         with tempfile.TemporaryDirectory() as td:
@@ -259,8 +265,7 @@ class IdleProofUserInferenceTests(unittest.TestCase):
             self.assertIn("cached", second.getvalue())
             cache = repo / ".git" / "diffwitness" / "idleproof-ai-cache.json"
             self.assertTrue(cache.is_file())
-            cache_text = cache.read_text(encoding="utf-8")
-            self.assertNotIn("user-openrouter-key", cache_text)
+            self.assertNotIn("user-openrouter-key", cache.read_text(encoding="utf-8"))
 
     def test_cache_is_content_addressed_by_context_endpoint_and_model(self):
         with tempfile.TemporaryDirectory() as td:

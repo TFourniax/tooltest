@@ -69,7 +69,11 @@ def evidence_command(python: Path) -> str:
 def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Path, Path, Path, Path | None]:
     artifacts = root / "artifacts"
     artifacts.mkdir()
-    check([sys.executable, "-m", "pip", "wheel", str(ROOT), "--no-deps", "--wheel-dir", str(artifacts)], cwd=ROOT, timeout=180)
+    check(
+        [sys.executable, "-m", "pip", "wheel", str(ROOT), "--no-deps", "--wheel-dir", str(artifacts)],
+        cwd=ROOT,
+        timeout=180,
+    )
     wheels = sorted(artifacts.glob("diffwitness-*.whl"))
     require(len(wheels) == 1, f"expected exactly one DiffWitness wheel, found {len(wheels)}")
 
@@ -144,18 +148,75 @@ def run_native_hook(
     env: dict[str, str],
     session: str,
     event: dict,
+    provider: str = "claude",
     timeout: float = 240.0,
 ) -> tuple[subprocess.CompletedProcess[str], dict | None]:
+    require(provider in {"claude", "codex"}, f"unsupported native smoke provider: {provider}")
     payload = {"cwd": str(project), "session_id": session, **event}
     proc = run(
-        [str(node), str(hook_bin), "claude"],
+        [str(node), str(hook_bin), provider],
         cwd=project,
         env=env,
         timeout=timeout,
         input_text=json.dumps(payload) + "\n",
     )
-    require(proc.returncode == 0, f"native hook failed for {event.get('hook_event_name')}", proc)
+    require(proc.returncode == 0, f"native {provider} hook failed for {event.get('hook_event_name')}", proc)
     return proc, last_json(proc.stdout)
+
+
+def setup_status_json(*, dw: Path, idleproof_shim: Path, project: Path, env: dict[str, str]) -> tuple[subprocess.CompletedProcess[str], dict]:
+    status = run(
+        [str(dw), "setup", "status", "--idleproof-command", str(idleproof_shim), "--json"],
+        cwd=project,
+        env=env,
+        timeout=30,
+    )
+    require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
+    try:
+        payload = json.loads(status.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"dw setup status returned invalid JSON: {status.stdout[:1000]}") from exc
+    return status, payload
+
+
+def assert_successful_stop(
+    proc: subprocess.CompletedProcess[str],
+    payload: dict | None,
+    *,
+    label: str,
+) -> str:
+    """Validate the current Claude/Codex success contract without inventing an allow decision.
+
+    Native Stop success is represented by a successful hook process plus optional informational
+    output. A top-level decision is reserved for an actual block. Re-introducing `approve` here
+    would recreate the provider-contract bug found in human qualification (#25/#30).
+    """
+    require(payload is not None, f"{label} produced no structured native handoff", proc)
+    assert payload is not None
+    require("decision" not in payload, f"{label} emitted an unsupported top-level success decision", proc)
+    message = str(payload.get("systemMessage") or "")
+    require("Proof accepted" in message, f"{label} did not surface Proof acceptance", proc)
+    return message
+
+
+def assert_no_unrelated_auth_claim(repo: Path, message: str) -> None:
+    """Regression gate for the calculator false-positive found during release qualification."""
+    lower = message.lower()
+    for forbidden in (
+        "identity and permissions",
+        "who the user is",
+        "what that user is allowed to do",
+        "authenticated-but-unauthorized",
+    ):
+        require(forbidden not in lower, f"IdleProof fabricated unrelated auth semantics in calculator handoff: {forbidden}")
+
+    receipt = read_json(repo / ".idleproof" / "receipt.json")
+    concepts = {
+        str(item.get("id") or "")
+        for item in (receipt.get("session", {}).get("concepts") or [])
+        if isinstance(item, dict)
+    }
+    require("auth" not in concepts, "calculator-only task was incorrectly persisted as an auth concept")
 
 
 def assert_integrated_envelope(repo: Path, *, previous_change_id: str | None = None) -> str:
@@ -250,21 +311,19 @@ def main(argv: list[str] | None = None) -> int:
                 env=env,
                 timeout=120,
             )
-            require(setup.returncode == 0, "dw setup did not arm the exact installed artifacts", setup)
-            require("DiffWitness is ready" in setup.stdout, "dw setup did not expose the release-ready user message", setup)
-            status = run(
-                [str(dw), "setup", "status", "--idleproof-command", str(idleproof_shim), "--json"],
-                cwd=project,
-                env=env,
-                timeout=30,
+            require(setup.returncode == 0, "dw setup did not configure the exact installed artifacts", setup)
+            require(
+                "DiffWitness is ready" not in setup.stdout,
+                "setup claimed full readiness before Codex provider trust/observation",
+                setup,
             )
-            require(status.returncode == 0, "dw setup status rejected the freshly installed integration", status)
-            try:
-                status_json = json.loads(status.stdout)
-            except json.JSONDecodeError as exc:
-                raise RuntimeError(f"dw setup status returned invalid JSON: {status.stdout[:1000]}") from exc
+            status, status_json = setup_status_json(dw=dw, idleproof_shim=idleproof_shim, project=project, env=env)
             require(status_json.get("healthy") is True, "dw setup status is not healthy", status)
-            require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not arm all supported adapters")
+            require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not configure all supported adapters")
+            native = status_json.get("nativeActivation") or {}
+            require(native.get("observedAdapters") == [], "fresh installation fabricated a live native provider observation", status)
+            require("codex" in (native.get("pendingTrustAdapters") or []), "fresh Codex setup did not expose provider trust as pending", status)
+            require(native.get("fullyObserved") is False, "fresh integration incorrectly claimed all native providers were observed", status)
 
             integration_config = read_json(project / ".idleproof" / "diffwitness.json")
             require(integration_config.get("schema") == "diffwitness.integration-config.v1", "setup did not write canonical integration config")
@@ -272,6 +331,28 @@ def main(argv: list[str] | None = None) -> int:
             require("defitness" not in json.dumps(integration_config).lower(), "canonical setup config still exposes the experimental product name")
             claude_settings = read_json(project / ".claude" / "settings.local.json")
             require("idleproof-hook.mjs" in json.dumps(claude_settings), "dw setup did not install the convergent Claude hook")
+
+            # Directly exercising the installed Codex hook represents the provider actually running
+            # an already-approved project hook. DiffWitness itself never edits provider trust state;
+            # liveness becomes observed only because this native callback reached the core.
+            run_native_hook(
+                node=node,
+                hook_bin=hook_bin,
+                project=project,
+                env=env,
+                session="native-codex-activation",
+                provider="codex",
+                event={"hook_event_name": "SessionStart"},
+            )
+            status_after_codex, status_after_codex_json = setup_status_json(
+                dw=dw,
+                idleproof_shim=idleproof_shim,
+                project=project,
+                env=env,
+            )
+            native_after_codex = status_after_codex_json.get("nativeActivation") or {}
+            require("codex" in (native_after_codex.get("observedAdapters") or []), "executed Codex SessionStart was not recorded as observed", status_after_codex)
+            require("codex" not in (native_after_codex.get("pendingTrustAdapters") or []), "Codex remained trust-pending after its hook actually executed", status_after_codex)
 
             session1 = "native-alpha-fix"
             run_native_hook(node=node, hook_bin=hook_bin, project=project, env=env, session=session1, event={"hook_event_name": "SessionStart"})
@@ -309,9 +390,9 @@ def main(argv: list[str] | None = None) -> int:
                 session=session1,
                 event={"hook_event_name": "Stop"},
             )
-            require(stop1 is not None and stop1.get("decision") == "approve", "native task handoff was not approved", stop1_proc)
-            require("Proof accepted" in str(stop1.get("systemMessage") or ""), "native handoff did not surface Proof acceptance")
+            stop1_message = assert_successful_stop(stop1_proc, stop1, label="native task handoff")
             first_change_id = assert_integrated_envelope(project)
+            assert_no_unrelated_auth_claim(project, stop1_message)
             assert_continuity(project, first_change_id)
 
             # Do not commit the first task. Add a new failing regression test before SessionStart as
@@ -367,8 +448,7 @@ def main(argv: list[str] | None = None) -> int:
                 session=session2,
                 event={"hook_event_name": "Stop"},
             )
-            require(stop2 is not None and stop2.get("decision") == "approve", "dirty-baseline native handoff was not approved", stop2_proc)
-            require("Proof accepted" in str(stop2.get("systemMessage") or ""), "dirty-baseline handoff did not surface Proof acceptance")
+            assert_successful_stop(stop2_proc, stop2, label="dirty-baseline native handoff")
             second_change_id = assert_integrated_envelope(project, previous_change_id=first_change_id)
             assert_continuity(project, second_change_id)
 
@@ -389,7 +469,7 @@ def main(argv: list[str] | None = None) -> int:
             require((project / ".git" / "diffwitness" / "change-envelope.json").is_file(), "uninstall destroyed historical Proof/Debt evidence")
 
             print(
-                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact sidecar artifact · dw setup · "
+                "INTEGRATED PRODUCT SMOKE PASS · exact wheel + exact sidecar artifact · setup trust lifecycle · "
                 "native hooks without guard · dirty baseline · UNDERSTAND/PROVE/OWE/CONTINUITY · uninstall preserves evidence"
             )
             return 0

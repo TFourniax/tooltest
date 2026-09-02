@@ -38,43 +38,37 @@ class ViewModeTests(unittest.TestCase):
         _git(root, "commit", "-m", "initial")
         return root
 
-    def test_defaults_to_technical_for_existing_diffwitness_users(self) -> None:
+    def test_defaults_to_guided_for_first_run(self) -> None:
         repo = self.make_repo()
-        self.assertEqual(DEFAULT_VIEW_MODE, "technical")
-        self.assertEqual(get_view_mode(repo), "technical")
+        self.assertEqual(DEFAULT_VIEW_MODE, "guided")
+        self.assertEqual(get_view_mode(repo), "guided")
 
     def test_switch_persists_inside_git_metadata_without_dirtying_repository(self) -> None:
         repo = self.make_repo()
         head_before = _git(repo, "rev-parse", "HEAD")
         status_before = _git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-        self.assertEqual(set_view_mode(repo, "guided"), "guided")
-        self.assertEqual(get_view_mode(repo), "guided")
+        self.assertEqual(set_view_mode(repo, "technical"), "technical")
+        self.assertEqual(get_view_mode(repo), "technical")
         self.assertTrue((repo / ".git" / "diffwitness" / "ui-preferences.json").exists())
         self.assertEqual(_git(repo, "rev-parse", "HEAD"), head_before)
         self.assertEqual(_git(repo, "status", "--porcelain=v1", "--untracked-files=all"), status_before)
-        self.assertEqual(set_view_mode(repo, "technical"), "technical")
-        self.assertEqual(get_view_mode(repo), "technical")
+        self.assertEqual(set_view_mode(repo, "guided"), "guided")
+        self.assertEqual(get_view_mode(repo), "guided")
 
     def test_cli_can_switch_both_directions_and_report_machine_state(self) -> None:
         repo = self.make_repo()
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            self.assertEqual(view_cli(["guided", "--repo", str(repo)]), 0)
-        self.assertIn("guided", output.getvalue())
+            self.assertEqual(view_cli(["technical", "--repo", str(repo)]), 0)
+        self.assertIn("technical", output.getvalue())
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            self.assertEqual(view_cli(["technical", "--repo", str(repo), "--json"]), 0)
-        self.assertEqual(json.loads(output.getvalue())["view"], "technical")
+            self.assertEqual(view_cli(["guided", "--repo", str(repo), "--json"]), 0)
+        self.assertEqual(json.loads(output.getvalue())["view"], "guided")
 
-    def test_root_help_follows_saved_view_without_removing_access_to_technical_mode(self) -> None:
+    def test_root_help_is_guided_first_but_technical_is_one_command_away(self) -> None:
         repo = self.make_repo()
         with _cwd(repo):
-            technical = io.StringIO()
-            with contextlib.redirect_stdout(technical):
-                self.assertEqual(main([]), 0)
-            self.assertIn("Core workflow", technical.getvalue())
-            self.assertIn("dw prove", technical.getvalue())
-            set_view_mode(repo, "guided")
             guided = io.StringIO()
             with contextlib.redirect_stdout(guided):
                 self.assertEqual(main([]), 0)
@@ -83,12 +77,19 @@ class ViewModeTests(unittest.TestCase):
             self.assertIn("dw view technical", guided.getvalue())
             self.assertNotIn("dw prove [options]", guided.getvalue())
 
-    def test_invalid_stored_preference_fails_soft_to_technical(self) -> None:
+            set_view_mode(repo, "technical")
+            technical = io.StringIO()
+            with contextlib.redirect_stdout(technical):
+                self.assertEqual(main([]), 0)
+            self.assertIn("Core workflow", technical.getvalue())
+            self.assertIn("dw prove", technical.getvalue())
+
+    def test_invalid_stored_preference_fails_soft_to_guided(self) -> None:
         repo = self.make_repo()
         path = repo / ".git" / "diffwitness" / "ui-preferences.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("not-json", encoding="utf-8")
-        self.assertEqual(get_view_mode(repo), "technical")
+        self.assertEqual(get_view_mode(repo), "guided")
 
 
 if __name__ == "__main__":

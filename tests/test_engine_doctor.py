@@ -15,12 +15,7 @@ from diffwitness.entry import main as dw_main
 
 def git(repo: Path, *args: str) -> str:
     proc = subprocess.run(
-        ["git", *args],
-        cwd=repo,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
+        ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
     )
     return proc.stdout.strip()
 
@@ -80,17 +75,20 @@ def toml_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def doctor_json(repo: Path) -> tuple[int, dict]:
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        rc = dw_main(["doctor", "--repo", str(repo), "--json"])
+    return rc, json.loads(out.getvalue())
+
+
 class EngineDoctorTests(unittest.TestCase):
     def test_capability_preflight_accepts_compatible_bounded_engine(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = init_repo(root)
             engine = write_engine(root, capability_payload())
-            capabilities = inspect_engine_capabilities(
-                cwd=repo,
-                command=[sys.executable, str(engine)],
-                timeout=2,
-            )
+            capabilities = inspect_engine_capabilities(cwd=repo, command=[sys.executable, str(engine)], timeout=2)
             self.assertEqual(capabilities["engine"]["name"], "diffwitness-private")
             self.assertEqual(capabilities["protocol"]["request"], "engine-request-1")
 
@@ -98,16 +96,12 @@ class EngineDoctorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = init_repo(root)
-            bad_protocol = capability_payload(
-                protocol={"request": "engine-request-2", "plan": "engine-plan-1"}
+            engine = write_engine(
+                root,
+                capability_payload(protocol={"request": "engine-request-2", "plan": "engine-plan-1"}),
             )
-            engine = write_engine(root, bad_protocol)
             with self.assertRaisesRegex(EngineCapabilityError, "incompatible"):
-                inspect_engine_capabilities(
-                    cwd=repo,
-                    command=[sys.executable, str(engine)],
-                    timeout=2,
-                )
+                inspect_engine_capabilities(cwd=repo, command=[sys.executable, str(engine)], timeout=2)
 
             bad_authority = capability_payload(
                 authority={
@@ -123,11 +117,7 @@ class EngineDoctorTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(EngineCapabilityError, "authority boundary"):
-                inspect_engine_capabilities(
-                    cwd=repo,
-                    command=[sys.executable, str(engine)],
-                    timeout=2,
-                )
+                inspect_engine_capabilities(cwd=repo, command=[sys.executable, str(engine)], timeout=2)
 
     def test_capability_preflight_rejects_ambiguous_json(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -135,16 +125,11 @@ class EngineDoctorTests(unittest.TestCase):
             repo = init_repo(root)
             engine = root / "ambiguous.py"
             engine.write_text(
-                "import sys\n"
                 "print('{\"schema_version\":\"engine-capabilities-1\",\"schema_version\":\"engine-capabilities-1\"}')\n",
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(Exception, "duplicate JSON object key"):
-                inspect_engine_capabilities(
-                    cwd=repo,
-                    command=[sys.executable, str(engine)],
-                    timeout=2,
-                )
+                inspect_engine_capabilities(cwd=repo, command=[sys.executable, str(engine)], timeout=2)
 
     def test_dw_doctor_reports_compatible_required_private_engine(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -160,25 +145,28 @@ class EngineDoctorTests(unittest.TestCase):
                 "timeout = 2\n",
                 encoding="utf-8",
             )
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                rc = dw_main(["doctor", "--repo", str(repo)])
-            text = out.getvalue()
-            self.assertEqual(rc, 0, text)
-            self.assertIn("configured - python -m unittest", text)
-            self.assertIn("compatible - diffwitness-private 0.1.0a1", text)
-            self.assertIn("advisory-only", text)
-            self.assertIn("embedded source refused", text)
+            rc, payload = doctor_json(repo)
+            self.assertEqual(rc, 0, payload)
+            self.assertTrue(payload["evidence"]["ready"])
+            self.assertIn("python -m unittest", payload["evidence"]["command"])
+            configured = payload["engine"]
+            self.assertTrue(configured["configured"])
+            self.assertTrue(configured["ready"])
+            self.assertTrue(configured["required"])
+            capabilities = configured["capabilities"]
+            self.assertEqual(capabilities["engine"], {"name": "diffwitness-private", "version": "0.1.0a1"})
+            self.assertTrue(capabilities["authority"]["advisory_only"])
+            self.assertFalse(capabilities["authority"]["executes_evidence_commands"])
+            self.assertFalse(capabilities["authority"]["writes_target_repository"])
+            self.assertFalse(capabilities["privacy"]["accepts_embedded_source"])
 
-    def test_dw_doctor_fails_preflight_for_incompatible_configured_engine(self) -> None:
+    def test_dw_doctor_fails_preflight_for_incompatible_required_engine(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = init_repo(root)
             engine = write_engine(
                 root,
-                capability_payload(
-                    protocol={"request": "engine-request-9", "plan": "engine-plan-1"}
-                ),
+                capability_payload(protocol={"request": "engine-request-9", "plan": "engine-plan-1"}),
             )
             (repo / ".diffwitness.toml").write_text(
                 "[diffwitness]\n"
@@ -188,23 +176,25 @@ class EngineDoctorTests(unittest.TestCase):
                 "required = true\n",
                 encoding="utf-8",
             )
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                rc = dw_main(["doctor", "--repo", str(repo)])
-            self.assertEqual(rc, 1)
-            self.assertIn("Advisory:   INVALID", out.getvalue())
-            self.assertIn("required advisory engine must pass preflight", out.getvalue())
+            rc, payload = doctor_json(repo)
+            self.assertEqual(rc, 1, payload)
+            configured = payload["engine"]
+            self.assertTrue(configured["configured"])
+            self.assertFalse(configured["ready"])
+            self.assertTrue(configured["required"])
+            self.assertIn("incompatible", configured["error"].lower())
 
     def test_dw_doctor_keeps_community_only_onboarding_clean(self) -> None:
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            repo = init_repo(root)
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                rc = dw_main(["doctor", "--repo", str(repo)])
-            self.assertEqual(rc, 0, out.getvalue())
-            self.assertIn("Community planner only", out.getvalue())
-            self.assertIn("python -m unittest discover -s tests -q", out.getvalue())
+            repo = init_repo(Path(td))
+            rc, payload = doctor_json(repo)
+            self.assertEqual(rc, 0, payload)
+            self.assertTrue(payload["evidence"]["ready"])
+            self.assertIn("python -m unittest discover -s tests -q", payload["evidence"]["command"])
+            self.assertEqual(
+                payload["engine"],
+                {"configured": False, "ready": True, "required": False},
+            )
 
 
 if __name__ == "__main__":

@@ -224,7 +224,7 @@ def _event_lock(paths: ContinuityPaths, *, timeout: float = _LOCK_TIMEOUT_SECOND
 
 
 def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
-    return {
+    core = {
         key: event.get(key)
         for key in (
             "event_type",
@@ -237,6 +237,24 @@ def _semantic_core(event: dict[str, Any]) -> dict[str, Any]:
             "dedupe_key",
         )
     }
+    provenance = dict(core.get("provenance") or {})
+    if provenance.get("source") == "change-envelope":
+        # The digest identifies one serialized envelope instance. Re-verifying the same semantic
+        # change can produce another valid envelope/certificate without changing the event's
+        # dedupe identity, so this transport digest must not manufacture a semantic conflict.
+        provenance.pop("artifact_digest", None)
+        core["provenance"] = provenance
+    # A software change is identified by repository fingerprint + base/candidate trees (the
+    # tree-derived ``dwchg_*`` identity), not by the temporary commit objects used to snapshot a
+    # dirty worktree. Re-verifying the same trees legitimately creates fresh ephemeral commit SHAs.
+    # Ignore those transport/provenance SHAs only for idempotency comparison so an existing
+    # change.observed event can be reused while a new proof.completed certificate is appended.
+    if event.get("event_type") == "change.observed" and str(event.get("dedupe_key") or "").startswith("change:dwchg_"):
+        payload = dict(core.get("payload") or {})
+        payload.pop("base_sha", None)
+        payload.pop("candidate_sha", None)
+        core["payload"] = payload
+    return core
 
 
 def _candidate_from_spec(spec: dict[str, Any]) -> dict[str, Any]:

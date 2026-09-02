@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,8 +29,15 @@ _MAX_RETRIES = 3
 
 
 def _decision(decision: str, message: str) -> dict[str, Any]:
-    payload: dict[str, Any] = {"decision": decision, "systemMessage": message}
+    """Render a portable Claude/Codex Stop-hook decision.
+
+    Both current providers use ``decision: block`` to request continuation, while a successful
+    Stop must omit the decision field entirely. Keeping ``systemMessage`` on success preserves a
+    concise user-visible completion notice without relying on an unsupported ``approve`` value.
+    """
+    payload: dict[str, Any] = {"systemMessage": message}
     if decision == "block":
+        payload["decision"] = "block"
         payload["reason"] = message
     return payload
 
@@ -76,7 +84,51 @@ def _evidence_command(repo: Path, config: dict[str, Any]) -> str | None:
     return plan.command if plan is not None else None
 
 
-def _record_continuity(repo: Path, envelope_path: Path) -> tuple[str | None, int]:
+def _continuity_health_path(repo: Path) -> Path:
+    return repo / ".git" / "diffwitness" / "continuity-health.json"
+
+
+def _set_continuity_health(repo: Path, *, state: str, change_id: str | None = None, error: str | None = None) -> None:
+    path = _continuity_health_path(repo)
+    if state == "ready":
+        try:
+            path.unlink()
+        except (FileNotFoundError, OSError):
+            pass
+        return
+    payload = {
+        "schema": "diffwitness.continuity-health.v1",
+        "state": "degraded",
+        "change_id": change_id,
+        "error": (error or "Continuity projection failed")[:1200],
+        "recorded_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "action": "Run `dw state status` and `dw state rebuild` after repairing the underlying continuity error.",
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = path.with_suffix(".json.tmp")
+    try:
+        staged.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        staged.replace(path)
+    except OSError:
+        try:
+            staged.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def _envelope_change_id(envelope_path: Path) -> str | None:
+    try:
+        value = json.loads(envelope_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, dict):
+        return None
+    raw = value.get("change_id") or value.get("changeId")
+    return str(raw) if isinstance(raw, str) and raw else None
+
+
+def _record_continuity(repo: Path, envelope_path: Path) -> tuple[str | None, int, str | None]:
+    envelope_change_id = _envelope_change_id(envelope_path)
     try:
         result = record_change_envelope(
             repo=repo,
@@ -86,11 +138,17 @@ def _record_continuity(repo: Path, envelope_path: Path) -> tuple[str | None, int
         )
         ensure_state(repo)
         created = result.get("created") or {}
-        return str(result.get("change_id") or "") or None, sum(int(value or 0) for value in created.values())
-    except Exception:
-        # Project Continuity is an additive memory layer. It must never erase already established
-        # Proof/Debt evidence or deadlock the user's coding agent because derived state is degraded.
-        return None, 0
+        change_id = str(result.get("change_id") or "") or envelope_change_id
+        _set_continuity_health(repo, state="ready", change_id=change_id)
+        return change_id, sum(int(value or 0) for value in created.values()), None
+    except Exception as exc:
+        # Proof/Debt evidence remains valid for the exact candidate and must not be erased or cause
+        # an agent recursion loop. But a memory-layer failure is product degradation, not success.
+        # Persist it locally and surface it in the Stop message/doctor until a successful projection
+        # clears the marker.
+        message = f"{type(exc).__name__}: {str(exc)[:1000]}"
+        _set_continuity_health(repo, state="degraded", change_id=envelope_change_id, error=message)
+        return envelope_change_id, 0, message
 
 
 def finalize_ide_session(
@@ -104,8 +162,7 @@ def finalize_ide_session(
 
     This is deliberately deterministic and local. It performs no model/API call. Proof remains
     authoritative; Debt Ledger is measured against the exact same candidate; the resulting frozen
-    change envelope is then projected into Project Continuity and handed to IdleProof/Portal on a
-    best-effort basis.
+    change envelope is then projected into Project Continuity and handed to IdleProof/Portal.
     """
 
     payload = payload if isinstance(payload, dict) else {}
@@ -168,10 +225,6 @@ def finalize_ide_session(
         except Exception as exc:
             return _retry_or_block(path, state, f"generated Proof certificate failed validation: {exc}")
 
-        # Native IDE handoff is a release boundary, not merely an advisory balanced-policy result.
-        # Reuse the exact frozen change-envelope claim semantics before Debt/Continuity/Portal are
-        # allowed to observe the change. This prevents an intact but inconclusive/unwitnessed proof
-        # certificate from being surfaced as an approved completed task.
         if not isinstance(report, dict):
             return _retry_or_block(path, state, "Proof certificate was not available for canonical acceptance evaluation")
         proof_claim, proof_accepted = _proof_claim(report)
@@ -222,7 +275,7 @@ def finalize_ide_session(
             report=debt_report,
             budget=budget,
         )
-        change_id, continuity_events = _record_continuity(root, envelope_path)
+        change_id, continuity_events, continuity_error = _record_continuity(root, envelope_path)
         _sync_idleproof_assurance(root, envelope_path)
 
         if not budget.passed:
@@ -239,9 +292,12 @@ def finalize_ide_session(
         ledger_suffix = ""
         if should_record:
             ledger_suffix = f" · ledger +{stats['introduced']} introduced/{stats['reopened']} reopened"
-        continuity_suffix = f" · Continuity {continuity_events} event(s)"
-        if change_id:
-            continuity_suffix += f" · {change_id}"
+        if continuity_error:
+            continuity_suffix = " · Continuity DEGRADED (Proof remains exact-tree valid; run `dw doctor`)"
+        else:
+            continuity_suffix = f" · Continuity {continuity_events} event(s)"
+            if change_id:
+                continuity_suffix += f" · {change_id}"
         return _decision(
             "approve",
             f"DiffWitness Proof accepted: {cert_id}{debt_suffix}{ledger_suffix}{continuity_suffix}",

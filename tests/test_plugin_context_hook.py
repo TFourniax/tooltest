@@ -87,6 +87,7 @@ class PluginContextHookTests(unittest.TestCase):
             self.assertIn("OBJ-REFUND", context)
             self.assertIn("DECLARED", context)
             self.assertIn("executed DiffWitness evidence remains authoritative", context)
+            self.assertNotIn("change-proof: dw guard", context)
             self.assertEqual(continuity_paths(repo).events.read_bytes(), before)
             self.assertNotIn(prompt, continuity_paths(repo).events.read_text(encoding="utf-8"))
 
@@ -158,7 +159,7 @@ class PluginContextHookTests(unittest.TestCase):
             )
             self.assertEqual(stopped.returncode, 0, stopped.stderr)
             result = json.loads(stopped.stdout.splitlines()[-1])
-            self.assertEqual(result["decision"], "approve", result)
+            self.assertNotIn("decision", result, result)
             self.assertIn("Proof accepted", result["systemMessage"])
             self.assertIn("Debt +", result["systemMessage"])
             self.assertIn("Continuity", result["systemMessage"])

@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 import sys
 from pathlib import Path
 
 from ..frontend import FrontendError, main as _frontend_main
+
+
+_PUBLIC_COMMANDS = {
+    "setup", "status", "view", "protect", "explain", "portal", "doctor", "engine", "guard",
+    "gate", "prove", "core", "debt", "health", "repay", "recheck", "ledger", "plan",
+    "state", "objective", "decision", "invariant", "failed-approach", "relation", "context",
+    "envelope", "verify", "note", "ide-hook",
+}
 
 
 def _configure_stdio() -> None:
@@ -36,9 +45,11 @@ def _option_value(argv: list[str], name: str, default: str | None = None) -> str
     return default
 
 
-def _root_help() -> str:
-    from ..public_help import TECHNICAL_HELP, help_for_view
+def _root_help(*, explicit_view: str | None = None) -> str:
+    from ..public_help import GUIDED_HELP, help_for_view
 
+    if explicit_view in {"guided", "technical"}:
+        return help_for_view(explicit_view)
     try:
         from ..gitops import repo_root
         from ..view_mode import get_view_mode
@@ -46,8 +57,47 @@ def _root_help() -> str:
         repo = repo_root(".")
         return help_for_view(get_view_mode(repo))
     except Exception:
-        # Outside a repository, retain the established complete command surface.
-        return TECHNICAL_HELP
+        return GUIDED_HELP
+
+
+def _help_request(args: list[str]) -> str | None:
+    if not args:
+        return None
+    if args[0] in {"-h", "--help"}:
+        if len(args) > 1 and args[1] in {"technical", "guided"}:
+            return args[1]
+        return "auto"
+    if args[0] == "help":
+        if len(args) > 1 and args[1] in {"technical", "guided"}:
+            return args[1]
+        return "auto"
+    return None
+
+
+def _friendly_unknown(args: list[str]) -> int | None:
+    if not args:
+        return None
+    token = args[0]
+    if token.startswith("--") and len(token) > 2:
+        likely = token[2:]
+        if likely in _PUBLIC_COMMANDS:
+            print(f"Unknown top-level option: {token}", file=sys.stderr)
+            print(f"Did you mean `dw {likely}`?", file=sys.stderr)
+            return 2
+        print(f"Unknown top-level option: {token}", file=sys.stderr)
+        print("Run `dw --help` for the current command surface.", file=sys.stderr)
+        return 2
+    if token.startswith("-"):
+        print(f"Unknown top-level option: {token}", file=sys.stderr)
+        print("Run `dw --help` for the current command surface.", file=sys.stderr)
+        return 2
+    if token not in _PUBLIC_COMMANDS:
+        matches = difflib.get_close_matches(token, sorted(_PUBLIC_COMMANDS), n=1, cutoff=0.68)
+        if matches:
+            print(f"Unknown command: {token}", file=sys.stderr)
+            print(f"Did you mean `dw {matches[0]}`?", file=sys.stderr)
+            return 2
+    return None
 
 
 def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
@@ -106,47 +156,71 @@ def _debt_command_with_continuity(command: str, argv: list[str]) -> int:
     return rc
 
 
+def _explain(argv: list[str]) -> int:
+    engine = _option_value(argv, "--engine", "deterministic") or "deterministic"
+    if engine == "deterministic":
+        cleaned: list[str] = []
+        skip = False
+        for index, value in enumerate(argv):
+            if skip:
+                skip = False
+                continue
+            if value == "--engine" and index + 1 < len(argv):
+                skip = True
+                continue
+            if value.startswith("--engine="):
+                continue
+            cleaned.append(value)
+        from ..explain_ui import explain_ui_cli
+        return explain_ui_cli(cleaned)
+    from ..idleproof_user_inference import user_inference_cli
+    return user_inference_cli(argv)
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
-    if not args or args[0] in {"-h", "--help", "help"}:
+    if not args:
         print(_root_help(), end="")
         return 0
+    help_view = _help_request(args)
+    if help_view is not None:
+        print(_root_help(explicit_view=None if help_view == "auto" else help_view), end="")
+        return 0
+    # Preserve the established packaging/CLI contract. These global options are implemented by the
+    # canonical frontend and must be routed before typo handling sees them as unknown switches.
+    if args[0] in {"-V", "--version"}:
+        return _frontend_main(args)
+
+    friendly = _friendly_unknown(args)
+    if friendly is not None:
+        return friendly
+
     if args[0] == "view":
         from ..view_mode import view_cli
-
         return view_cli(args[1:])
     if args[0] == "status":
         from ..status_cli import status_cli
-
         return status_cli(args[1:])
     if args[0] == "setup":
         from ..setup import setup_cli
-
         return setup_cli(args[1:])
     if args[0] == "protect":
-        from ..protect import protect_cli
-
-        return protect_cli(args[1:])
+        from ..protect_ui import protect_surface_cli
+        return protect_surface_cli(args[1:])
     if args[0] == "explain":
-        from ..idleproof_user_inference import user_inference_cli
-
-        return user_inference_cli(args[1:])
+        return _explain(args[1:])
     if args[0] == "portal":
         from ..portal_proxy import portal_cli
-
         return portal_cli(args[1:])
     if args[0] == "ide-hook":
         from ..ide_plugin import ide_hook_cli
-
         return ide_hook_cli(args[1:])
     if args[0] == "doctor":
         from ..doctor import doctor_cli
-
         return doctor_cli(args[1:])
     if args[0] == "engine":
         from ..engine_cli import engine_cli
-
         return engine_cli(args[1:])
     if args[0] == "guard":
         return _guard_with_continuity(args[1:])
@@ -154,24 +228,15 @@ def main(argv: list[str] | None = None) -> int:
         return _debt_command_with_continuity(args[0], args[1:])
     if args[0] == "state" and len(args) > 1 and args[1] in {"checkpoint", "restore", "pull", "push"}:
         from ..continuity_transport_cli import state_transport_cli
-
         return state_transport_cli(args[1:])
     if args[0] == "relation":
         from ..continuity_relation_cli import relation_cli
-
         return relation_cli(args[1:])
     if args[0] == "context":
         from ..continuity_context_command import context_command_cli
-
         return context_command_cli(args[1:])
     if args[0] in {"state", "objective", "decision", "invariant", "failed-approach"}:
-        from ..continuity_cli import (
-            decision_cli,
-            failed_approach_cli,
-            invariant_cli,
-            objective_cli,
-            state_cli,
-        )
+        from ..continuity_cli import decision_cli, failed_approach_cli, invariant_cli, objective_cli, state_cli
 
         handlers = {
             "state": state_cli,
