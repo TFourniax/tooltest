@@ -15,7 +15,7 @@ from typing import Any, Mapping
 from urllib.parse import urlparse, urlunparse
 
 from .gitops import repo_root
-from .idleproof_explanation import build_llm_context, load_soul
+from .idleproof_explanation import build_llm_context, load_current_explanation, load_soul
 
 
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -49,8 +49,6 @@ class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 def _text(value: Any, max_chars: int = 1_600) -> str:
-    # Provider output is untrusted terminal text even after JSON/ID validation. Strip C0/C1 control
-    # bytes (including ESC) before normalization so a model/provider cannot inject terminal escapes.
     cleaned = _CONTROL_CHARS.sub("", str(value or ""))
     normalized = " ".join(cleaned.split())
     if len(normalized) <= max_chars:
@@ -160,8 +158,6 @@ def _validate_transport_security(endpoint: str, *, api_key: str | None) -> str:
 
 
 def _display_endpoint(endpoint: str) -> str:
-    """Never echo query/fragment data that may contain a provider secret."""
-
     parsed = urlparse(endpoint)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
 
@@ -269,16 +265,13 @@ def call_user_owned_provider(
 
 
 def _load_explanation(repo: Path) -> dict[str, Any]:
-    path = repo / ".git" / "diffwitness" / "idleproof-explanation.json"
-    if not path.is_file():
-        raise UserInferenceError("No captured IdleProof explanation yet. Run a guarded/IDE task first.")
+    """Load the canonical explanation only after applying the live worktree-coverage gate."""
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise UserInferenceError(f"IdleProof explanation cannot be read: {exc}") from exc
-    if not isinstance(value, dict):
-        raise UserInferenceError("IdleProof explanation is not a JSON object.")
-    return value
+        return load_current_explanation(repo)
+    except FileNotFoundError as exc:
+        raise UserInferenceError(str(exc)) from exc
+    except ValueError as exc:
+        raise UserInferenceError(str(exc)) from exc
 
 
 def _cache_path(repo: Path) -> Path:
@@ -365,8 +358,6 @@ def _print_units(result: Mapping[str, Any]) -> None:
             print(f"\n{section_titles.get(section, section)}")
         original = _text(unit.get("original"))
         rewritten = _text(unit.get("text"))
-        # The deterministic wording is always the canonical visible statement. AI wording is an
-        # optional labelled paraphrase beneath it and can never replace the evidence-derived text.
         print(f"- {original}")
         if bool(unit.get("rewritten")) and rewritten and rewritten != original:
             print(f"  AI wording (presentation only): {rewritten}")
@@ -463,7 +454,6 @@ def user_inference_cli(argv: list[str]) -> int:
     except UserInferenceError as exc:
         return _fallback_deterministic(repo_arg=args.repo, as_json=args.json, reason=str(exc))
     except Exception as exc:
-        # An optional presentation layer must never make the deterministic product unusable.
         return _fallback_deterministic(
             repo_arg=args.repo,
             as_json=args.json,
