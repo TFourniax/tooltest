@@ -88,14 +88,52 @@ def _idleproof_session_policy(repo: Path) -> str:
     )
 
 
+def _native_boundary_policy(repo: Path, session_id: str) -> str:
+    """Keep a native coding-agent task inside its already-established task boundary.
+
+    Guard is an *external* wrapper. Telling an active Claude/Codex model to launch Guard can recurse
+    into a second coding-agent process, require a nested TTY, duplicate Proof work, or hang. The
+    model therefore gets evidence requirements but never an instruction to wrap itself.
+    """
+    armed = _state_path(repo, session_id).is_file()
+    if armed:
+        state = "The native DiffWitness task boundary is already armed for this session."
+    else:
+        state = (
+            "A SessionStart capture was not observed for this session. Finish the user task normally; "
+            "DiffWitness will report the capture state at Stop so the user can repair setup if needed."
+        )
+    return (
+        "NATIVE DIFFWITNESS TASK BOUNDARY\n"
+        + state
+        + " Do not run `dw guard`, `dw gate`, or launch another coding agent to satisfy DiffWitness "
+        "from inside this session. Run the project's normal tests when appropriate; the native Stop "
+        "hook owns the final Proof/Debt/Continuity handoff."
+    )
+
+
+def _native_context(context: dict[str, Any]) -> dict[str, Any]:
+    """Remove external-wrapper evidence actions from model-visible native context."""
+    value = dict(context)
+    required = context.get("requiredEvidence")
+    if isinstance(required, list):
+        value["requiredEvidence"] = [
+            item
+            for item in required
+            if not (isinstance(item, dict) and str(item.get("kind") or "") == "change-proof")
+        ]
+    return value
+
+
 def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     raw_prompt = payload.get("prompt")
     if not isinstance(raw_prompt, str) or not raw_prompt.strip():
         return None
     raw_prompt = raw_prompt[:_MAX_PROMPT_CHARS]
+    session_id = _session_id(payload)
     try:
         repo = repo_root(_cwd(payload))
-        task_update = update_task_session(repo, _session_id(payload), raw_prompt)
+        task_update = update_task_session(repo, session_id, raw_prompt)
         task = task_update.get("task") or {}
         query = task_context_query(task) or raw_prompt.strip()
     except Exception:
@@ -105,7 +143,7 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     try:
         from .continuity_context_enriched import compile_context, render_context
 
-        context = compile_context(repo, query, max_items=10, refresh_structure=True)
+        context = _native_context(compile_context(repo, query, max_items=10, refresh_structure=True))
         rendered = render_context(context, max_chars=4200).strip()
     except Exception:
         rendered = ""
@@ -125,6 +163,8 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
         "OBSERVED is directly recorded/parsed, and VERIFIED is backed by authoritative executed "
         "evidence. Never upgrade a weaker status.\n\n"
         + "\n".join(line for line in task_lines if line)
+        + "\n\n"
+        + _native_boundary_policy(repo, session_id)
         + "\n\n"
         + _idleproof_session_policy(repo)
         + ("\n\n" + rendered if rendered else "")
