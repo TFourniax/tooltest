@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import io
 import json
 import subprocess
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 from diffwitness.entry import main
@@ -19,6 +21,15 @@ def git(*args: str, cwd: Path) -> str:
 
 
 class EntryTests(unittest.TestCase):
+    def test_public_version_options_bypass_friendly_unknown_router(self) -> None:
+        for option in ("-V", "--version"):
+            with self.subTest(option=option):
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    rc = main([option])
+                self.assertEqual(rc, 0)
+                self.assertEqual(stdout.getvalue().strip(), "diffwitness 0.4.0a1")
+
     def test_docs_only_prove_succeeds_without_test_command_and_writes_noop_certificate(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
