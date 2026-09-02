@@ -9,23 +9,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diffwitness.config import (
-    engine_config_source,
-    load_config,
-    local_engine_profile_path,
-    write_local_engine_profile,
-)
+from diffwitness.config import engine_config_source, load_config, local_engine_profile_path, write_local_engine_profile
 from diffwitness.entry import main as dw_main
 
 
 def git(repo: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", *args],
-        cwd=repo,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
+        ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
     ).stdout.strip()
 
 
@@ -41,8 +31,7 @@ def make_repo(root: Path) -> Path:
     git(repo, "config", "user.email", "engine-local@localhost")
     (repo / "app.py").write_text("VALUE = 1\n", encoding="utf-8")
     (repo / ".diffwitness.toml").write_text(
-        "[diffwitness]\n"
-        f"test = {json.dumps(test_command())}\n",
+        "[diffwitness]\n" f"test = {json.dumps(test_command())}\n",
         encoding="utf-8",
     )
     git(repo, "add", ".")
@@ -78,14 +67,20 @@ def write_engine(root: Path, *, name: str = "private-fixture") -> Path:
     return script
 
 
+def command_json(args: list[str]) -> tuple[int, dict]:
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        rc = dw_main(args)
+    return rc, json.loads(out.getvalue())
+
+
 class LocalEngineTests(unittest.TestCase):
     def test_dw_engine_enable_status_doctor_disable_is_git_local(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = make_repo(root)
             engine = write_engine(root)
-            before = git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-            self.assertEqual(before, "")
+            self.assertEqual(git(repo, "status", "--porcelain=v1", "--untracked-files=all"), "")
 
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
@@ -107,20 +102,21 @@ class LocalEngineTests(unittest.TestCase):
             self.assertEqual(loaded["engine"]["command"], [sys.executable, str(engine)])
             self.assertTrue(loaded["engine"]["required"])
 
-            status_out = io.StringIO()
-            with contextlib.redirect_stdout(status_out):
-                rc = dw_main(["engine", "--repo", str(repo), "status", "--json"])
-            self.assertEqual(rc, 0, status_out.getvalue())
-            status = json.loads(status_out.getvalue())
+            rc, status = command_json(["engine", "--repo", str(repo), "status", "--json"])
+            self.assertEqual(rc, 0, status)
             self.assertEqual(status["source"], "local")
             self.assertEqual(status["engine"]["name"], "private-fixture")
             self.assertTrue(status["required"])
 
-            doctor_out = io.StringIO()
-            with contextlib.redirect_stdout(doctor_out):
-                rc = dw_main(["doctor", "--repo", str(repo)])
-            self.assertEqual(rc, 0, doctor_out.getvalue())
-            self.assertIn("compatible - private-fixture 0.1.0a1", doctor_out.getvalue())
+            rc, doctor = command_json(["doctor", "--repo", str(repo), "--json"])
+            self.assertEqual(rc, 0, doctor)
+            configured = doctor["engine"]
+            self.assertTrue(configured["configured"])
+            self.assertTrue(configured["ready"])
+            self.assertTrue(configured["required"])
+            self.assertEqual(configured["capabilities"]["engine"]["name"], "private-fixture")
+            self.assertEqual(configured["capabilities"]["engine"]["version"], "0.1.0a1")
+            self.assertTrue(configured["capabilities"]["authority"]["advisory_only"])
 
             disable_out = io.StringIO()
             with contextlib.redirect_stdout(disable_out):
@@ -164,13 +160,10 @@ class LocalEngineTests(unittest.TestCase):
             profile.parent.mkdir(parents=True, exist_ok=True)
             profile.write_text('{"schema":"diffwitness.local-engine.v1","engine":', encoding="utf-8")
 
-            status_out = io.StringIO()
-            with contextlib.redirect_stdout(status_out):
-                rc = dw_main(["engine", "--repo", str(repo), "status", "--json"])
+            rc, status = command_json(["engine", "--repo", str(repo), "status", "--json"])
             self.assertEqual(rc, 1)
-            payload = json.loads(status_out.getvalue())
-            self.assertFalse(payload["ok"])
-            self.assertEqual(payload["source"], "invalid")
+            self.assertFalse(status["ok"])
+            self.assertEqual(status["source"], "invalid")
 
             doctor_out = io.StringIO()
             with contextlib.redirect_stdout(doctor_out):
