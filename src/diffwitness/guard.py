@@ -14,7 +14,7 @@ from .config import load_config
 from .debt_budget import evaluate_and_record, ledger_path, merged_debt_config
 from .debt_certificate import validate_debt_certificate
 from .debt_scan import scan_change
-from .gitops import diff_text, git, repo_root, snapshot_worktree
+from .gitops import diff_text, git, git_metadata_path, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 
 
@@ -119,7 +119,7 @@ def _persist_guard_envelope(
             debt_path=debt_path,
         )
 
-    output = repo / ".git" / "diffwitness" / "change-envelope.json"
+    output = git_metadata_path(repo, "diffwitness/change-envelope.json")
     output.parent.mkdir(parents=True, exist_ok=True)
     staged = output.with_suffix(".json.tmp")
     staged.write_text(json.dumps(envelope, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

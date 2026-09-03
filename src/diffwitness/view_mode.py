@@ -5,14 +5,14 @@ import json
 import os
 from pathlib import Path
 
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 
 VIEW_MODES = ("guided", "technical")
 DEFAULT_VIEW_MODE = "guided"
 
 
 def _preference_path(repo: Path) -> Path:
-    return repo / ".git" / "diffwitness" / "ui-preferences.json"
+    return git_metadata_path(repo, "diffwitness/ui-preferences.json")
 
 
 def normalize_view_mode(value: str | None, *, default: str = DEFAULT_VIEW_MODE) -> str:

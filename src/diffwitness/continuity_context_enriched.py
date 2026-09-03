@@ -11,7 +11,7 @@ from typing import Any
 from .continuity_context import compile_context as _compile_base_context
 from .continuity_context import render_context
 from .continuity_events import continuity_paths
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 
 
 def _context_id(context: dict[str, Any]) -> str:
@@ -202,7 +202,7 @@ def _seeded_base_changes(context: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _native_setup_scope(repo: Path) -> list[str]:
-    path = repo / ".git" / "diffwitness" / "setup-scope.json"
+    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

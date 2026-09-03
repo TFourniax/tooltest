@@ -4,10 +4,13 @@ import subprocess
 import tempfile
 import threading
 import unittest
+import io
+import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from unittest import mock
 
-from diffwitness.ide_plugin import session_start
+from diffwitness.ide_plugin import ide_hook_cli, session_start
 from diffwitness.native_activation import (
     activation_path,
     clear_native_activation,
@@ -58,16 +61,29 @@ class NativeActivationTests(unittest.TestCase):
     def test_successful_provider_session_start_records_real_observation(self):
         with tempfile.TemporaryDirectory() as td:
             repo = self._repo(Path(td))
-            session_start(
-                {
-                    "cwd": str(repo),
-                    "session_id": "trusted-codex-session",
-                    "source": "codex",
-                }
-            )
+            payload = {
+                "cwd": str(repo),
+                "session_id": "trusted-codex-session",
+                "source": "startup",
+            }
+            with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))):
+                self.assertEqual(ide_hook_cli(["session-start", "--provider", "codex"]), 0)
             state = native_activation_summary(repo, ["codex"])
             self.assertTrue(state["adapters"]["codex"]["observed"])
             self.assertEqual(state["pendingTrustAdapters"], [])
+
+    def test_start_cause_cannot_be_mistaken_for_a_provider(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._repo(Path(td))
+            session_start(
+                {
+                    "cwd": str(repo),
+                    "session_id": "provider-neutral-session",
+                    "source": "startup",
+                }
+            )
+            state = native_activation_summary(repo, ["codex", "claude"])
+            self.assertEqual(state["observedAdapters"], [])
 
     def test_unknown_source_cannot_fabricate_native_provider_observation(self):
         with tempfile.TemporaryDirectory() as td:

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-from .gitops import git
+from .gitops import GitError, git_metadata_path
 
 NATIVE_ACTIVATION_SCHEMA = "diffwitness.native-activation.v1"
 SUPPORTED_NATIVE_PROVIDERS = ("claude", "codex", "cursor")
@@ -31,13 +31,10 @@ def _git_metadata_path(repo: Path, relative: str) -> Path:
     --git-path`` is the authoritative cross-platform way to resolve writable per-worktree metadata
     for both ordinary repositories and linked worktrees.
     """
-    raw = git(repo, "rev-parse", "--git-path", relative).strip()
-    if not raw:
-        raise NativeActivationError(f"cannot resolve Git metadata path for {relative}")
-    path = Path(raw)
-    if not path.is_absolute():
-        path = repo / path
-    return path.resolve(strict=False)
+    try:
+        return git_metadata_path(repo, relative)
+    except GitError as exc:
+        raise NativeActivationError(f"cannot resolve Git metadata path for {relative}: {exc}") from exc
 
 
 def activation_path(repo: Path) -> Path:

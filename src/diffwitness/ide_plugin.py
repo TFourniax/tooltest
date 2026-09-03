@@ -9,7 +9,7 @@ from typing import Any
 from .continuity_task_session import task_context_query, update_task_session
 from .gitops import repo_root, snapshot_worktree
 from .ide_handoff import finalize_ide_session
-from .native_activation import record_native_activation
+from .native_activation import SUPPORTED_NATIVE_PROVIDERS, record_native_activation
 from .proof_cli import _state_path
 
 _MAX_PROMPT_CHARS = 12000
@@ -60,7 +60,7 @@ def session_start(payload: dict[str, Any]) -> dict[str, Any] | None:
     # This marker is informational readiness state, never Proof. Recording it only after the exact
     # SessionStart boundary was successfully armed means "observed" really means the provider ran
     # the hook. In particular, a Codex hook file merely present on disk never bypasses Codex trust.
-    record_native_activation(repo, str(payload.get("source") or payload.get("provider") or ""))
+    record_native_activation(repo, str(payload.get("provider") or payload.get("source") or ""))
     return None
 
 
@@ -105,8 +105,9 @@ def _native_boundary_policy(repo: Path, session_id: str) -> str:
         state = "The native DiffWitness task boundary is already armed for this session."
     else:
         state = (
-            "A SessionStart capture was not observed for this session. Finish the user task normally; "
-            "DiffWitness will report the capture state at Stop so the user can repair setup if needed."
+            "A SessionStart capture was not observed for this session. Finish only the implementation "
+            "work; the Stop boundary will fail closed and ask the user to repair setup before this task "
+            "can be declared verified."
         )
     return (
         "NATIVE DIFFWITNESS TASK BOUNDARY\n"
@@ -223,15 +224,15 @@ def session_stop(payload: dict[str, Any], *, policy: str = "balanced") -> dict[s
     return finalize_ide_session(payload, policy=policy)
 
 
-def _protect_provider(argv: list[str]) -> str | None:
-    if "--provider" not in argv[1:]:
+def _provider_arg(argv: list[str]) -> str | None:
+    tail = argv[1:]
+    if not tail:
         return None
-    index = argv.index("--provider", 1)
-    if index + 1 >= len(argv):
-        raise ValueError("--provider requires claude or codex")
-    provider = str(argv[index + 1]).strip().lower()
-    if provider not in _PROTECT_PROVIDERS:
-        raise ValueError("--provider must be claude or codex")
+    if len(tail) != 2 or tail[0] != "--provider":
+        raise ValueError("only --provider claude|codex|cursor is accepted after the event")
+    provider = str(tail[1]).strip().lower()
+    if provider not in SUPPORTED_NATIVE_PROVIDERS:
+        raise ValueError("--provider must be claude, codex, or cursor")
     return provider
 
 
@@ -245,7 +246,9 @@ def ide_hook_cli(argv: list[str]) -> int:
         return 2
     command = argv[0]
     try:
-        provider = _protect_provider(argv) if command in {"protect-pre", "protect-post"} else None
+        provider = _provider_arg(argv)
+        if command in {"protect-pre", "protect-post"} and provider is not None and provider not in _PROTECT_PROVIDERS:
+            raise ValueError("Protect --provider must be claude or codex")
     except ValueError as exc:
         print(f"DiffWitness IDE bridge: {exc}", file=sys.stderr)
         return 2

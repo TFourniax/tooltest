@@ -95,6 +95,32 @@ class RepoFixture(unittest.TestCase):
 
 
 class IntegrationTests(RepoFixture):
+    def test_auto_without_a_detected_provider_is_actionable_and_non_mutating(self) -> None:
+        with mock.patch("diffwitness.idleproof_sidecar.shutil.which", return_value=None):
+            with self.assertRaisesRegex(IdleProofSidecarError, "Choose one explicitly"):
+                integration_install(
+                    self.repo,
+                    agent="auto",
+                    dw_command=str(Path(sys.executable).resolve()),
+                )
+        self.assertFalse((self.repo / ".claude").exists())
+        self.assertFalse((self.repo / ".codex").exists())
+        self.assertFalse((self.repo / ".cursor").exists())
+        self.assertFalse((self.repo / ".idleproof" / "integration.json").exists())
+
+    def test_auto_installs_only_detected_project_providers(self) -> None:
+        (self.repo / ".codex").mkdir()
+        with mock.patch("diffwitness.idleproof_sidecar.shutil.which", return_value=None):
+            status = integration_install(
+                self.repo,
+                agent="auto",
+                dw_command=str(Path(sys.executable).resolve()),
+            )
+        self.assertEqual(status["expectedAdapters"], ["codex"])
+        self.assertTrue((self.repo / ".codex" / "hooks.json").is_file())
+        self.assertFalse((self.repo / ".claude").exists())
+        self.assertFalse((self.repo / ".cursor").exists())
+
     def test_install_status_and_uninstall_are_non_destructive(self) -> None:
         claude = self.repo / ".claude" / "settings.local.json"
         claude.parent.mkdir(parents=True)
@@ -130,6 +156,12 @@ class IntegrationTests(RepoFixture):
         self.assertTrue(checked["healthy"])
         self.assertEqual(checked["localProjectId"], first_project["localId"])
 
+        claude_rendered = claude.read_text(encoding="utf-8")
+        codex_rendered = (self.repo / ".codex" / "hooks.json").read_text(encoding="utf-8")
+        for event in ("session-start", "user-prompt-submit", "session-stop"):
+            self.assertIn(f"{event} --provider claude", claude_rendered)
+            self.assertIn(f"{event} --provider codex", codex_rendered)
+
         cursor = json.loads((self.repo / ".cursor" / "hooks.json").read_text(encoding="utf-8"))
         self.assertEqual(cursor["version"], 1)
         self.assertIn("sessionStart", cursor["hooks"])
@@ -143,6 +175,31 @@ class IntegrationTests(RepoFixture):
         self.assertEqual(after["hooks"]["PreToolUse"][0]["hooks"][0]["command"], "echo keep-me")
         self.assertFalse((self.repo / ".idleproof" / "integration.json").exists())
         self.assertTrue((self.repo / ".idleproof" / "project.json").is_file())
+
+    def test_install_migrates_provider_neutral_hooks_without_double_execution(self) -> None:
+        command = str(Path(sys.executable).resolve())
+        path = self.repo / ".codex" / "hooks.json"
+        path.parent.mkdir(parents=True)
+        legacy = f"{command} ide-hook session-start"
+        path.write_text(
+            json.dumps(
+                {
+                    "hooks": {
+                        "SessionStart": [
+                            {"hooks": [{"type": "command", "command": legacy, "timeout": 10}]}
+                        ]
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        status = integration_install(self.repo, agent="codex", dw_command=command)
+
+        self.assertTrue(status["healthy"])
+        rendered = path.read_text(encoding="utf-8")
+        self.assertNotIn(f'"command": "{legacy}"', rendered)
+        self.assertEqual(rendered.count("session-start --provider codex"), 1)
 
     def test_local_project_identity_is_stable_and_repo_bound(self) -> None:
         first = ensure_local_project(self.repo)

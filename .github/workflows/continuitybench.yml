@@ -2,7 +2,7 @@ name: continuitybench
 on:
   pull_request:
   push:
-    branches: ["agent/continuity-kernel-v1"]
+    branches: [main, "agent/continuity-kernel-v1"]
   workflow_dispatch:
 
 permissions:

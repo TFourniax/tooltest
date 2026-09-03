@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Mapping
 from urllib.parse import urlparse, urlunparse
 
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 from .idleproof_explanation import build_llm_context, load_current_explanation, load_soul
 
 
@@ -275,7 +275,7 @@ def _load_explanation(repo: Path) -> dict[str, Any]:
 
 
 def _cache_path(repo: Path) -> Path:
-    return repo / ".git" / "diffwitness" / "idleproof-ai-cache.json"
+    return git_metadata_path(repo, "diffwitness/idleproof-ai-cache.json")
 
 
 def _cache_key(*, context: Mapping[str, Any], endpoint: str, model: str) -> str:

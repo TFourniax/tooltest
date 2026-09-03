@@ -2,7 +2,7 @@ name: integrated-product-smoke
 
 on:
   push:
-    branches: ["agent/debt-ledger", "agent/prealpha-p0-hardening-20260823"]
+    branches: [main, "agent/debt-ledger", "agent/prealpha-p0-hardening-20260823"]
   pull_request:
   workflow_dispatch:
 

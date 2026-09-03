@@ -115,7 +115,7 @@ def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
 
 
 def _guard_with_continuity(argv: list[str]) -> int:
-    from ..gitops import repo_root
+    from ..gitops import git_metadata_path, repo_root
     from ..guard import guard_cli
 
     parser_repo = _option_value(argv, "--repo", ".") or "."
@@ -124,7 +124,7 @@ def _guard_with_continuity(argv: list[str]) -> int:
     except Exception:
         return guard_cli(argv)
 
-    envelope_path = repo / ".git" / "diffwitness" / "change-envelope.json"
+    envelope_path = git_metadata_path(repo, "diffwitness/change-envelope.json")
     before = _digest(envelope_path)
     rc = guard_cli(argv)
     after = _digest(envelope_path)

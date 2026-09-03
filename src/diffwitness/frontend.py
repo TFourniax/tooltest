@@ -20,7 +20,7 @@ from .validation import build_validation_only, render_validation_markdown
 TOP_HELP = """DiffWitness Proof + Debt Layer
 
 Usage:
-  dw guard [options] -- <agent>      Run a coding agent inside a before/after proof boundary
+  dw guard [options] -- <agent>      Explicit fallback: run an agent inside a proof boundary
   dw gate [options]                  Validate an existing Git diff / pull request
   dw prove [options]                 Exhaustive hunk-level counterfactual evidence
   dw core [options]                  Budgeted Adaptive Core / 1-minimal reduction search
@@ -36,6 +36,10 @@ Usage:
   dw doctor [options]                Explain zero-config evidence discovery
 
 Start here:
+  dw setup                         Connect a detected Claude/Codex/Cursor provider
+  dw status                        Show readiness and the next truthful action
+
+Explicit process-boundary fallback:
   dw guard -- claude
   dw debt --base HEAD --candidate WORKTREE
   dw health

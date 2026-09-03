@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 
 PROTECT_SCHEMA = "diffwitness.protect-config.v1"
 RECEIPT_SCHEMA = "diffwitness.protection-receipt.v1"
@@ -73,7 +73,7 @@ def _now() -> str:
 
 
 def _state_dir(repo: Path) -> Path:
-    return repo / ".git" / "diffwitness"
+    return git_metadata_path(repo, "diffwitness")
 
 
 def _config_path(repo: Path) -> Path:

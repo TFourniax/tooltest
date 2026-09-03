@@ -11,7 +11,7 @@ from .continuity_events import ContinuityError
 from .continuity_state import state_status
 from .engine_capabilities import EngineCapabilityError, inspect_engine_capabilities
 from .engine_protocol import EngineProtocolError
-from .gitops import GitError, repo_root
+from .gitops import GitError, git_metadata_path, repo_root
 from .native_activation import native_activation_summary
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
@@ -21,7 +21,7 @@ DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
 
 
 def _setup_scope(repo: Path) -> list[str]:
-    path = repo / ".git" / "diffwitness" / "setup-scope.json"
+    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

@@ -77,7 +77,7 @@ Evidence / interoperability:
   dw recheck <DW-...> [options]        Replay verification for historical debt lineages
   dw ide-hook <event>                  Native IDE protocol (normally installed by `dw setup` / Protect)
 
-The saved view is a local presentation preference stored under `.git/diffwitness/`. Switching between
+The saved view is a local presentation preference stored under per-worktree Git metadata. Switching between
 Guided and Technical changes presentation only: Protect mode, proof semantics, certificates, Debt Ledger
 state, source code, repository HEAD, privacy boundaries, and machine-readable status contracts remain the
 same. `dw status --view ...` can override the view for one invocation and `dw status --json` is view-invariant.
@@ -89,8 +89,9 @@ DiffWitness Managed AI. Portal sync, when configured, carries only the bounded p
 prompts, raw diffs, raw commands, agent event streams, and source code stay out of Portal.
 
 `dw status` is navigation over bounded runtime observations, evidence, Git metadata, and durable obligations;
-it is not a correctness score. `dw guard` remains the stable explicit before/after proof boundary for any
-agent/process. Builtin Protect currently targets supported Claude/Codex live hook surfaces.
+it is not a correctness score. Native setup is the primary Claude/Codex workflow. `dw guard` remains the
+stable explicit fallback for any agent/process when a deliberate process boundary is needed. Builtin Protect
+currently targets supported Claude/Codex live hook surfaces.
 
 Use `dw <command> --help` for command-specific options.
 """

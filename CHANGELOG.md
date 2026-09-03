@@ -25,6 +25,20 @@ DiffWitness extends the proof layer into a replayable software-debt control loop
 
 ### Hardened
 
+- Native Claude Code/Codex setup now attributes lifecycle events to the configured provider even
+  when the provider's own `SessionStart.source` value is only `startup`, `resume`, `clear`, or
+  `compact`; readiness still requires a real observed hook and never bypasses provider trust.
+- Native Stop success omits unsupported `approve` decisions. Missing/invalid start capture and
+  exhausted evidence retries terminate once as explicitly unverified instead of recursively
+  continuing an agent that cannot repair the current task boundary.
+- Automatic setup installs only providers actually detected in the project or on `PATH`; when none
+  is detected it requests an explicit provider without creating unrelated Claude/Codex/Cursor files.
+- All user-local assurance, activation, presentation, Protect, Debt, envelope, and explanation state
+  resolves through Git's per-worktree metadata path, including linked worktrees where `.git` is a file.
+- Claude/Codex plugin manifests carry the SemVer equivalent of the Python release version, with a
+  regression contract preventing package/plugin version drift.
+- Launch guidance makes normal native Claude/Codex use primary, Guided the first-run default, and
+  `dw guard -- <agent>` an explicit manual/fallback boundary only.
 - Protect receipt appends use a dependency-free inter-process lock and refuse to silently extend a damaged/tampered chain.
 - Codex readiness is fail-closed: an installed hook file is not reported ready until a live Codex hook has actually invoked Protect, and DiffWitness never writes/bypasses Codex project or hook trust on the user's behalf.
 - Protect `off` installs no runtime interception hook; disabling builtin Protect removes only DiffWitness-managed hooks and preserves unrelated agent configuration.

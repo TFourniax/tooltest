@@ -21,9 +21,18 @@ The first public demo should be terminal-first and reproducible:
 ```bash
 pipx install diffwitness
 cd any-git-repo
+dw setup --agent claude   # or: codex
+claude                    # or: codex
+```
 
+The provider runs normally. DiffWitness's native SessionStart and Stop hooks bind the exact
+before/after Git change and run Proof, Debt, Understand and Continuity automatically. Codex
+still requires its own project and hook trust review; DiffWitness never approves itself.
+
+If native hooks are unavailable, the explicit process-boundary fallback remains:
+
+```bash
 dw guard -- claude
-# or: dw guard -- codex
 ```
 
 Then show a deliberately small bugfix where the agent also changes an unrelated second function.
@@ -115,7 +124,7 @@ mutation-testing
 >
 > DiffWitness is open source and model-independent. It snapshots the repository before/after an agent, overlays candidate tests onto the old code, runs controlled counterfactual variants of the real Git diff, distinguishes repair evidence from preservation evidence, detects non-discriminating tests and surplus patch surface, and emits content-addressed certificates that become stale when the code changes.
 >
-> The low-friction path is `dw guard -- claude` or `dw guard -- codex`; CI uses `dw gate`.
+> The low-friction path is one-time `dw setup`, then normal `claude` or `codex` use; the native Stop hook runs the verification boundary automatically. `dw guard -- <agent>` remains an explicit fallback, and CI uses `dw gate`.
 >
 > There is no hosted service and no model API key. The repository includes ProofBench so the key semantics are reproducible rather than screenshots.
 >
@@ -140,7 +149,7 @@ Do not optimize the first week for stars alone. Track qualitatively:
 
 - independent reproductions of ProofBench;
 - real repositories adding `dw gate` to CI;
-- agent users keeping `dw guard` in normal workflow;
+- agent users completing normal Claude/Codex sessions through the native hooks without invoking `dw guard`;
 - false-negative evidence reports converted into permanent benchmark fixtures;
 - false-positive reports that improve policy/semantic routing;
 - external integrations that consume the unified certificate schema.
