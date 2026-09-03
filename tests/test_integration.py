@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -172,7 +173,18 @@ class IntegrationTests(unittest.TestCase):
             (repo / "a.txt").write_text("one\n", encoding="utf-8")
             commit(repo, "initial")
             # No repository user.name/user.email was configured; commit() used one-shot -c values.
-            probe = subprocess.run(["git", "config", "--get", "user.name"], cwd=repo, text=True, stdout=subprocess.PIPE)
+            isolated_env = {
+                **os.environ,
+                "GIT_CONFIG_GLOBAL": os.devnull,
+                "GIT_CONFIG_SYSTEM": os.devnull,
+            }
+            probe = subprocess.run(
+                ["git", "config", "--get", "user.name"],
+                cwd=repo,
+                env=isolated_env,
+                text=True,
+                stdout=subprocess.PIPE,
+            )
             self.assertNotEqual(probe.returncode, 0)
             (repo / "a.txt").write_text("two\n", encoding="utf-8")
             sha = snapshot_worktree(repo)

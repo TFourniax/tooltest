@@ -471,7 +471,7 @@ def _doctor(args: argparse.Namespace) -> int:
     for index, plan in enumerate(plans, 1):
         default = "  <- default" if index == 1 else ""
         print(f"  {index}. {plan.command} [{plan.confidence}] - {plan.reason}{default}")
-    print("\nAgent guard examples:")
+    print("\nExplicit fallback process-boundary examples (native setup is the primary workflow):")
     print("  dw guard -- claude")
     print("  dw guard -- codex")
     return 0
@@ -497,6 +497,24 @@ def _hook_payload() -> dict[str, Any]:
         return {}
 
 
+def _stop_payload(
+    message: str,
+    *,
+    block: bool = False,
+    terminal: bool = False,
+) -> dict[str, str | bool]:
+    if block and terminal:
+        raise ValueError("a Stop response cannot both continue and terminate the provider turn")
+    payload: dict[str, str | bool] = {"systemMessage": message}
+    if block:
+        payload["decision"] = "block"
+        payload["reason"] = message
+    elif terminal:
+        payload["continue"] = False
+        payload["stopReason"] = message
+    return payload
+
+
 def _session_start(args: argparse.Namespace) -> int:
     payload = _hook_payload()
     repo = repo_root(payload.get("cwd") or args.repo)
@@ -512,7 +530,11 @@ def _session_stop(args: argparse.Namespace) -> int:
     session_id = str(payload.get("session_id") or args.session_id or "default")
     path = _state_path(repo, session_id)
     if not path.exists():
-        print(json.dumps({"decision": "approve", "systemMessage": "DiffWitness was not armed at session start; use `dw guard` for guaranteed capture."}))
+        message = (
+            "DiffWitness was not armed at SessionStart, so this task cannot be declared verified. "
+            "Repair `dw setup` or use `dw guard` for a new explicitly captured task."
+        )
+        print(json.dumps(_stop_payload(message, terminal=True)))
         return 0
     try:
         state = json.loads(path.read_text(encoding="utf-8"))
@@ -520,17 +542,21 @@ def _session_stop(args: argparse.Namespace) -> int:
         state = {}
     base = state.get("base")
     if not base:
-        print(json.dumps({"decision": "approve", "systemMessage": "DiffWitness session state is invalid; use `dw guard` for guaranteed capture."}))
+        message = (
+            "DiffWitness SessionStart state is invalid, so this task cannot be declared verified. "
+            "Repair `dw setup` or use `dw guard` for a new explicitly captured task."
+        )
+        print(json.dumps(_stop_payload(message, terminal=True)))
         return 0
 
     candidate = snapshot_worktree(repo)
     if candidate == base:
-        print(json.dumps({"decision": "approve", "systemMessage": "DiffWitness: no repository change to prove."}))
+        print(json.dumps(_stop_payload("DiffWitness: no repository change to prove.")))
         return 0
     files = parse_file_patches(diff_text(repo, base, candidate))
     mutations = make_mutations(files)
     if not mutations:
-        print(json.dumps({"decision": "approve", "systemMessage": "DiffWitness: no production-code mutation to prove."}))
+        print(json.dumps(_stop_payload("DiffWitness: no production-code mutation to prove.")))
         return 0
 
     config = load_config(repo, None)
@@ -558,21 +584,24 @@ def _session_stop(args: argparse.Namespace) -> int:
     )
     if rc == 0:
         cert_id = report.get("certificate_id") if report else "unknown"
-        print(json.dumps({"decision": "approve", "systemMessage": f"DiffWitness proof accepted: {cert_id}"}))
+        print(json.dumps(_stop_payload(f"DiffWitness proof accepted: {cert_id}")))
         return 0
 
     retries = int(state.get("retries", 0)) + 1
     state["retries"] = retries
     path.write_text(json.dumps(state), encoding="utf-8")
     if retries > 3:
-        msg = f"DiffWitness proof still fails after {retries - 1} continuation attempts: {reason}"
-        print(json.dumps({"decision": "approve", "systemMessage": msg}))
+        msg = (
+            f"DiffWitness proof still fails after {retries - 1} continuation attempts and requires "
+            f"human intervention or stronger evidence: {reason}"
+        )
+        print(json.dumps(_stop_payload(msg, terminal=True)))
         return 0
     feedback = (
         "DiffWitness rejected the current patch. Continue working until the proof passes. "
         f"Reason: {reason[-3000:]}"
     )
-    print(json.dumps({"decision": "block", "reason": feedback, "systemMessage": feedback}))
+    print(json.dumps(_stop_payload(feedback, block=True)))
     return 0
 
 

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diffwitness.ide_handoff import _decision
+from diffwitness.ide_handoff import _block, _success, _terminal_failure
 from diffwitness.ide_plugin import session_start, user_prompt_submit
 
 
@@ -22,16 +22,22 @@ class NativeHookContractTests(unittest.TestCase):
         return repo
 
     def test_stop_success_omits_unsupported_approve_decision(self):
-        result = _decision("approve", "DiffWitness Proof accepted")
+        result = _success("DiffWitness Proof accepted")
         self.assertNotIn("decision", result)
         self.assertNotIn("reason", result)
         self.assertEqual(result["systemMessage"], "DiffWitness Proof accepted")
 
     def test_stop_block_preserves_block_and_reason(self):
-        result = _decision("block", "Evidence failed")
+        result = _block("Evidence failed")
         self.assertEqual(result["decision"], "block")
         self.assertEqual(result["reason"], "Evidence failed")
         self.assertEqual(result["systemMessage"], "Evidence failed")
+
+    def test_terminal_stop_failure_never_requests_another_agent_turn(self):
+        result = _terminal_failure("SessionStart capture is missing; task is unverified")
+        self.assertNotIn("decision", result)
+        self.assertIs(result["continue"], False)
+        self.assertEqual(result["stopReason"], result["systemMessage"])
 
     def test_native_prompt_context_never_tells_active_agent_to_launch_guard(self):
         with tempfile.TemporaryDirectory() as td:
@@ -63,6 +69,7 @@ class NativeHookContractTests(unittest.TestCase):
             self.assertIsNotNone(result)
             context = result["hookSpecificOutput"]["additionalContext"]
             self.assertIn("SessionStart capture was not observed", context)
+            self.assertIn("Stop boundary will fail closed", context)
             self.assertIn("Do not run `dw guard`, `dw gate`, or launch another coding agent", context)
             self.assertNotIn("change-proof: dw guard", context)
 

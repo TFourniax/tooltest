@@ -214,6 +214,13 @@ codex
 
 The native SessionStart boundary captures the starting repository state. The native Stop boundary evaluates the exact resulting change and connects **PROVE · OWE · UNDERSTAND · CONTINUITY** without requiring a nested wrapper agent.
 
+The repository-local setup also covers local desktop surfaces that execute the same provider hooks:
+
+- Claude Code terminal, IDE extensions, and the Claude Code desktop app use the same lifecycle events. This does not mean the unrelated general-purpose Claude Desktop chat/MCP client.
+- Codex CLI and the local Codex app discover the project `.codex/hooks.json`; each new or changed hook still requires review in the provider's `/hooks` trust flow.
+
+Cloud sessions are a separate environment: local settings and executables do not automatically travel to a remote runner. Install the DiffWitness plugin/configuration and executable inside that runner before expecting a native boundary there.
+
 `dw guard` remains the stable explicit before/after wrapper when native integration is unavailable or when you intentionally want a process boundary:
 
 ```bash

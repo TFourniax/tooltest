@@ -9,7 +9,7 @@ from typing import Any
 from .autodetect import command_available, default_evidence, suggested_available_command
 from .config import load_config
 from .debt_budget import ledger_path, merged_debt_config
-from .gitops import git, repo_root, snapshot_worktree
+from .gitops import git, git_metadata_path, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
@@ -83,7 +83,7 @@ def _branch(repo: Path) -> str | None:
 
 
 def _latest_envelope(repo: Path) -> dict[str, Any] | None:
-    path = repo / ".git" / "diffwitness" / "change-envelope.json"
+    path = git_metadata_path(repo, "diffwitness/change-envelope.json")
     if not path.exists():
         return None
     try:
@@ -167,7 +167,7 @@ def _gate_base(repo: Path, envelope: dict[str, Any] | None) -> str:
 
 
 def _setup_scope(repo: Path) -> list[str]:
-    path = repo / ".git" / "diffwitness" / "setup-scope.json"
+    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

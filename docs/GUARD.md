@@ -1,6 +1,9 @@
 # DiffWitness Guard
 
-`dw guard` turns any coding agent process into a proof-carrying code session without requiring that agent to integrate with DiffWitness.
+`dw guard` is the explicit fallback that turns any coding-agent process into a proof-carrying code
+session when native integration is unavailable or when a user deliberately wants a process-owned
+boundary. For normal Claude Code or Codex use, run `dw setup` once and then launch the provider
+normally.
 
 ```bash
 dw guard -- claude
@@ -124,7 +127,8 @@ Builtin Protect, when explicitly enabled, installs separate `PreToolUse` / `Post
 
 The plugin can ask the agent to continue when proof is rejected. To prevent pathological loops, the current hook gate caps automatic continuation attempts and then surfaces the unresolved proof instead of trapping the session indefinitely.
 
-Guard remains the reference path when you require a guaranteed process boundary.
+Guard remains the deliberate fallback when you require a guaranteed process boundary. Never ask an
+already-running Claude Code or Codex session to launch Guard: that would create a nested agent.
 
 ## Important limitation
 

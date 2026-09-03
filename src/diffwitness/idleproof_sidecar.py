@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .engine_protocol import repository_fingerprint
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 
 
 INTEGRATION_SCHEMA = "diffwitness.integration-status.v1"
@@ -107,7 +107,7 @@ def _assurance_path(repo: Path) -> Path:
 def _portal_token_path(repo: Path) -> Path:
     # Scoped ingest credentials are local secrets, not project content. Keeping this under .git
     # makes accidental source commits impossible while still allowing automatic future syncs.
-    return repo / ".git" / "diffwitness" / "portal-device-token"
+    return git_metadata_path(repo, "diffwitness/portal-device-token")
 
 
 def _safe_project_name(repo: Path) -> str:
@@ -158,13 +158,23 @@ def _shell_command(executable: str, *args: str) -> str:
     return " ".join(shlex.quote(value) for value in values)
 
 
-def _agent_commands(dw_command: str) -> dict[str, tuple[str, str, str]]:
-    triple = (
+def _legacy_agent_commands(dw_command: str) -> tuple[str, str, str]:
+    return (
         _shell_command(dw_command, "ide-hook", "session-start"),
         _shell_command(dw_command, "ide-hook", "user-prompt-submit"),
         _shell_command(dw_command, "ide-hook", "session-stop"),
     )
-    return {"claude": triple, "codex": triple, "cursor": triple}
+
+
+def _agent_commands(dw_command: str) -> dict[str, tuple[str, str, str]]:
+    return {
+        provider: (
+            _shell_command(dw_command, "ide-hook", "session-start", "--provider", provider),
+            _shell_command(dw_command, "ide-hook", "user-prompt-submit", "--provider", provider),
+            _shell_command(dw_command, "ide-hook", "session-stop", "--provider", provider),
+        )
+        for provider in ("claude", "codex", "cursor")
+    }
 
 
 def _adapter_path(repo: Path, adapter: str) -> Path:
@@ -211,6 +221,9 @@ def _install_adapter(repo: Path, adapter: str, *, dw_command: str) -> tuple[Path
     if not isinstance(hooks, dict):
         hooks = {}
         data["hooks"] = hooks
+    # Upgrade older provider-agnostic hooks in place. Leaving both forms installed would execute
+    # SessionStart/Stop twice and could race or duplicate expensive Proof work.
+    _remove_commands_from_hooks(data, set(_legacy_agent_commands(dw_command)))
     start, prompt, stop = _agent_commands(dw_command)[adapter]
 
     if adapter in {"claude", "codex"}:
@@ -249,7 +262,12 @@ def _resolve_adapters(raw: str, repo: Path) -> list[str]:
             detected.append("codex")
         if (repo / ".cursor").exists() or shutil.which("cursor"):
             detected.append("cursor")
-        return detected or ["claude", "codex", "cursor"]
+        if not detected:
+            raise IdleProofSidecarError(
+                "No supported coding agent was detected. Choose one explicitly with "
+                "--agent claude, --agent codex, --agent cursor, or use --agent all deliberately."
+            )
+        return detected
     values = [item.strip() for item in normalized.split(",") if item.strip()]
     unknown = [value for value in values if value not in {"claude", "codex", "cursor"}]
     if unknown:
@@ -361,6 +379,7 @@ def integration_uninstall(repo: Path) -> None:
     adapters = state.get("expectedAdapters") if isinstance(state.get("expectedAdapters"), list) else ["claude", "codex", "cursor"]
     created_files = state.get("createdFiles") if isinstance(state.get("createdFiles"), dict) else {}
     commands = {value for triple in _agent_commands(dw_command).values() for value in triple}
+    commands.update(_legacy_agent_commands(dw_command))
     for adapter in adapters:
         if adapter not in {"claude", "codex", "cursor"}:
             continue
@@ -476,13 +495,13 @@ def _bounded_path(value: Any) -> str | None:
 
 
 def _explanation(repo: Path) -> dict[str, Any]:
-    path = repo / ".git" / "diffwitness" / "idleproof-explanation.json"
+    path = git_metadata_path(repo, "diffwitness/idleproof-explanation.json")
     value = _read_json(path)
     return value if value.get("schema") == "idleproof.explanation.v2" else {}
 
 
 def _envelope(repo: Path) -> dict[str, Any]:
-    path = repo / ".git" / "diffwitness" / "change-envelope.json"
+    path = git_metadata_path(repo, "diffwitness/change-envelope.json")
     value = _read_json(path)
     return value if value.get("schema_version") == "change-envelope-1" else {}
 

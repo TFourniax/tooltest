@@ -116,6 +116,24 @@ def repo_root(path: str | Path = ".") -> Path:
     return Path(proc.stdout.strip()).resolve()
 
 
+def git_metadata_path(repo: Path, relative: str | PurePosixPath) -> Path:
+    """Resolve a writable path below this worktree's Git metadata directory.
+
+    ``repo/.git`` is a directory only for an ordinary checkout. Linked worktrees use a text file
+    there, so local DiffWitness state must go through Git's authoritative ``--git-path`` resolver.
+    """
+    normalized = PurePosixPath(str(relative).replace("\\", "/"))
+    if normalized.is_absolute() or not normalized.parts or any(part in {"", ".", ".."} for part in normalized.parts):
+        raise GitError(f"invalid relative Git metadata path: {relative}")
+    raw = git(repo, "rev-parse", "--git-path", normalized.as_posix()).strip()
+    if not raw:
+        raise GitError(f"cannot resolve Git metadata path: {relative}")
+    path = Path(raw)
+    if not path.is_absolute():
+        path = repo / path
+    return path.resolve(strict=False)
+
+
 def resolve_ref(repo: Path, ref: str) -> str:
     value = git(repo, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
     if not value:

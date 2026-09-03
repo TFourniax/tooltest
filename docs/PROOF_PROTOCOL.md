@@ -169,7 +169,11 @@ run counterfactual proof over the exact produced diff
 
 The agent does not self-certify. The proof layer observes the artifact after generation.
 
-Lifecycle plugins can automate the same transaction at `SessionStart` / `Stop`. The wrapper remains the reference path because it does not depend on a particular agent runtime's hook behavior.
+For normal Claude Code and Codex use, `dw setup` installs native `SessionStart` / `Stop`
+boundaries and the user launches the provider normally. `dw guard -- <agent>` remains the
+portable, explicit fallback when native hooks are unavailable or when the user deliberately needs
+a process-owned before/after boundary. An active native agent must never be instructed to launch
+Guard or a second copy of itself.
 
 ## 6. Certificate requirements
 

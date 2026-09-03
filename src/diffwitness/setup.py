@@ -11,7 +11,7 @@ from typing import Sequence
 
 from .autodetect import command_available, default_evidence, suggested_available_command
 from .config import load_config
-from .gitops import repo_root
+from .gitops import git_metadata_path, repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
 from .native_activation import clear_native_activation, native_activation_summary
 from .view_mode import get_view_mode
@@ -25,7 +25,7 @@ _SETUP_SCOPE_SCHEMA = "diffwitness.setup-scope.v1"
 
 
 def _setup_scope_path(cwd: Path) -> Path:
-    return cwd / ".git" / "diffwitness" / "setup-scope.json"
+    return git_metadata_path(cwd, "diffwitness/setup-scope.json")
 
 
 def _persist_setup_scope(cwd: Path, adapters: Sequence[str]) -> None:

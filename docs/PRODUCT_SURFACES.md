@@ -98,7 +98,7 @@ Switching levels changes **presentation only**. It must never change:
 - machine-readable status contracts;
 - privacy boundaries.
 
-For the local DiffWitness experience, `dw view guided` and `dw view technical` persist the preference under `.git/diffwitness/`; `dw status --view ...` provides a one-off override. Existing DiffWitness installations default to Technical for backward compatibility. The `dw status --json` contract is deliberately view-invariant.
+For the local DiffWitness experience, `dw view guided` and `dw view technical` persist the preference under local Git metadata; `dw status --view ...` provides a one-off override. First run defaults to Guided, and Technical is always one explicit command away. The `dw status --json` contract is deliberately view-invariant.
 
 DiffWitness Portal defaults to Guided because it is the non-technical entry point, while Technical remains available from the global application shell and can be reversed at any time.
 

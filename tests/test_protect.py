@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -24,7 +25,7 @@ class ProtectTests(unittest.TestCase):
     def repo(self, root: Path) -> Path:
         repo = root / "repo"
         repo.mkdir()
-        (repo / ".git" / "diffwitness").mkdir(parents=True)
+        subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
         return repo
 
     def test_default_is_off_and_never_gates(self):

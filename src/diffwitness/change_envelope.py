@@ -9,7 +9,7 @@ from typing import Any
 
 from .attestation import AttestationError, expected_certificate_id
 from .engine_protocol import change_id, repository_fingerprint
-from .gitops import git, repo_root, resolve_ref, snapshot_worktree
+from .gitops import git, git_metadata_path, repo_root, resolve_ref, snapshot_worktree
 from .ledger import LedgerError
 
 
@@ -296,7 +296,7 @@ def envelope_cli(argv: list[str]) -> int:
         debt_path=args.debt,
         understanding_path=args.understanding,
     )
-    output = args.out or (repo / ".git" / "diffwitness" / "change-envelope.json")
+    output = args.out or git_metadata_path(repo, "diffwitness/change-envelope.json")
     if not output.is_absolute():
         output = repo / output
     output.parent.mkdir(parents=True, exist_ok=True)

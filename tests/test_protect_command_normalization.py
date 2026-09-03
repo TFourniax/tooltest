@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +14,7 @@ class ProtectCommandNormalizationTests(unittest.TestCase):
     def _repo(self, root: Path) -> Path:
         repo = root / "repo"
         repo.mkdir()
-        (repo / ".git" / "diffwitness").mkdir(parents=True)
+        subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
         (repo / ".claude").mkdir()
         with mock.patch("diffwitness.protect.shutil.which", return_value=None):
             set_protect_mode(repo, "builtin", policy="standard", force=True)
@@ -72,6 +73,7 @@ class ProtectCommandNormalizationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td) / "repo"
             repo.mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
             state = repo / ".git" / "diffwitness"
             state.mkdir(parents=True)
             (state / "setup-scope.json").write_text(

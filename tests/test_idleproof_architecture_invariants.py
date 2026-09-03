@@ -75,7 +75,7 @@ class IdleProofArchitectureInvariantTests(unittest.TestCase):
 
     def test_user_owned_cache_stays_in_git_metadata_not_project_source(self):
         source = (self.package_root / "idleproof_user_inference.py").read_text(encoding="utf-8")
-        self.assertIn('repo / ".git" / "diffwitness" / "idleproof-ai-cache.json"', source)
+        self.assertIn('git_metadata_path(repo, "diffwitness/idleproof-ai-cache.json")', source)
         self.assertNotIn('repo / ".idleproof" / "idleproof-ai-cache.json"', source)
 
 

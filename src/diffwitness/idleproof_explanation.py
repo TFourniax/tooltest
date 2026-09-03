@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from .gitops import git, repo_root, snapshot_worktree
+from .gitops import git, git_metadata_path, repo_root, snapshot_worktree
 
 
 EXPLANATION_SCHEMA = "idleproof.explanation.v2"
@@ -411,7 +411,7 @@ def scope_explanation_to_current_worktree(
 def load_current_explanation(repo: str | Path = ".") -> dict[str, Any]:
     """Load the latest deterministic explanation with a live current-worktree trust overlay."""
     root = repo_root(repo)
-    explanation_path = root / ".git" / "diffwitness" / "idleproof-explanation.json"
+    explanation_path = git_metadata_path(root, "diffwitness/idleproof-explanation.json")
     if not explanation_path.is_file():
         raise FileNotFoundError("No captured IdleProof explanation yet. Run a guarded/IDE task first.")
     try:
@@ -421,7 +421,7 @@ def load_current_explanation(repo: str | Path = ".") -> dict[str, Any]:
     if not isinstance(explanation, dict):
         raise ValueError("IdleProof explanation is not a JSON object.")
 
-    envelope_path = root / ".git" / "diffwitness" / "change-envelope.json"
+    envelope_path = git_metadata_path(root, "diffwitness/change-envelope.json")
     envelope: dict[str, Any] | None = None
     try:
         raw = json.loads(envelope_path.read_text(encoding="utf-8"))
@@ -532,7 +532,7 @@ def write_explanation_artifact(
         file_patches=file_patches,
         debt_signals=debt_signals,
     )
-    output = repo / ".git" / "diffwitness" / "idleproof-explanation.json"
+    output = git_metadata_path(repo, "diffwitness/idleproof-explanation.json")
     output.parent.mkdir(parents=True, exist_ok=True)
     staged = output.with_suffix(".json.tmp")
     staged.write_text(json.dumps(explanation, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

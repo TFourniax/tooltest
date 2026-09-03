@@ -5,6 +5,7 @@ from typing import Any
 
 from .debt_models import DEBT_CATEGORIES, DebtBudgetResult, DebtReport
 from .debt_sensor import merge_sensor_result
+from .gitops import git_metadata_path
 from .ledger import DebtLedger, _ledger_lock
 from .semantic_redundancy import SENSOR_ID as SEMANTIC_REDUNDANCY_SENSOR_ID, SemanticRedundancySensor
 
@@ -35,7 +36,12 @@ def merged_debt_config(config: dict[str, Any] | None) -> dict[str, Any]:
 def ledger_path(repo: Path, debt_config: dict[str, Any]) -> Path:
     raw = str(debt_config.get("ledger") or DEFAULT_DEBT_CONFIG["ledger"])
     path = Path(raw)
-    return path if path.is_absolute() else repo / path
+    if path.is_absolute():
+        return path
+    normalized = raw.replace("\\", "/")
+    if normalized.startswith(".git/"):
+        return git_metadata_path(repo, normalized[len(".git/") :])
+    return repo / path
 
 
 def _mark_sensor_degraded(change: DebtReport, exc: Exception) -> None:

@@ -14,7 +14,7 @@ from .continuity_state import ensure_state
 from .debt_budget import evaluate_and_record, ledger_path, merged_debt_config
 from .debt_scan import scan_change
 from .diffing import make_mutations, parse_file_patches
-from .gitops import diff_text, repo_root, snapshot_worktree
+from .gitops import diff_text, git_metadata_path, repo_root, snapshot_worktree
 from .guard import (
     _persist_guard_envelope,
     _sync_idleproof_assurance,
@@ -28,18 +28,23 @@ from .proof_cli import DEFAULT_MAX_TOTAL_SECONDS, _run_proof, _state_path
 _MAX_RETRIES = 3
 
 
-def _decision(decision: str, message: str) -> dict[str, Any]:
-    """Render a portable Claude/Codex Stop-hook decision.
+def _success(message: str) -> dict[str, Any]:
+    """Complete a provider Stop without inventing an approval decision."""
+    return {"systemMessage": message}
 
-    Both current providers use ``decision: block`` to request continuation, while a successful
-    Stop must omit the decision field entirely. Keeping ``systemMessage`` on success preserves a
-    concise user-visible completion notice without relying on an unsupported ``approve`` value.
-    """
-    payload: dict[str, Any] = {"systemMessage": message}
-    if decision == "block":
-        payload["decision"] = "block"
-        payload["reason"] = message
-    return payload
+
+def _block(message: str) -> dict[str, Any]:
+    """Request one bounded provider continuation for a recoverable proof failure."""
+    return {"decision": "block", "reason": message, "systemMessage": message}
+
+
+def _terminal_failure(message: str) -> dict[str, Any]:
+    """End a provider turn once when the current task cannot repair its evidence boundary."""
+    return {
+        "continue": False,
+        "stopReason": message,
+        "systemMessage": message,
+    }
 
 
 def _read_session_state(path: Path) -> dict[str, Any]:
@@ -62,15 +67,13 @@ def _retry_or_block(path: Path, state: dict[str, Any], message: str) -> dict[str
     state["retries"] = retries
     _write_session_state(path, state)
     if retries > _MAX_RETRIES:
-        return _decision(
-            "block",
+        return _terminal_failure(
             "DiffWitness still cannot establish acceptable evidence after "
             f"{_MAX_RETRIES} continuation attempts. The task requires human intervention or a "
             "stronger evidence command before it can be declared complete. "
             f"Last reason: {message[-2600:]}",
         )
-    return _decision(
-        "block",
+    return _block(
         "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. "
         f"Reason: {message[-3000:]}",
     )
@@ -85,7 +88,7 @@ def _evidence_command(repo: Path, config: dict[str, Any]) -> str | None:
 
 
 def _continuity_health_path(repo: Path) -> Path:
-    return repo / ".git" / "diffwitness" / "continuity-health.json"
+    return git_metadata_path(repo, "diffwitness/continuity-health.json")
 
 
 def _set_continuity_health(repo: Path, *, state: str, change_id: str | None = None, error: str | None = None) -> None:
@@ -170,33 +173,34 @@ def finalize_ide_session(
     sid = str(payload.get("session_id") or session_id or "default")
     path = _state_path(root, sid)
     if not path.exists():
-        return _decision(
-            "approve",
-            "DiffWitness was not armed at session start; run `dw setup` for native IDE capture or use `dw guard` as the explicit fallback.",
+        return _terminal_failure(
+            "DiffWitness was not armed at SessionStart, so this task cannot be declared verified. "
+            "Repair `dw setup` and start a newly captured task, or use `dw guard` as an explicit "
+            "boundary for a new task. Do not launch a nested agent from this session.",
         )
 
     state = _read_session_state(path)
     base = state.get("base")
     if not isinstance(base, str) or not base:
-        return _decision(
-            "approve",
-            "DiffWitness session state is invalid; rerun `dw setup` for native IDE capture or use `dw guard` as the explicit fallback.",
+        return _terminal_failure(
+            "DiffWitness SessionStart state is invalid, so this task cannot be declared verified. "
+            "Repair `dw setup` and start a newly captured task, or use `dw guard` as an explicit "
+            "boundary for a new task. Do not launch a nested agent from this session.",
         )
 
     candidate = snapshot_worktree(root)
     if candidate == base:
-        return _decision("approve", "DiffWitness: no repository change to prove.")
+        return _success("DiffWitness: no repository change to prove.")
 
     files = parse_file_patches(diff_text(root, base, candidate))
     mutations = make_mutations(files)
     if not mutations:
-        return _decision("approve", "DiffWitness: no production-code mutation to prove.")
+        return _success("DiffWitness: no production-code mutation to prove.")
 
     config = load_config(root, None)
     test = _evidence_command(root, config)
     if not test:
-        return _decision(
-            "block",
+        return _block(
             "DiffWitness cannot find an evidence command. Add tests or configure [diffwitness].test before declaring the task complete.",
         )
 
@@ -247,7 +251,7 @@ def finalize_ide_session(
         )
         provenance = {
             "source": "ide-hook",
-            "agent": str(payload.get("agent") or payload.get("source") or "coding-agent")[:128],
+            "agent": str(payload.get("agent") or payload.get("provider") or payload.get("source") or "coding-agent")[:128],
             "executable": "native-hook",
         }
         for signal in debt_report.signals:
@@ -298,7 +302,6 @@ def finalize_ide_session(
             continuity_suffix = f" · Continuity {continuity_events} event(s)"
             if change_id:
                 continuity_suffix += f" · {change_id}"
-        return _decision(
-            "approve",
+        return _success(
             f"DiffWitness Proof accepted: {cert_id}{debt_suffix}{ledger_suffix}{continuity_suffix}",
         )
