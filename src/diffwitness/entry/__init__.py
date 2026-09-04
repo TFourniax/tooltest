@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -114,6 +115,26 @@ def _sync_debt_continuity_best_effort(argv: list[str]) -> None:
         print(f"Project continuity debt sync degraded: {str(exc)[:300]}", file=sys.stderr)
 
 
+def _record_envelope_continuity_best_effort(repo: Path, envelope_path: Path, *, actor: str) -> None:
+    try:
+        from ..continuity_bridge import record_change_envelope
+        from ..continuity_state import ensure_state
+
+        result = record_change_envelope(
+            repo=repo,
+            path=envelope_path,
+            actor=actor,
+            trusted_proof=True,
+        )
+        ensure_state(repo)
+        created = result.get("created") or {}
+        total = sum(int(value or 0) for value in created.values())
+        if total:
+            print(f"Project continuity: {total} new change event(s) · {result['change_id']}")
+    except Exception as exc:
+        print(f"Project continuity recording degraded: {str(exc)[:300]}", file=sys.stderr)
+
+
 def _guard_with_continuity(argv: list[str]) -> int:
     from ..gitops import git_metadata_path, repo_root
     from ..guard import guard_cli
@@ -129,24 +150,67 @@ def _guard_with_continuity(argv: list[str]) -> int:
     rc = guard_cli(argv)
     after = _digest(envelope_path)
     if after is not None and after != before:
-        try:
-            from ..continuity_bridge import record_change_envelope
-            from ..continuity_state import ensure_state
-
-            result = record_change_envelope(
-                repo=repo,
-                path=envelope_path,
-                actor="diffwitness-guard",
-                trusted_proof=True,
-            )
-            ensure_state(repo)
-            created = result.get("created") or {}
-            total = sum(int(value or 0) for value in created.values())
-            print(f"Project continuity: {total} new change event(s) · {result['change_id']}")
-        except Exception as exc:
-            print(f"Project continuity recording degraded: {str(exc)[:300]}", file=sys.stderr)
+        _record_envelope_continuity_best_effort(repo, envelope_path, actor="diffwitness-guard")
 
     _sync_debt_continuity_best_effort(argv)
+    return rc
+
+
+def _gate_with_product_state(argv: list[str]) -> int:
+    """Make the public `dw gate` action update the same exact-tree status contract it recommends.
+
+    The proof engine remains the authority. This facade only persists its fresh certificate into a
+    bounded change envelope after a successful invocation, so `dw status` cannot loop forever on a
+    change that the user has already verified manually.
+    """
+    from ..change_envelope import build_change_envelope
+    from ..gitops import git_metadata_path, repo_root
+
+    parser_repo = _option_value(argv, "--repo", ".") or "."
+    try:
+        repo = repo_root(parser_repo)
+    except Exception:
+        return _frontend_main(["gate", *argv])
+
+    gate_args = list(argv)
+    explicit_certificate = _option_value(argv, "--certificate")
+    if explicit_certificate:
+        certificate_path = Path(explicit_certificate).expanduser()
+    else:
+        certificate_path = git_metadata_path(repo, "diffwitness/latest-gate-certificate.json")
+        try:
+            certificate_path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            print(f"DiffWitness Gate state preparation failed: {exc}", file=sys.stderr)
+            return 2
+        gate_args.extend(["--certificate", str(certificate_path)])
+
+    rc = _frontend_main(["gate", *gate_args])
+    if rc != 0 or not certificate_path.is_file():
+        return rc
+
+    base_ref = _option_value(argv, "--base")
+    candidate_ref = _option_value(argv, "--candidate", "HEAD") or "HEAD"
+    if not base_ref:
+        return rc
+
+    try:
+        envelope = build_change_envelope(
+            repo=repo,
+            base_ref=base_ref,
+            candidate_ref=candidate_ref,
+            proof_path=certificate_path,
+        )
+        envelope_path = git_metadata_path(repo, "diffwitness/change-envelope.json")
+        envelope_path.parent.mkdir(parents=True, exist_ok=True)
+        envelope_path.write_text(json.dumps(envelope, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    except Exception as exc:
+        print(f"DiffWitness Gate proof completed but current-change state could not be recorded: {str(exc)[:500]}", file=sys.stderr)
+        return 2
+
+    _record_envelope_continuity_best_effort(repo, envelope_path, actor="diffwitness-gate")
     return rc
 
 
@@ -224,6 +288,8 @@ def main(argv: list[str] | None = None) -> int:
         return engine_cli(args[1:])
     if args[0] == "guard":
         return _guard_with_continuity(args[1:])
+    if args[0] == "gate":
+        return _gate_with_product_state(args[1:])
     if args[0] in {"debt", "health", "repay", "recheck", "ledger"}:
         return _debt_command_with_continuity(args[0], args[1:])
     if args[0] == "state" and len(args) > 1 and args[1] in {"checkpoint", "restore", "pull", "push"}:
