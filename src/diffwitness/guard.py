@@ -80,6 +80,7 @@ def _persist_guard_envelope(
     temp_dir: Path,
     report=None,
     budget=None,
+    quiet: bool = False,
 ) -> Path:
     debt_path: Path | None = None
     if report is not None and budget is not None:
@@ -138,11 +139,13 @@ def _persist_guard_envelope(
             file_patches=files,
             debt_signals=list(report.signals) if report is not None else (),
         )
-        print(f"IdleProof explanation: {explanation_path}")
+        if not quiet:
+            print(f"IdleProof explanation: {explanation_path}")
     except Exception as exc:
         print(f"IdleProof deterministic explanation deferred: {str(exc)[:300]}", file=sys.stderr)
 
-    print(f"Change envelope: {output}")
+    if not quiet:
+        print(f"Change envelope: {output}")
     return output
 
 

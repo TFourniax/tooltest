@@ -278,6 +278,9 @@ def finalize_ide_session(
             temp_dir=temp_dir,
             report=debt_report,
             budget=budget,
+            # Native providers parse stdout as one hook-protocol JSON document. Guard's
+            # human-facing artifact paths must not leak into that protocol stream.
+            quiet=True,
         )
         change_id, continuity_events, continuity_error = _record_continuity(root, envelope_path)
         _sync_idleproof_assurance(root, envelope_path)

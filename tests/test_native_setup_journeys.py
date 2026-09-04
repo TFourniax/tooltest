@@ -190,11 +190,40 @@ class NativeSetupJourneyTests(unittest.TestCase):
                             self.assertIn(trust_marker, setup.stdout.lower())
 
                         session = f"native-{provider}-{view}"
-                        common = {
+                        common: dict[str, object] = {
                             "cwd": str(repo),
                             "session_id": session,
+                        }
+                        start_payload = {
+                            **common,
+                            "hook_event_name": "SessionStart",
                             "source": "startup",
                         }
+                        prompt_payload = {
+                            **common,
+                            "hook_event_name": "UserPromptSubmit",
+                            "prompt": "Fix add so the existing regression test passes",
+                        }
+                        stop_payload = {**common, "hook_event_name": "Stop"}
+                        if provider == "codex":
+                            # Codex 0.153.2's real command-hook payload includes these required
+                            # provider fields. Keep this journey aligned with the live contract so
+                            # provider-only parsing failures cannot hide behind a generic fixture.
+                            provider_fields = {
+                                "model": "gpt-5.5",
+                                "permission_mode": "default",
+                                "transcript_path": str(repo / ".codex" / "transcript.jsonl"),
+                            }
+                            start_payload.update(provider_fields)
+                            prompt_payload.update({**provider_fields, "turn_id": "turn-native-1"})
+                            stop_payload.update(
+                                {
+                                    **provider_fields,
+                                    "turn_id": "turn-native-1",
+                                    "stop_hook_active": False,
+                                    "last_assistant_message": "Implemented the minimal fix.",
+                                }
+                            )
                         start_command = _hook_invocation(repo, provider, "SessionStart")
                         prompt_command = _hook_invocation(repo, provider, "UserPromptSubmit")
                         stop_command = _hook_invocation(repo, provider, "Stop")
@@ -204,7 +233,7 @@ class NativeSetupJourneyTests(unittest.TestCase):
                         started = _run_hook(
                             repo,
                             start_command,
-                            {**common, "hook_event_name": "SessionStart"},
+                            start_payload,
                         )
                         self.assertEqual(started.returncode, 0, started.stderr)
 
@@ -224,11 +253,7 @@ class NativeSetupJourneyTests(unittest.TestCase):
                         prompted = _run_hook(
                             repo,
                             prompt_command,
-                            {
-                                **common,
-                                "hook_event_name": "UserPromptSubmit",
-                                "prompt": "Fix add so the existing regression test passes",
-                            },
+                            prompt_payload,
                         )
                         self.assertEqual(prompted.returncode, 0, prompted.stderr)
                         self.assertNotIn("change-proof: dw guard", prompted.stdout)
@@ -240,10 +265,13 @@ class NativeSetupJourneyTests(unittest.TestCase):
                         stopped = _run_hook(
                             repo,
                             stop_command,
-                            {**common, "hook_event_name": "Stop"},
+                            stop_payload,
                         )
                         self.assertEqual(stopped.returncode, 0, stopped.stderr)
-                        result = json.loads(stopped.stdout.splitlines()[-1])
+                        # Providers such as Codex parse the complete stdout stream as one JSON
+                        # document. Looking only at the last line would hide incidental human
+                        # output that makes an otherwise valid hook response unusable.
+                        result = json.loads(stopped.stdout)
                         self.assertNotIn("decision", result, result)
                         self.assertIn("Proof accepted", result["systemMessage"])
                         self.assertIn("Continuity", result["systemMessage"])
