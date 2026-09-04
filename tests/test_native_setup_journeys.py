@@ -62,7 +62,7 @@ def _entrypoint(name: str) -> str | None:
     return shutil.which(name)
 
 
-def _hook_command(repo: Path, provider: str, event: str) -> str:
+def _hook_invocation(repo: Path, provider: str, event: str) -> tuple[str, list[str] | None]:
     path = (
         repo / ".claude" / "settings.local.json"
         if provider == "claude"
@@ -72,14 +72,47 @@ def _hook_command(repo: Path, provider: str, event: str) -> str:
     for entry in payload.get("hooks", {}).get(event, []):
         for hook in entry.get("hooks", []):
             command = hook.get("command")
-            if isinstance(command, str) and "ide-hook" in command:
-                return command
+            args = hook.get("args")
+            if not isinstance(command, str):
+                continue
+            if isinstance(args, list) and all(isinstance(value, str) for value in args):
+                argv = [str(value) for value in args]
+                if "ide-hook" in argv:
+                    return command, argv
+            if "ide-hook" in command:
+                return command, None
     raise AssertionError(f"no DiffWitness command installed for {provider} {event}")
 
 
-def _run_hook(repo: Path, command: str, payload: dict[str, object]) -> subprocess.CompletedProcess[str]:
-    # Provider hook contracts define command handlers as shell commands. Exercising the persisted
-    # string through the platform shell tests the same quoting/entrypoint boundary as the provider.
+def _invocation_text(invocation: tuple[str, list[str] | None]) -> str:
+    command, args = invocation
+    return " ".join([command, *(args or [])])
+
+
+def _run_hook(
+    repo: Path,
+    invocation: tuple[str, list[str] | None],
+    payload: dict[str, object],
+) -> subprocess.CompletedProcess[str]:
+    command, args = invocation
+    if args is not None:
+        # Exec-form hooks are the portable provider contract: no shell may reinterpret a native
+        # executable path or its arguments. This is essential for Claude Code on Windows, whose
+        # shell-form hooks otherwise run through Git Bash when Git Bash is installed.
+        return subprocess.run(
+            [command, *args],
+            cwd=repo,
+            input=json.dumps(payload),
+            text=True,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=180,
+            check=False,
+            shell=False,
+        )
+    # Keep exercising legacy/shell-form provider contracts through the platform shell until those
+    # adapters are migrated independently.
     return subprocess.run(
         command,
         cwd=repo,
@@ -162,11 +195,11 @@ class NativeSetupJourneyTests(unittest.TestCase):
                             "session_id": session,
                             "source": "startup",
                         }
-                        start_command = _hook_command(repo, provider, "SessionStart")
-                        prompt_command = _hook_command(repo, provider, "UserPromptSubmit")
-                        stop_command = _hook_command(repo, provider, "Stop")
-                        for command in (start_command, prompt_command, stop_command):
-                            self.assertIn(f"--provider {provider}", command)
+                        start_command = _hook_invocation(repo, provider, "SessionStart")
+                        prompt_command = _hook_invocation(repo, provider, "UserPromptSubmit")
+                        stop_command = _hook_invocation(repo, provider, "Stop")
+                        for invocation in (start_command, prompt_command, stop_command):
+                            self.assertIn(f"--provider {provider}", _invocation_text(invocation))
 
                         started = _run_hook(
                             repo,
