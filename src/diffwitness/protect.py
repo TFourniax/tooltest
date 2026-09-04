@@ -62,6 +62,8 @@ _GIT_GLOBAL_OPTIONS_WITH_VALUE = {
     "--super-prefix",
 }
 _SHELL_COMMAND_NAMES = {"sh", "bash", "zsh", "fish", "dash", "ksh", "pwsh", "powershell", "cmd", "cmd.exe"}
+_HOOK_EXECUTABLE_NAMES = {"dw", "dw.exe", "diffwitness", "diffwitness.exe"}
+HookSignature = tuple[str, tuple[str, ...] | None]
 
 
 class ProtectError(RuntimeError):
@@ -153,16 +155,26 @@ def _adapter_path(repo: Path, adapter: str) -> Path:
     raise ProtectError(f"unsupported Protect adapter: {adapter}")
 
 
-def _entry_command(entry: Mapping[str, Any]) -> str | None:
+def _hook_signature(entry: Mapping[str, Any]) -> HookSignature | None:
     direct = entry.get("command")
     if isinstance(direct, str):
-        return direct
+        raw_args = entry.get("args")
+        if isinstance(raw_args, list) and all(isinstance(value, str) for value in raw_args):
+            return direct, tuple(str(value) for value in raw_args)
+        return direct, None
     hooks = entry.get("hooks")
     if isinstance(hooks, list):
         for item in hooks:
-            if isinstance(item, Mapping) and isinstance(item.get("command"), str):
-                return str(item["command"])
+            if isinstance(item, Mapping):
+                signature = _hook_signature(item)
+                if signature is not None:
+                    return signature
     return None
+
+
+def _entry_command(entry: Mapping[str, Any]) -> str | None:
+    signature = _hook_signature(entry)
+    return signature[0] if signature is not None else None
 
 
 def _managed_command(dw_command: str, event: str, provider: str | None = None) -> str:
@@ -177,8 +189,53 @@ def _managed_command(dw_command: str, event: str, provider: str | None = None) -
     return " ".join(shlex.quote(value) for value in values)
 
 
-def _hook_entry(command: str, timeout: int) -> dict[str, Any]:
-    return {"hooks": [{"type": "command", "command": command, "timeout": timeout}]}
+def _managed_signature(dw_command: str, event: str, provider: str | None = None) -> HookSignature:
+    if provider == "claude":
+        return dw_command, ("ide-hook", event, "--provider", provider)
+    return _managed_command(dw_command, event, provider), None
+
+
+def _legacy_managed_signatures(dw_command: str) -> set[HookSignature]:
+    signatures: set[HookSignature] = {
+        (_managed_command(dw_command, "protect-pre"), None),
+        (_managed_command(dw_command, "protect-post"), None),
+    }
+    for provider in SUPPORTED_ADAPTERS:
+        signatures.add((_managed_command(dw_command, "protect-pre", provider), None))
+        signatures.add((_managed_command(dw_command, "protect-post", provider), None))
+    return signatures
+
+
+def _all_managed_signatures(dw_command: str) -> set[HookSignature]:
+    signatures = _legacy_managed_signatures(dw_command)
+    for provider in SUPPORTED_ADAPTERS:
+        signatures.add(_managed_signature(dw_command, "protect-pre", provider))
+        signatures.add(_managed_signature(dw_command, "protect-post", provider))
+    return signatures
+
+
+def _hook_entry(signature: HookSignature, timeout: int) -> dict[str, Any]:
+    command, args = signature
+    hook: dict[str, Any] = {"type": "command", "command": command, "timeout": timeout}
+    if args is not None:
+        hook["args"] = list(args)
+    return {"hooks": [hook]}
+
+
+def _is_diffwitness_hook(entry: Mapping[str, Any]) -> bool:
+    signature = _hook_signature(entry)
+    if signature is None:
+        return False
+    command, args = signature
+    lower = command.lower()
+    if "diffwitness" in lower:
+        return True
+    executable = command.strip().strip('"\'').replace("\\", "/").rsplit("/", 1)[-1].lower()
+    if args is not None:
+        return executable in _HOOK_EXECUTABLE_NAMES and bool(args) and args[0].lower() == "ide-hook"
+    if "ide-hook" not in lower:
+        return False
+    return bool(re.search(r"(?:^|[\\/])dw(?:\.exe)?(?:[\"\']?\s+)ide-hook\b", lower)) or lower.startswith("dw ide-hook")
 
 
 def _read_hook_file(path: Path) -> dict[str, Any]:
@@ -267,8 +324,8 @@ def detect_external_harness(repo: Path) -> dict[str, Any]:
             for entry in entries:
                 if not isinstance(entry, Mapping):
                     continue
-                command = (_entry_command(entry) or "").lower()
-                if command and "diffwitness" not in command and "dw ide-hook" not in command:
+                signature = _hook_signature(entry)
+                if signature is not None and not _is_diffwitness_hook(entry):
                     foreign += 1
         if foreign:
             signals.append(
@@ -290,9 +347,10 @@ def detect_external_harness(repo: Path) -> dict[str, Any]:
 
 def _install_hooks(repo: Path, adapters: Iterable[str], *, dw_command: str) -> dict[str, bool]:
     created: dict[str, bool] = {}
+    legacy = _legacy_managed_signatures(dw_command)
     for adapter in adapters:
-        pre = _managed_command(dw_command, "protect-pre", adapter)
-        post = _managed_command(dw_command, "protect-post", adapter)
+        pre = _managed_signature(dw_command, "protect-pre", adapter)
+        post = _managed_signature(dw_command, "protect-post", adapter)
         path = _adapter_path(repo, adapter)
         existed = path.exists()
         data = _read_hook_file(path)
@@ -300,7 +358,7 @@ def _install_hooks(repo: Path, adapters: Iterable[str], *, dw_command: str) -> d
         if not isinstance(hooks, dict):
             hooks = {}
             data["hooks"] = hooks
-        for event, command, timeout in (
+        for event, signature, timeout in (
             ("PreToolUse", pre, 3),
             ("PostToolUse", post, 4),
         ):
@@ -308,11 +366,16 @@ def _install_hooks(repo: Path, adapters: Iterable[str], *, dw_command: str) -> d
             if not isinstance(entries, list):
                 entries = []
                 hooks[event] = entries
+            entries[:] = [
+                item
+                for item in entries
+                if not (isinstance(item, Mapping) and _hook_signature(item) in legacy)
+            ]
             if not any(
-                isinstance(item, Mapping) and _entry_command(item) == command
+                isinstance(item, Mapping) and _hook_signature(item) == signature
                 for item in entries
             ):
-                entries.append(_hook_entry(command, timeout))
+                entries.append(_hook_entry(signature, timeout))
         _write_hook_file(path, data)
         created[path.relative_to(repo).as_posix()] = not existed
     return created
@@ -320,13 +383,7 @@ def _install_hooks(repo: Path, adapters: Iterable[str], *, dw_command: str) -> d
 
 def _remove_hooks(repo: Path, config: Mapping[str, Any]) -> None:
     dw_command = str(config.get("diffwitnessCommand") or _resolve_dw_command())
-    commands = {
-        _managed_command(dw_command, "protect-pre"),
-        _managed_command(dw_command, "protect-post"),
-    }
-    for provider in SUPPORTED_ADAPTERS:
-        commands.add(_managed_command(dw_command, "protect-pre", provider))
-        commands.add(_managed_command(dw_command, "protect-post", provider))
+    managed_signatures = _all_managed_signatures(dw_command)
     created = config.get("managedHooks") if isinstance(config.get("managedHooks"), Mapping) else {}
     adapters = config.get("adapters") if isinstance(config.get("adapters"), list) else list(SUPPORTED_ADAPTERS)
     for adapter in adapters:
@@ -346,7 +403,7 @@ def _remove_hooks(repo: Path, config: Mapping[str, Any]) -> None:
             kept = [
                 item
                 for item in entries
-                if not (isinstance(item, Mapping) and _entry_command(item) in commands)
+                if not (isinstance(item, Mapping) and _hook_signature(item) in managed_signatures)
             ]
             if kept:
                 hooks[event] = kept
@@ -417,19 +474,19 @@ def _hook_installed(repo: Path, adapter: str, config: Mapping[str, Any]) -> bool
         return False
     dw_command = str(config.get("diffwitnessCommand") or _resolve_dw_command())
     expected = {
-        _managed_command(dw_command, "protect-pre", adapter),
-        _managed_command(dw_command, "protect-post", adapter),
+        _managed_signature(dw_command, "protect-pre", adapter),
+        _managed_signature(dw_command, "protect-post", adapter),
     }
-    found: set[str] = set()
+    found: set[HookSignature] = set()
     for event in ("PreToolUse", "PostToolUse"):
         entries = hooks.get(event)
         if not isinstance(entries, list):
             continue
         for item in entries:
             if isinstance(item, Mapping):
-                command = _entry_command(item)
-                if command in expected:
-                    found.add(str(command))
+                signature = _hook_signature(item)
+                if signature in expected:
+                    found.add(signature)
     return found == expected
 
 
