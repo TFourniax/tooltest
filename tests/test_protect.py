@@ -84,7 +84,8 @@ class ProtectTests(unittest.TestCase):
             installed = settings.read_text(encoding="utf-8")
             self.assertIn("other-harness check", installed)
             self.assertIn("protect-pre", installed)
-            self.assertIn("--provider claude", installed)
+            self.assertIn('"--provider"', installed)
+            self.assertIn('"claude"', installed)
             with mock.patch("diffwitness.protect.shutil.which", return_value=None):
                 disabled = set_protect_mode(repo, "off")
             self.assertEqual(disabled["mode"], "off")
