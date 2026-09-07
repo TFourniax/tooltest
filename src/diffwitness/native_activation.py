@@ -155,17 +155,18 @@ def native_activation_summary(repo: Path, configured: Iterable[str]) -> dict[str
     for provider in configured_list:
         seen = observed.get(provider) if isinstance(observed, dict) else None
         observed_at = seen.get("observedAt") if isinstance(seen, dict) else None
-        trust_required = provider == "codex" and not observed_at
+        # Absence of a local observation says nothing about Codex's persisted approval.
+        # We do not read or write provider trust. Even an earlier invocation is not a
+        # promise that the provider still trusts the hook now.
         adapters[provider] = {
             "configured": True,
             "observed": bool(observed_at),
             "observedAt": observed_at,
-            "requiresProviderTrust": trust_required,
+            "requiresProviderTrust": False,
+            "providerTrust": "unknown" if provider == "codex" else "not-required",
             "activation": (
                 "observed"
                 if observed_at
-                else "requires-provider-trust-and-observation"
-                if provider == "codex"
                 else "awaiting-first-session"
             ),
         }
@@ -176,6 +177,7 @@ def native_activation_summary(repo: Path, configured: Iterable[str]) -> dict[str
         "adapters": adapters,
         "observedAdapters": [name for name, item in adapters.items() if item["observed"]],
         "pendingTrustAdapters": pending_trust,
+        "unknownTrustAdapters": [name for name, item in adapters.items() if item["providerTrust"] == "unknown"],
         "pendingObservationAdapters": pending_observation,
         "fullyObserved": bool(configured_list) and not pending_observation,
     }

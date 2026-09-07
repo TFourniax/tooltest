@@ -35,14 +35,15 @@ class NativeActivationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             repo = self._repo(Path(td))
             pending = native_activation_summary(repo, ["codex"])
-            self.assertEqual(pending["pendingTrustAdapters"], ["codex"])
+            self.assertEqual(pending["pendingTrustAdapters"], [])
+            self.assertEqual(pending["unknownTrustAdapters"], ["codex"])
             self.assertEqual(pending["pendingObservationAdapters"], ["codex"])
             self.assertFalse(pending["fullyObserved"])
             self.assertFalse(pending["adapters"]["codex"]["observed"])
-            self.assertTrue(pending["adapters"]["codex"]["requiresProviderTrust"])
+            self.assertFalse(pending["adapters"]["codex"]["requiresProviderTrust"])
             self.assertEqual(
                 pending["adapters"]["codex"]["activation"],
-                "requires-provider-trust-and-observation",
+                "awaiting-first-session",
             )
 
             record_native_activation(repo, "codex")
@@ -55,7 +56,7 @@ class NativeActivationTests(unittest.TestCase):
 
             clear_native_activation(repo)
             reset = native_activation_summary(repo, ["codex"])
-            self.assertEqual(reset["pendingTrustAdapters"], ["codex"])
+            self.assertEqual(reset["pendingTrustAdapters"], [])
             self.assertFalse(reset["adapters"]["codex"]["observed"])
 
     def test_successful_provider_session_start_records_real_observation(self):
@@ -91,7 +92,7 @@ class NativeActivationTests(unittest.TestCase):
             record_native_activation(repo, "made-up-provider")
             state = native_activation_summary(repo, ["codex", "claude"])
             self.assertEqual(state["observedAdapters"], [])
-            self.assertEqual(state["pendingTrustAdapters"], ["codex"])
+            self.assertEqual(state["pendingTrustAdapters"], [])
 
     def test_linked_worktree_uses_real_git_metadata_and_keeps_activation_local(self):
         with tempfile.TemporaryDirectory() as td:
@@ -116,7 +117,7 @@ class NativeActivationTests(unittest.TestCase):
 
                 main_state = native_activation_summary(repo, ["codex"])
                 self.assertEqual(main_state["observedAdapters"], [])
-                self.assertEqual(main_state["pendingTrustAdapters"], ["codex"])
+                self.assertEqual(main_state["pendingTrustAdapters"], [])
             finally:
                 subprocess.run(
                     ["git", "worktree", "remove", "--force", str(linked)],

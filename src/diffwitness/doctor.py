@@ -82,7 +82,7 @@ def _protect_state(repo: Path) -> tuple[dict[str, Any], bool]:
     ]
     broken = [name for name, item in adapters.items() if isinstance(item, dict) and not item.get("installed")]
     result = {**protection, "readyAdapters": sorted(ready), "pendingAdapters": sorted(pending), "brokenAdapters": sorted(broken)}
-    # Pending provider approval is not a broken product state. Missing managed hooks / invalid receipt
+    # Missing runtime observation is not evidence of pending provider approval. Missing hooks / invalid receipt
     # integrity are. Protect itself remains optional when off/delegated.
     receipts = result.get("receipts") if isinstance(result.get("receipts"), dict) else {}
     healthy_enough = not broken and receipts.get("integrity") is not False
@@ -125,6 +125,9 @@ def _native_lines(native: dict[str, Any], *, guided: bool) -> list[str]:
             lines.append(("✓ " if guided else "  ") + f"{label}: {'hook natif observé en session' if guided else 'native hook observed live'}")
         elif item.get("requiresProviderTrust"):
             lines.append(("⚠ " if guided else "  ") + f"{label}: {'configuré, approbation des hooks requise dans Codex' if guided else 'configured; provider trust + live observation required'}")
+        elif item.get("providerTrust") == "unknown":
+            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, pas encore observé ; confiance gérée par Codex, inconnue de DiffWitness' if guided else 'configured; awaiting observation; provider trust unknown to DiffWitness'}")
+            lines.append("  Examine `/hooks` si Codex le demande, puis lance une action sans risque." if guided else "  Review `/hooks` if Codex requests it, then run a harmless action.")
         else:
             lines.append(("• " if guided else "  ") + f"{label}: {'configuré, première session pas encore observée' if guided else 'configured; first live session not observed yet'}")
     return lines
@@ -178,8 +181,9 @@ def _render_guided(
             label = names.get(adapter, adapter)
             if item.get("ready"):
                 print(f"✓ Protection {label} : prête")
-            elif item.get("installed") and item.get("activation") == "requires-provider-feature-and-trust":
-                print(f"• Protection {label} : hooks installés, approbation du provider encore nécessaire")
+            elif item.get("installed") and item.get("activation") == "awaiting-first-observation":
+                print(f"• Protection {label} : hooks installés, pas encore observés depuis l’activation")
+                print("  Confiance inconnue de DiffWitness. Examine `/hooks` si Codex le demande, puis lance une action sans risque.")
             elif item.get("installed"):
                 print(f"• Protection {label} : installée, pas encore observée en session")
             else:
@@ -269,7 +273,7 @@ def _render_technical(
                     f"activation={item.get('activation')}"
                 )
         if protection.get("pendingAdapters"):
-            print("Pending provider trust is not treated as a broken adapter; provider approval is never bypassed.")
+            print("Runtime observation is pending. Provider trust is unknown to DiffWitness; review `/hooks` if Codex requests it, then run a harmless tool call.")
         if protection.get("brokenAdapters"):
             print("Action:     repair missing managed hooks with `dw protect status`.")
     elif mode == "external":

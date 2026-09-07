@@ -322,7 +322,9 @@ def main(argv: list[str] | None = None) -> int:
             require(status_json.get("expectedAdapters") == ["claude", "codex", "cursor"], "dw setup did not configure all supported adapters")
             native = status_json.get("nativeActivation") or {}
             require(native.get("observedAdapters") == [], "fresh installation fabricated a live native provider observation", status)
-            require("codex" in (native.get("pendingTrustAdapters") or []), "fresh Codex setup did not expose provider trust as pending", status)
+            require("codex" in (native.get("unknownTrustAdapters") or []), "fresh Codex setup must report provider trust as unknown", status)
+            require("codex" not in (native.get("pendingTrustAdapters") or []), "missing observation must not fabricate pending Codex approval", status)
+            require("codex" in (native.get("pendingObservationAdapters") or []), "fresh Codex setup must still require a real hook observation", status)
             require(native.get("fullyObserved") is False, "fresh integration incorrectly claimed all native providers were observed", status)
 
             integration_config = read_json(project / ".idleproof" / "diffwitness.json")

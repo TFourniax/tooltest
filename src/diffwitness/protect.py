@@ -513,11 +513,13 @@ def protect_status(repo: Path) -> dict[str, Any]:
             "path": _adapter_path(repo, adapter).relative_to(repo).as_posix(),
             "installed": installed,
             "activeSeen": active_seen,
+            "observedAt": provider_activation.get(adapter) if active_seen else None,
+            "providerTrust": "unknown" if adapter == "codex" else "not-required",
             "ready": installed and not requires_activation,
             "activation": (
                 "observed"
                 if active_seen
-                else "requires-provider-feature-and-trust"
+                else "awaiting-first-observation"
                 if adapter == "codex"
                 else "installed"
             ),
