@@ -158,6 +158,8 @@ def _protect_recommendation(cwd: Path) -> dict:
                 "installed": bool(item.get("installed")),
                 "ready": bool(item.get("ready")),
                 "activation": item.get("activation"),
+                "providerTrust": item.get("providerTrust"),
+                "observedAt": item.get("observedAt"),
             }
             for name, item in adapters.items()
             if isinstance(item, dict)
@@ -329,8 +331,8 @@ def _protect_human_lines(protect: dict, *, guided: bool) -> list[str]:
         label = names.get(adapter, adapter)
         if item.get("ready"):
             state = "prête" if guided else "ready"
-        elif item.get("installed") and item.get("activation") == "requires-provider-feature-and-trust":
-            state = "en attente d’approbation du provider" if guided else "pending provider trust"
+        elif item.get("installed") and item.get("activation") == "awaiting-first-observation":
+            state = "installée, pas encore observée depuis l’activation" if guided else "installed; awaiting observation since activation"
         elif item.get("installed"):
             state = "installée, pas encore observée" if guided else "installed, not observed"
         else:
@@ -351,6 +353,9 @@ def _native_human_lines(native: dict, *, guided: bool) -> list[str]:
             lines.append(("✓ " if guided else "  ") + f"{label}: {'intégration native observée en session' if guided else 'native hook observed live'}")
         elif item.get("requiresProviderTrust"):
             lines.append(("⚠ " if guided else "  ") + f"{label}: {'configuré, approbation des hooks requise dans Codex avant la première tâche' if guided else 'configured; provider hook trust/observation still required'}")
+        elif item.get("providerTrust") == "unknown":
+            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, pas encore observé ; confiance gérée par Codex, inconnue de DiffWitness' if guided else 'configured; awaiting observation; provider trust unknown to DiffWitness'}")
+            lines.append("  Ouvre Codex ; examine `/hooks` si Codex le demande, puis lance une action sans risque." if guided else "  Open Codex; review `/hooks` if Codex requests it, then run a harmless action.")
         else:
             lines.append(("• " if guided else "  ") + f"{label}: {'configuré, première session pas encore observée' if guided else 'configured; first live session not observed yet'}")
     return lines

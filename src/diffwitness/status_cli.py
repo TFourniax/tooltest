@@ -329,11 +329,11 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
             {
                 "priority": "normal",
                 "kind": "activate-provider-protection",
-                "title": f"Finish runtime approval for {', '.join(pending)}",
-                "command": "dw protect status",
+                "title": f"Observe runtime protection for {', '.join(pending)}",
+                "command": "codex" if pending == ["codex"] else pending[0],
                 "reason": (
                     (f"Already usable now: {', '.join(ready_providers)}. " if ready_providers else "")
-                    + "Pending providers still require their provider-native trust/approval flow; DiffWitness never bypasses it."
+                    + "Hooks are installed but have not been observed since activation. Open the provider, review hooks if it requests approval, then run a harmless tool call. Provider trust remains provider-owned and unknown to DiffWitness."
                 ),
             }
         )

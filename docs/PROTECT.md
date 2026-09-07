@@ -38,7 +38,7 @@ Current builtin adapters in this alpha:
 
 Current Codex builds keep lifecycle hooks behind Codex-owned feature and trust boundaries. `dw protect enable` installs DiffWitness's project hook configuration, but DiffWitness deliberately does **not** grant itself Codex trust.
 
-For Codex builtin Protect, complete Codex's own flow:
+For Codex builtin Protect, use Codex's own flow when it requests configuration or review:
 
 1. enable Codex's `hooks` feature (for example, `codex --enable hooks`, or the equivalent user-owned Codex configuration);
 2. accept Codex's normal project-trust decision for the repository;
@@ -46,6 +46,12 @@ For Codex builtin Protect, complete Codex's own flow:
 4. let Codex invoke a tool, then check `dw protect status`.
 
 Until a live trusted Codex hook actually invokes DiffWitness, the Codex adapter remains conservatively not-ready rather than claiming protection that has not run. DiffWitness never writes Codex project trust, never writes a trusted hook hash on the user's behalf, and never uses Codex's dangerous hook-trust bypass in product code.
+
+After disable/re-enable, Codex may retain approval for identical hooks. DiffWitness resets its local Protect observation and reports `activation=awaiting-first-observation`, `activeSeen=false`, `ready=false`. That does **not** mean approval was revoked or must be repeated. Open Codex, review `/hooks` only if Codex requests it, and run a harmless tool call. A real hook invocation restores `activation=observed` and `ready=true` while preserving the native Proof hooks.
+
+`providerTrust=unknown` means DiffWitness does not inspect Codex's current trust store. It remains unknown even after an invocation; `observedAt` describes a local historical observation, not a current provider authorization guarantee. Protect readiness never establishes current-code Proof.
+
+Native activation uses the same distinction: `pendingObservationAdapters` lists missing local observations, while `unknownTrustAdapters` lists providers whose trust state DiffWitness does not inspect. The compatibility field `requiresProviderTrust=false` means there is **no evidence of a pending approval**, not that approval was granted. `pendingTrustAdapters` is empty until a supported provider-owned source actually establishes a pending decision. Existing JSON keys/types and on-disk activation schema remain unchanged; corrected activation values and additive trust/observation fields are documented here.
 
 ### External
 
@@ -207,7 +213,8 @@ For a repository without another runtime harness:
 dw doctor
 dw protect detect
 dw protect enable --policy standard
-dw guard -- claude
+dw setup --agent claude
+claude
 ```
 
 For Codex builtin Protect, after enabling Protect complete Codex's provider-owned hook/trust flow before expecting runtime interception:
@@ -215,7 +222,7 @@ For Codex builtin Protect, after enabling Protect complete Codex's provider-owne
 ```bash
 dw protect enable --policy standard
 codex --enable hooks
-# In Codex: accept the repository trust prompt, then review/approve DiffWitness in /hooks.
+# In Codex: follow project trust and /hooks review if requested; then run a harmless tool call.
 dw protect status
 ```
 
@@ -224,14 +231,18 @@ For a repository already using its own harness:
 ```bash
 dw protect detect
 dw protect use external
-dw guard -- claude
+dw setup --agent claude
+claude
 ```
 
 For users who do not want live interception:
 
 ```bash
 dw protect disable
-dw guard -- claude
+dw setup --agent claude
+claude
 ```
 
 All three paths converge on the same post-change Proof and Debt semantics.
+
+`dw guard -- <agent>` remains an explicit manual fallback. The native happy path does not require it. See [the frozen behavioral contract](QUALIFIED_BASELINE.md) before modifying provider integration or readiness.

@@ -114,7 +114,7 @@ class ProtectTests(unittest.TestCase):
             self.assertTrue(codex["installed"])
             self.assertFalse(codex["activeSeen"])
             self.assertFalse(codex["ready"])
-            self.assertEqual(codex["activation"], "requires-provider-feature-and-trust")
+            self.assertEqual(codex["activation"], "awaiting-first-observation")
             self.assertEqual(enabled["health"], "degraded")
             rendered = (repo / ".codex" / "hooks.json").read_text(encoding="utf-8")
             self.assertIn("--provider codex", rendered)

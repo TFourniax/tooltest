@@ -73,8 +73,8 @@ def _provider_rows(status: Mapping[str, Any]) -> list[tuple[str, str]]:
         label = names.get(str(name), str(name))
         if raw.get("ready"):
             state = "prêt"
-        elif raw.get("installed") and raw.get("activation") == "requires-provider-feature-and-trust":
-            state = "hooks installés · approbation du provider encore nécessaire"
+        elif raw.get("installed") and raw.get("activation") == "awaiting-first-observation":
+            state = "hooks installés · aucune session live observée depuis l’activation"
         elif raw.get("installed"):
             state = "installé · aucune session live observée depuis l’activation"
         else:
@@ -119,6 +119,9 @@ def _render_status(status: Mapping[str, Any], *, guided: bool) -> None:
         for label, state in rows:
             mark = "✓" if state == "prêt" else "•" if "approbation" in state or "aucune session" in state else "⚠"
             print(f"{mark} {label} : {state}")
+        if any(isinstance(item, Mapping) and item.get("providerTrust") == "unknown" and not item.get("activeSeen")
+               for item in (status.get("adapters") or {}).values()):
+            print("  Confiance inconnue de DiffWitness. Ouvre Codex ; examine `/hooks` si Codex le demande, puis lance une action sans risque.")
         receipts = status.get("receipts") if isinstance(status.get("receipts"), Mapping) else {}
         if receipts.get("integrity") is False:
             print("⚠ L’intégrité de l’historique Protect est invalide.")
@@ -136,8 +139,9 @@ def _render_status(status: Mapping[str, Any], *, guided: bool) -> None:
     if mode == "builtin":
         for label, state in _provider_rows(status):
             print(f"  {label}: {state}")
-        if any("approbation" in state for _, state in _provider_rows(status)):
-            print("Provider trust is pending for the listed adapter(s); DiffWitness never bypasses provider-native trust.")
+        if any(isinstance(item, Mapping) and item.get("providerTrust") == "unknown" and not item.get("activeSeen")
+               for item in (status.get("adapters") or {}).values()):
+            print("Provider trust is unknown to DiffWitness. Open Codex and review `/hooks` if Codex requests it; then run a harmless tool call.")
     elif mode == "external":
         print("Runtime safety delegated; Proof/Debt/Continuity remain local and independent.")
     elif mode == "off":
