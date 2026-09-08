@@ -58,7 +58,7 @@ class RuntimeExecutableTests(unittest.TestCase):
             link = Path(td) / "dw"
             link.symlink_to(real)
             with mock.patch.dict(os.environ, {}, clear=True), mock.patch.object(sys, "argv", [str(link)]):
-                self.assertEqual(resolve_dw_command(), str(real))
+                self.assertEqual(resolve_dw_command(), str(real.resolve()))
 
     def test_metadata_for_another_loaded_distribution_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
