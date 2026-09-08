@@ -85,7 +85,7 @@ class ProjectStatusTests(unittest.TestCase):
         self.assertEqual(value["evidence"]["source"], "configured")
         self.assertEqual(value["next_actions"][0]["kind"], "configure-evidence")
 
-    def test_native_scope_makes_normal_agent_use_primary_instead_of_guard(self) -> None:
+    def test_native_scope_alone_requires_repair_before_normal_agent_use(self) -> None:
         repo = self.make_repo()
         scope = repo / ".git" / "diffwitness" / "setup-scope.json"
         scope.parent.mkdir(parents=True, exist_ok=True)
@@ -94,10 +94,11 @@ class ProjectStatusTests(unittest.TestCase):
         )
         value = build_project_status(repo)
         kinds = [item["kind"] for item in value["next_actions"]]
-        self.assertIn("use-native-agent", kinds)
+        self.assertIn("repair-native-integration", kinds)
+        self.assertNotIn("use-native-agent", kinds)
         self.assertNotIn("guard-next-change", kinds)
-        native = next(item for item in value["next_actions"] if item["kind"] == "use-native-agent")
-        self.assertEqual(native["command"], "codex")
+        native = next(item for item in value["next_actions"] if item["kind"] == "repair-native-integration")
+        self.assertEqual(native["command"], "dw setup")
 
     def test_guided_and_technical_views_share_exact_same_status_model(self) -> None:
         repo = self.make_repo()

@@ -6,46 +6,17 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .autodetect import command_available, default_evidence, suggested_available_command
 from .config import load_config
 from .debt_budget import ledger_path, merged_debt_config
 from .gitops import git, git_metadata_path, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
+from .readiness import build_readiness, verification_readiness, native_human_lines
 
 
 def _evidence_command(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
-    configured = config.get("test")
-    if isinstance(configured, str) and configured.strip():
-        command = configured.strip()
-        ready = command_available(command, cwd=repo)
-        return {
-            "ready": ready,
-            "source": "configured",
-            "command": command,
-            "suggestion": None if ready else suggested_available_command(command),
-            "problem": None if ready else "The configured command executable is not available on this machine.",
-        }
-    detected = default_evidence(repo)
-    if detected is None:
-        return {
-            "ready": False,
-            "source": "missing",
-            "command": None,
-            "suggestion": None,
-            "problem": "No executable evidence command is configured or safely auto-detected.",
-        }
-    ready = command_available(detected.command, cwd=repo)
-    return {
-        "ready": ready,
-        "source": "detected",
-        "command": detected.command,
-        "confidence": detected.confidence,
-        "reason": detected.reason,
-        "suggestion": None,
-        "problem": None if ready else "A plausible evidence command was detected but its executable is unavailable.",
-    }
+    return verification_readiness(repo, config)
 
 
 def _generated_untracked(path: str) -> bool:
@@ -166,20 +137,6 @@ def _gate_base(repo: Path, envelope: dict[str, Any] | None) -> str:
     return "HEAD"
 
 
-def _setup_scope(repo: Path) -> list[str]:
-    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return []
-    if not isinstance(value, dict) or value.get("schema") != "diffwitness.setup-scope.v1":
-        return []
-    adapters = value.get("adapters")
-    if not isinstance(adapters, list):
-        return []
-    return [str(item) for item in adapters if str(item)]
-
-
 def _protection_status(repo: Path) -> dict[str, Any]:
     try:
         value = protect_status(repo)
@@ -233,9 +190,19 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
     envelope = _latest_envelope(repo)
     current_verification = _current_verification(repo, envelope)
     protection = _protection_status(repo)
-    setup_scope = _setup_scope(repo)
+    readiness = build_readiness(repo, config=config, verification=evidence, protection=protection, current_verification=current_verification)
+    native = readiness["native"]
+    setup_scope = native["configuredAdapters"]
 
     actions: list[dict[str, str]] = []
+    if native["configured"] and not native["runtimeUsable"]:
+        installed = native["installed"] and native["executableAvailable"]
+        actions.append({
+            "priority": "high", "kind": "observe-native-agent" if installed else "repair-native-integration",
+            "title": "Observe the installed native hooks" if installed else "Repair native integration",
+            "command": setup_scope[0] if installed else "dw setup",
+            "reason": "Run a harmless provider action; review hooks only if the provider requests it. Trust remains unknown." if installed else "Configured scope is not a working installation. Owned hooks or their recorded executable are missing.",
+        })
     if not evidence["ready"]:
         reason = str(evidence.get("problem") or "Verification is not ready.")
         if evidence.get("suggestion"):
@@ -302,7 +269,7 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
         )
 
     if not dirty and evidence["ready"] and not active:
-        native_command = _native_agent_command(setup_scope)
+        native_command = _native_agent_command(setup_scope) if native["runtimeUsable"] else None
         if native_command:
             actions.append(
                 {
@@ -313,7 +280,7 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
                     "reason": "Native integration is configured; the task Stop boundary will run Proof, Debt and Continuity automatically. `dw guard` is only a manual fallback.",
                 }
             )
-        else:
+        elif not native["configured"]:
             actions.append(
                 {
                     "priority": "normal",
@@ -351,7 +318,9 @@ def build_project_status(repo: Path, *, explicit_config: str | None = None) -> d
     return {
         "schema": "diffwitness.project-status.v1",
         "project": {"name": repo.name, "branch": _branch(repo)},
-        "setup": {"native_adapters": setup_scope, "native_ready": bool(setup_scope)},
+        "setup": {"native_adapters": setup_scope, "native_ready": native["runtimeUsable"],
+                  "native_configured": native["configured"], "native_installed": native["installed"]},
+        "readiness": readiness,
         "protection": protection,
         "evidence": evidence,
         "working_tree": {
@@ -425,6 +394,7 @@ def _render_technical(value: dict[str, Any]) -> str:
     lines = [
         "DIFFWITNESS STATUS · TECHNICAL VIEW",
         "",
+        *native_human_lines(value["readiness"]["native"], guided=False),
         _protect_line(protection),
         *_provider_lines(protection, guided=False),
         f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}" + (
@@ -461,6 +431,9 @@ def _guided_heading(value: dict[str, Any]) -> tuple[str, str]:
     protection = value["protection"]
     if not evidence["ready"]:
         return "Il reste une étape de configuration", "DiffWitness ne peut pas encore lancer les vérifications de ce projet."
+    native = value["readiness"]["native"]
+    if native["configured"] and not native["runtimeUsable"]:
+        return ("L’intégration native doit être confirmée", "Répare les hooks/exécutables manquants ou observe une invocation sans risque ; une configuration seule ne suffit pas.")
     if protection.get("health") == "invalid" or protection.get("broken_adapters"):
         return "La protection live doit être réparée", "Un hook de protection attendu manque ou son état local est invalide. La Proof reste indépendante."
     if tree["dirty"] and verification.get("status") == "accepted":
@@ -488,6 +461,7 @@ def _render_guided(value: dict[str, Any]) -> str:
         "",
         "État du projet",
     ]
+    lines.extend(native_human_lines(value["readiness"]["native"], guided=True))
     if protection.get("mode") == "builtin":
         lines.extend(_provider_lines(protection, guided=True) or ["• Protection live activée, aucun agent détecté."])
     elif protection.get("mode") == "external":
@@ -500,7 +474,7 @@ def _render_guided(value: dict[str, Any]) -> str:
     elif tree["dirty"]:
         lines.append(f"⚠ {tree['changed_file_count']} fichier(s) modifié(s) ne sont pas encore couverts par une Proof actuelle.")
     else:
-        lines.append("✓ Aucun changement de code non validé n’est visible.")
+        lines.append("• Arbre de travail propre ; cela ne constitue pas une Proof.")
     lines.append(
         f"⚠ {debt['open_obligations']} point(s) connu(s) restent à revoir."
         if debt["open_obligations"]

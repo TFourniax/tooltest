@@ -201,21 +201,12 @@ def _seeded_base_changes(context: dict[str, Any]) -> list[dict[str, Any]]:
     return result
 
 
-def _native_setup_scope(repo: Path) -> list[str]:
-    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return []
-    if not isinstance(value, dict) or value.get("schema") != "diffwitness.setup-scope.v1":
-        return []
-    adapters = value.get("adapters")
-    return [str(item) for item in adapters if str(item)] if isinstance(adapters, list) else []
-
-
 def _coherent_evidence_guidance(repo: Path, context: dict[str, Any]) -> None:
-    adapters = _native_setup_scope(repo)
-    if not adapters:
+    from .readiness import native_readiness
+
+    native = native_readiness(repo)
+    adapters = native["configuredAdapters"]
+    if not adapters or not native["runtimeUsable"]:
         return
     required = context.get("requiredEvidence")
     if not isinstance(required, list):

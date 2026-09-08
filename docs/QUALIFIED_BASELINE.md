@@ -2,6 +2,14 @@
 
 Baseline core SHA: `e9bf514a3f13b1fc4124e3ff6a0e416016a2790b`.
 
+Latest qualified main (2026-09-08): `bf10adb5fea60bba4b9d692411c6a56497092e12`.
+HT009 was qualified and merged through #53. Installation-bound native/Protect hook resolution
+was machine + Windows/Codex human qualified on `287c8c41a4eea3dd144e95bb95e011461bd7ec09`,
+then merged through #55. Issue #54 retains the exact human evidence and closure record.
+Post-merge SUCCESS: test `34198503601` (21/21 jobs), ProofBench `34198503623`,
+ContinuityBench `34198503631`, Integrated Product Smoke `34198503607`.
+The original baseline and behavioral evidence below remain historical records.
+
 Canonical human evidence: [issue #52 and its comments](https://github.com/TFourniax/tooltest/issues/52). Claude native/manual Gate repairs: [PR #49](https://github.com/TFourniax/tooltest/pull/49). Claude Protect exec-form repair: [PR #50](https://github.com/TFourniax/tooltest/pull/50). Codex strict native stdout repair: [PR #51](https://github.com/TFourniax/tooltest/pull/51).
 
 The source may evolve; these behaviors may not regress. Historical PASS does not qualify a later candidate automatically. Windows Codex evidence identifies CLI 0.153.2 and DiffWitness 0.4.0a1. Record exact Claude runtime versions from the original evidence before asserting version-specific support; do not invent one.

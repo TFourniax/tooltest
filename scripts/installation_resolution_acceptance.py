@@ -80,6 +80,11 @@ def exercise(root, label, invocation, expected, expected_marker, competing, env,
     hooks_path = repo / '.codex/hooks.json'
     before = hooks_path.read_bytes()
     hooks = json.loads(before)['hooks']
+    if native:
+        initial = json.loads(call('status', '--json'))
+        assert initial['readiness']['native']['installed'] is True, initial
+        assert initial['setup']['native_ready'] is False, initial
+        assert initial['readiness']['native']['adapters']['codex']['providerTrust'] == 'unknown', initial
     assert set(hooks) == ({'SessionStart', 'UserPromptSubmit', 'Stop', 'PreToolUse', 'PostToolUse'} if native else {'PreToolUse', 'PostToolUse'}), hooks
     for entry in commands(hooks):
         assert str(expected.resolve()) in entry['command'], (label, entry)
@@ -104,6 +109,12 @@ def exercise(root, label, invocation, expected, expected_marker, competing, env,
     status = json.loads(call('protect', 'status', '--json'))
     assert status['adapters']['codex']['activeSeen'] is True, status
     assert (repo / '.git/diffwitness/protection.jsonl').is_file(), label
+    if native:
+        project = json.loads(call('status', '--json'))
+        setup = json.loads(call('setup', 'status', '--json'))
+        assert project['setup']['native_ready'] is True, project
+        assert project['readiness'] == setup['readiness'], (project, setup)
+        assert project['readiness']['currentProof']['currentTreeVerified'] is False, project
     # A competing installation on PATH must not change hook identity on re-enable.
     call('protect', 'disable', '--json')
     call('protect', 'enable', '--force', '--json')

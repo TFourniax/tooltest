@@ -5,67 +5,22 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .autodetect import command_available, detect_evidence, suggested_available_command
 from .config import load_config
 from .continuity_events import ContinuityError
 from .continuity_state import state_status
 from .engine_capabilities import EngineCapabilityError, inspect_engine_capabilities
 from .engine_protocol import EngineProtocolError
-from .gitops import GitError, git_metadata_path, repo_root
-from .native_activation import native_activation_summary
+from .gitops import GitError, repo_root
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
+from .readiness import build_readiness, verification_readiness, native_human_lines
 
 
 DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
 
 
-def _setup_scope(repo: Path) -> list[str]:
-    path = git_metadata_path(repo, "diffwitness/setup-scope.json")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return []
-    if not isinstance(value, dict) or value.get("schema") != "diffwitness.setup-scope.v1":
-        return []
-    raw = value.get("adapters")
-    return [str(item) for item in raw if str(item)] if isinstance(raw, list) else []
-
-
 def _evidence_state(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
-    configured = config.get("test")
-    if isinstance(configured, str) and configured.strip():
-        command = configured.strip()
-        ready = command_available(command, cwd=repo)
-        return {
-            "ready": ready,
-            "source": "configured",
-            "command": command,
-            "suggestion": None if ready else suggested_available_command(command),
-            "reason": "configured project evidence" if ready else "configured executable is unavailable",
-        }
-    plans = detect_evidence(repo)
-    for plan in plans:
-        if command_available(plan.command, cwd=repo):
-            return {
-                "ready": True,
-                "source": "detected",
-                "command": plan.command,
-                "confidence": plan.confidence,
-                "reason": plan.reason,
-                "alternatives": [item.command for item in plans[1:5]],
-            }
-    if plans:
-        first = plans[0]
-        return {
-            "ready": False,
-            "source": "detected-unavailable",
-            "command": first.command,
-            "confidence": first.confidence,
-            "reason": first.reason,
-            "suggestion": suggested_available_command(first.command),
-        }
-    return {"ready": False, "source": "missing", "command": None, "suggestion": None, "reason": "no safe evidence command detected"}
+    return verification_readiness(repo, config)
 
 
 def _protect_state(repo: Path) -> tuple[dict[str, Any], bool]:
@@ -82,8 +37,9 @@ def _protect_state(repo: Path) -> tuple[dict[str, Any], bool]:
     ]
     broken = [name for name, item in adapters.items() if isinstance(item, dict) and not item.get("installed")]
     result = {**protection, "readyAdapters": sorted(ready), "pendingAdapters": sorted(pending), "brokenAdapters": sorted(broken)}
-    # Missing runtime observation is not evidence of pending provider approval. Missing hooks / invalid receipt
-    # integrity are. Protect itself remains optional when off/delegated.
+    # Missing runtime observation is not evidence of pending provider approval.
+    # Missing hooks or invalid receipt integrity are separate preflight failures.
+    # Protect itself remains optional when off/delegated.
     receipts = result.get("receipts") if isinstance(result.get("receipts"), dict) else {}
     healthy_enough = not broken and receipts.get("integrity") is not False
     return result, healthy_enough
@@ -114,23 +70,7 @@ def _engine_state(repo: Path, config: dict[str, Any], args: argparse.Namespace) 
 
 
 def _native_lines(native: dict[str, Any], *, guided: bool) -> list[str]:
-    names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
-    adapters = native.get("adapters") if isinstance(native.get("adapters"), dict) else {}
-    lines: list[str] = []
-    for adapter, item in sorted(adapters.items()):
-        if not isinstance(item, dict):
-            continue
-        label = names.get(adapter, adapter)
-        if item.get("observed"):
-            lines.append(("✓ " if guided else "  ") + f"{label}: {'hook natif observé en session' if guided else 'native hook observed live'}")
-        elif item.get("requiresProviderTrust"):
-            lines.append(("⚠ " if guided else "  ") + f"{label}: {'configuré, approbation des hooks requise dans Codex' if guided else 'configured; provider trust + live observation required'}")
-        elif item.get("providerTrust") == "unknown":
-            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, pas encore observé ; confiance gérée par Codex, inconnue de DiffWitness' if guided else 'configured; awaiting observation; provider trust unknown to DiffWitness'}")
-            lines.append("  Examine `/hooks` si Codex le demande, puis lance une action sans risque." if guided else "  Review `/hooks` if Codex requests it, then run a harmless action.")
-        else:
-            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, première session pas encore observée' if guided else 'configured; first live session not observed yet'}")
-    return lines
+    return native_human_lines(native, guided=guided)
 
 
 def _render_guided(
@@ -216,10 +156,13 @@ def _render_guided(
         print("ACTION AVANT LA PREMIÈRE TÂCHE CODEX")
         print("Ouvre Codex, examine `/hooks`, puis approuve explicitement les hooks du projet.")
         print("Dès que SessionStart est réellement exécuté, DiffWitness marquera l’intégration comme observée live.")
-    elif evidence["ready"] and setup_scope:
+    elif evidence["ready"] and setup_scope and native.get("runtimeUsable"):
         print("PRÊT À LANCER L’AGENT")
         print(f"Ouvre simplement `{setup_scope[0]}` dans ce projet et travaille normalement.")
         print("SessionStart armera la frontière native; Stop vérifiera la modification exacte à la fin de la tâche.")
+    elif setup_scope and not native.get("runtimeUsable"):
+        print("INTÉGRATION À CONFIRMER")
+        print("Répare les hooks ou leur exécutable si nécessaire, puis observe une invocation sans risque dans ton agent.")
     elif evidence["ready"]:
         print("Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper.")
     else:
@@ -316,7 +259,11 @@ def _render_technical(
     if evidence["ready"]:
         print("\nWorkflow:")
         if setup_scope:
-            if native.get("pendingTrustAdapters"):
+            if not native.get("installed") or not native.get("executableAvailable"):
+                print("  dw setup                               # repair the recorded native installation")
+            elif not native.get("runtimeUsable"):
+                print(f"  {setup_scope[0]}                                # observe a harmless invocation; review hooks only if requested")
+            elif native.get("pendingTrustAdapters"):
                 print("  codex                                 # open project, review `/hooks`, approve explicitly")
                 print("  dw setup status                       # after SessionStart, confirm native observation")
             else:
@@ -348,30 +295,26 @@ def doctor_cli(argv: list[str]) -> int:
         protection, protect_ok = _protect_state(repo)
         continuity, continuity_ok, continuity_error = _continuity_state(repo)
         engine, engine_ok = _engine_state(repo, config, args)
-        scope = _setup_scope(repo)
-        native = native_activation_summary(repo, scope)
+        readiness = build_readiness(repo, config=config, verification=evidence, protection=protection)
+        native = readiness["native"]
+        scope = native["configuredAdapters"]
         result = {
             "schema": "diffwitness.doctor.v1",
             "repository": str(repo),
             "evidence": evidence,
-            "native": {
-                "adapters": scope,
-                "configured": bool(scope),
-                # Kept for compatibility: ready means installation is present, not that a provider
-                # has already executed a trusted hook. The activation fields below are authoritative
-                # for live-provider readiness.
-                "ready": bool(scope),
-                **native,
-                "requiresActionBeforeTask": bool(native.get("pendingTrustAdapters")),
-            },
+            "native": native,
+            "readiness": readiness,
+            "readyScope": "selected-local-preflight-with-engine-and-continuity",
             "protect": protection,
             "continuity": {"ready": continuity_ok, "status": continuity, "error": continuity_error},
             "engine": engine,
-            "ready": bool(evidence["ready"] and protect_ok and continuity_ok and engine_ok),
+            "ready": bool(readiness["scopedProduct"]["ready"] and protect_ok and continuity_ok and engine_ok),
         }
         if args.json:
             print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
             return 0 if result["ready"] else 1
+        proof = readiness["currentProof"]
+        print(f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}")
         view = args.view or get_view_mode(repo)
         if view == "guided":
             _render_guided(

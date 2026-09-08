@@ -8,12 +8,11 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from .autodetect import command_available, default_evidence, suggested_available_command
-from .config import load_config
 from .gitops import git_metadata_path, repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
-from .native_activation import clear_native_activation, native_activation_summary
+from .native_activation import clear_native_activation
 from .view_mode import get_view_mode
+from .readiness import build_readiness, verification_readiness, native_human_lines
 from .runtime_executable import ExecutableResolutionError, resolve_dw_command, resolve_idleproof_command
 
 
@@ -169,47 +168,19 @@ def _protect_recommendation(cwd: Path) -> dict:
 
 
 def _verification_readiness(cwd: Path) -> dict:
-    try:
-        config = load_config(cwd, None)
-    except Exception as exc:
-        return {"ready": False, "source": "invalid-config", "command": None, "reason": str(exc)[:300]}
-    configured = config.get("test")
-    if isinstance(configured, str) and configured.strip():
-        command = configured.strip()
-        ready = command_available(command, cwd=cwd)
-        return {
-            "ready": ready,
-            "source": "configured",
-            "command": command,
-            "reason": None if ready else "configured executable is unavailable",
-            "suggestion": None if ready else suggested_available_command(command),
-        }
-    plan = default_evidence(cwd)
-    if plan is None:
-        return {"ready": False, "source": "missing", "command": None, "reason": "no safe evidence command detected"}
-    ready = command_available(plan.command, cwd=cwd)
-    return {
-        "ready": ready,
-        "source": "detected",
-        "command": plan.command,
-        "confidence": plan.confidence,
-        "reason": plan.reason if ready else "detected command executable is unavailable",
-        "suggestion": None if ready else suggested_available_command(plan.command),
-    }
+    return verification_readiness(cwd)
 
 
 def _with_readiness(cwd: Path, status: dict) -> dict:
-    verification = _verification_readiness(cwd)
-    configured = status.get("expectedAdapters") or []
-    native = native_activation_summary(cwd, configured)
+    readiness = build_readiness(cwd)
     return {
         **status,
         "protect": _protect_recommendation(cwd),
-        "verification": verification,
-        "nativeActivation": native,
-        # productReady means the integration files and executable verification are configured. It
-        # deliberately does not pretend a trust-gated provider has already executed its hooks.
-        "productReady": bool(status.get("healthy") and verification.get("ready")),
+        "verification": readiness["verification"],
+        "nativeActivation": readiness["native"],
+        "readiness": readiness,
+        "productReady": readiness["scopedProduct"]["ready"],
+        "productReadyScope": readiness["scopedProduct"]["scope"],
     }
 
 
@@ -330,23 +301,7 @@ def _protect_human_lines(protect: dict, *, guided: bool) -> list[str]:
 
 
 def _native_human_lines(native: dict, *, guided: bool) -> list[str]:
-    names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
-    lines: list[str] = []
-    adapters = native.get("adapters") if isinstance(native.get("adapters"), dict) else {}
-    for adapter, item in sorted(adapters.items()):
-        if not isinstance(item, dict):
-            continue
-        label = names.get(adapter, adapter)
-        if item.get("observed"):
-            lines.append(("✓ " if guided else "  ") + f"{label}: {'intégration native observée en session' if guided else 'native hook observed live'}")
-        elif item.get("requiresProviderTrust"):
-            lines.append(("⚠ " if guided else "  ") + f"{label}: {'configuré, approbation des hooks requise dans Codex avant la première tâche' if guided else 'configured; provider hook trust/observation still required'}")
-        elif item.get("providerTrust") == "unknown":
-            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, pas encore observé ; confiance gérée par Codex, inconnue de DiffWitness' if guided else 'configured; awaiting observation; provider trust unknown to DiffWitness'}")
-            lines.append("  Ouvre Codex ; examine `/hooks` si Codex le demande, puis lance une action sans risque." if guided else "  Open Codex; review `/hooks` if Codex requests it, then run a harmless action.")
-        else:
-            lines.append(("• " if guided else "  ") + f"{label}: {'configuré, première session pas encore observée' if guided else 'configured; first live session not observed yet'}")
-    return lines
+    return native_human_lines(native, guided=guided)
 
 
 def setup_cli(argv: list[str] | None = None) -> int:
@@ -380,6 +335,7 @@ def setup_cli(argv: list[str] | None = None) -> int:
     protect = result.get("protect") or {}
     native = result.get("nativeActivation") or {}
     pending_trust = list(native.get("pendingTrustAdapters") or [])
+    runtime_usable = bool(native.get("runtimeUsable"))
     try:
         guided = get_view_mode(_git_project(cwd)) == "guided"
     except Exception:
@@ -422,9 +378,11 @@ def setup_cli(argv: list[str] | None = None) -> int:
             if pending_trust:
                 print("Installation prête, mais Codex doit encore approuver les hooks du projet avant la première tâche protégée/vérifiée nativement.")
                 print("Ouvre Codex, examine `/hooks` puis approuve-les toi-même. DiffWitness ne contourne jamais cette confiance provider.")
-            else:
+            elif runtime_usable:
                 print("DiffWitness est configuré pour la prochaine tâche agentique.")
                 print("Utilise ton agent normalement : SessionStart armera la frontière native et Stop vérifiera la modification exacte.")
+            else:
+                print("Installation configurée ; confirme d’abord une invocation sans risque dans ton agent.")
         else:
             print("⚠ L’intégration agent est configurée, mais les vérifications du projet ne le sont pas encore.")
             if verification.get("suggestion"):
@@ -443,13 +401,13 @@ def setup_cli(argv: list[str] | None = None) -> int:
         )
         if pending_trust:
             print("Codex provider trust is still required. Open Codex and approve the project hooks in `/hooks`; DiffWitness never self-approves them.")
-        elif verification.get("ready"):
+        elif verification.get("ready") and runtime_usable:
             print(
                 f"Use {_agent_names(expected)} normally. SessionStart arms the native boundary; native Stop runs "
                 "PROVE · OWE · UNDERSTAND · CONTINUITY. `dw guard` is a manual fallback only."
             )
         else:
-            print("Run `dw doctor` before treating the project as fully configured.")
+            print("Run `dw doctor` to distinguish installation, local observation and verification readiness.")
         for line in _protect_human_lines(protect, guided=False):
             print(line)
     # Installing a healthy adapter set succeeded even when project evidence or provider observation
