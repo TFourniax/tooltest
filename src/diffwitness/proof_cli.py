@@ -18,7 +18,7 @@ from .autodetect import default_evidence, detect_evidence
 from .cli import main as core_main
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
-from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree
+from .gitops import diff_text, repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 
 
 DEFAULT_MAX_TOTAL_SECONDS = 900.0
@@ -432,7 +432,7 @@ def _core(args: argparse.Namespace) -> int:
     repo = repo_root(args.repo)
     test = _resolve_evidence(repo, args.test)
     max_total_seconds = _resolve_total_budget(repo, args.max_total_seconds)
-    base_sha = resolve_ref(repo, args.base)
+    base_sha = resolve_analysis_base(repo, args.base)
     candidate_sha, candidate_ref = _candidate_sha(repo, args.candidate)
     files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
     mutations = make_mutations(files)

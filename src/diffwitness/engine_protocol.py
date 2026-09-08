@@ -4,12 +4,14 @@ import hashlib
 import json
 import math
 import os
+import secrets
+import time
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Sequence
 
-from .gitops import git
+from .gitops import git, head_commit
 from .models import Mutation
 from .runner import _popen_group_kwargs, _terminate_process_tree
 
@@ -88,18 +90,51 @@ def _sha256(value: str | bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def repository_fingerprint(repo: Path) -> str:
-    """Return a clone-stable repository-lineage fingerprint without exposing its remote URL.
+def _unborn_fingerprint(repo: Path) -> str:
+    raw = git(repo, "rev-parse", "--git-common-dir").strip()
+    common = Path(raw)
+    if not common.is_absolute():
+        common = repo / common
+    path = common.resolve() / "diffwitness" / "unborn-identity"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        pass
+    else:
+        try:
+            os.write(fd, secrets.token_hex(16).encode("ascii"))
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+    # An exclusive creator can briefly expose an empty file before its write.
+    # Never overwrite a corrupt identity or invent a replacement for old evidence.
+    deadline = time.monotonic() + 2.0
+    while True:
+        try:
+            token = path.read_text(encoding="ascii")
+        except (OSError, UnicodeError) as exc:
+            raise EngineProtocolError("cannot read local unborn repository identity; preserve the file and repair it before continuing") from exc
+        if token or time.monotonic() >= deadline:
+            break
+        time.sleep(0.01)
+    if len(token) != 32 or any(ch not in "0123456789abcdef" for ch in token):
+        raise EngineProtocolError("invalid local unborn repository identity; preserve the file and repair it before continuing")
+    return "dwrepo_" + _sha256("unborn-local\0" + token)[:24]
 
-    Only roots reachable from ``HEAD`` participate. Using every local ref would make identity drift
-    when a user fetched an unrelated branch or when DiffWitness created its own ledger/checkpoint
-    refs. Merged histories are still handled because all roots reachable from HEAD are included.
+
+def repository_fingerprint(repo: Path) -> str:
+    """Root-lineage identity after a commit; explicitly local/provisional before one.
+
+    Unborn repositories have no clone-stable lineage. Their durable local token is
+    never used to replace the normal root rule after a real first user commit.
+    Only roots reachable from the actual HEAD participate, never analytical or
+    checkpoint objects. Historical fingerprints are not rewritten on transition.
     """
-    roots = sorted(
-        line.strip()
-        for line in git(repo, "rev-list", "--max-parents=0", "HEAD").splitlines()
-        if line.strip()
-    )
+    head = head_commit(repo)
+    if head is None:
+        return _unborn_fingerprint(repo)
+    roots = sorted(line.strip() for line in git(repo, "rev-list", "--max-parents=0", head).splitlines() if line.strip())
     if not roots:
         raise EngineProtocolError("cannot fingerprint repository without a Git root commit")
     return "dwrepo_" + _sha256("\n".join(roots))[:24]

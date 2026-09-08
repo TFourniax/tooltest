@@ -9,7 +9,7 @@ from typing import Any
 
 from .attestation import AttestationError, expected_certificate_id
 from .engine_protocol import change_id, repository_fingerprint
-from .gitops import git, git_metadata_path, repo_root, resolve_ref, snapshot_worktree
+from .gitops import git, git_metadata_path, repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 from .ledger import LedgerError
 
 
@@ -44,7 +44,7 @@ def _candidate_binding(repo: Path, raw: str) -> tuple[str, dict[str, Any]]:
         return sha, {"sha": sha, "tree": _tree(repo, sha), "dirty": False}
     candidate_sha = snapshot_worktree(repo)
     candidate_tree = _tree(repo, candidate_sha)
-    head = resolve_ref(repo, "HEAD")
+    head = resolve_analysis_base(repo, "HEAD")
     head_tree = _tree(repo, head)
     dirty = candidate_tree != head_tree
     return candidate_sha, {
@@ -241,7 +241,7 @@ def build_change_envelope(
 ) -> dict[str, Any]:
     if proof_path is None and debt_path is None and understanding_path is None:
         raise ChangeEnvelopeError("at least one of --proof, --debt, or --understanding is required")
-    base_sha = resolve_ref(repo, base_ref)
+    base_sha = resolve_analysis_base(repo, base_ref)
     base_tree = _tree(repo, base_sha)
     _, candidate = _candidate_binding(repo, candidate_ref)
     repository = repository_fingerprint(repo)

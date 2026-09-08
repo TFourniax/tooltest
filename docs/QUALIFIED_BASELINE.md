@@ -2,7 +2,16 @@
 
 Baseline core SHA: `e9bf514a3f13b1fc4124e3ff6a0e416016a2790b`.
 
-Latest qualified main (2026-09-08): `bf10adb5fea60bba4b9d692411c6a56497092e12`.
+Latest qualified main (2026-09-08): `4a53a9fd9f338b7deaa11ade26d02c933c86b6bf`.
+HT005/HT012 readiness separation was merged through #56 after exact candidate machine qualification.
+Exact-main SUCCESS: test `34220725034` (21/21 jobs), ProofBench `34220725026`,
+ContinuityBench `34220725028`, Integrated Product Smoke `34220725017`.
+Package artifact `10053625719`, SHA-256 `693f756dd66bf8da23c150b45d189eb35a1876152f6d4f1d40a353d0060be080`.
+Closure/baseline record: issue #52 comment `5584489626`. Provider behavior, hook payloads,
+trust interaction and executable resolution were unchanged; this presentation/state projection
+correction did not require broad provider replay.
+
+Previous qualified main: `bf10adb5fea60bba4b9d692411c6a56497092e12`.
 HT009 was qualified and merged through #53. Installation-bound native/Protect hook resolution
 was machine + Windows/Codex human qualified on `287c8c41a4eea3dd144e95bb95e011461bd7ec09`,
 then merged through #55. Issue #54 retains the exact human evidence and closure record.

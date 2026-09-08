@@ -8,7 +8,7 @@ from typing import Any
 
 from .autodetect import command_available, default_evidence, suggested_available_command
 from .config import load_config
-from .gitops import git_metadata_path
+from .gitops import git_metadata_path, repository_state
 from .native_activation import SUPPORTED_NATIVE_PROVIDERS, native_activation_summary
 
 
@@ -110,7 +110,8 @@ def build_readiness(repo: Path, *, config: dict | None = None, verification: dic
     if protect_ready is False:
         blockers.append('protect-not-ready')
     return {
-        'schema': 'diffwitness.readiness.v1', 'native': native, 'verification': verification,
+        'schema': 'diffwitness.readiness.v1', 'repository': repository_state(repo),
+        'native': native, 'verification': verification,
         'protect': protect, 'currentProof': proof,
         'scopedProduct': {'scope': 'selected-local-hooks-and-verification-launcher',
                           'workflow': 'native' if native['configured'] else 'manual',
@@ -136,3 +137,13 @@ def native_human_lines(native: dict, *, guided: bool) -> list[str]:
         if item.get('providerTrust') == 'unknown':
             lines.append('  Confiance gérée par Codex, inconnue de DiffWitness. Examine `/hooks` si Codex le demande.' if guided else '  Provider trust is unknown to DiffWitness. Review `/hooks` if Codex requests it.')
     return lines or (['Intégration native non configurée (facultative).'] if guided else ['Native integration not configured (optional).'])
+
+
+def repository_human_lines(state: dict, *, guided: bool) -> list[str]:
+    if state.get("state") != "unborn":
+        return []
+    return [
+        "Ce dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée."
+        if guided else
+        "Repository: unborn HEAD; empty analytical base; local provisional identity. No user commit or Proof is implied."
+    ]

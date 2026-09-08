@@ -20,7 +20,7 @@ from typing import Any, Mapping
 
 from .runtime_executable import resolve_dw_command
 from .engine_protocol import repository_fingerprint
-from .gitops import git_metadata_path, repo_root
+from .gitops import git_metadata_path, repo_root, head_commit, repository_state
 
 
 INTEGRATION_SCHEMA = "diffwitness.integration-status.v1"
@@ -326,7 +326,8 @@ def integration_status(repo: Path) -> dict[str, Any]:
         "expectedAdapters": adapters,
         "adapters": details,
         "localProjectId": local.get("localId") if local else None,
-        "repositoryFingerprint": local.get("repositoryFingerprint") if local else repository_fingerprint(repo),
+        "repositoryFingerprint": repository_fingerprint(repo),
+        "repositoryIdentityScope": repository_state(repo)["identityScope"],
     }
 
 
@@ -521,6 +522,9 @@ def _snapshot_id(snapshot: Mapping[str, Any]) -> str:
 def build_portal_snapshot(repo: Path) -> dict[str, Any]:
     local = ensure_local_project(repo)
     envelope = _envelope(repo)
+    envelope_repository = envelope.get("repository") or {}
+    if envelope and envelope_repository.get("fingerprint") != local["repositoryFingerprint"]:
+        raise IdleProofSidecarError("Historical evidence belongs to a different repository identity (including before the first commit); capture a new task before Portal synchronization. Local historical evidence is preserved.")
     explanation = _explanation(repo)
     summary = explanation.get("summary") if isinstance(explanation.get("summary"), Mapping) else {}
     file_facts = explanation.get("files") if isinstance(explanation.get("files"), list) else []
@@ -717,12 +721,15 @@ def portal_status(repo: Path) -> dict[str, Any]:
         "tokenEnv": token_env or None,
         "tokenAvailable": token_available,
         "localProjectId": local.get("localId") if local else None,
-        "repositoryFingerprint": local.get("repositoryFingerprint") if local else repository_fingerprint(repo),
+        "repositoryFingerprint": repository_fingerprint(repo),
+        "repositoryIdentityScope": repository_state(repo)["identityScope"],
         "lastSnapshotAvailable": bool(_envelope(repo) or _explanation(repo)),
     }
 
 
 def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
+    if head_commit(repo) is None:
+        raise IdleProofSidecarError("Create the first Git commit before Portal synchronization; local setup and Proof remain available with a provisional identity.")
     config = _read_json(_portal_config_path(repo), required=True)
     if config.get("schema") != PORTAL_CONFIG_SCHEMA:
         raise IdleProofSidecarError("Portal is not configured; run `dw portal configure` first")

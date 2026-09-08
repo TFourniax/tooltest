@@ -13,7 +13,7 @@ from .engine_protocol import EngineProtocolError
 from .gitops import GitError, repo_root
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
-from .readiness import build_readiness, verification_readiness, native_human_lines
+from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines
 
 
 DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
@@ -316,6 +316,8 @@ def doctor_cli(argv: list[str]) -> int:
         proof = readiness["currentProof"]
         print(f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}")
         view = args.view or get_view_mode(repo)
+        for line in repository_human_lines(readiness["repository"], guided=view == "guided"):
+            print(line)
         if view == "guided":
             _render_guided(
                 repo,

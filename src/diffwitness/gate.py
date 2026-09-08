@@ -18,7 +18,7 @@ from .config import load_config
 from .diffing import make_mutations, parse_file_patches
 from .engine_protocol import EngineProtocolError, build_engine_request, run_advisory_engine
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
-from .gitops import diff_text, repo_root, resolve_ref
+from .gitops import diff_text, repo_root, resolve_ref, resolve_analysis_base
 from .proof_cli import (
     _adaptive_document,
     _adaptive_policy,
@@ -352,7 +352,7 @@ def gate_cli(argv: list[str]) -> int:
     if stability_runs < 1:
         raise AnalysisError("stability runs must be >= 1")
 
-    base_sha = resolve_ref(repo, args.base)
+    base_sha = resolve_analysis_base(repo, args.base)
     candidate_sha, candidate_ref = _candidate_sha(repo, args.candidate)
     files = parse_file_patches(
         diff_text(repo, base_sha, candidate_sha), test_globs=test_globs

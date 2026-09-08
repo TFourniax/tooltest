@@ -12,7 +12,7 @@ from .analysis import AnalysisError, run_analysis
 from .config import load_config, write_config
 from .diffing import make_mutations, parse_file_patches
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
-from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree
+from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 from .reporting import build_report, render_markdown, write_json, write_markdown
 
 
@@ -213,7 +213,7 @@ def _prove(args: argparse.Namespace) -> int:
     if max_total_seconds <= 0:
         raise AnalysisError("--max-total-seconds must be > 0")
 
-    base_sha = resolve_ref(repo, args.base)
+    base_sha = resolve_analysis_base(repo, args.base)
     if args.candidate.upper() == "WORKTREE":
         candidate_sha = snapshot_worktree(repo)
         candidate_ref = "WORKTREE"
