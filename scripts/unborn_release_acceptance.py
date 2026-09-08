@@ -114,7 +114,7 @@ def exercise(root, provider, dw, sidecar, env):
     assert portal['repositoryFingerprint'] != provisional, portal
     assert all(p.read_bytes() == value for p, value in envelopes.items())
     assert hook_path.read_bytes() == hook_bytes
-    print(f'PASS {provider}: installed hooks, unborn task → Proof/Continuity, index/HEAD preserved, '
+    print(f'PASS {provider}: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, '
           'stale/return, first user commit with historical envelopes unchanged', flush=True)
 
 
