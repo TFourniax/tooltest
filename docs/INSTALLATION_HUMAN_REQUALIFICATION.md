@@ -1,0 +1,15 @@
+# Issue #54 — targeted Windows/Codex qualification
+
+Use the exact candidate SHA recorded in the PR and its passing machine gates. This is the remaining human boundary before merging the installation-resolution fix. HT-009 is already qualified and closed on merged main `7f50981abe1a58f2c09604f88c387269c756ec52`; no full CP-05 replay is required here.
+
+## Minimal test
+
+1. Install that exact candidate into the deliberately selected installation **A**, preserving its normal packaging method (pipx, user Scripts or standalone). Keep the valid competing installation **B**. Record absolute A/B paths, candidate SHA, `& $A --version`, `& $B --version`, and Codex version. Version text alone does not identify the candidate; retain the exact install source or CI artifact/run identity.
+2. Use a disposable Git project with one harmless committed file and a local `.codex` directory. Put B's directory first on the test shell's PATH; leave `DIFFWITNESS_BIN` unset. Confirm `Get-Command dw -All` shows B first. Invoke A explicitly, never the bare `dw` alias.
+3. With A, run `setup install --agent codex --json`, then `protect enable --force --json`. For a standalone A without bundled idleproof, explicitly select the compatible candidate sidecar with `--idleproof-command` during setup. Inspect `.codex/hooks.json`: all native and Protect hooks must target A's canonical installation path, never B or a temporary PyInstaller extraction directory. A pipx symlink may resolve to its actual venv executable; that is the same installation.
+4. Open Codex in that project. Review/approve these hooks through Codex only if it asks. Have Codex run exactly `git status --short` once, without editing files. Save `& $A protect status --json` and `& $A setup status --json`. Protect and native activation must become observed, the Protect receipt chain must verify, and no Claude project integration may appear. Record the actual command target shown in Codex's hook view/log when available.
+5. Close Codex. Hash `.codex/hooks.json`, then explicitly run A's `protect disable --json` and `protect enable --force --json` with the same B-first PATH. The hook file must be byte-identical and still target A. Before invocation, Protect must report `awaiting-first-observation`, `providerTrust=unknown`, `ready=false`. Reopen Codex and perform one harmless `git status --short` invocation; Protect must return to observed/ready. Do not infer pending approval merely from absence of local observation.
+
+Return PASS/FAIL, exact candidate SHA, A/B paths and PATH order, hook targets, before/after SHA-256, and the two status outputs. Do not paste credentials or unrelated project content. Machine tests already cover opposite PATH order, module entry, explicit overrides, actual pipx/user/venv installs, reinstall/uninstall and standalone hooks on all three operating systems.
+
+A failure stays on this PR. After HUMAN PASS, merge only the qualified candidate, require all gates on the exact resulting main SHA, then close #54 and proceed to HT-005/HT-012. Do not tag or release the Alpha.

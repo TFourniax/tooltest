@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+from .runtime_executable import resolve_dw_command
 from .engine_protocol import repository_fingerprint
 from .gitops import git_metadata_path, repo_root
 
@@ -306,7 +307,7 @@ def integration_status(repo: Path) -> dict[str, Any]:
     state = _read_json(_integration_state_path(repo))
     expected = state.get("expectedAdapters")
     adapters = [str(value) for value in expected if str(value) in {"claude", "codex", "cursor"}] if isinstance(expected, list) else []
-    dw_command = str(state.get("diffwitnessCommand") or shutil.which("dw") or "dw")
+    dw_command = str(state.get("diffwitnessCommand") or resolve_dw_command())
     if not adapters:
         adapters = [name for name in ("claude", "codex", "cursor") if _adapter_installed(repo, name, dw_command)]
     details = {
@@ -375,7 +376,7 @@ def _remove_commands_from_hooks(data: dict[str, Any], commands: set[str]) -> dic
 def integration_uninstall(repo: Path) -> None:
     state_path = _integration_state_path(repo)
     state = _read_json(state_path)
-    dw_command = str(state.get("diffwitnessCommand") or shutil.which("dw") or "dw")
+    dw_command = str(state.get("diffwitnessCommand") or resolve_dw_command())
     adapters = state.get("expectedAdapters") if isinstance(state.get("expectedAdapters"), list) else ["claude", "codex", "cursor"]
     created_files = state.get("createdFiles") if isinstance(state.get("createdFiles"), dict) else {}
     commands = {value for triple in _agent_commands(dw_command).values() for value in triple}
@@ -792,7 +793,7 @@ def _integration_parser(subparsers: argparse._SubParsersAction) -> None:
     actions = integration.add_subparsers(dest="integration_action", required=True)
     install = actions.add_parser("install")
     install.add_argument("--agent", default="auto")
-    install.add_argument("--diffwitness-command", default=shutil.which("dw") or "dw")
+    install.add_argument("--diffwitness-command")
     install.add_argument("--json", action="store_true")
     status = actions.add_parser("status")
     status.add_argument("--json", action="store_true")
@@ -886,7 +887,7 @@ def main(argv: list[str] | None = None) -> int:
         repo = repo_root(args.repo)
         if args.command == "integration":
             if args.integration_action == "install":
-                result = integration_install(repo, agent=args.agent, dw_command=args.diffwitness_command)
+                result = integration_install(repo, agent=args.agent, dw_command=args.diffwitness_command or resolve_dw_command())
                 _print_result(result, as_json=args.json)
                 return 0
             if args.integration_action == "status":

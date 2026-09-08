@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -15,6 +14,7 @@ from .gitops import git_metadata_path, repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
 from .native_activation import clear_native_activation, native_activation_summary
 from .view_mode import get_view_mode
+from .runtime_executable import ExecutableResolutionError, resolve_dw_command, resolve_idleproof_command
 
 
 class SetupError(RuntimeError):
@@ -58,30 +58,17 @@ def _git_project(cwd: Path) -> Path:
 
 
 def _idleproof_executable(explicit: str | None = None) -> str:
-    candidate = explicit or os.environ.get("DIFFWITNESS_IDLEPROOF_BIN") or shutil.which("idleproof")
-    if not candidate:
-        raise SetupError(
-            "DiffWitness understanding sidecar is not installed. Install the matching DiffWitness alpha bundle "
-            "or provide --idleproof-command / DIFFWITNESS_IDLEPROOF_BIN."
-        )
-    value = str(Path(candidate).expanduser()) if os.path.sep in candidate or (os.path.altsep and os.path.altsep in candidate) else candidate
-    if os.path.sep in value or (os.path.altsep and os.path.altsep in value):
-        path = Path(value).resolve()
-        if not path.exists():
-            raise SetupError(f"IdleProof sidecar command does not exist: {path}")
-        return str(path)
-    resolved = shutil.which(value)
-    if not resolved:
-        raise SetupError(f"IdleProof sidecar command is not executable: {value}")
-    return resolved
+    try:
+        return resolve_idleproof_command(explicit)
+    except ExecutableResolutionError as exc:
+        raise SetupError(str(exc)) from exc
 
 
 def _dw_command() -> str:
-    configured = os.environ.get("DIFFWITNESS_BIN")
-    if configured:
-        return configured
-    resolved = shutil.which("dw")
-    return resolved or "dw"
+    try:
+        return resolve_dw_command()
+    except ExecutableResolutionError as exc:
+        raise SetupError(str(exc)) from exc
 
 
 def _windows_batch_prefix(command: str, args: Sequence[str]) -> list[str]:
@@ -228,6 +215,7 @@ def _with_readiness(cwd: Path, status: dict) -> dict:
 
 def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None) -> dict:
     cwd = _git_project(cwd)
+    dw_command = _dw_command()
     try:
         ensure_local_integration_excludes(cwd)
     except LocalGitStateError as exc:
@@ -241,7 +229,7 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
             "--agent",
             agent,
             "--diffwitness-command",
-            _dw_command(),
+            dw_command,
         ],
         cwd=cwd,
         timeout=120.0,

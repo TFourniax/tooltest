@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from .gitops import git_metadata_path, repo_root
+from .runtime_executable import resolve_dw_command
 
 PROTECT_SCHEMA = "diffwitness.protect-config.v1"
 RECEIPT_SCHEMA = "diffwitness.protection-receipt.v1"
@@ -258,10 +259,7 @@ def _write_hook_file(path: Path, value: Mapping[str, Any]) -> None:
 
 
 def _resolve_dw_command() -> str:
-    configured = os.environ.get("DIFFWITNESS_BIN")
-    if configured:
-        return configured
-    return shutil.which("dw") or "dw"
+    return resolve_dw_command()
 
 
 def _configured_adapter_scope(repo: Path) -> list[str] | None:
@@ -432,15 +430,16 @@ def set_protect_mode(
     if policy not in POLICIES:
         raise ProtectError(f"Protect policy must be one of: {', '.join(POLICIES)}")
     previous = load_protect_config(repo)
-    if previous.get("mode") == "builtin":
-        _remove_hooks(repo, previous)
-
     detection = detect_external_harness(repo)
     if mode == "builtin" and detection["externalHarnessDetected"] and not force:
         mode = "external"
 
     adapters = _detect_adapters(repo) if mode == "builtin" else []
-    dw_command = _resolve_dw_command()
+    # Validate the new owner before changing existing hooks. Cleanup needs only
+    # the recorded owner, even when an installation/override is now unavailable.
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+    if previous.get("mode") == "builtin":
+        _remove_hooks(repo, previous)
     managed: dict[str, bool] = {}
     if mode == "builtin":
         managed = _install_hooks(repo, adapters, dw_command=dw_command)
