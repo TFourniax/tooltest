@@ -189,6 +189,11 @@ jobs:
         run: python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
       - name: Exercise optional Protect mode lifecycle from installed wheel
         run: python scripts/protect_release_acceptance.py
+      - name: Qualify competing venv, user Scripts and pipx installations
+        shell: bash
+        run: |
+          python -m pip install pipx
+          python scripts/installation_resolution_acceptance.py --wheel dist/*.whl --pipx
       - name: Exercise real Guard + Debt + change-envelope journey
         run: python scripts/alpha_smoke.py
       - name: Exercise private-engine activation + adaptive Gate from installed wheel
@@ -225,3 +230,8 @@ jobs:
           ./dist/dw engine --help || ./dist/dw.exe engine --help
           ./dist/dw ledger --help || ./dist/dw.exe ledger --help
           ./dist/dw envelope --help || ./dist/dw.exe envelope --help
+      - name: Qualify standalone hook executable against competing installation
+        shell: bash
+        run: |
+          python -m pip wheel --no-deps --wheel-dir binary-wheel .
+          python -c "import pathlib,subprocess,sys; binary=pathlib.Path('dist/dw.exe' if sys.platform == 'win32' else 'dist/dw'); wheel=next(pathlib.Path('binary-wheel').glob('*.whl')); subprocess.check_call([sys.executable,'scripts/installation_resolution_acceptance.py','--wheel',str(wheel),'--standalone',str(binary)])"

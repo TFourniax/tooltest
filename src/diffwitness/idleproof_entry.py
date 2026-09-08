@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 from typing import Any
 
+from .runtime_executable import resolve_dw_command
 from . import idleproof_sidecar as _sidecar
 
 _ORIGINAL_BUILD_PORTAL_SNAPSHOT = _sidecar.build_portal_snapshot
@@ -177,7 +177,7 @@ def integration_install(repo: Path, *, agent: str, dw_command: str) -> dict[str,
 
 def integration_uninstall(repo: Path) -> None:
     state = _sidecar._read_json(_sidecar._integration_state_path(repo))
-    dw_command = str(state.get("diffwitnessCommand") or shutil.which("dw") or "dw")
+    dw_command = str(state.get("diffwitnessCommand") or resolve_dw_command())
     created_files = state.get("createdFiles") if isinstance(state.get("createdFiles"), dict) else {}
     _ORIGINAL_INTEGRATION_UNINSTALL(repo)
 
