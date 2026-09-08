@@ -34,22 +34,25 @@ def hook(repo, provider, event, payload, env):
     return output if event == 'SessionStart' else json.loads(output)
 
 
-def exercise(root, provider, dw, sidecar, env):
-    repo = root / (provider + ' first task'); repo.mkdir()
+def exercise(root, provider, dw, sidecar, env, *, eol):
+    label = 'LF' if eol == b'\n' else 'CRLF'
+    repo = root / (provider + ' ' + label + ' first task'); repo.mkdir()
+    def write_fixture(path, value):
+        path.write_bytes(value.encode('utf-8').replace(b'\n', eol))
     git = lambda *args: run(['git', *args], repo, env).strip()
     call = lambda *args: run([str(dw), *args], repo, env)
     git('init', '-q')
     # Cross-platform exact-tree fixture: Git must not transform these fixture bytes.
     git('config', 'core.autocrlf', 'false')
     app = repo / 'app.py'
-    app.write_text('def add(a, b):\n    return a - b\n', encoding='utf-8')
+    write_fixture(app, 'def add(a, b):\n    return a - b\n')
     (repo / 'tests').mkdir()
-    (repo / 'tests/test_app.py').write_text(
+    write_fixture(repo / 'tests/test_app.py',
         'import unittest\nfrom app import add\nclass T(unittest.TestCase):\n'
-        '    def test_add(self): self.assertEqual(add(2, 3), 5)\n', encoding='utf-8')
+        '    def test_add(self): self.assertEqual(add(2, 3), 5)\n')
     evidence = subprocess.list2cmdline([sys.executable, '-m', 'unittest', 'discover', '-s', 'tests', '-q'])
-    (repo / '.diffwitness.toml').write_text(
-        '[diffwitness]\ntest = ' + json.dumps(evidence) + '\nstability_runs = 1\nmax_total_seconds = 120\n', encoding='utf-8')
+    write_fixture(repo / '.diffwitness.toml',
+        '[diffwitness]\ntest = ' + json.dumps(evidence) + '\nstability_runs = 1\nmax_total_seconds = 120\n')
     git('add', 'app.py')
     original_index = (repo / '.git/index').read_bytes()
     original_head = (repo / '.git/HEAD').read_bytes()
@@ -76,7 +79,7 @@ def exercise(root, provider, dw, sidecar, env):
     hook(repo, provider, 'UserPromptSubmit', {**common, 'turn_id': 'unborn-1',
          'prompt': 'Fix add so the existing regression test passes'}, env)
     fixed = 'def add(a, b):\n    return a + b\n'
-    app.write_text(fixed, encoding='utf-8')
+    write_fixture(app, fixed)
     stopped = hook(repo, provider, 'Stop', {**common, 'turn_id': 'unborn-1',
         'stop_hook_active': False, 'last_assistant_message': 'Fixed add.'}, env)
     assert 'decision' not in stopped, stopped
@@ -96,10 +99,10 @@ def exercise(root, provider, dw, sidecar, env):
     envelopes = {p: p.read_bytes() for p in envelope_paths}
     provisional = next(json.loads(value)['repository']['fingerprint'] for value in envelopes.values()
                        if json.loads(value).get('schema_version') == 'change-envelope-1')
-    app.write_text('def add(a, b):\n    return a + b + 1\n', encoding='utf-8')
+    write_fixture(app, 'def add(a, b):\n    return a + b + 1\n')
     stale = json.loads(call('status', '--json'))['readiness']['currentProof']
     assert stale['currentTreeVerified'] is False and stale['freshness'] == 'stale', stale
-    app.write_text(fixed, encoding='utf-8')
+    write_fixture(app, fixed)
     assert json.loads(call('status', '--json'))['readiness']['currentProof']['currentTreeVerified'] is True
     # Only the fixture now explicitly creates a first user commit.
     git('config', 'user.name', 'First User Commit')
@@ -114,7 +117,7 @@ def exercise(root, provider, dw, sidecar, env):
     assert portal['repositoryFingerprint'] != provisional, portal
     assert all(p.read_bytes() == value for p, value in envelopes.items())
     assert hook_path.read_bytes() == hook_bytes
-    print(f'PASS {provider}: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, '
+    print(f'PASS {provider} {label}: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, '
           'stale/return, first user commit with historical envelopes unchanged', flush=True)
 
 
@@ -130,7 +133,8 @@ def main():
     env['PYTHONUTF8'] = '1'
     with tempfile.TemporaryDirectory(prefix='dw-unborn-') as td:
         for provider in ('codex', 'claude'):
-            exercise(Path(td).resolve(), provider, dw, args.idleproof.resolve() if args.idleproof else None, env)
+            for eol in (b'\n', b'\r\n'):
+                exercise(Path(td).resolve(), provider, dw, args.idleproof.resolve() if args.idleproof else None, env, eol=eol)
     print('Unborn repository installed consumer acceptance PASS')
     return 0
 
