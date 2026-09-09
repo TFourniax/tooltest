@@ -132,6 +132,64 @@ def exercise(root, provider, dw, sidecar, env, *, eol):
           'stale/return, first user commit with historical envelopes unchanged', flush=True)
 
 
+def exercise_unsupported_text(root, provider, dw, sidecar, env):
+    """Installed entry point and generated Stop reject before producing Proof."""
+    repo = root / (provider + ' unsupported text'); repo.mkdir()
+    git = lambda *args: run(['git', *args], repo, env).strip()
+    git('init', '-q'); git('config', 'core.autocrlf', 'false')
+    original = b'# coding: latin-1\ndef add(a, b):\n    return a - b\n'
+    app = repo / 'app.py'; app.write_bytes(original)
+    git('add', 'app.py')
+    index = (repo / '.git/index').read_bytes()
+    head = (repo / '.git/HEAD').read_bytes()
+    # Evidence must never run on unsupported patches.
+    marker = root / (provider + '-evidence-ran')
+    evidence = subprocess.list2cmdline([sys.executable, '-c',
+        'from pathlib import Path; Path(' + repr(str(marker)) + ').touch()'])
+    (repo / '.diffwitness.toml').write_text(
+        '[diffwitness]\ntest = ' + json.dumps(evidence) + '\n', encoding='utf-8')
+    setup_args = [str(dw), 'setup', 'install', '--agent', provider, '--json']
+    if sidecar:
+        setup_args += ['--idleproof-command', str(sidecar)]
+    run(setup_args, repo, env)
+    hook_path = repo / ('.codex/hooks.json' if provider == 'codex' else '.claude/settings.local.json')
+    hook_bytes = hook_path.read_bytes()
+    common = {'cwd': str(repo), 'session_id': 'unsupported-' + provider}
+    hook(repo, provider, 'SessionStart', {**common, 'source': 'startup'}, env)
+    hook(repo, provider, 'UserPromptSubmit', {**common, 'prompt': 'Fix add'}, env)
+    fixed = original.replace(b'a - b', b'a + b') + b'# context \xff\n'
+    app.write_bytes(fixed)
+    stopped = hook(repo, provider, 'Stop', {**common, 'stop_hook_active': False,
+                   'last_assistant_message': 'Fixed add.'}, env)
+    assert stopped.get('decision') == 'block', stopped
+    assert 'unsupported-text-encoding' in json.dumps(stopped), stopped
+    assert 'UnicodeEncodeError' not in json.dumps(stopped), stopped
+    assert not marker.exists(), 'unsupported text executed evidence'
+    assert not list((repo / '.git').rglob('*envelope*.json'))
+    assert not list((repo / '.git').rglob('*certificate*.json'))
+    assert (repo / '.git/index').read_bytes() == index
+    assert (repo / '.git/HEAD').read_bytes() == head
+    assert git('for-each-ref') == ''
+    assert hook_path.read_bytes() == hook_bytes
+    assert app.read_bytes() == fixed
+    if provider == 'codex':
+        assert not (repo / '.claude').exists()
+    # Also exercise the installed public prove command, not just internal calls.
+    certificate = root / (provider + '-unsupported-proof.json')
+    reduction = root / (provider + '-unsupported-reduction.patch')
+    result = subprocess.run([str(dw), 'prove', '--base', 'HEAD', '--candidate', 'WORKTREE',
+        '--certificate', str(certificate), '--minimize', '--reduction-patch', str(reduction)],
+        cwd=repo, env=env, capture_output=True, text=True, encoding='utf-8', timeout=60)
+    assert result.returncode == 2, (result.stdout, result.stderr)
+    assert 'INCONCLUSIVE [unsupported-text-encoding]' in result.stderr, result.stderr
+    assert 'UnicodeEncodeError' not in result.stderr
+    assert not certificate.exists() and not reduction.exists() and not marker.exists()
+    assert (repo / '.git/index').read_bytes() == index
+    assert (repo / '.git/HEAD').read_bytes() == head
+    print(f'PASS {provider} unsupported text: installed Stop blocks, prove exit 2, '
+          'no analysis/Proof/reduction, index/HEAD/hooks preserved', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dw', type=Path)
@@ -144,6 +202,7 @@ def main():
     env['PYTHONUTF8'] = '1'
     with tempfile.TemporaryDirectory(prefix='dw-unborn-') as td:
         for provider in ('codex', 'claude'):
+            exercise_unsupported_text(Path(td).resolve(), provider, dw, args.idleproof.resolve() if args.idleproof else None, env)
             for eol in (b'\n', b'\r\n'):
                 exercise(Path(td).resolve(), provider, dw, args.idleproof.resolve() if args.idleproof else None, env, eol=eol)
     print('Unborn repository installed consumer acceptance PASS')

@@ -1,0 +1,25 @@
+{
+  "contract": "B: explicit fail-closed",
+  "parent_candidate": "bd888a659122a920441ae80a3b0ac26578a490f0",
+  "invalid_id_attempts": [
+    {
+      "byte": "ff",
+      "exception": "ValueError",
+      "reason": "INCONCLUSIVE [unsupported-text-encoding]: textual Git patches must be UTF-8; no Proof is produced",
+      "id_produced": false
+    },
+    {
+      "byte": "fe",
+      "exception": "ValueError",
+      "reason": "INCONCLUSIVE [unsupported-text-encoding]: textual Git patches must be UTF-8; no Proof is produced",
+      "id_produced": false
+    }
+  ],
+  "cli": {
+    "exit": 2,
+    "stdout": "",
+    "stderr": "DiffWitness: INCONCLUSIVE [unsupported-text-encoding]: textual Git patches must be UTF-8; no Proof is produced\n",
+    "certificate_exists": false,
+    "reduction_exists": false
+  }
+}

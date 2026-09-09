@@ -107,7 +107,19 @@ def _hunk_range(header: str) -> tuple[int | None, int | None, int | None, int | 
     return old_start, old_count, new_start, new_count
 
 
+def supported_patch_bytes(text: str) -> bytes:
+    """Reject unsupported text before causal identity or Proof construction."""
+    try:
+        return text.encode("utf-8")
+    except UnicodeEncodeError:
+        raise ValueError(
+            "INCONCLUSIVE [unsupported-text-encoding]: textual Git patches must be UTF-8; "
+            "no Proof is produced"
+        ) from None
+
+
 def parse_file_patches(diff: str, *, test_globs: list[str] | None = None) -> list[FilePatch]:
+    supported_patch_bytes(diff)
     if not diff.strip():
         return []
     blocks = re.split(r"(?=^diff --git )", diff, flags=re.MULTILINE)
@@ -157,7 +169,7 @@ def parse_file_patches(diff: str, *, test_globs: list[str] | None = None) -> lis
 
 
 def _mutation_id(path: str, patch: str) -> str:
-    return hashlib.sha256(f"{path}\0{patch}".encode("utf-8", errors="replace")).hexdigest()[:10]
+    return hashlib.sha256(supported_patch_bytes(f"{path}\0{patch}")).hexdigest()[:10]
 
 
 def make_mutations(

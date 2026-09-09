@@ -97,13 +97,13 @@ class NativePatchBytesTests(unittest.TestCase):
                 self.assertTrue(envelope['debt']['budget_passed'])
                 self.assertFalse((repo / '.claude').exists())
 
-    def test_committed_patch_round_trip_preserves_mixed_endings_and_non_utf8_context(self):
+    def test_committed_patch_round_trip_preserves_mixed_endings_and_utf8_context(self):
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td).resolve()
             git(repo, 'init', '-q'); git(repo, 'config', 'core.autocrlf', 'false')
             git(repo, 'config', 'user.name', 'Patch Fixture')
             git(repo, 'config', 'user.email', 'patch@example.invalid')
-            original = b'# context \xff\r\nvalue = 1\nlast line without newline'
+            original = b'# context \xc3\xa9\r\nvalue = 1\nlast line without newline'
             fixed = original.replace(b'value = 1', b'value = 2')
             (repo / 'app.py').write_bytes(original)
             git(repo, 'add', 'app.py'); git(repo, 'commit', '-qm', 'real baseline')

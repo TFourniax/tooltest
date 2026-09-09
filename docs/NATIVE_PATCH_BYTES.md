@@ -45,3 +45,7 @@ Use existing binary subprocess plumbing for Git patch output/input only. Decode 
 Regressions must exercise explicit LF and CRLF bytes on every OS, assert the actual native base/candidate contrast, witnessed hunk and accepted persisted Proof, current-tree binding, Continuity and Debt, and preserve index/hooks/HEAD/config/test bytes. Exact installed Windows wheel and standalone journeys must use the same explicit byte fixtures. An unrelated/non-applicable patch must still fail closed. Existing committed-repository and benchmark gates remain required because patch transport is shared.
 
 After a replacement SHA is fully machine-qualified, owner review precedes the same targeted Windows/Codex human journey in a fresh disposable fixture. Keep the failed fixture untouched. Do not merge or tag before targeted HUMAN PASS and subsequent exact-main qualification.
+
+## Non-UTF8 scope clarification after independent review
+
+The byte transport correction alone does not establish arbitrary non-UTF8 textual Proof support. Product parsing now rejects such text before mutation identity/analysis with an explicit unsupported reason; see [the contract and reproduction](NON_UTF8_PATCH_BOUNDARY.md). UTF-8 LF/CRLF and mixed-ending transport remains exact.
