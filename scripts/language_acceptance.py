@@ -39,6 +39,8 @@ def main():
                   'setup status':('Verification still','Vérification encore')}
         for command,(en,fr) in expected.items():
             words=command.split()
+            if words[0] == 'setup' and args.idleproof:
+                words += ['--idleproof-command', str(args.idleproof.resolve())]
             rc,a=run('--language','en',*words);rc2,b=run('--language','fr',*words)
             assert rc==rc2 and en in a and fr in b,(command,a,b)
             _,a=run('--language','en',*words,'--json');_,b=run('--language','fr',*words,'--json')
