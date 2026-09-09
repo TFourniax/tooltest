@@ -56,6 +56,8 @@ def exercise(root, provider, dw, sidecar, env, *, eol):
     git('add', 'app.py')
     original_index = (repo / '.git/index').read_bytes()
     original_head = (repo / '.git/HEAD').read_bytes()
+    unchanged = {path: path.read_bytes() for path in
+                 (repo / 'tests/test_app.py', repo / '.diffwitness.toml')}
     setup_args = ['setup', 'install', '--agent', provider, '--json']
     if sidecar:
         setup_args += ['--idleproof-command', str(sidecar)]
@@ -85,6 +87,7 @@ def exercise(root, provider, dw, sidecar, env, *, eol):
     assert 'decision' not in stopped, stopped
     assert 'Proof accepted' in stopped.get('systemMessage', ''), stopped
     assert 'Continuity' in stopped['systemMessage'], stopped
+    assert 'DEGRADED' not in stopped['systemMessage'], stopped
     status = json.loads(call('status', '--json'))
     assert status['readiness']['currentProof']['currentTreeVerified'] is True, status
     assert status['readiness']['repository']['hasHead'] is False, status
@@ -92,11 +95,19 @@ def exercise(root, provider, dw, sidecar, env, *, eol):
     assert (repo / '.git/index').read_bytes() == original_index
     assert git('for-each-ref') == ''
     assert hook_path.read_bytes() == hook_bytes
+    assert app.read_bytes() == fixed.encode('utf-8').replace(b'\n', eol)
+    assert all(path.read_bytes() == value for path, value in unchanged.items())
+    assert set(git('ls-files').splitlines()) == {'app.py'}
+    state = json.loads(call('state', 'status', '--json'))
+    assert state['event_count'] > 0 and state['counts']['changes'] > 0 and state['counts']['proofs'] > 0, state
     if provider == 'codex':
         assert not (repo / '.claude').exists()
     envelope_paths = list((repo / '.git').rglob('*envelope*.json'))
     assert envelope_paths, 'native task did not persist its change envelope'
     envelopes = {p: p.read_bytes() for p in envelope_paths}
+    envelope = json.loads((repo / '.git/diffwitness/change-envelope.json').read_bytes())
+    assert envelope['proof']['accepted'] is True and envelope['proof']['claim'] == 'causal', envelope
+    assert envelope['debt']['budget_passed'] is True, envelope
     provisional = next(json.loads(value)['repository']['fingerprint'] for value in envelopes.values()
                        if json.loads(value).get('schema_version') == 'change-envelope-1')
     write_fixture(app, 'def add(a, b):\n    return a + b + 1\n')

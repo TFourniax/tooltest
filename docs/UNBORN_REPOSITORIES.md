@@ -24,6 +24,8 @@ This changes the behavior of native task capture before the first commit. A mini
 
 ## Targeted Windows/Codex human qualification
 
+The first candidate failed this journey at counterfactual hunk application; see `NATIVE_PATCH_BYTES.md` for the captured reproduction and correction. Preserve `C:\Users\33672\dw-unborn-human-20260908-191513` unchanged. Review the replacement candidate and its machine evidence before retesting. Run the commands below only in the new disposable fixture they create; do not continue the failed fixture into its first commit.
+
 Use the exact candidate SHA recorded in the PR's machine qualification comment. Install that SHA into the existing pipx installation, verify provenance with `pipx runpip diffwitness freeze`, and invoke its absolute `dw.exe`. Keep the qualified installation-bound hook rule; do not use an unverified PATH command. Record the Codex version. No need to repeat committed-repository Protect scenarios.
 
 In PowerShell, create a new disposable folder and keep this shell open:

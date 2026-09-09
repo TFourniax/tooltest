@@ -1,0 +1,43 @@
+{
+  "source": {
+    "candidate": "e23d72aa331515e6389e0c3a8846f24bfaa5c0dd",
+    "run": 34259758025,
+    "job": 102174471851,
+    "artifact": 10069559576,
+    "artifact_sha256": "5201af4ad2859e26b8ac5b4567790162914090593a3c00426839fd590a8c3ccb"
+  },
+  "diagnostic": {
+    "eol": "b'\\n'",
+    "os": "nt",
+    "emptyBase": "ee4f860beaeb7b5d9ec0a9e6fa8ba681a3d875af",
+    "baseline": "ac4f78e8d393f08c82aaca7f3a97f82383afad6f",
+    "baselineTree": "153e46ab0022e3f0ca6af405f894f8193ae3efe3",
+    "candidate": "2c0fdb07f515393bc84232a5a60a4e03173a08fc",
+    "candidateTree": "bfaf9fb9ec223a6db0c366f2eb3b94d8d482e794",
+    "applications": [
+      {
+        "direction": "reverse",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "worktree": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\diffwitness-candidate-62kpz8n6\\repo",
+        "sandboxHead": "2c0fdb07f515393bc84232a5a60a4e03173a08fc",
+        "sandboxAppHex": "6465662061646428612c2062293a0a2020202072657475726e2061202b20620a",
+        "ok": false,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply"
+      },
+      {
+        "direction": "forward",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "worktree": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\diffwitness-base-c60pp3dr\\repo",
+        "sandboxHead": "ac4f78e8d393f08c82aaca7f3a97f82383afad6f",
+        "sandboxAppHex": "6465662061646428612c2062293a0a2020202072657475726e2061202d20620a",
+        "ok": false,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply"
+      }
+    ],
+    "stop": {
+      "decision": "block",
+      "reason": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcxjg5fh4\nbase:      ac4f78e8d393f08c82aaca7f3a97f82383afad6f (ac4f78e8d393)\ncandidate: 2c0fdb07f515393bc84232a5a60a4e03173a08fc (2c0fdb07f515)\nevidence:  C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_4ec4faef32ca673ff347",
+      "systemMessage": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcxjg5fh4\nbase:      ac4f78e8d393f08c82aaca7f3a97f82383afad6f (ac4f78e8d393)\ncandidate: 2c0fdb07f515393bc84232a5a60a4e03173a08fc (2c0fdb07f515)\nevidence:  C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_4ec4faef32ca673ff347"
+    }
+  }
+}

@@ -333,7 +333,9 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
 
 
 def diff_text(repo: Path, base: str, candidate: str) -> str:
-    return git(
+    # Patch context contains source bytes: text pipes normalize CRLF on read and
+    # Windows adds CR on write. Keep a reversible string for the hunk parser.
+    return git_bytes(
         repo,
         "-c",
         "core.quotePath=false",
@@ -346,7 +348,7 @@ def diff_text(repo: Path, base: str, candidate: str) -> str:
         base,
         candidate,
         "--",
-    )
+    ).decode("utf-8", errors="surrogateescape")
 
 
 @contextmanager
@@ -378,12 +380,15 @@ def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[b
     args = ["apply", "--whitespace=nowarn"]
     if reverse:
         args.append("-R")
-    proc = _run(["git", *args, "-"], cwd=worktree, input_text=patch, check=False)
-    return proc.returncode == 0, proc.stderr.strip()
+    proc = _run_bytes(
+        ["git", *args, "-"], cwd=worktree,
+        input_bytes=patch.encode("utf-8", errors="surrogateescape"), check=False,
+    )
+    return proc.returncode == 0, proc.stderr.decode("utf-8", errors="replace").strip()
 
 
 def candidate_delta(worktree: Path, candidate: str) -> str:
-    return git(
+    return git_bytes(
         worktree,
         "-c",
         "core.quotePath=false",
@@ -393,7 +398,7 @@ def candidate_delta(worktree: Path, candidate: str) -> str:
         "--binary",
         candidate,
         "--",
-    )
+    ).decode("utf-8", errors="surrogateescape")
 
 
 def git_version(repo: Path) -> str:
