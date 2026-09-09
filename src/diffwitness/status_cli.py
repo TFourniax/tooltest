@@ -14,7 +14,7 @@ from .gitops import git, git_metadata_path, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
-from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines
+from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines, proof_human_lines
 
 
 def _evidence_command(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
@@ -433,10 +433,11 @@ def _render_technical(value: dict[str, Any]) -> str:
         *native_human_lines(value["readiness"]["native"], guided=False),
         _protect_line(protection),
         *_provider_lines(protection, guided=False),
-        tr(f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}", f"Vérification  {'prête' if evidence['ready'] else 'NON PRÊTE'}") + (
+        tr(f"Verification command {'executable' if evidence['ready'] else 'NOT EXECUTABLE'}", f"Vérification  {'prête' if evidence['ready'] else 'NON PRÊTE'}") + (
             f" ({evidence['source']}: {evidence['command']})" if evidence.get("command") else ""
         ),
         tr(f"Working tree  {tree['changed_file_count']} actionable changed file(s)", f"Arbre courant {tree['changed_file_count']} fichier(s) modifié(s) à traiter") if tree["dirty"] else tr("Working tree  clean", 'Arbre courant propre'),
+        *proof_human_lines(value["readiness"]["currentProof"]),
         tr(f"Proof scope   {verification.get('status', 'unknown')}", f"Portée Proof  {verification.get('status', 'unknown')}"),
         tr(f"Debt          {debt['points']} point(s) · {debt['open_obligations']} open obligation(s)", f"Dette         {debt['points']} point(s) · {debt['open_obligations']} obligation(s) ouverte(s)"),
         tr(f"Last change   {envelope.get('change_id') or ('recorded' if envelope.get('present') else 'none')}", f"Modification  {envelope.get('change_id') or ('enregistrée' if envelope.get('present') else 'aucune')}"),
@@ -479,7 +480,7 @@ def _guided_heading(value: dict[str, Any]) -> tuple[str, str]:
         return tr('A change needs verification', "Une modification doit être vérifiée"), tr(f"{tree['changed_file_count']} relevant file(s) have changed since the last applicable Proof.", f"{tree['changed_file_count']} fichier(s) utile(s) ont changé depuis la dernière Proof couverte.")
     if debt["open_obligations"]:
         return tr('Some known issues still need attention', "Quelques points connus restent à traiter"), tr(f"{debt['open_obligations']} technical obligation(s) remain open.", f"{debt['open_obligations']} obligation(s) technique(s) sont encore ouvertes.")
-    return tr('Ready for the next change', "Prêt pour la prochaine modification"), tr('Verification is executable and the project has no uncovered change.', "Les vérifications sont exécutables et le projet n’a pas de modification non couverte.")
+    return tr('Ready for the next change', "Prêt pour la prochaine modification"), tr('Verification can be started. A clean worktree does not establish Proof coverage.', "Les vérifications peuvent être lancées. Un arbre propre ne constitue pas une couverture Proof.")
 
 
 def _render_guided(value: dict[str, Any]) -> str:
@@ -498,6 +499,7 @@ def _render_guided(value: dict[str, Any]) -> str:
         "",
         tr('Project state', "État du projet"),
     ]
+    lines.extend(proof_human_lines(value["readiness"]["currentProof"]))
     lines.extend(repository_human_lines(value["readiness"]["repository"], guided=True))
     lines.extend(native_human_lines(value["readiness"]["native"], guided=True))
     if protection.get("mode") == "builtin":

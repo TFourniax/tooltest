@@ -15,7 +15,7 @@ from .engine_protocol import EngineProtocolError
 from .gitops import GitError, repo_root
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
-from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines
+from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines, proof_human_lines
 
 
 DEFAULT_ENGINE_TIMEOUT_SECONDS = 2.0
@@ -92,7 +92,7 @@ def _render_guided(
     print(tr('DIFFWITNESS · GUIDED CHECK-UP', "DIFFWITNESS · CHECK-UP GUIDÉ"))
     print()
     if evidence["ready"]:
-        print(tr(f"✓ Verification ready: {evidence['command']}", f"✓ Vérification prête : {evidence['command']}"))
+        print(tr(f"✓ Ready to run verification: {evidence['command']}", f"✓ Vérification prête : {evidence['command']}"))
         if evidence.get("source") == "detected":
             print(tr(f"  Automatically detected ({evidence.get('reason')}).", f"  Détecté automatiquement ({evidence.get('reason')})."))
     else:
@@ -103,7 +103,7 @@ def _render_guided(
             print(tr(f"  Command available on this machine: {evidence['suggestion']}", f"  Commande disponible sur cette machine : {evidence['suggestion']}"))
             print(tr('  DiffWitness does not change your configuration automatically.', "  DiffWitness ne modifie pas ta configuration automatiquement."))
         else:
-            print(tr('  Add/configure an executable test command before considering the project ready.', "  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt."))
+            print(tr('  Add/configure an executable test command before running verification.', "  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt."))
 
     if setup_scope:
         print(tr('✓ Agent integration configured: ', "✓ Intégration agent configurée : ") + ", ".join(names.get(item, item) for item in setup_scope))
@@ -166,7 +166,7 @@ def _render_guided(
         print(tr('INTEGRATION NEEDS CONFIRMATION', "INTÉGRATION À CONFIRMER"))
         print(tr('Repair hooks or their executable if needed, then observe a harmless invocation in your agent.', "Répare les hooks ou leur exécutable si nécessaire, puis observe une invocation sans risque dans ton agent."))
     elif evidence["ready"]:
-        print(tr('Verification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.', "Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper."))
+        print(tr('Ready to run verification. Run `dw setup` to use Claude Code/Codex without a wrapper.', "Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper."))
     else:
         print(tr('WHAT TO DO NOW', "À FAIRE MAINTENANT"))
         if evidence.get("suggestion"):
@@ -193,9 +193,9 @@ def _render_technical(
 ) -> None:
     print(tr(f"Repository: {repo}", f"Dépôt : {repo}"))
     if evidence["ready"]:
-        print(tr(f"Evidence:   ready · {evidence['source']} - {evidence['command']}", f"Vérification : prête · {evidence['source']} - {evidence['command']}"))
+        print(tr(f"Verification command: executable · {evidence['source']} - {evidence['command']}", f"Vérification : prête · {evidence['source']} - {evidence['command']}"))
     else:
-        print(tr(f"Evidence:   NOT READY · {evidence.get('source')}", f"Vérification : NON PRÊTE · {evidence.get('source')}"))
+        print(tr(f"Verification command: NOT EXECUTABLE · {evidence.get('source')}", f"Vérification : NON PRÊTE · {evidence.get('source')}"))
         if evidence.get("command"):
             print(tr(f"Candidate:  {evidence['command']}", f"Candidate :    {evidence['command']}"))
         if evidence.get("suggestion"):
@@ -316,7 +316,14 @@ def doctor_cli(argv: list[str]) -> int:
             print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
             return 0 if result["ready"] else 1
         proof = readiness["currentProof"]
-        print(tr(f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}", f"Proof actuelle : {proof['freshness']} · arbre courant vérifié={proof['currentTreeVerified']}"))
+        for line in proof_human_lines(proof):
+            print(line)
+        print(tr(
+            f"Verification command: configured={evidence['configured']} · executable={evidence['executableReady']}",
+            f"Commande de vérification : configurée={evidence['configured']} · exécutable={evidence['executableReady']}",
+        ))
+        print(tr('Doctor checks readiness without running project checks; readiness does not establish Proof coverage.',
+                 'Doctor contrôle la disponibilité sans exécuter les tests ; elle ne constitue pas une couverture Proof.'))
         view = args.view or get_view_mode(repo)
         for line in repository_human_lines(readiness["repository"], guided=view == "guided"):
             print(line)
