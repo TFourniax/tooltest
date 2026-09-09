@@ -1,6 +1,8 @@
 """Local readiness projections; never execute evidence or mutate provider state."""
 from __future__ import annotations
 
+from .language import tr
+
 import json
 import os
 from pathlib import Path
@@ -126,24 +128,24 @@ def native_human_lines(native: dict, *, guided: bool) -> list[str]:
     for name, item in native.get('adapters', {}).items():
         state = item.get('localState')
         if state == 'missing-hooks':
-            detail = 'hooks manquants ; répare avec `dw setup`' if guided else 'MISSING HOOKS; repair with `dw setup`'
+            detail = tr('missing hooks; repair with `dw setup`', 'hooks manquants ; répare avec `dw setup`') if guided else tr('MISSING HOOKS; repair with `dw setup`', 'HOOKS MANQUANTS ; réparer avec `dw setup`')
         elif state == 'missing-executable':
-            detail = 'exécutable enregistré indisponible ; répare cette installation' if guided else 'recorded executable unavailable; repair that installation'
+            detail = tr('recorded executable unavailable; repair this installation', 'exécutable enregistré indisponible ; répare cette installation') if guided else tr('recorded executable unavailable; repair that installation', 'exécutable enregistré indisponible ; réparer cette installation')
         elif state == 'awaiting-observation':
-            detail = 'hooks installés ; première invocation à observer' if guided else 'hooks installed; awaiting first observation'
+            detail = tr('hooks installed; awaiting first observation', 'hooks installés ; première invocation à observer') if guided else tr('hooks installed; awaiting first observation', 'hooks installés ; première observation attendue')
         else:
-            detail = 'hooks installés et observés localement' if guided else 'hooks installed and locally observed'
+            detail = tr('hooks installed and locally observed', 'hooks installés et observés localement') if guided else tr('hooks installed and locally observed', 'hooks installés et observés localement')
         lines.append(f'{name}: {detail}')
         if item.get('providerTrust') == 'unknown':
-            lines.append('  Confiance gérée par Codex, inconnue de DiffWitness. Examine `/hooks` si Codex le demande.' if guided else '  Provider trust is unknown to DiffWitness. Review `/hooks` if Codex requests it.')
-    return lines or (['Intégration native non configurée (facultative).'] if guided else ['Native integration not configured (optional).'])
+            lines.append(tr('  Trust is managed by Codex and unknown to DiffWitness. Review `/hooks` if Codex requests it.', '  Confiance gérée par Codex, inconnue de DiffWitness. Examine `/hooks` si Codex le demande.') if guided else tr('  Provider trust is unknown to DiffWitness. Review `/hooks` if Codex requests it.', '  La confiance est inconnue de DiffWitness. Examine `/hooks` si Codex le demande.'))
+    return lines or ([tr('Native integration not configured (optional).', 'Intégration native non configurée (facultative).')] if guided else [tr('Native integration not configured (optional).', 'Intégration native non configurée (optionnelle).')])
 
 
 def repository_human_lines(state: dict, *, guided: bool) -> list[str]:
     if state.get("state") != "unborn":
         return []
     return [
-        "Ce dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée."
+        tr('This repository has no commit yet. DiffWitness uses an empty analytical base without creating a commit on your branch. Identity remains local until the first commit; no Proof is implied.', "Ce dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée.")
         if guided else
-        "Repository: unborn HEAD; empty analytical base; local provisional identity. No user commit or Proof is implied."
+        tr("Repository: unborn HEAD; empty analytical base; local provisional identity. No user commit or Proof is implied.", 'Dépôt : HEAD unborn ; base d’analyse vide ; identité locale provisoire. Aucun commit utilisateur ni Proof n’est supposé.')
     ]

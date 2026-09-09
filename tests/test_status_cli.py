@@ -107,7 +107,7 @@ class ProjectStatusTests(unittest.TestCase):
         guided = render_project_status(value, view="guided")
         technical = render_project_status(value, view="technical")
         self.assertIn("DIFFWITNESS · GUIDED", guided)
-        self.assertIn("doit être vérifiée", guided)
+        self.assertIn("needs verification", guided)
         self.assertNotIn("Last change   ", guided)
         self.assertIn("TECHNICAL VIEW", technical)
         self.assertIn("Working tree", technical)

@@ -586,3 +586,12 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 ## License
 
 MIT.
+
+### Presentation language
+
+DiffWitness defaults to English, including Guided mode, regardless of OS locale.
+Use `dw --language fr status` for one invocation or `dw language fr` to save French
+for this repository. `dw language en` restores the English preference. Selection is
+explicit invocation > saved project language > English; view and language are independent.
+JSON, evidence, reason codes and native hook protocols remain canonical. See the
+[language contract](docs/LANGUAGE_CONTRACT.md) and [targeted human checks](docs/LANGUAGE_HUMAN_QUALIFICATION.md).

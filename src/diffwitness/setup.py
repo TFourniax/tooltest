@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 import os
@@ -245,22 +247,22 @@ def setup_status(*, cwd: Path, idleproof_command: str | None = None) -> dict:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dw setup",
-        description="Connect DiffWitness to Claude Code/Codex/Cursor without wrapping the coding agent.",
+        description=tr('Connect DiffWitness to Claude Code/Codex/Cursor without wrapping the coding agent.', 'Relier DiffWitness à Claude Code/Codex/Cursor sans encapsuler l’agent de code.'),
     )
     parser.add_argument(
         "action",
         nargs="?",
         choices=("install", "status", "uninstall"),
         default="install",
-        help="install (default), status, or uninstall",
+        help=tr('install (default), status, or uninstall', 'install (par défaut), status ou uninstall'),
     )
     parser.add_argument(
         "--agent",
         default="auto",
-        help="auto, all, claude, codex, cursor, or a comma-separated combination",
+        help=tr('auto, all, claude, codex, cursor, or a comma-separated combination', 'auto, all, claude, codex, cursor ou une combinaison séparée par des virgules'),
     )
     parser.add_argument("--idleproof-command", default=None, help=argparse.SUPPRESS)
-    parser.add_argument("--json", action="store_true", help="emit machine-readable status")
+    parser.add_argument("--json", action="store_true", help=tr('emit machine-readable status', 'émettre l’état machine canonique'))
     return parser
 
 
@@ -268,20 +270,20 @@ def _agent_names(adapters: Sequence[str]) -> str:
     names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
     rendered = [names.get(str(adapter), str(adapter)) for adapter in adapters]
     if not rendered:
-        return "your configured coding agent"
+        return tr("your configured coding agent", 'ton agent de code configuré')
     if len(rendered) == 1:
         return rendered[0]
-    return ", ".join(rendered[:-1]) + " and " + rendered[-1]
+    return ", ".join(rendered[:-1]) + tr(" and ", ' et ') + rendered[-1]
 
 
 def _protect_human_lines(protect: dict, *, guided: bool) -> list[str]:
     mode = protect.get("mode")
     if mode == "off":
-        return ["• Protection live désactivée (optionnelle)." if guided else "Protect: off · optional"]
+        return [tr('• Live protection is off (optional).', "• Protection live désactivée (optionnelle).") if guided else tr("Protect: off · optional", 'Protect : désactivé · optionnel')]
     if mode == "external":
-        return ["✓ Protection live déléguée à ton harness." if guided else "Protect: external · delegated"]
+        return [tr('✓ Live protection is delegated to your harness.', "✓ Protection live déléguée à ton harness.") if guided else tr("Protect: external · delegated", 'Protect : externe · délégué')]
     if mode != "builtin":
-        return ["⚠ État Protect à inspecter avec `dw protect status`." if guided else "Protect: unknown/invalid · inspect `dw protect status`"]
+        return [tr('⚠ Inspect Protect state with `dw protect status`.', "⚠ État Protect à inspecter avec `dw protect status`.") if guided else tr("Protect: unknown/invalid · inspect `dw protect status`", 'Protect : inconnu/invalide · examiner `dw protect status`')]
     lines: list[str] = []
     names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
     for adapter, item in sorted((protect.get("adapters") or {}).items()):
@@ -289,15 +291,15 @@ def _protect_human_lines(protect: dict, *, guided: bool) -> list[str]:
             continue
         label = names.get(adapter, adapter)
         if item.get("ready"):
-            state = "prête" if guided else "ready"
+            state = tr('ready', "prête") if guided else tr("ready", 'prête')
         elif item.get("installed") and item.get("activation") == "awaiting-first-observation":
-            state = "installée, pas encore observée depuis l’activation" if guided else "installed; awaiting observation since activation"
+            state = tr('installed, not yet observed since activation', "installée, pas encore observée depuis l’activation") if guided else tr("installed; awaiting observation since activation", 'installée ; observation attendue depuis l’activation')
         elif item.get("installed"):
-            state = "installée, pas encore observée" if guided else "installed, not observed"
+            state = tr('installed, not yet observed', "installée, pas encore observée") if guided else tr("installed, not observed", 'installée, non observée')
         else:
-            state = "hooks manquants" if guided else "MISSING HOOKS"
+            state = tr('missing hooks', "hooks manquants") if guided else tr("MISSING HOOKS", 'HOOKS MANQUANTS')
         lines.append(("• " if guided else "  ") + f"{label}: {state}")
-    return lines or (["• Protection live activée."] if guided else ["Protect: builtin"])
+    return lines or ([tr('• Live protection is enabled.', "• Protection live activée.")] if guided else [tr("Protect: builtin", 'Protect : intégré')])
 
 
 def _native_human_lines(native: dict, *, guided: bool) -> list[str]:
@@ -318,7 +320,7 @@ def setup_cli(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps({"schema": "diffwitness.setup-error.v1", "ok": False, "error": str(exc)}))
         else:
-            print(f"DiffWitness setup failed: {exc}", file=sys.stderr)
+            print(tr(f"DiffWitness setup failed: {exc}", f"Échec de la configuration DiffWitness : {exc}"), file=sys.stderr)
         return 2
 
     if args.json:
@@ -326,7 +328,7 @@ def setup_cli(argv: list[str] | None = None) -> int:
         return 0
 
     if args.action == "uninstall":
-        print("DiffWitness native IDE integration removed. Historical evidence, project continuity, and the separately configured Protect mode were preserved.")
+        print(tr("DiffWitness native IDE integration removed. Historical evidence, project continuity, and the separately configured Protect mode were preserved.", 'Intégration native DiffWitness supprimée. Les preuves historiques, la continuité du projet et le mode Protect configuré séparément sont préservés.'))
         return 0
 
     healthy = bool(result.get("healthy"))
@@ -346,26 +348,26 @@ def setup_cli(argv: list[str] | None = None) -> int:
 
     if args.action == "status":
         if guided:
-            print("DIFFWITNESS · SETUP")
-            print(f"{'✓' if healthy else '⚠'} Intégration configurée : {_agent_names(expected)}")
+            print(tr("DIFFWITNESS · SETUP", 'DIFFWITNESS · CONFIGURATION'))
+            print(tr(f"{'✓' if healthy else '⚠'} Integration configured: {_agent_names(expected)}", f"{'✓' if healthy else '⚠'} Intégration configurée : {_agent_names(expected)}"))
             for line in _native_human_lines(native, guided=True):
                 print(line)
             if verification.get("ready"):
-                print(f"✓ Vérification prête : {verification.get('command')}")
+                print(tr(f"✓ Verification ready: {verification.get('command')}", f"✓ Vérification prête : {verification.get('command')}"))
             else:
-                print("⚠ Vérification encore à configurer.")
+                print(tr('⚠ Verification still needs configuration.', "⚠ Vérification encore à configurer."))
                 if verification.get("suggestion"):
-                    print(f"  Commande disponible suggérée : {verification['suggestion']}")
-                print("  Lance `dw doctor` pour le diagnostic exact.")
+                    print(tr(f"  Suggested available command: {verification['suggestion']}", f"  Commande disponible suggérée : {verification['suggestion']}"))
+                print(tr('  Run `dw doctor` for the exact diagnosis.', "  Lance `dw doctor` pour le diagnostic exact."))
             for line in _protect_human_lines(protect, guided=True):
                 print(line)
         else:
-            adapters = ", ".join(expected) if expected else "none"
-            print(f"Agent integration: {'configured' if healthy else 'not ready'} · adapters: {adapters}")
+            adapters = ", ".join(expected) if expected else tr("none", 'aucun')
+            print(tr(f"Agent integration: {'configured' if healthy else 'not ready'} · adapters: {adapters}", f"Intégration agent : {'configurée' if healthy else 'non prête'} · adaptateurs : {adapters}"))
             for line in _native_human_lines(native, guided=False):
                 print(line)
             print(
-                f"Verification: {'ready' if verification.get('ready') else 'NOT READY'}"
+                tr(f"Verification: {'ready' if verification.get('ready') else 'NOT READY'}", f"Vérification : {'prête' if verification.get('ready') else 'NON PRÊTE'}")
                 + (f" · {verification.get('command')}" if verification.get("command") else "")
             )
             for line in _protect_human_lines(protect, guided=False):
@@ -373,44 +375,44 @@ def setup_cli(argv: list[str] | None = None) -> int:
         return 0 if result.get("productReady") else 1
 
     if guided:
-        print(f"✓ {_agent_names(expected)} configuré pour DiffWitness.")
+        print(tr(f"✓ {_agent_names(expected)} configured for DiffWitness.", f"✓ {_agent_names(expected)} configuré pour DiffWitness."))
         for line in _native_human_lines(native, guided=True):
             print(line)
         if verification.get("ready"):
-            print(f"✓ Vérification prête : {verification.get('command')}")
+            print(tr(f"✓ Verification ready: {verification.get('command')}", f"✓ Vérification prête : {verification.get('command')}"))
             if pending_trust:
-                print("Installation prête, mais Codex doit encore approuver les hooks du projet avant la première tâche protégée/vérifiée nativement.")
-                print("Ouvre Codex, examine `/hooks` puis approuve-les toi-même. DiffWitness ne contourne jamais cette confiance provider.")
+                print(tr('Installation ready, but Codex must still approve the project hooks before the first natively protected/verified task.', "Installation prête, mais Codex doit encore approuver les hooks du projet avant la première tâche protégée/vérifiée nativement."))
+                print(tr('Open Codex, review `/hooks` and approve them yourself. DiffWitness never bypasses provider trust.', "Ouvre Codex, examine `/hooks` puis approuve-les toi-même. DiffWitness ne contourne jamais cette confiance provider."))
             elif runtime_usable:
-                print("DiffWitness est configuré pour la prochaine tâche agentique.")
-                print("Utilise ton agent normalement : SessionStart armera la frontière native et Stop vérifiera la modification exacte.")
+                print(tr('DiffWitness is configured for the next agent task.', "DiffWitness est configuré pour la prochaine tâche agentique."))
+                print(tr('Use your agent normally: SessionStart arms the native boundary and Stop verifies the exact change.', "Utilise ton agent normalement : SessionStart armera la frontière native et Stop vérifiera la modification exacte."))
             else:
-                print("Installation configurée ; confirme d’abord une invocation sans risque dans ton agent.")
+                print(tr('Installation configured; first confirm a harmless invocation in your agent.', "Installation configurée ; confirme d’abord une invocation sans risque dans ton agent."))
         else:
-            print("⚠ L’intégration agent est configurée, mais les vérifications du projet ne le sont pas encore.")
+            print(tr('⚠ Agent integration is configured, but project verification is not ready yet.', "⚠ L’intégration agent est configurée, mais les vérifications du projet ne le sont pas encore."))
             if verification.get("suggestion"):
-                print(f"Commande disponible suggérée : {verification['suggestion']} (non appliquée automatiquement)")
-            print("Lance `dw doctor` pour terminer cette étape avant de considérer DiffWitness pleinement prêt.")
+                print(tr(f"Suggested available command: {verification['suggestion']} (not applied automatically)", f"Commande disponible suggérée : {verification['suggestion']} (non appliquée automatiquement)"))
+            print(tr('Run `dw doctor` to finish this step before considering DiffWitness fully ready.', "Lance `dw doctor` pour terminer cette étape avant de considérer DiffWitness pleinement prêt."))
         for line in _protect_human_lines(protect, guided=True):
             print(line)
     else:
-        adapters = ", ".join(expected) if expected else "none"
-        print(f"Agent integration configured · adapters: {adapters}")
+        adapters = ", ".join(expected) if expected else tr("none", 'aucun')
+        print(tr(f"Agent integration configured · adapters: {adapters}", f"Intégration agent configurée · adaptateurs : {adapters}"))
         for line in _native_human_lines(native, guided=False):
             print(line)
         print(
-            f"Verification {'ready' if verification.get('ready') else 'NOT READY'}"
+            tr(f"Verification {'ready' if verification.get('ready') else 'NOT READY'}", f"Vérification {'prête' if verification.get('ready') else 'NON PRÊTE'}")
             + (f" · {verification.get('command')}" if verification.get("command") else "")
         )
         if pending_trust:
-            print("Codex provider trust is still required. Open Codex and approve the project hooks in `/hooks`; DiffWitness never self-approves them.")
+            print(tr("Codex provider trust is still required. Open Codex and approve the project hooks in `/hooks`; DiffWitness never self-approves them.", 'La confiance Codex est encore requise. Ouvre Codex et approuve les hooks du projet dans `/hooks` ; DiffWitness ne les approuve jamais lui-même.'))
         elif verification.get("ready") and runtime_usable:
             print(
-                f"Use {_agent_names(expected)} normally. SessionStart arms the native boundary; native Stop runs "
-                "PROVE · OWE · UNDERSTAND · CONTINUITY. `dw guard` is a manual fallback only."
+                tr(f"Use {_agent_names(expected)} normally. SessionStart arms the native boundary; native Stop runs "
+                "PROVE · OWE · UNDERSTAND · CONTINUITY. `dw guard` is a manual fallback only.", f"Utilise {_agent_names(expected)} normalement. SessionStart arme la frontière native ; Stop exécute PROVE · OWE · UNDERSTAND · CONTINUITY. `dw guard` reste un recours manuel.")
             )
         else:
-            print("Run `dw doctor` to distinguish installation, local observation and verification readiness.")
+            print(tr("Run `dw doctor` to distinguish installation, local observation and verification readiness.", 'Lance `dw doctor` pour distinguer installation, observation locale et disponibilité des vérifications.'))
         for line in _protect_human_lines(protect, guided=False):
             print(line)
     # Installing a healthy adapter set succeeded even when project evidence or provider observation

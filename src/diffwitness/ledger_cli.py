@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 from pathlib import Path
@@ -115,13 +117,13 @@ def ledger_cli(argv: list[str]) -> int:
             print(json.dumps([item.to_dict() for item in values], indent=2, ensure_ascii=False))
         elif not values:
             if args.all:
-                print("No Debt Ledger obligations have been recorded yet.")
+                print(tr("No Debt Ledger obligations have been recorded yet.", 'Aucune obligation Debt Ledger n’a encore été enregistrée.'))
             elif get_view_mode(repo) == "guided":
-                print("✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger.")
-                print("Cela signifie zéro obligation connue/enregistrée, pas la preuve qu’aucune dette inconnue n’existe.")
+                print(tr("✓ No open technical obligations are recorded in the Debt Ledger.", "✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger."))
+                print(tr("This means zero known/recorded obligations, not proof that no unknown debt exists.", "Cela signifie zéro obligation connue/enregistrée, pas la preuve qu’aucune dette inconnue n’existe."))
             else:
-                print("No open Debt Ledger obligations.")
-                print("Zero recorded/open obligations is not a claim that unknown technical debt cannot exist.")
+                print(tr("No open Debt Ledger obligations.", 'Aucune obligation ouverte dans le Debt Ledger.'))
+                print(tr("Zero recorded/open obligations is not a claim that unknown technical debt cannot exist.", 'Zéro obligation ouverte/enregistrée ne signifie pas qu’aucune dette technique inconnue ne puisse exister.'))
         else:
             for item in sorted(values, key=lambda value: (value.status != "open", -value.points, value.debt_id)):
                 _print_item(item)
@@ -193,7 +195,7 @@ def ledger_cli(argv: list[str]) -> int:
             print(json.dumps(payload, indent=2, ensure_ascii=False))
         else:
             print(f"Ledger:      {ledger.path}")
-            print(f"Events:      {len(ledger.events)}")
+            print(tr(f"Events:      {len(ledger.events)}", f'Événements :      {len(ledger.events)}'))
             print(f"Active debt: {ledger.active_points()}")
             print(f"Last hash:   {ledger.last_hash or 'none'}")
             print(f"Checkpoint:  {args.ref}")

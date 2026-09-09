@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 import re
@@ -354,11 +356,11 @@ def _protect_line(protection: dict[str, Any]) -> str:
     health = protection.get("health")
     policy = protection.get("policy")
     if mode == "builtin":
-        return f"Protect       builtin · {health} · policy {policy}"
+        return tr(f"Protect       builtin · {health} · policy {policy}", f"Protect       intégré · {health} · politique {policy}")
     if mode == "external":
-        return "Protect       external · delegated"
+        return tr("Protect       external · delegated", 'Protect       externe · délégué')
     if mode == "off":
-        return "Protect       off · optional"
+        return tr("Protect       off · optional", 'Protect       désactivé · optionnel')
     return f"Protect       {mode or 'unknown'} · {health or 'unknown'}"
 
 
@@ -371,16 +373,50 @@ def _provider_lines(protection: dict[str, Any], *, guided: bool) -> list[str]:
             continue
         label = names.get(adapter, adapter)
         if item.get("ready"):
-            state = "ready" if not guided else "prêt"
+            state = tr("ready", 'prêt') if not guided else tr('ready', "prêt")
         elif item.get("installed") and item.get("activation") == "requires-provider-feature-and-trust":
-            state = "pending provider trust" if not guided else "en attente d’approbation du provider"
+            state = tr("pending provider trust", 'confiance du fournisseur en attente') if not guided else tr('awaiting provider approval', "en attente d’approbation du provider")
         elif item.get("installed"):
-            state = "installed, not yet observed" if not guided else "installé, pas encore observé en session"
+            state = tr("installed, not yet observed", 'installé, pas encore observé') if not guided else tr('installed, not yet observed in a session', "installé, pas encore observé en session")
         else:
-            state = "MISSING HOOKS" if not guided else "hooks manquants"
+            state = tr("MISSING HOOKS", 'HOOKS MANQUANTS') if not guided else tr('missing hooks', "hooks manquants")
         prefix = "  " if not guided else "• "
         lines.append(f"{prefix}{label}: {state}")
     return lines
+
+
+def _action_text(action: dict[str, str], value: dict[str, Any]) -> tuple[str, str]:
+    # Translate navigation at display time; the JSON action contract stays canonical.
+    kind = action["kind"]
+    titles = {
+        "observe-native-agent": "Observer les hooks natifs installés",
+        "repair-native-integration": "Réparer l’intégration native",
+        "configure-evidence": "Terminer la configuration des vérifications",
+        "repair-protection": "Réparer les hooks de protection manquants",
+        "current-change-verified": "La modification actuelle est déjà vérifiée",
+        "verify-change": "Vérifier la modification actuelle",
+        "repay-debt": "Examiner les remboursements de dette prioritaires",
+        "use-native-agent": "Utiliser normalement l’agent de code configuré",
+        "guard-next-change": "Vérifier la prochaine modification avec la frontière manuelle",
+        "activate-provider-protection": "Observer la protection runtime : " + ", ".join(value["protection"].get("pending_adapters") or []),
+        "consider-protection": "Protéger éventuellement l’agent pendant son travail",
+    }
+    reasons = {
+        "observe-native-agent": "Lance une action sans risque ; examine les hooks uniquement si le fournisseur le demande. La confiance reste inconnue.",
+        "repair-native-integration": "La configuration ne suffit pas : des hooks gérés ou leur exécutable enregistré manquent.",
+        "configure-evidence": "Les vérifications ne sont pas prêtes. Diagnostic canonique : " + action["reason"],
+        "repair-protection": "Protect ne peut pas affirmer que l’installation est saine. La Proof reste indépendante. Adaptateurs manquants : " + ", ".join(value["protection"].get("broken_adapters") or []),
+        "current-change-verified": "L’arbre courant correspond exactement au dernier candidat accepté. Toute nouvelle modification rend cette couverture obsolète.",
+        "verify-change": f"{value['working_tree']['changed_file_count']} fichier(s) modifié(s) ne sont pas couverts par la dernière Proof acceptée.",
+        "repay-debt": f"{value['debt']['open_obligations']} obligation(s) ouverte(s) représentent {value['debt']['points']} point(s) de dette.",
+        "use-native-agent": "L’intégration native est configurée ; Stop exécutera automatiquement Proof, Debt et Continuity. `dw guard` reste un recours manuel.",
+        "guard-next-change": "Aucune intégration native n’est enregistrée. Lance `dw setup` pour utiliser Claude/Codex normalement.",
+        "activate-provider-protection": "Les hooks sont installés mais non observés depuis leur activation. Ouvre le fournisseur, examine les hooks s’il le demande, puis lance une action sans risque. La confiance reste gérée par le fournisseur et inconnue de DiffWitness. Déjà utilisables : " + ", ".join(value["protection"].get("ready_adapters") or []),
+        "consider-protection": "Protect est optionnel. Son activation ajoute une protection runtime déterministe sans modifier la sémantique Proof ou Debt.",
+    }
+    if kind == "configure-evidence" and action["reason"] == "no safe evidence command detected":
+        reasons[kind] = "Aucune commande de vérification sûre n’a été détectée."
+    return tr(action["title"], titles.get(kind, action["title"])), tr(action["reason"], reasons.get(kind, action["reason"]))
 
 
 def _render_technical(value: dict[str, Any]) -> str:
@@ -391,33 +427,34 @@ def _render_technical(value: dict[str, Any]) -> str:
     envelope = value.get("latest_change_envelope") or {}
     verification = value.get("current_worktree_verification") or {}
     lines = [
-        "DIFFWITNESS STATUS · TECHNICAL VIEW",
+        tr("DIFFWITNESS STATUS · TECHNICAL VIEW", 'DIFFWITNESS STATUS · VUE TECHNIQUE'),
         "",
         *repository_human_lines(value["readiness"]["repository"], guided=False),
         *native_human_lines(value["readiness"]["native"], guided=False),
         _protect_line(protection),
         *_provider_lines(protection, guided=False),
-        f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}" + (
+        tr(f"Evidence      {'ready' if evidence['ready'] else 'NOT READY'}", f"Vérification  {'prête' if evidence['ready'] else 'NON PRÊTE'}") + (
             f" ({evidence['source']}: {evidence['command']})" if evidence.get("command") else ""
         ),
-        f"Working tree  {tree['changed_file_count']} actionable changed file(s)" if tree["dirty"] else "Working tree  clean",
-        f"Proof scope   {verification.get('status', 'unknown')}",
-        f"Debt          {debt['points']} point(s) · {debt['open_obligations']} open obligation(s)",
-        f"Last change   {envelope.get('change_id') or ('recorded' if envelope.get('present') else 'none')}",
+        tr(f"Working tree  {tree['changed_file_count']} actionable changed file(s)", f"Arbre courant {tree['changed_file_count']} fichier(s) modifié(s) à traiter") if tree["dirty"] else tr("Working tree  clean", 'Arbre courant propre'),
+        tr(f"Proof scope   {verification.get('status', 'unknown')}", f"Portée Proof  {verification.get('status', 'unknown')}"),
+        tr(f"Debt          {debt['points']} point(s) · {debt['open_obligations']} open obligation(s)", f"Dette         {debt['points']} point(s) · {debt['open_obligations']} obligation(s) ouverte(s)"),
+        tr(f"Last change   {envelope.get('change_id') or ('recorded' if envelope.get('present') else 'none')}", f"Modification  {envelope.get('change_id') or ('enregistrée' if envelope.get('present') else 'aucune')}"),
         "",
-        "Next actions",
+        tr("Next actions", 'Actions suivantes'),
     ]
     if tree.get("generated_untracked_ignored"):
-        lines.insert(-2, f"Generated     {len(tree['generated_untracked_ignored'])} untracked cache artifact(s) ignored for navigation")
+        lines.insert(-2, tr(f"Generated     {len(tree['generated_untracked_ignored'])} untracked cache artifact(s) ignored for navigation", f"Générés       {len(tree['generated_untracked_ignored'])} cache(s) non suivi(s) ignoré(s) pour la navigation"))
     for index, action in enumerate(value["next_actions"], start=1):
-        lines.append(f"{index}. {action['title']}")
+        title, reason = _action_text(action, value)
+        lines.append(f"{index}. {title}")
         lines.append(f"   {action['command']}")
-        lines.append(f"   {action['reason']}")
+        lines.append(f"   {reason}")
     lines.extend(
         [
             "",
-            "Protect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.",
-            "Prefer less detail? `dw view guided` (or one-off: `dw status --view guided`).",
+            tr("Protect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.", 'Les observations Protect sont des métadonnées de protection runtime, pas une preuve exécutable. Les affirmations Gate/Proof portent sur l’arbre exact.'),
+            tr("Prefer less detail? `dw view guided` (or one-off: `dw status --view guided`).", 'Moins de détails ? `dw view guided` (ou une invocation : `dw status --view guided`).'),
         ]
     )
     return "\n".join(lines)
@@ -430,19 +467,19 @@ def _guided_heading(value: dict[str, Any]) -> tuple[str, str]:
     verification = value.get("current_worktree_verification") or {}
     protection = value["protection"]
     if not evidence["ready"]:
-        return "Il reste une étape de configuration", "DiffWitness ne peut pas encore lancer les vérifications de ce projet."
+        return tr('One configuration step remains', "Il reste une étape de configuration"), tr('DiffWitness cannot yet run verification for this project.', "DiffWitness ne peut pas encore lancer les vérifications de ce projet.")
     native = value["readiness"]["native"]
     if native["configured"] and not native["runtimeUsable"]:
-        return ("L’intégration native doit être confirmée", "Répare les hooks/exécutables manquants ou observe une invocation sans risque ; une configuration seule ne suffit pas.")
+        return (tr('Native integration needs confirmation', "L’intégration native doit être confirmée"), tr('Repair missing hooks/executables or observe a harmless invocation; configuration alone is insufficient.', "Répare les hooks/exécutables manquants ou observe une invocation sans risque ; une configuration seule ne suffit pas."))
     if protection.get("health") == "invalid" or protection.get("broken_adapters"):
-        return "La protection live doit être réparée", "Un hook de protection attendu manque ou son état local est invalide. La Proof reste indépendante."
+        return tr('Live protection needs repair', "La protection live doit être réparée"), tr('An expected protection hook is missing or its local state is invalid. Proof remains independent.', "Un hook de protection attendu manque ou son état local est invalide. La Proof reste indépendante.")
     if tree["dirty"] and verification.get("status") == "accepted":
-        return "La modification actuelle est vérifiée", "Le code présent correspond exactement à la dernière modification acceptée par DiffWitness."
+        return tr('The current change is verified', "La modification actuelle est vérifiée"), tr('The current code exactly matches the latest change accepted by DiffWitness.', "Le code présent correspond exactement à la dernière modification acceptée par DiffWitness.")
     if tree["dirty"]:
-        return "Une modification doit être vérifiée", f"{tree['changed_file_count']} fichier(s) utile(s) ont changé depuis la dernière Proof couverte."
+        return tr('A change needs verification', "Une modification doit être vérifiée"), tr(f"{tree['changed_file_count']} relevant file(s) have changed since the last applicable Proof.", f"{tree['changed_file_count']} fichier(s) utile(s) ont changé depuis la dernière Proof couverte.")
     if debt["open_obligations"]:
-        return "Quelques points connus restent à traiter", f"{debt['open_obligations']} obligation(s) technique(s) sont encore ouvertes."
-    return "Prêt pour la prochaine modification", "Les vérifications sont exécutables et le projet n’a pas de modification non couverte."
+        return tr('Some known issues still need attention', "Quelques points connus restent à traiter"), tr(f"{debt['open_obligations']} technical obligation(s) remain open.", f"{debt['open_obligations']} obligation(s) technique(s) sont encore ouvertes.")
+    return tr('Ready for the next change', "Prêt pour la prochaine modification"), tr('Verification is executable and the project has no uncovered change.', "Les vérifications sont exécutables et le projet n’a pas de modification non couverte.")
 
 
 def _render_guided(value: dict[str, Any]) -> str:
@@ -454,46 +491,47 @@ def _render_guided(value: dict[str, Any]) -> str:
     verification = value.get("current_worktree_verification") or {}
     heading, summary = _guided_heading(value)
     lines = [
-        "DIFFWITNESS · GUIDED",
+        tr("DIFFWITNESS · GUIDED", 'DIFFWITNESS · VUE GUIDÉE'),
         "",
         heading,
         summary,
         "",
-        "État du projet",
+        tr('Project state', "État du projet"),
     ]
     lines.extend(repository_human_lines(value["readiness"]["repository"], guided=True))
     lines.extend(native_human_lines(value["readiness"]["native"], guided=True))
     if protection.get("mode") == "builtin":
-        lines.extend(_provider_lines(protection, guided=True) or ["• Protection live activée, aucun agent détecté."])
+        lines.extend(_provider_lines(protection, guided=True) or [tr('• Live protection is enabled; no agent detected.', "• Protection live activée, aucun agent détecté.")])
     elif protection.get("mode") == "external":
-        lines.append("• La protection live est déléguée à ton harness existant.")
+        lines.append(tr('• Live protection is delegated to your existing harness.', "• La protection live est déléguée à ton harness existant."))
     else:
-        lines.append("• La protection live est désactivée (optionnelle).")
-    lines.append("✓ Les vérifications peuvent être lancées." if evidence["ready"] else "⚠ Les vérifications ne peuvent pas encore démarrer.")
+        lines.append(tr('• Live protection is off (optional).', "• La protection live est désactivée (optionnelle)."))
+    lines.append(tr('✓ Verification can be started.', "✓ Les vérifications peuvent être lancées.") if evidence["ready"] else tr('⚠ Verification cannot start yet.', "⚠ Les vérifications ne peuvent pas encore démarrer."))
     if tree["dirty"] and verification.get("status") == "accepted":
-        lines.append("✓ La modification actuellement visible est couverte par la dernière Proof acceptée.")
+        lines.append(tr('✓ The currently visible change is covered by the latest accepted Proof.', "✓ La modification actuellement visible est couverte par la dernière Proof acceptée."))
     elif tree["dirty"]:
-        lines.append(f"⚠ {tree['changed_file_count']} fichier(s) modifié(s) ne sont pas encore couverts par une Proof actuelle.")
+        lines.append(tr(f"⚠ {tree['changed_file_count']} changed file(s) are not yet covered by a current Proof.", f"⚠ {tree['changed_file_count']} fichier(s) modifié(s) ne sont pas encore couverts par une Proof actuelle."))
     else:
-        lines.append("• Arbre de travail propre ; cela ne constitue pas une Proof.")
+        lines.append(tr('• Working tree is clean; this does not constitute Proof.', "• Arbre de travail propre ; cela ne constitue pas une Proof."))
     lines.append(
-        f"⚠ {debt['open_obligations']} point(s) connu(s) restent à revoir."
+        tr(f"⚠ {debt['open_obligations']} known issue(s) still need review.", f"⚠ {debt['open_obligations']} point(s) connu(s) restent à revoir.")
         if debt["open_obligations"]
-        else "✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger."
+        else tr('✓ No open technical obligations are recorded in the Debt Ledger.', "✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger.")
     )
-    lines.append("✓ Un historique de modification DiffWitness existe." if envelope.get("present") else "• Aucun historique de modification DiffWitness pour l’instant.")
+    lines.append(tr('✓ A DiffWitness change history exists.', "✓ Un historique de modification DiffWitness existe.") if envelope.get("present") else tr('• No DiffWitness change history yet.', "• Aucun historique de modification DiffWitness pour l’instant."))
     if tree.get("generated_untracked_ignored"):
-        lines.append("• Les caches générés automatiquement sont ignorés dans ce résumé, sans masquer les fichiers suivis par Git.")
-    lines += ["", "Prochaine étape"]
+        lines.append(tr('• Generated caches are ignored in this summary without hiding Git-tracked files.', "• Les caches générés automatiquement sont ignorés dans ce résumé, sans masquer les fichiers suivis par Git."))
+    lines += ["", tr('Next step', "Prochaine étape")]
     for index, action in enumerate(value["next_actions"], start=1):
-        lines.append(f"{index}. {action['title']}")
-        lines.append(f"   {action['reason']}")
-        lines.append(f"   Commande: {action['command']}")
+        title, reason = _action_text(action, value)
+        lines.append(f"{index}. {title}")
+        lines.append(f"   {reason}")
+        lines.append(tr(f"   Command: {action['command']}", f"   Commande: {action['command']}"))
     lines.extend(
         [
             "",
-            "La protection live empêche/observe certaines actions pendant le travail ; seule la vérification exécutable permet de dire qu’une version précise du code est couverte.",
-            "Détails d’ingénierie: `dw view technical`.",
+            tr('Live protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.', "La protection live empêche/observe certaines actions pendant le travail ; seule la vérification exécutable permet de dire qu’une version précise du code est couverte."),
+            tr('Engineering details: `dw view technical`.', "Détails d’ingénierie: `dw view technical`."),
         ]
     )
     return "\n".join(lines)
@@ -506,12 +544,12 @@ def render_project_status(value: dict[str, Any], *, view: str) -> str:
 def status_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw status",
-        description="Show a concise, non-mutating project assurance summary and the next useful actions.",
+        description=tr('Show a concise, non-mutating project assurance summary and the next useful actions.', 'Afficher un résumé de l’assurance du projet et les actions utiles sans modifier son état.'),
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
-    parser.add_argument("--view", choices=VIEW_MODES, help="Temporarily override the saved guided/technical display view")
-    parser.add_argument("--json", action="store_true", help="Emit the bounded diffwitness.project-status JSON contract")
+    parser.add_argument("--view", choices=VIEW_MODES, help=tr('Temporarily override the saved guided/technical display view', 'Remplacer la vue guided/technical enregistrée pour cette invocation'))
+    parser.add_argument("--json", action="store_true", help=tr('Emit the bounded diffwitness.project-status JSON contract', 'Émettre le contrat JSON canonique borné diffwitness.project-status'))
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)
     value = build_project_status(repo, explicit_config=args.config)

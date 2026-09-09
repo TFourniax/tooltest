@@ -12,7 +12,7 @@ from ..frontend import FrontendError, main as _frontend_main
 
 
 _PUBLIC_COMMANDS = {
-    "setup", "status", "view", "protect", "explain", "portal", "doctor", "engine", "guard",
+    "setup", "status", "view", "language", "protect", "explain", "portal", "doctor", "engine", "guard",
     "gate", "prove", "core", "debt", "health", "repay", "recheck", "ledger", "plan",
     "state", "objective", "decision", "invariant", "failed-approach", "relation", "context",
     "envelope", "verify", "note", "ide-hook",
@@ -47,7 +47,7 @@ def _option_value(argv: list[str], name: str, default: str | None = None) -> str
 
 
 def _root_help(*, explicit_view: str | None = None) -> str:
-    from ..public_help import GUIDED_HELP, help_for_view
+    from ..public_help import help_for_view
 
     if explicit_view in {"guided", "technical"}:
         return help_for_view(explicit_view)
@@ -58,7 +58,7 @@ def _root_help(*, explicit_view: str | None = None) -> str:
         repo = repo_root(".")
         return help_for_view(get_view_mode(repo))
     except Exception:
-        return GUIDED_HELP
+        return help_for_view("guided")
 
 
 def _help_request(args: list[str]) -> str | None:
@@ -242,6 +242,31 @@ def _explain(argv: list[str]) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    from ..language import LANGUAGES, presentation, saved_language
+    from ..gitops import repo_root
+    _configure_stdio()
+    args = list(sys.argv[1:] if argv is None else argv)
+    explicit = None
+    if args and (args[0] == "--language" or args[0].startswith("--language=")):
+        option = args.pop(0)
+        explicit = option.split("=", 1)[1] if "=" in option else (args.pop(0) if args else "")
+        if explicit not in LANGUAGES:
+            print("DiffWitness: language must be en or fr; use `dw --language en <command>`.", file=sys.stderr)
+            return 2
+    # Provider protocol output must not depend on a human UI preference.
+    if args and args[0] in {"ide-hook", "session-start", "session-stop"}:
+        language = "en"
+    else:
+        local_args = args[:args.index("--")] if "--" in args else args
+        try:
+            language = explicit or saved_language(repo_root(_option_value(local_args, "--repo", ".")))
+        except (ValueError, OSError, RuntimeError):
+            language = explicit or "en"
+    with presentation(language):
+        return _main(args)
+
+
+def _main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
     if not args:
@@ -260,6 +285,9 @@ def main(argv: list[str] | None = None) -> int:
     if friendly is not None:
         return friendly
 
+    if args[0] == "language":
+        from ..language import language_cli
+        return language_cli(args[1:])
     if args[0] == "view":
         from ..view_mode import view_cli
         return view_cli(args[1:])

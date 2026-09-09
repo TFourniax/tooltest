@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 from pathlib import Path
@@ -87,30 +89,30 @@ def _render_guided(
     native: dict[str, Any],
 ) -> None:
     names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
-    print("DIFFWITNESS · CHECK-UP GUIDÉ")
+    print(tr('DIFFWITNESS · GUIDED CHECK-UP', "DIFFWITNESS · CHECK-UP GUIDÉ"))
     print()
     if evidence["ready"]:
-        print(f"✓ Vérification prête : {evidence['command']}")
+        print(tr(f"✓ Verification ready: {evidence['command']}", f"✓ Vérification prête : {evidence['command']}"))
         if evidence.get("source") == "detected":
-            print(f"  Détecté automatiquement ({evidence.get('reason')}).")
+            print(tr(f"  Automatically detected ({evidence.get('reason')}).", f"  Détecté automatiquement ({evidence.get('reason')})."))
     else:
-        print("⚠ La vérification du projet n’est pas encore prête.")
+        print(tr('⚠ Project verification is not ready yet.', "⚠ La vérification du projet n’est pas encore prête."))
         if evidence.get("command"):
-            print(f"  Commande envisagée : {evidence['command']}")
+            print(tr(f"  Candidate command: {evidence['command']}", f"  Commande envisagée : {evidence['command']}"))
         if evidence.get("suggestion"):
-            print(f"  Commande disponible sur cette machine : {evidence['suggestion']}")
-            print("  DiffWitness ne modifie pas ta configuration automatiquement.")
+            print(tr(f"  Command available on this machine: {evidence['suggestion']}", f"  Commande disponible sur cette machine : {evidence['suggestion']}"))
+            print(tr('  DiffWitness does not change your configuration automatically.', "  DiffWitness ne modifie pas ta configuration automatiquement."))
         else:
-            print("  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt.")
+            print(tr('  Add/configure an executable test command before considering the project ready.', "  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt."))
 
     if setup_scope:
-        print("✓ Intégration agent configurée : " + ", ".join(names.get(item, item) for item in setup_scope))
+        print(tr('✓ Agent integration configured: ', "✓ Intégration agent configurée : ") + ", ".join(names.get(item, item) for item in setup_scope))
         for line in _native_lines(native, guided=True):
             print(line)
         if native.get("pendingTrustAdapters"):
-            print("  DiffWitness ne peut ni approuver ni contourner la confiance Codex : ouvre Codex, examine `/hooks` et approuve-les avant la première tâche.")
+            print(tr('  DiffWitness cannot approve or bypass Codex trust: open Codex, review `/hooks` and approve them before the first task.', "  DiffWitness ne peut ni approuver ni contourner la confiance Codex : ouvre Codex, examine `/hooks` et approuve-les avant la première tâche."))
     else:
-        print("• Intégration agent non configurée. Lance `dw setup` pour Claude Code/Codex.")
+        print(tr('• Agent integration not configured. Run `dw setup` for Claude Code/Codex.', "• Intégration agent non configurée. Lance `dw setup` pour Claude Code/Codex."))
 
     mode = protection.get("mode")
     if mode == "builtin":
@@ -120,60 +122,60 @@ def _render_guided(
                 continue
             label = names.get(adapter, adapter)
             if item.get("ready"):
-                print(f"✓ Protection {label} : prête")
+                print(tr(f"✓ Protection {label}: ready", f"✓ Protection {label} : prête"))
             elif item.get("installed") and item.get("activation") == "awaiting-first-observation":
-                print(f"• Protection {label} : hooks installés, pas encore observés depuis l’activation")
-                print("  Confiance inconnue de DiffWitness. Examine `/hooks` si Codex le demande, puis lance une action sans risque.")
+                print(tr(f"• Protection {label}: hooks installed, not yet observed since activation", f"• Protection {label} : hooks installés, pas encore observés depuis l’activation"))
+                print(tr('  Trust is unknown to DiffWitness. Review `/hooks` if Codex requests it, then run a harmless action.', "  Confiance inconnue de DiffWitness. Examine `/hooks` si Codex le demande, puis lance une action sans risque."))
             elif item.get("installed"):
-                print(f"• Protection {label} : installée, pas encore observée en session")
+                print(tr(f"• Protection {label}: installed, not yet observed in a session", f"• Protection {label} : installée, pas encore observée en session"))
             else:
-                print(f"⚠ Protection {label} : hooks manquants — lance `dw protect status`")
+                print(tr(f"⚠ Protection {label}: missing hooks — run `dw protect status`", f"⚠ Protection {label} : hooks manquants — lance `dw protect status`"))
     elif mode == "external":
-        print("✓ Protection live : déléguée à ton harness existant")
+        print(tr('✓ Live protection: delegated to your existing harness', "✓ Protection live : déléguée à ton harness existant"))
     elif mode == "off":
-        print("• Protection live : désactivée (optionnelle)")
+        print(tr('• Live protection: off (optional)', "• Protection live : désactivée (optionnelle)"))
     else:
-        print("⚠ Protection live : état invalide — lance `dw protect status`")
+        print(tr('⚠ Live protection: invalid state — run `dw protect status`', "⚠ Protection live : état invalide — lance `dw protect status`"))
     if not protect_ok:
-        print("  La Proof reste indépendante, mais la protection live doit être réparée.")
+        print(tr('  Proof remains independent, but live protection needs repair.', "  La Proof reste indépendante, mais la protection live doit être réparée."))
 
     if continuity_ok:
         count = int(continuity.get("event_count") or 0)
-        print(f"✓ Mémoire projet : {'prête, vide pour l’instant' if count == 0 else f'{count} événement(s) vérifiés'}")
+        print(tr(f"✓ Project memory: {'ready, currently empty' if count == 0 else f'{count} verified event(s)'}", f"✓ Mémoire projet : {'prête, vide pour l’instant' if count == 0 else f'{count} événement(s) vérifiés'}"))
     else:
-        print(f"⚠ Mémoire projet : invalide ({continuity_error})")
+        print(tr(f"⚠ Project memory: invalid ({continuity_error})", f"⚠ Mémoire projet : invalide ({continuity_error})"))
 
     if engine.get("configured"):
         if engine.get("ready"):
-            print("✓ Planner optionnel : compatible")
+            print(tr('✓ Optional planner: compatible', "✓ Planner optionnel : compatible"))
         elif engine.get("required"):
-            print("⚠ Planner requis : incompatible — corrige-le avant Gate")
+            print(tr('⚠ Required planner: incompatible — fix it before Gate', "⚠ Planner requis : incompatible — corrige-le avant Gate"))
         else:
-            print("• Planner optionnel : indisponible, le planner Community reste utilisable")
+            print(tr('• Optional planner: unavailable, Community planner remains usable', "• Planner optionnel : indisponible, le planner Community reste utilisable"))
 
     print()
     if evidence["ready"] and setup_scope and native.get("pendingTrustAdapters"):
-        print("ACTION AVANT LA PREMIÈRE TÂCHE CODEX")
-        print("Ouvre Codex, examine `/hooks`, puis approuve explicitement les hooks du projet.")
-        print("Dès que SessionStart est réellement exécuté, DiffWitness marquera l’intégration comme observée live.")
+        print(tr('ACTION BEFORE THE FIRST CODEX TASK', "ACTION AVANT LA PREMIÈRE TÂCHE CODEX"))
+        print(tr('Open Codex, review `/hooks`, then explicitly approve the project hooks.', "Ouvre Codex, examine `/hooks`, puis approuve explicitement les hooks du projet."))
+        print(tr('Once SessionStart actually executes, DiffWitness will mark the integration as locally observed.', "Dès que SessionStart est réellement exécuté, DiffWitness marquera l’intégration comme observée live."))
     elif evidence["ready"] and setup_scope and native.get("runtimeUsable"):
-        print("PRÊT À LANCER L’AGENT")
-        print(f"Ouvre simplement `{setup_scope[0]}` dans ce projet et travaille normalement.")
-        print("SessionStart armera la frontière native; Stop vérifiera la modification exacte à la fin de la tâche.")
+        print(tr('READY TO START THE AGENT', "PRÊT À LANCER L’AGENT"))
+        print(tr(f"Simply open `{setup_scope[0]}` in this project and work normally.", f"Ouvre simplement `{setup_scope[0]}` dans ce projet et travaille normalement."))
+        print(tr('SessionStart arms the native boundary; Stop verifies the exact change at the end of the task.', "SessionStart armera la frontière native; Stop vérifiera la modification exacte à la fin de la tâche."))
     elif setup_scope and not native.get("runtimeUsable"):
-        print("INTÉGRATION À CONFIRMER")
-        print("Répare les hooks ou leur exécutable si nécessaire, puis observe une invocation sans risque dans ton agent.")
+        print(tr('INTEGRATION NEEDS CONFIRMATION', "INTÉGRATION À CONFIRMER"))
+        print(tr('Repair hooks or their executable if needed, then observe a harmless invocation in your agent.', "Répare les hooks ou leur exécutable si nécessaire, puis observe une invocation sans risque dans ton agent."))
     elif evidence["ready"]:
-        print("Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper.")
+        print(tr('Verification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.', "Vérification prête. Lance `dw setup` pour utiliser Claude Code/Codex sans wrapper."))
     else:
-        print("À FAIRE MAINTENANT")
+        print(tr('WHAT TO DO NOW', "À FAIRE MAINTENANT"))
         if evidence.get("suggestion"):
-            print(f"Valide puis configure cette commande de test : {evidence['suggestion']}")
+            print(tr(f"Validate and configure this test command: {evidence['suggestion']}", f"Valide puis configure cette commande de test : {evidence['suggestion']}"))
         elif evidence.get("command"):
-            print(f"Rends cette commande exécutable ou choisis-en une autre : {evidence['command']}")
+            print(tr(f"Make this command executable or choose another: {evidence['command']}", f"Rends cette commande exécutable ou choisis-en une autre : {evidence['command']}"))
         else:
-            print("Indique à DiffWitness comment tester le projet, puis relance `dw doctor`.")
-    print("Détails d’ingénierie : `dw view technical` puis `dw doctor`.")
+            print(tr('Tell DiffWitness how to test the project, then run `dw doctor` again.', "Indique à DiffWitness comment tester le projet, puis relance `dw doctor`."))
+    print(tr('Engineering details: `dw view technical`, then `dw doctor`.', "Détails d’ingénierie : `dw view technical` puis `dw doctor`."))
 
 
 def _render_technical(
@@ -189,100 +191,100 @@ def _render_technical(
     setup_scope: list[str],
     native: dict[str, Any],
 ) -> None:
-    print(f"Repository: {repo}")
+    print(tr(f"Repository: {repo}", f"Dépôt : {repo}"))
     if evidence["ready"]:
-        print(f"Evidence:   ready · {evidence['source']} - {evidence['command']}")
+        print(tr(f"Evidence:   ready · {evidence['source']} - {evidence['command']}", f"Vérification : prête · {evidence['source']} - {evidence['command']}"))
     else:
-        print(f"Evidence:   NOT READY · {evidence.get('source')}")
+        print(tr(f"Evidence:   NOT READY · {evidence.get('source')}", f"Vérification : NON PRÊTE · {evidence.get('source')}"))
         if evidence.get("command"):
-            print(f"Candidate:  {evidence['command']}")
+            print(tr(f"Candidate:  {evidence['command']}", f"Candidate :    {evidence['command']}"))
         if evidence.get("suggestion"):
-            print(f"Repair:     {evidence['suggestion']} (suggestion only; config unchanged)")
-    print(f"Native:     {', '.join(setup_scope) if setup_scope else 'not configured'}")
+            print(tr(f"Repair:     {evidence['suggestion']} (suggestion only; config unchanged)", f"Réparation :  {evidence['suggestion']} (suggestion ; configuration inchangée)"))
+    print(tr(f"Native:     {', '.join(setup_scope) if setup_scope else 'not configured'}", f"Intégration : {', '.join(setup_scope) if setup_scope else 'non configurée'}"))
     for line in _native_lines(native, guided=False):
         print(line)
     if native.get("pendingTrustAdapters"):
-        print("  Codex trust is still user-controlled; approve project hooks in `/hooks` before relying on native execution.")
+        print(tr("  Codex trust is still user-controlled; approve project hooks in `/hooks` before relying on native execution.", '  La confiance Codex reste contrôlée par l’utilisateur ; approuve les hooks dans `/hooks` avant de compter sur leur exécution native.'))
 
     mode = protection.get("mode")
     health = protection.get("health")
     if mode == "builtin":
-        print(f"Protect:    builtin · aggregate {health} · policy {protection.get('policy')}")
+        print(tr(f"Protect:    builtin · aggregate {health} · policy {protection.get('policy')}", f"Protect :     intégré · état global {health} · politique {protection.get('policy')}"))
         adapters = protection.get("adapters") if isinstance(protection.get("adapters"), dict) else {}
         for name, item in sorted(adapters.items()):
             if isinstance(item, dict):
                 print(
-                    f"  {name}: installed={bool(item.get('installed'))} ready={bool(item.get('ready'))} "
-                    f"activation={item.get('activation')}"
+                    tr(f"  {name}: installed={bool(item.get('installed'))} ready={bool(item.get('ready'))} "
+                    f"activation={item.get('activation')}", f"  {name} : installé={bool(item.get('installed'))} prêt={bool(item.get('ready'))} activation={item.get('activation')}")
                 )
         if protection.get("pendingAdapters"):
-            print("Runtime observation is pending. Provider trust is unknown to DiffWitness; review `/hooks` if Codex requests it, then run a harmless tool call.")
+            print(tr("Runtime observation is pending. Provider trust is unknown to DiffWitness; review `/hooks` if Codex requests it, then run a harmless tool call.", 'Observation runtime attendue. La confiance reste inconnue de DiffWitness ; examine `/hooks` si Codex le demande, puis lance une action sans risque.'))
         if protection.get("brokenAdapters"):
-            print("Action:     repair missing managed hooks with `dw protect status`.")
+            print(tr("Action:     repair missing managed hooks with `dw protect status`.", 'Action :      répare les hooks manquants avec `dw protect status`.'))
     elif mode == "external":
-        print("Protect:    external · delegated")
+        print(tr("Protect:    external · delegated", 'Protect :     externe · délégué'))
     elif mode == "off":
-        print("Protect:    off · optional")
+        print(tr("Protect:    off · optional", 'Protect :     désactivé · optionnel'))
     else:
-        print(f"Protect:    INVALID · {protection.get('error')}")
+        print(tr(f"Protect:    INVALID · {protection.get('error')}", f"Protect :     INVALIDE · {protection.get('error')}"))
     receipts = protection.get("receipts") if isinstance(protection.get("receipts"), dict) else {}
     if receipts.get("integrity") is False:
-        print("Receipts:   INVALID")
+        print(tr("Receipts:   INVALID", 'Reçus :       INVALIDES'))
     elif int(receipts.get("count") or 0):
-        print(f"Receipts:   {int(receipts.get('count') or 0)} bounded observation(s) · integrity ok")
-    print("Boundary:   Protect runtime observations never establish VERIFIED software behavior.")
+        print(tr(f"Receipts:   {int(receipts.get('count') or 0)} bounded observation(s) · integrity ok", f"Reçus :       {int(receipts.get('count') or 0)} observation(s) bornée(s) · intégrité valide"))
+    print(tr("Boundary:   Protect runtime observations never establish VERIFIED software behavior.", 'Limite :      les observations Protect ne prouvent jamais un comportement logiciel VERIFIED.'))
 
     if not engine.get("configured"):
-        print("Advisory:   Community planner only")
+        print(tr("Advisory:   Community planner only", 'Conseil :     planner Community uniquement'))
     elif engine.get("ready"):
         capabilities = engine.get("capabilities") or {}
         eng = capabilities.get("engine") or {}
-        print(f"Advisory:   compatible - {eng.get('name')} {eng.get('version')}")
+        print(tr(f"Advisory:   compatible - {eng.get('name')} {eng.get('version')}", f"Conseil :     compatible - {eng.get('name')} {eng.get('version')}"))
     else:
-        print(f"Advisory:   INVALID - {engine.get('error')}")
+        print(tr(f"Advisory:   INVALID - {engine.get('error')}", f"Conseil :     INVALIDE - {engine.get('error')}"))
 
     if continuity_ok:
         count = int(continuity.get("event_count") or 0)
-        print(f"Continuity: ready · {count} ProjectEvent(s)")
+        print(tr(f"Continuity: ready · {count} ProjectEvent(s)", f"Continuity :  prête · {count} ProjectEvent(s)"))
         counts = continuity.get("counts") or {}
         if counts:
             print(
-                "Memory:     "
+                tr("Memory:     "
                 f"{counts.get('entities', 0)} entities / {counts.get('relations', 0)} relations / "
-                f"{counts.get('changes', 0)} changes / {counts.get('debts', 0)} debts"
+                f"{counts.get('changes', 0)} changes / {counts.get('debts', 0)} debts", f"Mémoire :     {counts.get('entities', 0)} entités / {counts.get('relations', 0)} relations / {counts.get('changes', 0)} modifications / {counts.get('debts', 0)} dettes")
             )
     else:
-        print(f"Continuity: INVALID - {continuity_error}")
-    print("Trust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED")
-    print("Privacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history")
+        print(tr(f"Continuity: INVALID - {continuity_error}", f"Continuity :  INVALIDE - {continuity_error}"))
+    print(tr("Trust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED", 'Confiance :   DECLARED/INFERRED/OBSERVED ne deviennent jamais automatiquement VERIFIED'))
+    print(tr("Privacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history", 'Confidentialité : aucun prompt/diff/commande agent brut dans l’historique borné ProjectEvent/Protect'))
 
     if evidence["ready"]:
         print("\nWorkflow:")
         if setup_scope:
             if not native.get("installed") or not native.get("executableAvailable"):
-                print("  dw setup                               # repair the recorded native installation")
+                print(tr("  dw setup                               # repair the recorded native installation", '  dw setup                               # réparer l’installation native enregistrée'))
             elif not native.get("runtimeUsable"):
-                print(f"  {setup_scope[0]}                                # observe a harmless invocation; review hooks only if requested")
+                print(tr(f"  {setup_scope[0]}                                # observe a harmless invocation; review hooks only if requested", f"  {setup_scope[0]}                                # observer une invocation sans risque ; examiner les hooks uniquement si demandé"))
             elif native.get("pendingTrustAdapters"):
-                print("  codex                                 # open project, review `/hooks`, approve explicitly")
-                print("  dw setup status                       # after SessionStart, confirm native observation")
+                print(tr("  codex                                 # open project, review `/hooks`, approve explicitly", '  codex                                 # ouvrir le projet, examiner `/hooks`, approuver explicitement'))
+                print(tr("  dw setup status                       # after SessionStart, confirm native observation", '  dw setup status                       # après SessionStart, confirmer l’observation native'))
             else:
-                print(f"  {setup_scope[0]}                                # primary native workflow")
-            print("  dw guard -- <agent>                   # explicit/manual fallback only")
+                print(tr(f"  {setup_scope[0]}                                # primary native workflow", f"  {setup_scope[0]}                                # parcours natif principal"))
+            print(tr("  dw guard -- <agent>                   # explicit/manual fallback only", '  dw guard -- <agent>                   # recours explicite/manuel uniquement'))
         else:
-            print("  dw setup                               # install native Claude/Codex integration")
-            print("  dw guard -- <agent>                   # manual fallback")
-        print("  dw protect enable                      # optional live guardrails")
+            print(tr("  dw setup                               # install native Claude/Codex integration", '  dw setup                               # installer l’intégration native Claude/Codex'))
+            print(tr("  dw guard -- <agent>                   # manual fallback", '  dw guard -- <agent>                   # recours manuel'))
+        print(tr("  dw protect enable                      # optional live guardrails", '  dw protect enable                      # protection live optionnelle'))
 
 
 def doctor_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw doctor",
-        description="Preflight executable evidence, native integration, optional Protect, advisory engine and Continuity without running tests.",
+        description=tr("Preflight executable evidence, native integration, optional Protect, advisory engine and Continuity without running tests.", 'Contrôler la disponibilité des vérifications, de l’intégration native, de Protect, du moteur de conseil et de Continuity sans exécuter les tests.'),
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
-    parser.add_argument("--engine", help="Optional advisory engine executable; overrides configured engine.command")
+    parser.add_argument("--engine", help=tr("Optional advisory engine executable; overrides configured engine.command", 'Exécutable du moteur de conseil optionnel ; remplace engine.command pour cette invocation'))
     parser.add_argument("--engine-timeout", type=float, default=None)
     parser.add_argument("--view", choices=VIEW_MODES)
     parser.add_argument("--json", action="store_true")
@@ -314,7 +316,7 @@ def doctor_cli(argv: list[str]) -> int:
             print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
             return 0 if result["ready"] else 1
         proof = readiness["currentProof"]
-        print(f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}")
+        print(tr(f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}", f"Proof actuelle : {proof['freshness']} · arbre courant vérifié={proof['currentTreeVerified']}"))
         view = args.view or get_view_mode(repo)
         for line in repository_human_lines(readiness["repository"], guided=view == "guided"):
             print(line)

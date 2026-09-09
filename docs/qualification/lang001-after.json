@@ -1,0 +1,56 @@
+{
+  "baseline": "46f6238e27dd0617db09da2098e4e6bbbd84a4c8",
+  "selection": "explicit option > saved project language > en; no locale inference",
+  "commands": {
+    "dw --language en status": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS · GUIDED\n\nOne configuration step remains\nDiffWitness cannot yet run verification for this project.\n\nProject state\nThis repository has no commit yet. DiffWitness uses an empty analytical base without creating a commit on your branch. Identity remains local until the first commit; no Proof is implied.\nNative integration not configured (optional).\n• Live protection is off (optional).\n⚠ Verification cannot start yet.\n• Working tree is clean; this does not constitute Proof.\n✓ No open technical obligations are recorded in the Debt Ledger.\n• No DiffWitness change history yet.\n\nNext step\n1. Finish verification setup\n   no safe evidence command detected\n   Command: dw doctor\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n",
+      "stderr": ""
+    },
+    "dw --language en status --view technical": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS STATUS · TECHNICAL VIEW\n\nRepository: unborn HEAD; empty analytical base; local provisional identity. No user commit or Proof is implied.\nNative integration not configured (optional).\nProtect       off · optional\nEvidence      NOT READY\nWorking tree  clean\nProof scope   unknown\nDebt          0 point(s) · 0 open obligation(s)\nLast change   none\n\nNext actions\n1. Finish verification setup\n   dw doctor\n   no safe evidence command detected\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n",
+      "stderr": ""
+    },
+    "dw --language en doctor": {
+      "exit": 1,
+      "stdout": "Current Proof: unknown · current tree verified=False\nThis repository has no commit yet. DiffWitness uses an empty analytical base without creating a commit on your branch. Identity remains local until the first commit; no Proof is implied.\nDIFFWITNESS · GUIDED CHECK-UP\n\n⚠ Project verification is not ready yet.\n  Add/configure an executable test command before considering the project ready.\n• Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n• Live protection: off (optional)\n✓ Project memory: ready, currently empty\n\nWHAT TO DO NOW\nTell DiffWitness how to test the project, then run `dw doctor` again.\nEngineering details: `dw view technical`, then `dw doctor`.\n",
+      "stderr": ""
+    },
+    "dw --language en setup status": {
+      "exit": 1,
+      "stdout": "This repository has no commit yet. DiffWitness uses an empty analytical base without creating a commit on your branch. Identity remains local until the first commit; no Proof is implied.\nDIFFWITNESS · SETUP\n⚠ Integration configured: your configured coding agent\nNative integration not configured (optional).\n⚠ Verification still needs configuration.\n  Run `dw doctor` for the exact diagnosis.\n• Live protection is off (optional).\n",
+      "stderr": ""
+    },
+    "dw --language en protect status": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS · LIVE PROTECTION\n\n• Live protection is off. It is optional: Proof, Debt and Continuity remain available.\n  To enable it: `dw protect enable`.\n",
+      "stderr": ""
+    },
+    "dw --language fr status": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS · VUE GUIDÉE\n\nIl reste une étape de configuration\nDiffWitness ne peut pas encore lancer les vérifications de ce projet.\n\nÉtat du projet\nCe dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée.\nIntégration native non configurée (facultative).\n• La protection live est désactivée (optionnelle).\n⚠ Les vérifications ne peuvent pas encore démarrer.\n• Arbre de travail propre ; cela ne constitue pas une Proof.\n✓ Aucun point technique ouvert n’est enregistré dans le Debt Ledger.\n• Aucun historique de modification DiffWitness pour l’instant.\n\nProchaine étape\n1. Terminer la configuration des vérifications\n   Aucune commande de vérification sûre n’a été détectée.\n   Commande: dw doctor\n2. Protéger éventuellement l’agent pendant son travail\n   Protect est optionnel. Son activation ajoute une protection runtime déterministe sans modifier la sémantique Proof ou Debt.\n   Commande: dw protect enable\n\nLa protection live empêche/observe certaines actions pendant le travail ; seule la vérification exécutable permet de dire qu’une version précise du code est couverte.\nDétails d’ingénierie: `dw view technical`.\n",
+      "stderr": ""
+    },
+    "dw --language fr status --view technical": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS STATUS · VUE TECHNIQUE\n\nDépôt : HEAD unborn ; base d’analyse vide ; identité locale provisoire. Aucun commit utilisateur ni Proof n’est supposé.\nIntégration native non configurée (optionnelle).\nProtect       désactivé · optionnel\nVérification  NON PRÊTE\nArbre courant propre\nPortée Proof  unknown\nDette         0 point(s) · 0 obligation(s) ouverte(s)\nModification  aucune\n\nActions suivantes\n1. Terminer la configuration des vérifications\n   dw doctor\n   Aucune commande de vérification sûre n’a été détectée.\n2. Protéger éventuellement l’agent pendant son travail\n   dw protect enable\n   Protect est optionnel. Son activation ajoute une protection runtime déterministe sans modifier la sémantique Proof ou Debt.\n\nLes observations Protect sont des métadonnées de protection runtime, pas une preuve exécutable. Les affirmations Gate/Proof portent sur l’arbre exact.\nMoins de détails ? `dw view guided` (ou une invocation : `dw status --view guided`).\n",
+      "stderr": ""
+    },
+    "dw --language fr doctor": {
+      "exit": 1,
+      "stdout": "Proof actuelle : unknown · arbre courant vérifié=False\nCe dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée.\nDIFFWITNESS · CHECK-UP GUIDÉ\n\n⚠ La vérification du projet n’est pas encore prête.\n  Ajoute/configure une commande de test exécutable avant de considérer le projet prêt.\n• Intégration agent non configurée. Lance `dw setup` pour Claude Code/Codex.\n• Protection live : désactivée (optionnelle)\n✓ Mémoire projet : prête, vide pour l’instant\n\nÀ FAIRE MAINTENANT\nIndique à DiffWitness comment tester le projet, puis relance `dw doctor`.\nDétails d’ingénierie : `dw view technical` puis `dw doctor`.\n",
+      "stderr": ""
+    },
+    "dw --language fr setup status": {
+      "exit": 1,
+      "stdout": "Ce dépôt n’a pas encore de commit. DiffWitness utilise une base d’analyse vide sans créer de commit dans ta branche. L’identité reste locale jusqu’au premier commit ; aucune Proof n’est supposée.\nDIFFWITNESS · CONFIGURATION\n⚠ Intégration configurée : ton agent de code configuré\nIntégration native non configurée (facultative).\n⚠ Vérification encore à configurer.\n  Lance `dw doctor` pour le diagnostic exact.\n• Protection live désactivée (optionnelle).\n",
+      "stderr": ""
+    },
+    "dw --language fr protect status": {
+      "exit": 0,
+      "stdout": "DIFFWITNESS · PROTECTION LIVE\n\n• Protection live désactivée. C’est optionnel : Proof, Debt et Continuity restent disponibles.\n  Pour l’activer : `dw protect enable`.\n",
+      "stderr": ""
+    }
+  }
+}

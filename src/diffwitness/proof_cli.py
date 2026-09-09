@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import contextlib
 import hashlib
@@ -318,7 +320,7 @@ def _run_adaptive(
 def _print_adaptive(result: AdaptiveCoreResult, doc: dict[str, Any], mutations: list[Any]) -> None:
     by_id = {mutation.id: mutation for mutation in mutations}
     print("DiffWitness Adaptive Core")
-    print(f"contrast:    {'PROVEN' if result.contrast else 'INCONCLUSIVE'}")
+    print(tr(f"contrast:    {'PROVEN' if result.contrast else 'INCONCLUSIVE'}", f"contraste :   {('PROVEN' if result.contrast else 'INCONCLUSIVE')}"))
     print(f"mutations:   {len(result.original_mutation_ids)} original")
     print(f"core:        {len(result.core_mutation_ids)} retained")
     print(f"removable:   {len(result.removable_mutation_ids)} observed removable")
@@ -352,10 +354,10 @@ def _guard(args: argparse.Namespace) -> int:
     test = _resolve_evidence(repo, args.test)
     max_total_seconds = _resolve_total_budget(repo, args.max_total_seconds)
     baseline = snapshot_worktree(repo)
-    print(f"DiffWitness Guard armed at {baseline[:12]}")
+    print(tr(f"DiffWitness Guard armed at {baseline[:12]}", f'DiffWitness Guard armé à {baseline[:12]}'))
     print(f"Evidence: {test}")
-    print(f"Policy:   {args.policy}")
-    print(f"Strategy: {args.strategy}")
+    print(tr(f"Policy:   {args.policy}", f'Politique : {args.policy}'))
+    print(tr(f"Strategy: {args.strategy}", f'Stratégie : {args.strategy}'))
     print(f"Budget:   {max_total_seconds:g}s proof wall clock")
     print()
 
@@ -363,7 +365,7 @@ def _guard(args: argparse.Namespace) -> int:
     env["DIFFWITNESS_BASE"] = baseline
     proc = subprocess.run(command, cwd=repo, env=env)
     if proc.returncode != 0:
-        print(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof skipped.", file=sys.stderr)
+        print(tr(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof skipped.", f'DiffWitness Guard : l’agent s’est arrêté avec le code {proc.returncode}; proof skipped.'), file=sys.stderr)
         return proc.returncode
 
     candidate = snapshot_worktree(repo)
@@ -400,14 +402,14 @@ def _guard(args: argparse.Namespace) -> int:
             if args.policy == "observe":
                 print(f"DiffWitness Guard: {message}")
                 return 0
-            print(f"DiffWitness Guard: PROOF REJECTED - {message}", file=sys.stderr)
+            print(tr(f"DiffWitness Guard: PROOF REJECTED - {message}", f'DiffWitness Guard : PROOF REJETÉE - {message}'), file=sys.stderr)
             return 1
         _print_adaptive(result, doc, mutations)
         ok, reason = _adaptive_policy(result, args.policy)
         if ok:
-            print(f"\nDiffWitness Guard: PROOF ACCEPTED ({doc['certificate_id']})")
+            print(tr(f"\nDiffWitness Guard: PROOF ACCEPTED ({doc['certificate_id']})", f"\nDiffWitness Guard : PROOF ACCEPTÉE ({doc['certificate_id']})"))
             return 0
-        print(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", file=sys.stderr)
+        print(tr(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", f'\nDiffWitness Guard : PROOF REJETÉE - {reason}'), file=sys.stderr)
         return 1
 
     rc, report, reason = _run_proof(
@@ -422,9 +424,9 @@ def _guard(args: argparse.Namespace) -> int:
     )
     if rc == 0:
         cert_id = report.get("certificate_id") if report else "unknown"
-        print(f"\nDiffWitness Guard: PROOF ACCEPTED ({cert_id})")
+        print(tr(f"\nDiffWitness Guard: PROOF ACCEPTED ({cert_id})", f'\nDiffWitness Guard : PROOF ACCEPTÉE ({cert_id})'))
     else:
-        print(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", file=sys.stderr)
+        print(tr(f"\nDiffWitness Guard: PROOF REJECTED - {reason}", f'\nDiffWitness Guard : PROOF REJETÉE - {reason}'), file=sys.stderr)
     return rc
 
 
@@ -452,8 +454,8 @@ def _core(args: argparse.Namespace) -> int:
         certificate=args.json_path,
     )
     print(f"base:      {args.base} ({base_sha[:12]})")
-    print(f"candidate: {candidate_ref} ({candidate_sha[:12]})")
-    print(f"evidence:  {test}")
+    print(tr(f"candidate: {candidate_ref} ({candidate_sha[:12]})", f'candidat : {candidate_ref} ({candidate_sha[:12]})'))
+    print(tr(f"evidence:  {test}", f'commande : {test}'))
     print(f"budget:    {max_total_seconds:g}s total\n")
     _print_adaptive(result, doc, mutations)
     return 0 if result.one_minimal else 1
@@ -464,14 +466,14 @@ def _doctor(args: argparse.Namespace) -> int:
     plans = detect_evidence(repo)
     print(f"Repository: {repo}")
     if not plans:
-        print("Evidence:   none detected")
-        print("Action:     configure [diffwitness].test or pass --test")
+        print(tr("Evidence:   none detected", 'Vérification : aucune commande détectée'))
+        print(tr("Action:     configure [diffwitness].test or pass --test", 'Action : configurer [diffwitness].test ou utiliser --test'))
         return 1
-    print("Evidence candidates:")
+    print(tr("Evidence candidates:", 'Commandes de vérification candidates :'))
     for index, plan in enumerate(plans, 1):
         default = "  <- default" if index == 1 else ""
         print(f"  {index}. {plan.command} [{plan.confidence}] - {plan.reason}{default}")
-    print("\nExplicit fallback process-boundary examples (native setup is the primary workflow):")
+    print(tr("\nExplicit fallback process-boundary examples (native setup is the primary workflow):", '\nExemples de frontières de processus manuelles (l’intégration native est le parcours principal) :'))
     print("  dw guard -- claude")
     print("  dw guard -- codex")
     return 0

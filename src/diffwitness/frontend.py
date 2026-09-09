@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import hashlib
 import json
 import os
@@ -285,8 +287,8 @@ def _preflight_nonproduction(args: list[str]) -> int | None:
                 handle.write(markdown)
                 handle.write("\n")
     print(
-        f"DiffWitness: proof not required ({certificate_id}); "
-        "no executable causal mutation detected."
+        tr(f"DiffWitness: proof not required ({certificate_id}); "
+        "no executable causal mutation detected.", f'DiffWitness : Proof non requise ({certificate_id}); aucune mutation causale exécutable détectée.')
     )
     return 0
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import hashlib
 import json
@@ -68,7 +70,7 @@ def _print(value: Any, json_mode: bool = False) -> None:
 def state_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw state",
-        description="Inspect, import, sync, or rebuild the reconstructible Project State projection.",
+        description=tr('Inspect, import, sync, or rebuild the reconstructible Project State projection.', 'Examiner, importer, synchroniser ou reconstruire l’état du projet.'),
     )
     sub = parser.add_subparsers(dest="command", required=True)
     status = sub.add_parser("status")
@@ -102,14 +104,14 @@ def state_cli(argv: list[str]) -> int:
         if args.json:
             _print(value, True)
         else:
-            print(f"Project events: {value['event_count']} · {'current' if value['state_current'] else 'rebuild required'}")
-            print(f"Events: {value['events_path']}")
-            print(f"State:  {value['state_path']}")
+            print(tr(f"Project events: {value['event_count']} · {'current' if value['state_current'] else 'rebuild required'}", f"Événements du projet : {value['event_count']} · {('current' if value['state_current'] else 'rebuild required')}"))
+            print(tr(f"Events: {value['events_path']}", f"Événements : {value['events_path']}"))
+            print(tr(f"State:  {value['state_path']}", f"État :  {value['state_path']}"))
             if value["counts"]:
                 keys = ("entities", "relations", "changes", "proofs", "debts", "structure_symbols", "structure_edges")
                 print("entities/relations/changes/proofs/debts/symbols/edges: " + "/".join(str(value["counts"].get(key, 0)) for key in keys))
             if value["structure_dirty_warning"]:
-                print("WARN working tree is dirty; cached structure remains HEAD-bound until explicitly refreshed.")
+                print(tr("WARN working tree is dirty; cached structure remains HEAD-bound until explicitly refreshed.", 'ATTENTION : l’arbre courant est modifié ; la structure en cache reste liée à HEAD jusqu’à son actualisation explicite.'))
         return 0
 
     if args.command == "sync-debt":
@@ -118,15 +120,15 @@ def state_cli(argv: list[str]) -> int:
         if args.json:
             _print(result, True)
         else:
-            print(f"Debt continuity: {result['created']} new ProjectEvent(s) from {result['ledger_events']} validated Debt Ledger event(s)")
+            print(tr(f"Debt continuity: {result['created']} new ProjectEvent(s) from {result['ledger_events']} validated Debt Ledger event(s)", f"Continuité de la dette : {result['created']} nouveau(x) ProjectEvent(s) depuis {result['ledger_events']} événement(s) validé(s) du Debt Ledger"))
         return 0
 
     if args.command == "rebuild":
         debt = sync_debt_history(repo, explicit_config=args.config)
         path = rebuild_state(repo, include_structure=bool(args.structure))
-        print(f"Rebuilt Project State: {path}")
+        print(tr(f"Rebuilt Project State: {path}", f'État du projet reconstruit : {path}'))
         if debt["ledger_events"]:
-            print(f"Debt continuity: {debt['created']} new event(s) synchronized before rebuild")
+            print(tr(f"Debt continuity: {debt['created']} new event(s) synchronized before rebuild", f"Continuité de la dette : {debt['created']} nouvel(aux) événement(s) synchronisé(s) avant reconstruction"))
         return 0
 
     if args.command == "ingest-envelope":
@@ -199,7 +201,7 @@ def state_cli(argv: list[str]) -> int:
 def context_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw context",
-        description="Compile bounded project continuity context for a human or coding agent.",
+        description=tr('Compile bounded project continuity context for a human or coding agent.', 'Compiler un contexte de continuité borné pour un humain ou un agent de code.'),
     )
     parser.add_argument("task", nargs="+")
     parser.add_argument("--repo", default=".")
@@ -229,7 +231,7 @@ def context_cli(argv: list[str]) -> int:
         out = args.out if args.out.is_absolute() else repo_root(args.repo) / args.out
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(output, encoding="utf-8")
-        print(f"Context: {out}")
+        print(tr(f"Context: {out}", f'Contexte : {out}'))
     else:
         print(output, end="")
     return 0
@@ -285,7 +287,7 @@ def objective_cli(argv: list[str]) -> int:
         payload={"why": args.why, "priority": args.priority},
         relations=_component_relations(args.component, "served_by"),
     )
-    print(f"Objective {entity_id}: {label}")
+    print(tr(f"Objective {entity_id}: {label}", f'Objectif {entity_id}: {label}'))
     return 0
 
 
@@ -319,7 +321,7 @@ def decision_cli(argv: list[str]) -> int:
         payload={"why": args.why, "alternatives": args.alternative},
         relations=relations,
     )
-    print(f"Decision {entity_id}: {label}")
+    print(tr(f"Decision {entity_id}: {label}", f'Décision {entity_id}: {label}'))
     return 0
 
 
@@ -381,5 +383,5 @@ def failed_approach_cli(argv: list[str]) -> int:
         payload={"reason": args.reason},
         relations=relations,
     )
-    print(f"Failed approach {entity_id}: {label}")
+    print(tr(f"Failed approach {entity_id}: {label}", f'Approche échouée : {entity_id}: {label}'))
     return 0
