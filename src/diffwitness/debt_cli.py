@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 import os
@@ -69,32 +71,32 @@ def _agent_name(command: list[str]) -> str:
 
 
 def _print_signals(report: DebtReport, *, max_signals: int = 30) -> None:
-    print(f"Debt impact: +{report.total_points} point(s) across {len(report.signals)} obligation(s)")
+    print(tr(f"Debt impact: +{report.total_points} point(s) across {len(report.signals)} obligation(s)", f'Impact de dette : +{report.total_points} point(s) sur {len(report.signals)} obligation(s)'))
     for category, points in sorted(report.by_category.items(), key=lambda item: (-item[1], item[0])): print(f"  {category:18} +{points}")
-    if not report.signals: print("  no debt signals detected under the configured rules"); return
+    if not report.signals: print(tr("  no debt signals detected under the configured rules", '  aucun signal de dette détecté selon les règles configurées')); return
     print()
     for signal in sort_signals(report.signals)[:max_signals]:
         location = f" {signal.path}" if signal.path else ""
         if signal.line: location += f":{signal.line}"
         print(f"{signal.debt_id}  +{int(signal.points or 0):>2}  {signal.category}/{signal.measurement}{location} — {signal.title}")
-    if len(report.signals) > max_signals: print(f"… {len(report.signals) - max_signals} additional signal(s)")
+    if len(report.signals) > max_signals: print(tr(f"… {len(report.signals) - max_signals} additional signal(s)", f'… {len(report.signals) - max_signals} signal(aux) supplémentaire(s)'))
 
 
 def _print_health(project: DebtReport, ledger: DebtLedger) -> None:
-    active = ledger.active_items(); print("DIFFWITNESS\nProject health / debt ledger"); print(f"Debt                     {ledger.active_points()}"); print("--------------------------------")
+    active = ledger.active_items(); print(tr("DIFFWITNESS\nProject health / debt ledger", 'DIFFWITNESS\nÉtat du projet / registre de dette')); print(f"Debt                     {ledger.active_points()}"); print("--------------------------------")
     for category, points in sorted(ledger.active_by_category().items(), key=lambda item: (-item[1], item[0])): print(f"{category:24} {points:>5}")
     accepted = sum(item.points for item in active if item.accepted)
     replayable = sum(item.points for item in active if can_auto_recheck(item))
     manual = sum(item.points for item in active if not can_auto_recheck(item))
-    if accepted: print(f"accepted debt             {accepted:>5}")
-    if replayable: print(f"auto-replayable           {replayable:>5}")
-    if manual: print(f"manual/external review    {manual:>5}")
-    print(f"\nCurrent project scan: {project.total_points} point(s), {len(project.signals)} signal(s)")
+    if accepted: print(tr(f"accepted debt             {accepted:>5}", f'dette acceptée            {accepted:>5}'))
+    if replayable: print(tr(f"auto-replayable           {replayable:>5}", f'rejouable automatiquement {replayable:>5}'))
+    if manual: print(tr(f"manual/external review    {manual:>5}", f'examen manuel/externe     {manual:>5}'))
+    print(tr(f"\nCurrent project scan: {project.total_points} point(s), {len(project.signals)} signal(s)", f'\nAnalyse actuelle du projet : {project.total_points} point(s), {len(project.signals)} signal(s)'))
     hotspots: dict[str, int] = {}
     for item in active:
         if item.path: hotspots[item.path] = hotspots.get(item.path, 0) + item.points
     if hotspots:
-        print("High-debt areas")
+        print(tr("High-debt areas", 'Zones de dette élevée'))
         for path, points in sorted(hotspots.items(), key=lambda item: (-item[1], item[0]))[:8]: print(f"  {points:>3}  {path}")
 
 
@@ -104,22 +106,22 @@ def _write_json(path: Path | None, value: dict[str, Any]) -> None:
 
 
 def debt_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw debt", description="Measure debt introduced by a Git change and optionally record its lineages.")
+    parser = argparse.ArgumentParser(prog="dw debt", description=tr('Measure debt introduced by a Git change and optionally record its lineages.', 'Mesurer la dette introduite par une modification Git et enregistrer éventuellement ses lignées.'))
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--base", default="HEAD"); parser.add_argument("--candidate", default="WORKTREE")
     parser.add_argument("--certificate", type=Path, help="Existing DiffWitness proof/assurance certificate for this exact change"); parser.add_argument("--json", type=Path); parser.add_argument("--no-record", action="store_true"); parser.add_argument("--ignore-budget", action="store_true")
     args = parser.parse_args(argv); repo = repo_root(args.repo); config, debt_config, ledger = _resolve_debt_context(repo, args.config)
     base_sha = resolve_analysis_base(repo, args.base); candidate_sha, _ = _candidate(repo, args.candidate, exclude_paths=_ledger_snapshot_exclusions(repo, ledger)); _validate_certificate(args.certificate, repo=repo, candidate_sha=candidate_sha)
     report = scan_change(repo=repo, base_sha=base_sha, candidate_sha=candidate_sha, certificate_path=args.certificate, test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
-    budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config); _print_signals(report); print(); print(f"Budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}")
+    budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config); _print_signals(report); print(); print(tr(f"Budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}", f"Budget: {('PASS' if budget.passed else 'EXCEEDED')} — total projeté {budget.projected_total} ; nouveaux : {budget.change_points}"))
     for violation in budget.violations: print(f"  ! {violation}")
     if not args.no_record and debt_config.get("auto_record", True):
-        stats = ledger.record_report(report); print(f"Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
+        stats = ledger.record_report(report); print(tr(f"Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed", f"Ledger: +{stats['introduced']} introduits, {stats['reopened']} rouverts, {stats['refreshed']} actualisés"))
     _write_json(args.json, {"report": report.to_dict(), "budget": budget.to_dict(), "ledger": ledger.export_state()})
     return 0 if budget.passed or args.ignore_budget else 1
 
 
 def health_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw health", description="Scan current project debt and reconcile the local Debt Ledger.")
+    parser = argparse.ArgumentParser(prog="dw health", description=tr('Scan current project debt and reconcile the local Debt Ledger.', 'Examiner la dette actuelle du projet et rapprocher le Debt Ledger local.'))
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--json", type=Path); parser.add_argument("--no-record", action="store_true"); parser.add_argument("--trend-days", type=int, default=30)
     args = parser.parse_args(argv)
     if args.trend_days < 1: parser.error("--trend-days must be positive")
@@ -127,10 +129,10 @@ def health_cli(argv: list[str]) -> int:
     report = scan_project(repo=repo, duplicate_scan=bool(debt_config.get("duplicate_scan", True)), max_scan_files=int(debt_config.get("max_scan_files", 500)), max_duplicate_signals=int(debt_config.get("max_duplicate_signals", 20)))
     if not args.no_record and debt_config.get("auto_record", True): ledger.reconcile_project_report(report)
     _print_health(report, ledger); debt_trend = trend(ledger, days=args.trend_days); arrow = "↑" if debt_trend.delta_points > 0 else ("↓" if debt_trend.delta_points < 0 else "→")
-    print(f"Trend {args.trend_days}d              {debt_trend.delta_points:+d} {arrow}"); print(f"  introduced {debt_trend.introduced} / resolved {debt_trend.resolved} / reopened {debt_trend.reopened}")
+    print(tr(f"Trend {args.trend_days}d              {debt_trend.delta_points:+d} {arrow}", f'Tendance {args.trend_days}d              {debt_trend.delta_points:+d} {arrow}')); print(tr(f"  introduced {debt_trend.introduced} / resolved {debt_trend.resolved} / reopened {debt_trend.reopened}", f'  introduits : {debt_trend.introduced} / résolus : {debt_trend.resolved} / rouverts : {debt_trend.reopened}'))
     budget = evaluate_budget(ledger=ledger, change=None, debt_config=debt_config)
     if not budget.passed:
-        print("\nDebt budget exceeded")
+        print(tr("\nDebt budget exceeded", '\nBudget de dette dépassé'))
         for violation in budget.violations: print(f"  ! {violation}")
     _write_json(args.json, {"project_scan": report.to_dict(), "ledger": ledger.export_state(), "trend": debt_trend.to_dict(), "budget": budget.to_dict()})
     return 0 if budget.passed else 1
@@ -147,7 +149,7 @@ def _plan_items(items: list[LedgerItem], *, max_points: int, limit: int) -> list
 
 
 def plan_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw plan", description="Build an explainable automatically verifiable debt-repayment plan.")
+    parser = argparse.ArgumentParser(prog="dw plan", description=tr('Build an explainable automatically verifiable debt-repayment plan.', 'Construire un plan de remboursement explicable et automatiquement vérifiable.'))
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--max-points", type=int, default=30); parser.add_argument("--limit", type=int, default=8); parser.add_argument("--include-accepted", action="store_true"); parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     if args.max_points < 1 or args.limit < 1: parser.error("--max-points and --limit must be positive")
@@ -164,17 +166,17 @@ def plan_cli(argv: list[str]) -> int:
     }
     if args.json: print(json.dumps(payload, indent=2, ensure_ascii=False)); return 0
     if not selected:
-        print("DiffWitness plan: no open automatically replayable debt selected.")
+        print(tr("DiffWitness plan: no open automatically replayable debt selected.", 'DiffWitness plan : aucune dette ouverte automatiquement rejouable sélectionnée.'))
     else:
-        print(f"Repayment plan — {payload['selected_points']} point(s), {len(selected)} automatically verifiable obligation(s)")
+        print(tr(f"Repayment plan — {payload['selected_points']} point(s), {len(selected)} automatically verifiable obligation(s)", f"Plan de remboursement — {payload['selected_points']} point(s), {len(selected)} obligation(s) automatiquement vérifiable(s)"))
         for index, item in enumerate(selected, 1): print(f"{index}. {item.debt_id} [{item.category}/{item.measurement}] {item.title} (+{item.points})" + (f" — {item.path}" if item.path else ""))
     if manual:
-        print(f"\nManual/external-review backlog — {payload['manual_review_points']} point(s), {len(manual)} obligation(s)")
+        print(tr(f"\nManual/external-review backlog — {payload['manual_review_points']} point(s), {len(manual)} obligation(s)", f"\nObligations à examiner manuellement/à l’extérieur — {payload['manual_review_points']} point(s), {len(manual)} obligation(s)"))
         for item in sorted(manual, key=lambda value: (-value.points, value.category, value.debt_id))[:8]:
             print(f"  {item.debt_id} [{item.category}/{item.measurement}] {item.title} (+{item.points})")
-        if len(manual) > 8: print(f"  … {len(manual) - 8} additional manual-review obligation(s)")
-        print("  Inspect with `dw ledger show DW-...`; close only after external verification using an explicit forced resolution when no automatic adapter exists.")
-    print("\nPoint totals are accounting weights, not estimates of minutes or difficulty."); return 0
+        if len(manual) > 8: print(tr(f"  … {len(manual) - 8} additional manual-review obligation(s)", f'  … {len(manual) - 8} obligation(s) supplémentaire(s) à examiner manuellement'))
+        print(tr("  Inspect with `dw ledger show DW-...`; close only after external verification using an explicit forced resolution when no automatic adapter exists.", '  Examiner avec `dw ledger show DW-...` ; clôturer uniquement après vérification externe par résolution forcée explicite si aucun adaptateur automatique n’existe.'))
+    print(tr("\nPoint totals are accounting weights, not estimates of minutes or difficulty.", '\nLes points sont des poids comptables, pas une estimation de durée ou de difficulté.')); return 0
 
 
 def _repayment_prompt(items: list[LedgerItem]) -> str:
@@ -198,7 +200,7 @@ def _command_with_prompt(command: list[str], prompt: str) -> list[str]:
 
 def repay_cli(argv: list[str]) -> int:
     parse_argv, agent_command = _split_agent(argv)
-    parser = argparse.ArgumentParser(prog="dw repay", description="Run a constrained debt-repayment mission and independently verify the result.")
+    parser = argparse.ArgumentParser(prog="dw repay", description=tr('Run a constrained debt-repayment mission and independently verify the result.', 'Exécuter une mission bornée de remboursement et vérifier indépendamment son résultat.'))
     parser.add_argument("debt_ids", nargs="*"); parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--all", action="store_true", help="select all open, unaccepted obligations that have automatic replay adapters"); parser.add_argument("--max-points", type=int, default=20); parser.add_argument("--limit", type=int, default=6); parser.add_argument("--test"); parser.add_argument("--allow-new-debt", action="store_true"); parser.add_argument("--prompt-only", action="store_true"); parser.add_argument("--json", type=Path)
     args = parser.parse_args(parse_argv)
     if args.debt_ids and args.all: parser.error("use explicit debt IDs or --all, not both")
@@ -220,8 +222,8 @@ def repay_cli(argv: list[str]) -> int:
         selected = replayable if args.all else _plan_items(replayable, max_points=args.max_points, limit=args.limit)
     if not selected:
         manual_count = len([item for item in ledger.active_items(include_accepted=False) if not can_auto_recheck(item)])
-        print("DiffWitness repay: no open automatically replayable debt selected.")
-        if manual_count: print(f"{manual_count} open obligation(s) require manual/external verification; inspect them with `dw plan` or `dw ledger list`.")
+        print(tr("DiffWitness repay: no open automatically replayable debt selected.", 'DiffWitness repay : aucune dette ouverte automatiquement rejouable sélectionnée.'))
+        if manual_count: print(tr(f"{manual_count} open obligation(s) require manual/external verification; inspect them with `dw plan` or `dw ledger list`.", f'{manual_count} obligation(s) ouverte(s) nécessitent une vérification manuelle/externe ; examiner avec `dw plan` ou `dw ledger list`.'))
         return 0
     prompt = _repayment_prompt(selected)
     if args.prompt_only or not agent_command: print(prompt); return 0
@@ -231,15 +233,15 @@ def repay_cli(argv: list[str]) -> int:
     env = os.environ.copy(); env["DIFFWITNESS_REPAY"] = "1"; env["DIFFWITNESS_BASE"] = baseline; command = _command_with_prompt(agent_command, prompt)
     print(f"DiffWitness Repay: {len(selected)} obligation(s), {sum(item.points for item in selected)} point(s)\nAgent: {' '.join(agent_command)}")
     try: proc = subprocess.run(command, cwd=repo, env=env)
-    except FileNotFoundError as exc: print(f"DiffWitness repay: cannot start agent: {exc}", file=sys.stderr); return 127
-    if proc.returncode != 0: print(f"DiffWitness repay: agent exited with code {proc.returncode}; verification stopped.", file=sys.stderr); return proc.returncode
+    except FileNotFoundError as exc: print(tr(f"DiffWitness repay: cannot start agent: {exc}", f'DiffWitness repay : impossible de lancer l’agent : {exc}'), file=sys.stderr); return 127
+    if proc.returncode != 0: print(tr(f"DiffWitness repay: agent exited with code {proc.returncode}; verification stopped.", f'DiffWitness repay : l’agent s’est arrêté avec le code {proc.returncode} ; vérification interrompue.'), file=sys.stderr); return proc.returncode
     candidate = snapshot_worktree(repo, exclude_paths=exclude)
-    if candidate == baseline: print("DiffWitness repay: agent produced no repository change; debt remains open.", file=sys.stderr); return 1
+    if candidate == baseline: print(tr("DiffWitness repay: agent produced no repository change; debt remains open.", 'DiffWitness repay : aucune modification du dépôt ; la dette reste ouverte.'), file=sys.stderr); return 1
     from .entry import main as entry_main
     with tempfile.TemporaryDirectory(prefix="diffwitness-repay-") as td:
         certificate = Path(td) / "gate.json"; gate_args = ["--repo", str(repo), "--base", baseline, "--candidate", candidate, "--test", test_command, "--policy", "balanced", "--certificate", str(certificate), "--no-github-actions"]
         rc = entry_main(["gate", *gate_args])
-        if rc != 0: print("DiffWitness repay: independent Gate rejected the repayment patch.", file=sys.stderr); return 1
+        if rc != 0: print(tr("DiffWitness repay: independent Gate rejected the repayment patch.", 'DiffWitness repay : Gate indépendant a rejeté le patch de remboursement.'), file=sys.stderr); return 1
         _validate_certificate(certificate if certificate.exists() else None, repo=repo, candidate_sha=candidate)
         change_report = scan_change(repo=repo, base_sha=baseline, candidate_sha=candidate, certificate_path=certificate if certificate.exists() else None, test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
         provenance = {"source": "repay", "agent": _agent_name(agent_command), "executable": Path(agent_command[0]).name}
@@ -254,15 +256,15 @@ def repay_cli(argv: list[str]) -> int:
         if result.resolved: ledger.resolve(fresh.debt_id, reason=result.reason, verification=result.verification, actor="diffwitness-repay")
     final_budget = evaluate_budget(ledger=ledger, change=None, debt_config=debt_config); active_now = {item.debt_id for item in ledger.active_items()}; new_open = sorted(active_now - preexisting_ids); unresolved = [result.debt_id for result in rechecks if not result.resolved]
     output = {"selected": [item.debt_id for item in selected], "rechecks": [result.to_dict() for result in rechecks], "new_open_debt": new_open, "unresolved_selected": unresolved, "change_report": change_report.to_dict(), "budget_before_record": budget_before_record.to_dict(), "final_budget": final_budget.to_dict(), "ledger_event_delta": len(ledger.events) - before_event_count}; _write_json(args.json, output)
-    print(f"\nRepayment verification: {len(selected) - len(unresolved)}/{len(selected)} selected obligation(s) resolved")
+    print(tr(f"\nRepayment verification: {len(selected) - len(unresolved)}/{len(selected)} selected obligation(s) resolved", f'\nVérification du remboursement : {len(selected) - len(unresolved)}/{len(selected)} obligation(s) sélectionnée(s) résolue(s)'))
     for result in rechecks: print(f"  {result.debt_id}: {result.status} — {result.reason}")
-    if new_open: print(f"New open debt introduced: {', '.join(new_open)}")
-    for violation in final_budget.violations: print(f"Budget violation: {violation}")
+    if new_open: print(tr(f"New open debt introduced: {', '.join(new_open)}", f"Nouvelle dette ouverte introduite : {', '.join(new_open)}"))
+    for violation in final_budget.violations: print(tr(f"Budget violation: {violation}", f'Violation du budget : {violation}'))
     success = not unresolved and final_budget.passed and (args.allow_new_debt or not new_open); print(f"DiffWitness Repay: {'ACCEPTED' if success else 'REJECTED'}"); return 0 if success else 1
 
 
 def recheck_cli(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="dw recheck", description="Replay verification adapters for existing debt lineages.")
+    parser = argparse.ArgumentParser(prog="dw recheck", description=tr('Replay verification adapters for existing debt lineages.', 'Rejouer les adaptateurs de vérification des lignées de dette existantes.'))
     parser.add_argument("debt_ids", nargs="*"); parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--all", action="store_true"); parser.add_argument("--test"); parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     if not args.debt_ids and not args.all: raise LedgerError("specify debt IDs or --all")

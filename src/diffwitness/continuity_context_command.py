@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 from pathlib import Path
@@ -11,55 +13,55 @@ from .view_mode import VIEW_MODES, get_view_mode
 
 
 def _guided_context(context: Mapping[str, Any], *, max_chars: int) -> str:
-    lines = ["DIFFWITNESS · MÉMOIRE DU PROJET", "", f"Pour cette tâche : {context.get('task', '')}"]
+    lines = [tr('DIFFWITNESS · PROJECT MEMORY', "DIFFWITNESS · MÉMOIRE DU PROJET"), "", tr(f"For this task: {context.get('task', '')}", f"Pour cette tâche : {context.get('task', '')}")]
 
     components = list(context.get("components") or [])
     if components:
-        lines += ["", "Parties du projet qui semblent utiles"]
+        lines += ["", tr('Potentially useful project areas', "Parties du projet qui semblent utiles")]
         for item in components[:8]:
             if isinstance(item, Mapping):
                 lines.append(f"- {item.get('path')}")
 
     objectives = list(context.get("objectives") or [])
     if objectives:
-        lines += ["", "Objectifs à garder en tête"]
+        lines += ["", tr('Objectives to keep in mind', "Objectifs à garder en tête")]
         for item in objectives[:6]:
             if isinstance(item, Mapping):
                 lines.append(f"- {item.get('label')}")
 
     decisions = list(context.get("decisions") or [])
     if decisions:
-        lines += ["", "Décisions déjà prises"]
+        lines += ["", tr('Decisions already made', "Décisions déjà prises")]
         for item in decisions[:6]:
             if isinstance(item, Mapping):
                 lines.append(f"- {item.get('label')}")
 
     invariants = list(context.get("invariants") or [])
     if invariants:
-        lines += ["", "Règles à ne pas casser"]
+        lines += ["", tr('Rules to preserve', "Règles à ne pas casser")]
         for item in invariants[:6]:
             if isinstance(item, Mapping):
                 lines.append(f"- {item.get('label')}")
 
     debts = list(context.get("knownDebt") or [])
     if debts:
-        lines += ["", "Points techniques encore ouverts"]
+        lines += ["", tr('Open technical obligations', "Points techniques encore ouverts")]
         for item in debts[:8]:
             if isinstance(item, Mapping):
-                lines.append(f"- {item.get('debt_id')} · {item.get('title') or item.get('category') or 'obligation connue'}")
+                lines.append(f"- {item.get('debt_id')} · {item.get('title') or item.get('category') or tr('known obligation', 'obligation connue')}")
 
     changes = list(context.get("recentRelatedChanges") or [])
     if changes:
-        lines += ["", "Modifications récentes liées"]
+        lines += ["", tr('Recent related changes', "Modifications récentes liées")]
         for item in changes[:6]:
             if not isinstance(item, Mapping):
                 continue
             proof = item.get("proof") if isinstance(item.get("proof"), Mapping) else {}
-            status = "vérifiée" if proof.get("accepted") and proof.get("epistemicStatus") == "VERIFIED" else "historique"
-            files = ", ".join(str(value) for value in list(item.get("files") or [])[:3]) or "fichiers non enregistrés"
+            status = tr('verified', "vérifiée") if proof.get("accepted") and proof.get("epistemicStatus") == "VERIFIED" else tr('historical', "historique")
+            files = ", ".join(str(value) for value in list(item.get("files") or [])[:3]) or tr('files not recorded', "fichiers non enregistrés")
             lines.append(f"- {files} · {status}")
     else:
-        lines += ["", "Aucune modification précédente suffisamment liée n’a été retrouvée."]
+        lines += ["", tr('No sufficiently related previous change was found.', "Aucune modification précédente suffisamment liée n’a été retrouvée.")]
 
     evidence = list(context.get("requiredEvidence") or [])
     actionable = []
@@ -73,29 +75,29 @@ def _guided_context(context: Mapping[str, Any], *, max_chars: int) -> str:
         elif item.get("kind") == "native-task-boundary" and note:
             actionable.append(str(note))
     if actionable:
-        lines += ["", "Comment DiffWitness vérifiera cette tâche"]
+        lines += ["", tr('How DiffWitness will verify this task', "Comment DiffWitness vérifiera cette tâche")]
         lines.extend(f"- {item}" for item in actionable[:5])
 
     warnings = list(context.get("warnings") or [])
     if warnings:
-        lines += ["", "À savoir"]
+        lines += ["", tr('Things to know', "À savoir")]
         lines.extend(f"- {item}" for item in warnings[:5])
 
     lines += [
         "",
-        "Cette mémoire sert de contexte et ne remplace jamais les tests/Proof exécutés sur le code exact.",
-        "Détails complets : `dw view technical` puis relance `dw context ...`.",
+        tr('This memory provides context and never replaces tests/Proof executed on the exact code.', "Cette mémoire sert de contexte et ne remplace jamais les tests/Proof exécutés sur le code exact."),
+        tr('Full details: `dw view technical`, then run `dw context ...` again.', "Détails complets : `dw view technical` puis relance `dw context ...`."),
     ]
     text = "\n".join(lines).rstrip() + "\n"
     if len(text) > max_chars:
-        return text[: max(1, max_chars - 80)].rstrip() + "\n… contexte raccourci …\n"
+        return text[: max(1, max_chars - 80)].rstrip() + tr('\n… shortened context …\n', "\n… contexte raccourci …\n")
     return text
 
 
 def context_command_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw context",
-        description="Compile bounded local project continuity context for a human or coding agent.",
+        description=tr("Compile bounded local project continuity context for a human or coding agent.", 'Compiler un contexte local borné du projet pour un humain ou un agent de code.'),
     )
     parser.add_argument("task", nargs="+")
     parser.add_argument("--repo", default=".")
@@ -108,7 +110,7 @@ def context_command_cli(argv: list[str]) -> int:
     args = parser.parse_args(argv)
     task = " ".join(args.task).strip()
     if not task:
-        parser.error("task cannot be empty")
+        parser.error(tr("task cannot be empty", 'la tâche ne peut pas être vide'))
     repo = repo_root(args.repo)
     context = compile_context(
         repo,
@@ -126,7 +128,7 @@ def context_command_cli(argv: list[str]) -> int:
         out = args.out if args.out.is_absolute() else repo / args.out
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(output, encoding="utf-8")
-        print(f"Context: {out}")
+        print(tr(f"Context: {out}", f"Contexte : {out}"))
     else:
         print(output, end="")
     return 0

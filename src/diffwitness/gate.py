@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import hashlib
 import json
@@ -255,7 +257,7 @@ def _run_exhaustive_gate(
 def gate_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw gate",
-        description="Validate an existing Git diff with semantic evidence routing and causal proof when applicable.",
+        description=tr('Validate an existing Git diff with semantic evidence routing and causal proof when applicable.', 'Vérifier un diff Git existant avec la voie de preuve appropriée et une preuve causale si applicable.'),
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--config")
@@ -359,7 +361,7 @@ def gate_cli(argv: list[str]) -> int:
     )
     mutations = make_mutations(files, ignore_globs=ignore)
     if not mutations:
-        print("DiffWitness Gate: no executable causal mutation detected.")
+        print(tr("DiffWitness Gate: no executable causal mutation detected.", 'DiffWitness Gate : aucune mutation causale exécutable détectée.'))
         return 0
 
     github_mode = is_github_actions() if args.github_actions is None else args.github_actions
@@ -390,13 +392,13 @@ def gate_cli(argv: list[str]) -> int:
         if github_mode:
             _emit_assurance_github(assurance, accepted=ok)
         print(
-            f"DiffWitness Gate: {classification} under {policy} policy "
-            f"({assurance['certificate_id']})"
+            tr(f"DiffWitness Gate: {classification} under {policy} policy "
+            f"({assurance['certificate_id']})", f"DiffWitness Gate: {classification} sous {policy} politique ({assurance['certificate_id']})")
         )
         if ok:
-            print(f"DiffWitness Gate accepted: {reason}")
+            print(tr(f"DiffWitness Gate accepted: {reason}", f'DiffWitness Gate accepté: {reason}'))
             return 0
-        print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
+        print(tr(f"DiffWitness Gate rejected: {reason}", f'DiffWitness Gate rejeté: {reason}'), file=sys.stderr)
         return 1
 
     elapsed = time.monotonic() - proof_started
@@ -410,9 +412,9 @@ def gate_cli(argv: list[str]) -> int:
     if selected == "auto":
         selected = "adaptive" if len(mutations) > adaptive_threshold else "exhaustive"
     print(
-        f"DiffWitness Gate: causal contrast proven; {selected} strategy for "
+        tr(f"DiffWitness Gate: causal contrast proven; {selected} strategy for "
         f"{len(mutations)} production mutation(s) under {policy} policy "
-        f"({remaining_seconds:.1f}s proof budget remaining)"
+        f"({remaining_seconds:.1f}s proof budget remaining)", f'DiffWitness Gate: contraste causal prouvé ; {selected} stratégie pour {len(mutations)} mutation(s) de production sous {policy} politique ({remaining_seconds:.1f}s de budget Proof restant)')
     )
 
     engine_plan: dict[str, Any] | None = None
@@ -455,7 +457,7 @@ def gate_cli(argv: list[str]) -> int:
                     f"{len(engine_plan['interaction_pairs'])} interaction hint(s))"
                 )
             elif diagnostic:
-                print(f"DiffWitness advisory planner skipped: {diagnostic}", file=sys.stderr)
+                print(tr(f"DiffWitness advisory planner skipped: {diagnostic}", f'Planner de conseil DiffWitness ignoré : {diagnostic}'), file=sys.stderr)
 
             remaining_seconds = max_total_seconds - (time.monotonic() - proof_started)
             if remaining_seconds <= 0:
@@ -532,7 +534,7 @@ def gate_cli(argv: list[str]) -> int:
             if policy == "observe":
                 print(f"DiffWitness Gate: {message}")
                 return 0
-            print(f"DiffWitness Gate rejected: {message}", file=sys.stderr)
+            print(tr(f"DiffWitness Gate rejected: {message}", f'DiffWitness Gate rejeté: {message}'), file=sys.stderr)
             return 1
         _print_adaptive(result, doc, mutations)
         if args.report:
@@ -542,9 +544,9 @@ def gate_cli(argv: list[str]) -> int:
             _emit_adaptive_github(doc)
         ok, reason = _adaptive_policy(result, policy)
         if ok:
-            print(f"DiffWitness Gate accepted ({doc['certificate_id']})")
+            print(tr(f"DiffWitness Gate accepted ({doc['certificate_id']})", f"DiffWitness Gate accepté ({doc['certificate_id']})"))
             return 0
-        print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
+        print(tr(f"DiffWitness Gate rejected: {reason}", f'DiffWitness Gate rejeté: {reason}'), file=sys.stderr)
         return 1
 
     rc, report, reason = _run_exhaustive_gate(
@@ -577,7 +579,7 @@ def gate_cli(argv: list[str]) -> int:
                     handle.write("proof_mode=exhaustive\n")
     if rc == 0:
         cert = report.get("certificate_id") if report else "unknown"
-        print(f"DiffWitness Gate accepted ({cert})")
+        print(tr(f"DiffWitness Gate accepted ({cert})", f'DiffWitness Gate accepté ({cert})'))
         return 0
-    print(f"DiffWitness Gate rejected: {reason}", file=sys.stderr)
+    print(tr(f"DiffWitness Gate rejected: {reason}", f'DiffWitness Gate rejeté: {reason}'), file=sys.stderr)
     return rc

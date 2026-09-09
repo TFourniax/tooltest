@@ -1,3 +1,6 @@
+from .language import tr
+from .public_help_fr import GUIDED_HELP_FR, TECHNICAL_HELP_FR
+
 TECHNICAL_HELP = """DiffWitness — protect agent actions, understand, prove, control debt, and preserve continuity for AI-assisted code
 
 Start here:
@@ -139,7 +142,8 @@ PUBLIC_HELP = TECHNICAL_HELP
 
 
 def help_for_view(view: str) -> str:
-    return GUIDED_HELP if view == "guided" else TECHNICAL_HELP
+    body = tr(GUIDED_HELP, GUIDED_HELP_FR) if view == "guided" else tr(TECHNICAL_HELP, TECHNICAL_HELP_FR)
+    return body + tr("\nLanguage: English by default. Save with `dw language en|fr`; override once with `dw --language en|fr <command>`. OS locale never selects product language.\n", "\nLangue : anglais par défaut. Enregistrer avec `dw language en|fr` ; une invocation avec `dw --language en|fr <commande>`. La locale ne choisit jamais la langue produit.\n")
 
 
 __all__ = ["GUIDED_HELP", "PUBLIC_HELP", "TECHNICAL_HELP", "help_for_view"]

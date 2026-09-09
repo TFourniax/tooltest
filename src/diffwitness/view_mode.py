@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 import os
@@ -61,7 +63,7 @@ def set_view_mode(repo: Path, mode: str) -> str:
 def view_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw view",
-        description="Show or switch the local human-facing DiffWitness view without changing proof data.",
+        description=tr('Show or switch the local human-facing DiffWitness view without changing proof data.', 'Afficher ou changer la vue locale DiffWitness sans modifier les données de preuve.'),
     )
     parser.add_argument("mode", nargs="?", choices=VIEW_MODES)
     parser.add_argument("--repo", default=".")
@@ -74,11 +76,11 @@ def view_cli(argv: list[str]) -> int:
         return 0
     if args.mode:
         other = "technical" if mode == "guided" else "guided"
-        print(f"DiffWitness view: {mode} (saved for this repository)")
-        print(f"Switch anytime with `dw view {other}`. Proof, debt, and JSON contracts are unchanged.")
+        print(tr(f"DiffWitness view: {mode} (saved for this repository)", f'Vue DiffWitness : {mode} (enregistrée pour ce dépôt)'))
+        print(tr(f"Switch anytime with `dw view {other}`. Proof, debt, and JSON contracts are unchanged.", f'Changer à tout moment avec `dw view {other}`. Proof, dette et contrats JSON restent inchangés.'))
     else:
-        print(f"DiffWitness view: {mode}")
-        print("Available views: guided, technical")
+        print(tr(f"DiffWitness view: {mode}", f'Vue DiffWitness : {mode}'))
+        print(tr("Available views: guided, technical", 'Vues disponibles : guided, technical'))
     return 0
 
 

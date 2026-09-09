@@ -118,7 +118,7 @@ class UnbornRepositoryTests(unittest.TestCase):
         self.assertEqual(value['readiness']['repository']['identityScope'], 'local-provisional')
         self.assertFalse(value['readiness']['currentProof']['currentTreeVerified'])
         self.assertIn('unborn', render_project_status(value, view='technical'))
-        self.assertIn('pas encore de commit', render_project_status(value, view='guided'))
+        self.assertIn('no commit yet', render_project_status(value, view='guided'))
         self.assertIsNone(head_commit(self.repo))
         self.assertEqual(git(self.repo, 'for-each-ref'), '')
 

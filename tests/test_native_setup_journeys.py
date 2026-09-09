@@ -182,7 +182,7 @@ class NativeSetupJourneyTests(unittest.TestCase):
                         )
                         self.assertEqual(setup.returncode, 0, setup.stderr)
                         if view == "guided":
-                            self.assertIn("configuré", setup.stdout)
+                            self.assertIn("configured", setup.stdout)
                         else:
                             self.assertIn("Agent integration configured", setup.stdout)
                         if provider == "codex":
@@ -284,7 +284,7 @@ class NativeSetupJourneyTests(unittest.TestCase):
 
                         explained = _dw(repo, "explain", "--view", view)
                         self.assertEqual(explained.returncode, 0, explained.stderr)
-                        coverage_marker = "version actuelle" if view == "guided" else "current"
+                        coverage_marker = "current code version" if view == "guided" else "current"
                         self.assertIn(coverage_marker, explained.stdout.lower())
 
 

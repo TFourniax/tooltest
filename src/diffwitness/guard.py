@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .language import tr
+
 import argparse
 import json
 import os
@@ -32,7 +34,7 @@ def _tracked_ledger(repo: Path, path: Path) -> bool:
 
 
 def _print_change_debt(report, budget) -> None:
-    print("\nCHANGE DEBT")
+    print(tr("\nCHANGE DEBT", '\nDETTE DE LA MODIFICATION'))
     print(f"+{report.total_points} point(s) / {len(report.signals)} obligation(s)")
     for category, points in sorted(report.by_category.items(), key=lambda item: (-item[1], item[0])):
         print(f"  {category:18} +{points}")
@@ -42,8 +44,8 @@ def _print_change_debt(report, budget) -> None:
             location += f":{signal.line}"
         print(f"  {signal.debt_id} +{int(signal.points or 0)} {signal.category}/{signal.measurement}{location} — {signal.title}")
     if len(report.signals) > 8:
-        print(f"  … {len(report.signals) - 8} additional obligation(s)")
-    print(f"Debt budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}")
+        print(tr(f"  … {len(report.signals) - 8} additional obligation(s)", f'  … {len(report.signals) - 8} obligation(s) supplémentaire(s)'))
+    print(tr(f"Debt budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}", f"Budget de dette : {('PASS' if budget.passed else 'EXCEEDED')} — total projeté {budget.projected_total} ; nouveaux : {budget.change_points}"))
     for violation in budget.violations:
         print(f"  ! {violation}")
 
@@ -111,7 +113,7 @@ def _persist_guard_envelope(
             raise
         # IdleProof is optional. A stale/mismatched receipt must never be correlated to this
         # change, but it also must not erase otherwise valid DiffWitness Proof/Debt evidence.
-        print(f"IdleProof correlation skipped: {exc}", file=sys.stderr)
+        print(tr(f"IdleProof correlation skipped: {exc}", f'Corrélation IdleProof ignorée : {exc}'), file=sys.stderr)
         envelope = build_change_envelope(
             repo=repo,
             base_ref=base_sha,
@@ -140,12 +142,12 @@ def _persist_guard_envelope(
             debt_signals=list(report.signals) if report is not None else (),
         )
         if not quiet:
-            print(f"IdleProof explanation: {explanation_path}")
+            print(tr(f"IdleProof explanation: {explanation_path}", f'Explication IdleProof : {explanation_path}'))
     except Exception as exc:
-        print(f"IdleProof deterministic explanation deferred: {str(exc)[:300]}", file=sys.stderr)
+        print(tr(f"IdleProof deterministic explanation deferred: {str(exc)[:300]}", f'Explication déterministe IdleProof différée : {str(exc)[:300]}'), file=sys.stderr)
 
     if not quiet:
-        print(f"Change envelope: {output}")
+        print(tr(f"Change envelope: {output}", f'Enveloppe de modification : {output}'))
     return output
 
 
@@ -169,11 +171,11 @@ def _sync_idleproof_assurance(repo: Path, envelope_path: Path) -> None:
             text=True,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
-        print(f"IdleProof assurance sync deferred: {exc}", file=sys.stderr)
+        print(tr(f"IdleProof assurance sync deferred: {exc}", f'Synchronisation d’assurance IdleProof différée : {exc}'), file=sys.stderr)
         return
     if proc.returncode not in {0, 2}:
         detail = (proc.stderr or proc.stdout or "unsupported IdleProof assurance bridge").strip().splitlines()[-1]
-        print(f"IdleProof assurance sync deferred: {detail[:240]}", file=sys.stderr)
+        print(tr(f"IdleProof assurance sync deferred: {detail[:240]}", f'Synchronisation d’assurance IdleProof différée : {detail[:240]}'), file=sys.stderr)
 
 
 def guard_cli(argv: list[str]) -> int:
@@ -234,11 +236,11 @@ def guard_cli(argv: list[str]) -> int:
     debt_config = merged_debt_config(config.get("debt") or {})
     ledger = DebtLedger.load(ledger_path(repo, debt_config))
     baseline = snapshot_worktree(repo)
-    print(f"DiffWitness Guard armed at {baseline[:12]}")
+    print(tr(f"DiffWitness Guard armed at {baseline[:12]}", f'DiffWitness Guard armé à {baseline[:12]}'))
     print(f"Agent:    {' '.join(command)}")
-    print(f"Policy:   {args.policy or 'config/default'}")
-    print(f"Strategy: {args.strategy or 'config/default'}")
-    print(f"Proof budget: {max_total_seconds:g}s after agent exit")
+    print(tr(f"Policy:   {args.policy or 'config/default'}", f"Politique : {args.policy or 'config/default'}"))
+    print(tr(f"Strategy: {args.strategy or 'config/default'}", f"Stratégie : {args.strategy or 'config/default'}"))
+    print(tr(f"Proof budget: {max_total_seconds:g}s after agent exit", f'Budget Proof : {max_total_seconds:g}s après la sortie de l’agent'))
     print()
 
     env = os.environ.copy()
@@ -246,18 +248,18 @@ def guard_cli(argv: list[str]) -> int:
     try:
         proc = subprocess.run(command, cwd=repo, env=env)
     except FileNotFoundError as exc:
-        print(f"DiffWitness Guard: cannot start agent command: {exc}", file=sys.stderr)
+        print(tr(f"DiffWitness Guard: cannot start agent command: {exc}", f'DiffWitness Guard : impossible de lancer la commande agent : {exc}'), file=sys.stderr)
         return 127
     except OSError as exc:
-        print(f"DiffWitness Guard: agent process failed to start: {exc}", file=sys.stderr)
+        print(tr(f"DiffWitness Guard: agent process failed to start: {exc}", f'DiffWitness Guard : échec du lancement du processus agent : {exc}'), file=sys.stderr)
         return 126
     if proc.returncode != 0:
-        print(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof was not attempted.", file=sys.stderr)
+        print(tr(f"DiffWitness Guard: agent exited with code {proc.returncode}; proof was not attempted.", f'DiffWitness Guard : l’agent s’est arrêté avec le code {proc.returncode} ; aucune Proof n’a été tentée.'), file=sys.stderr)
         return proc.returncode
 
     candidate = snapshot_worktree(repo)
     if candidate == baseline or not diff_text(repo, baseline, candidate).strip():
-        print("DiffWitness Guard: agent produced no repository change; proof not required.")
+        print(tr("DiffWitness Guard: agent produced no repository change; proof not required.", 'DiffWitness Guard : aucune modification du dépôt par l’agent ; Proof non requise.'))
         return 0
 
     gate_args = [
@@ -307,9 +309,9 @@ def guard_cli(argv: list[str]) -> int:
         gate_args += ["--certificate", str(proof_path)]
         rc = entry_main(["gate", *gate_args])
         if rc != 0:
-            print("\nDiffWitness Guard: PROOF REJECTED", file=sys.stderr)
+            print(tr("\nDiffWitness Guard: PROOF REJECTED", '\nDiffWitness Guard : PROOF REJETÉE'), file=sys.stderr)
             return rc
-        print("\nDiffWitness Guard: PROOF ACCEPTED")
+        print(tr("\nDiffWitness Guard: PROOF ACCEPTED", '\nDiffWitness Guard : PROOF ACCEPTÉE'))
         _validate_generated_certificate(proof_path, repo=repo, candidate_sha=candidate)
 
         if args.no_debt:
@@ -350,11 +352,11 @@ def guard_cli(argv: list[str]) -> int:
         _print_change_debt(report, budget)
 
         if auto_record and tracked_ledger:
-            print("Debt Ledger: configured ledger is tracked by Git; Guard will not mutate it after proof. Run `dw debt` explicitly to record an accepted change.")
+            print(tr("Debt Ledger: configured ledger is tracked by Git; Guard will not mutate it after proof. Run `dw debt` explicitly to record an accepted change.", 'Debt Ledger : le registre configuré est suivi par Git ; Guard ne le modifie pas après la Proof. Lance explicitement `dw debt` pour enregistrer une modification acceptée.'))
         elif should_record and budget.passed:
-            print(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed")
+            print(tr(f"Debt Ledger: +{stats['introduced']} introduced, {stats['reopened']} reopened, {stats['refreshed']} refreshed", f"Debt Ledger: +{stats['introduced']} introduits, {stats['reopened']} rouverts, {stats['refreshed']} actualisés"))
         elif should_record and not budget.passed:
-            print("Debt Ledger: rejected change was not admitted to the durable ledger.")
+            print(tr("Debt Ledger: rejected change was not admitted to the durable ledger.", 'Debt Ledger : la modification rejetée n’a pas été admise dans le registre durable.'))
 
         envelope_path = _persist_guard_envelope(
             repo=repo,
@@ -368,6 +370,6 @@ def guard_cli(argv: list[str]) -> int:
         _sync_idleproof_assurance(repo, envelope_path)
 
         if not budget.passed:
-            print("DiffWitness Guard: DEBT BUDGET REJECTED", file=sys.stderr)
+            print(tr("DiffWitness Guard: DEBT BUDGET REJECTED", 'DiffWitness Guard : BUDGET DE DETTE REJETÉ'), file=sys.stderr)
             return 1
     return 0
