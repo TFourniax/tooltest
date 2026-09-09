@@ -1,0 +1,35 @@
+{
+  "candidate_under_test": "bd888a659122a920441ae80a3b0ac26578a490f0",
+  "mutation_collision": {
+    "patches_differ": true,
+    "ff_id": "6886cdb539",
+    "fe_id": "6886cdb539",
+    "ff_bytes": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820613730656330322e2e38363330373661203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c34202b312c342040400a202320636f64696e673a206c6174696e2d310a202320636f6e7465787420ff0a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a",
+    "fe_bytes": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820613730656330322e2e38363330373661203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c34202b312c342040400a202320636f64696e673a206c6174696e2d310a202320636f6e7465787420fe0a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a"
+  },
+  "analysis": {
+    "baseline": "stable-fail",
+    "candidate": "stable-pass",
+    "mutations": [
+      "witnessed"
+    ]
+  },
+  "build_report": {
+    "exception": "UnicodeEncodeError",
+    "message": "'utf-8' codec can't encode character '\\udcff' in position 2964: surrogates not allowed"
+  },
+  "write_json": {
+    "exception": "UnicodeEncodeError",
+    "message": "'utf-8' codec can't encode character '\\udcff' in position 288: surrogates not allowed"
+  },
+  "reduction_output": {
+    "exception": "UnicodeEncodeError",
+    "message": "'utf-8' codec can't encode character '\\udcff' in position 131: surrogates not allowed"
+  },
+  "cli": {
+    "exit": 2,
+    "stdout": "DiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      /workspace/scratch/71b6f607ad64/nonutf8-repro-verified/repo\nbase:      HEAD (09b69b4fb658)\ncandidate: WORKTREE (7f548c82f34e)\nevidence:  /workspace/scratch/71b6f607ad64/unborn-venv/bin/python -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    900s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\n",
+    "stderr": "DiffWitness: 'utf-8' codec can't encode character '\\udcff' in position 3064: surrogates not allowed\n",
+    "certificate_exists": false
+  }
+}

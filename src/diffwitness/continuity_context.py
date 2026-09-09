@@ -450,7 +450,7 @@ def compile_context(
 
     warnings: list[str] = []
     try:
-        if git(root, "status", "--porcelain=v1").strip():
+        if git(root, "--no-optional-locks", "status", "--porcelain=v1").strip():
             warnings.append("Working tree is dirty; structure index is bound to HEAD and may lag uncommitted edits.")
     except Exception:
         warnings.append("Git working-tree status could not be checked.")

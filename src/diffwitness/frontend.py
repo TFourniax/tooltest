@@ -11,7 +11,7 @@ from . import __version__
 from .autodetect import default_evidence
 from .config import load_config
 from .diffing import make_mutations, parse_file_patches
-from .gitops import GitError, diff_text, git, repo_root, resolve_ref, snapshot_worktree
+from .gitops import GitError, diff_text, git, repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 from .ledger import LedgerError
 from .proof_cli import main as proof_main
 from .validation import build_validation_only, render_validation_markdown
@@ -169,7 +169,7 @@ def _preflight_nonproduction(args: list[str]) -> int | None:
     config = _config(repo, args)
     base_ref = _value(args, "--base", "HEAD") or "HEAD"
     candidate_ref = _value(args, "--candidate", "WORKTREE") or "WORKTREE"
-    base_sha = resolve_ref(repo, base_ref)
+    base_sha = resolve_analysis_base(repo, base_ref)
     candidate_sha = (
         snapshot_worktree(repo)
         if candidate_ref.upper() == "WORKTREE"

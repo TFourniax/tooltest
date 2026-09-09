@@ -1,0 +1,206 @@
+[
+  {
+    "case": "lf-linux-pipe",
+    "platform_note": "native Linux text pipes",
+    "empty_analysis": "ee4f860beaeb7b5d9ec0a9e6fa8ba681a3d875af",
+    "base": "bc0b7b6a12368f3a1a1126b27960187dc9ce153b",
+    "base_tree": "a7844dce926699bedbbd6114082d23718f83966e",
+    "candidate": "0dde245beac7f9443326049a2e7835e4b785c42b",
+    "candidate_tree": "421ae0a099d380ce26406c8f0ac9a959a49f748d",
+    "attempts": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-R",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-candidate-elkazf81/repo",
+        "head": "0dde245beac7f9443326049a2e7835e4b785c42b",
+        "worktree_app_hex": "6465662061646428612c2062293a0a2020202072657475726e2061202d20620a",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820313265653734332e2e34363933616433203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c32202b312c322040400a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a",
+        "exit": 0,
+        "stderr": "",
+        "index": "100644 af953b44ce2d98b4bd447d3c3aa24103ea6578d9 0\t.diffwitness.toml\n100644 4693ad3cf8b0903b98497fb89b8b524fbf1b93f4 0\tapp.py\n100644 375a40c2e175939b6a8ac3c354d8d489f129de83 0\ttests/test_app.py"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-base-krrjbvsm/repo",
+        "head": "bc0b7b6a12368f3a1a1126b27960187dc9ce153b",
+        "worktree_app_hex": "6465662061646428612c2062293a0a2020202072657475726e2061202b20620a",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820313265653734332e2e34363933616433203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c32202b312c322040400a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a",
+        "exit": 0,
+        "stderr": "",
+        "index": "100644 af953b44ce2d98b4bd447d3c3aa24103ea6578d9 0\t.diffwitness.toml\n100644 12ee7431b8e0e3e366c904c33ef3dee767b1bc20 0\tapp.py\n100644 375a40c2e175939b6a8ac3c354d8d489f129de83 0\ttests/test_app.py"
+      }
+    ],
+    "stop": {
+      "systemMessage": "DiffWitness Proof accepted: dw2_ef2045585f246ce42ab1 \u00b7 Debt +0/0 obligation(s) \u00b7 ledger +0 introduced/0 reopened \u00b7 Continuity 3 event(s) \u00b7 dwchg_5d8d5228d98a81afdad577d5"
+    },
+    "proof_stdout": "",
+    "index_unchanged": true,
+    "hasHead": false
+  },
+  {
+    "case": "lf-windows-pipe",
+    "platform_note": "Linux process; Windows text stdin translation emulated exactly only at git apply",
+    "empty_analysis": "ee4f860beaeb7b5d9ec0a9e6fa8ba681a3d875af",
+    "base": "b57e8984a7b6c33ece16616aa68a2ec786b37f54",
+    "base_tree": "a7844dce926699bedbbd6114082d23718f83966e",
+    "candidate": "b50fe8d630b6134740146fe8d75aa8ef62dce693",
+    "candidate_tree": "421ae0a099d380ce26406c8f0ac9a959a49f748d",
+    "attempts": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-R",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-candidate-nn44ayib/repo",
+        "head": "b50fe8d630b6134740146fe8d75aa8ef62dce693",
+        "worktree_app_hex": "6465662061646428612c2062293a0a2020202072657475726e2061202b20620a",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790d0a696e64657820313265653734332e2e34363933616433203130303634340d0a2d2d2d20612f6170702e70790d0a2b2b2b20622f6170702e70790d0a4040202d312c32202b312c322040400d0a206465662061646428612c2062293a0d0a2d2020202072657475726e2061202d20620d0a2b2020202072657475726e2061202b20620d0a",
+        "exit": 1,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply\n",
+        "index": "100644 af953b44ce2d98b4bd447d3c3aa24103ea6578d9 0\t.diffwitness.toml\n100644 4693ad3cf8b0903b98497fb89b8b524fbf1b93f4 0\tapp.py\n100644 375a40c2e175939b6a8ac3c354d8d489f129de83 0\ttests/test_app.py"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-base-8d36ygd5/repo",
+        "head": "b57e8984a7b6c33ece16616aa68a2ec786b37f54",
+        "worktree_app_hex": "6465662061646428612c2062293a0a2020202072657475726e2061202d20620a",
+        "patch": "diff --git a/app.py b/app.py\nindex 12ee743..4693ad3 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790d0a696e64657820313265653734332e2e34363933616433203130303634340d0a2d2d2d20612f6170702e70790d0a2b2b2b20622f6170702e70790d0a4040202d312c32202b312c322040400d0a206465662061646428612c2062293a0d0a2d2020202072657475726e2061202d20620d0a2b2020202072657475726e2061202b20620d0a",
+        "exit": 1,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply\n",
+        "index": "100644 af953b44ce2d98b4bd447d3c3aa24103ea6578d9 0\t.diffwitness.toml\n100644 12ee7431b8e0e3e366c904c33ef3dee767b1bc20 0\tapp.py\n100644 375a40c2e175939b6a8ac3c354d8d489f129de83 0\ttests/test_app.py"
+      }
+    ],
+    "stop": {
+      "decision": "block",
+      "reason": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      <reproduction-root>/lf-windows-pipe\nbase:      b57e8984a7b6c33ece16616aa68a2ec786b37f54 (b57e8984a7b6)\ncandidate: b50fe8d630b6134740146fe8d75aa8ef62dce693 (b50fe8d630b6)\nevidence:  python -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_c3a23f10ae50b5cbfabd",
+      "systemMessage": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      <reproduction-root>/lf-windows-pipe\nbase:      b57e8984a7b6c33ece16616aa68a2ec786b37f54 (b57e8984a7b6)\ncandidate: b50fe8d630b6134740146fe8d75aa8ef62dce693 (b50fe8d630b6)\nevidence:  python -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_c3a23f10ae50b5cbfabd"
+    },
+    "proof_stdout": "",
+    "index_unchanged": true,
+    "hasHead": false
+  },
+  {
+    "case": "crlf-windows-pipe",
+    "platform_note": "Linux process; Windows text stdin translation emulated exactly only at git apply",
+    "empty_analysis": "ee4f860beaeb7b5d9ec0a9e6fa8ba681a3d875af",
+    "base": "cd8e6b373d59cd233b7d071038c8492ab239e852",
+    "base_tree": "6592e243cf912500357422661c77de1ffc2ddb3e",
+    "candidate": "12d878e6997d4ef488340bce29fe6fe5c005d2c7",
+    "candidate_tree": "217e2004465012dd06e10bc4a6265bf3fef41343",
+    "attempts": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-R",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-candidate-um2rmpf_/repo",
+        "head": "12d878e6997d4ef488340bce29fe6fe5c005d2c7",
+        "worktree_app_hex": "6465662061646428612c2062293a0d0a2020202072657475726e2061202d20620d0a",
+        "patch": "diff --git a/app.py b/app.py\nindex eb72b61..608f948 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790d0a696e64657820656237326236312e2e36303866393438203130303634340d0a2d2d2d20612f6170702e70790d0a2b2b2b20622f6170702e70790d0a4040202d312c32202b312c322040400d0a206465662061646428612c2062293a0d0a2d2020202072657475726e2061202d20620d0a2b2020202072657475726e2061202b20620d0a",
+        "exit": 0,
+        "stderr": "",
+        "index": "100644 1a102244efcedc3e68b0c58ff207c1b53fbda1ee 0\t.diffwitness.toml\n100644 608f9481b86087c717855b2f427ffd14677f2d93 0\tapp.py\n100644 e9e349b392f42859a42d76912cf033cace1499e5 0\ttests/test_app.py"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-base-u_l_ciz9/repo",
+        "head": "cd8e6b373d59cd233b7d071038c8492ab239e852",
+        "worktree_app_hex": "6465662061646428612c2062293a0d0a2020202072657475726e2061202b20620d0a",
+        "patch": "diff --git a/app.py b/app.py\nindex eb72b61..608f948 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790d0a696e64657820656237326236312e2e36303866393438203130303634340d0a2d2d2d20612f6170702e70790d0a2b2b2b20622f6170702e70790d0a4040202d312c32202b312c322040400d0a206465662061646428612c2062293a0d0a2d2020202072657475726e2061202d20620d0a2b2020202072657475726e2061202b20620d0a",
+        "exit": 0,
+        "stderr": "",
+        "index": "100644 1a102244efcedc3e68b0c58ff207c1b53fbda1ee 0\t.diffwitness.toml\n100644 eb72b61f35b1888d85a3799e53580ae57200ca9c 0\tapp.py\n100644 e9e349b392f42859a42d76912cf033cace1499e5 0\ttests/test_app.py"
+      }
+    ],
+    "stop": {
+      "systemMessage": "DiffWitness Proof accepted: dw2_ed7def20f8f77ed593d6 \u00b7 Debt +0/0 obligation(s) \u00b7 ledger +0 introduced/0 reopened \u00b7 Continuity 3 event(s) \u00b7 dwchg_778943a8686d5b0faac0f3ae"
+    },
+    "proof_stdout": "",
+    "index_unchanged": true,
+    "hasHead": false
+  },
+  {
+    "case": "crlf-linux-pipe",
+    "platform_note": "native Linux text pipes",
+    "empty_analysis": "ee4f860beaeb7b5d9ec0a9e6fa8ba681a3d875af",
+    "base": "cadadd6cbecf473cc08a6bdafb03262a5c997698",
+    "base_tree": "6592e243cf912500357422661c77de1ffc2ddb3e",
+    "candidate": "b386b1888f2a77682848d0be8bcb0818bdfb41b1",
+    "candidate_tree": "217e2004465012dd06e10bc4a6265bf3fef41343",
+    "attempts": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-R",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-candidate-nkm_tc0w/repo",
+        "head": "b386b1888f2a77682848d0be8bcb0818bdfb41b1",
+        "worktree_app_hex": "6465662061646428612c2062293a0d0a2020202072657475726e2061202b20620d0a",
+        "patch": "diff --git a/app.py b/app.py\nindex eb72b61..608f948 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820656237326236312e2e36303866393438203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c32202b312c322040400a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a",
+        "exit": 1,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply\n",
+        "index": "100644 1a102244efcedc3e68b0c58ff207c1b53fbda1ee 0\t.diffwitness.toml\n100644 608f9481b86087c717855b2f427ffd14677f2d93 0\tapp.py\n100644 e9e349b392f42859a42d76912cf033cace1499e5 0\ttests/test_app.py"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--whitespace=nowarn",
+          "-"
+        ],
+        "cwd": "/tmp/diffwitness-base-05mflxr0/repo",
+        "head": "cadadd6cbecf473cc08a6bdafb03262a5c997698",
+        "worktree_app_hex": "6465662061646428612c2062293a0d0a2020202072657475726e2061202d20620d0a",
+        "patch": "diff --git a/app.py b/app.py\nindex eb72b61..608f948 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n def add(a, b):\n-    return a - b\n+    return a + b\n",
+        "wire_hex": "64696666202d2d67697420612f6170702e707920622f6170702e70790a696e64657820656237326236312e2e36303866393438203130303634340a2d2d2d20612f6170702e70790a2b2b2b20622f6170702e70790a4040202d312c32202b312c322040400a206465662061646428612c2062293a0a2d2020202072657475726e2061202d20620a2b2020202072657475726e2061202b20620a",
+        "exit": 1,
+        "stderr": "error: patch failed: app.py:1\nerror: app.py: patch does not apply\n",
+        "index": "100644 1a102244efcedc3e68b0c58ff207c1b53fbda1ee 0\t.diffwitness.toml\n100644 eb72b61f35b1888d85a3799e53580ae57200ca9c 0\tapp.py\n100644 e9e349b392f42859a42d76912cf033cace1499e5 0\ttests/test_app.py"
+      }
+    ],
+    "stop": {
+      "decision": "block",
+      "reason": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      <reproduction-root>/crlf-linux-pipe\nbase:      cadadd6cbecf473cc08a6bdafb03262a5c997698 (cadadd6cbecf)\ncandidate: b386b1888f2a77682848d0be8bcb0818bdfb41b1 (b386b1888f2a)\nevidence:  python -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_3e0a4288699ded1d4a54",
+      "systemMessage": "DiffWitness rejected the current handoff. Continue working until Proof and Debt gates pass. Reason: 1 hunk(s) have inconclusive evidence\nDiffWitness 0.4.0a1 - counterfactual patch evidence\nrepo:      <reproduction-root>/crlf-linux-pipe\nbase:      cadadd6cbecf473cc08a6bdafb03262a5c997698 (cadadd6cbecf)\ncandidate: b386b1888f2a77682848d0be8bcb0818bdfb41b1 (b386b1888f2a)\nevidence:  python -m unittest discover -s tests -q\nstability: 1 run(s) per variant\nbudget:    120s total; 300s per command\nchanges:   1 analyzed mutation(s); 0 changed test file(s)\n\ncontrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS\n\nINCONCLUSIVE      +1/-1  app.py hunk 1/1  [apply-error]\n\nsummary: 0 witnessed, 0 unwitnessed, 1 inconclusive\ncert:    dw2_3e0a4288699ded1d4a54"
+    },
+    "proof_stdout": "",
+    "index_unchanged": true,
+    "hasHead": false
+  }
+]

@@ -141,6 +141,55 @@ def resolve_ref(repo: Path, ref: str) -> str:
     return value
 
 
+def head_commit(repo: Path) -> str | None:
+    """Return the real HEAD, or None only for a valid unborn symbolic branch."""
+    head = git_result(repo, "rev-parse", "--verify", "HEAD^{commit}")
+    if head.returncode == 0 and head.stdout.strip():
+        return head.stdout.strip()
+    symbolic = git_result(repo, "symbolic-ref", "--quiet", "HEAD")
+    ref = symbolic.stdout.strip()
+    if symbolic.returncode == 0 and ref.startswith("refs/heads/"):
+        present = git_result(repo, "show-ref", "--verify", "--quiet", ref)
+        if present.returncode == 1:
+            return None
+    raise GitError("HEAD cannot be read and is not a valid unborn branch; repair the Git repository first")
+
+
+def empty_analysis_base(repo: Path) -> str:
+    """Create only unreachable objects; never create a user commit/ref or touch the index."""
+    tree = git_bytes(repo, "mktree", input_bytes=b"").decode("ascii").strip()
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "DiffWitness",
+        "GIT_AUTHOR_EMAIL": "diffwitness@localhost",
+        "GIT_COMMITTER_NAME": "DiffWitness",
+        "GIT_COMMITTER_EMAIL": "diffwitness@localhost",
+        "GIT_AUTHOR_DATE": "2000-01-01T00:00:00+00:00",
+        "GIT_COMMITTER_DATE": "2000-01-01T00:00:00+00:00",
+    }
+    return _run_bytes(
+        ["git", "commit-tree", tree], cwd=repo, env=env,
+        input_bytes=b"DiffWitness empty analytical baseline\n",
+    ).stdout.decode("ascii").strip()
+
+
+def resolve_analysis_base(repo: Path, ref: str) -> str:
+    if ref == "HEAD":
+        head = head_commit(repo)
+        return head if head is not None else empty_analysis_base(repo)
+    return resolve_ref(repo, ref)
+
+
+def repository_state(repo: Path) -> dict[str, object]:
+    head = head_commit(repo)
+    return {
+        "state": "committed" if head else "unborn",
+        "hasHead": head is not None,
+        "analysisBase": "HEAD" if head else "empty-tree",
+        "identityScope": "git-root-lineage" if head else "local-provisional",
+    }
+
+
 def _is_local_tool_untracked(path: PurePosixPath) -> bool:
     """Return True for project-local IdleProof/agent plumbing at any monorepo depth."""
     normalized = path.as_posix().lstrip("./")
@@ -198,6 +247,7 @@ def _meaningful_worktree_matches_head(repo: Path) -> bool:
     """
     raw = git(
         repo,
+        "--no-optional-locks",
         "-c",
         "core.quotePath=false",
         "status",
@@ -239,7 +289,7 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
     verified. All exclusions affect only the ephemeral alternate index and never mutate the user's real
     staging area or working files.
     """
-    head = resolve_ref(repo, "HEAD")
+    head = resolve_analysis_base(repo, "HEAD")
     if not exclude_paths and _meaningful_worktree_matches_head(repo):
         return head
 
@@ -283,7 +333,9 @@ def snapshot_worktree(repo: Path, *, exclude_paths: list[str] | None = None) -> 
 
 
 def diff_text(repo: Path, base: str, candidate: str) -> str:
-    return git(
+    # Patch context contains source bytes: text pipes normalize CRLF on read and
+    # Windows adds CR on write. Keep a reversible string for the hunk parser.
+    return git_bytes(
         repo,
         "-c",
         "core.quotePath=false",
@@ -296,7 +348,7 @@ def diff_text(repo: Path, base: str, candidate: str) -> str:
         base,
         candidate,
         "--",
-    )
+    ).decode("utf-8", errors="surrogateescape")
 
 
 @contextmanager
@@ -328,12 +380,15 @@ def apply_patch(worktree: Path, patch: str, *, reverse: bool = False) -> tuple[b
     args = ["apply", "--whitespace=nowarn"]
     if reverse:
         args.append("-R")
-    proc = _run(["git", *args, "-"], cwd=worktree, input_text=patch, check=False)
-    return proc.returncode == 0, proc.stderr.strip()
+    proc = _run_bytes(
+        ["git", *args, "-"], cwd=worktree,
+        input_bytes=patch.encode("utf-8", errors="surrogateescape"), check=False,
+    )
+    return proc.returncode == 0, proc.stderr.decode("utf-8", errors="replace").strip()
 
 
 def candidate_delta(worktree: Path, candidate: str) -> str:
-    return git(
+    return git_bytes(
         worktree,
         "-c",
         "core.quotePath=false",
@@ -343,7 +398,7 @@ def candidate_delta(worktree: Path, candidate: str) -> str:
         "--binary",
         candidate,
         "--",
-    )
+    ).decode("utf-8", errors="surrogateescape")
 
 
 def git_version(repo: Path) -> str:

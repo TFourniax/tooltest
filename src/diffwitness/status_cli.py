@@ -12,7 +12,7 @@ from .gitops import git, git_metadata_path, repo_root, snapshot_worktree
 from .ledger import DebtLedger
 from .protect import ProtectError, protect_status
 from .view_mode import VIEW_MODES, get_view_mode
-from .readiness import build_readiness, verification_readiness, native_human_lines
+from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines
 
 
 def _evidence_command(repo: Path, config: dict[str, Any]) -> dict[str, Any]:
@@ -29,7 +29,7 @@ def _generated_untracked(path: str) -> bool:
 
 
 def _working_tree(repo: Path) -> tuple[list[str], bool, list[str]]:
-    raw = git(repo, "status", "--porcelain=v1", "--untracked-files=normal")
+    raw = git(repo, "--no-optional-locks", "status", "--porcelain=v1", "--untracked-files=normal")
     files: list[str] = []
     generated: list[str] = []
     for line in raw.splitlines():
@@ -49,8 +49,7 @@ def _working_tree(repo: Path) -> tuple[list[str], bool, list[str]]:
 
 
 def _branch(repo: Path) -> str | None:
-    value = git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
-    return None if value == "HEAD" else value
+    return git(repo, "symbolic-ref", "--quiet", "--short", "HEAD", check=False).strip() or None
 
 
 def _latest_envelope(repo: Path) -> dict[str, Any] | None:
@@ -394,6 +393,7 @@ def _render_technical(value: dict[str, Any]) -> str:
     lines = [
         "DIFFWITNESS STATUS · TECHNICAL VIEW",
         "",
+        *repository_human_lines(value["readiness"]["repository"], guided=False),
         *native_human_lines(value["readiness"]["native"], guided=False),
         _protect_line(protection),
         *_provider_lines(protection, guided=False),
@@ -461,6 +461,7 @@ def _render_guided(value: dict[str, Any]) -> str:
         "",
         "État du projet",
     ]
+    lines.extend(repository_human_lines(value["readiness"]["repository"], guided=True))
     lines.extend(native_human_lines(value["readiness"]["native"], guided=True))
     if protection.get("mode") == "builtin":
         lines.extend(_provider_lines(protection, guided=True) or ["• Protection live activée, aucun agent détecté."])

@@ -17,7 +17,7 @@ from .debt_history import trend
 from .debt_models import DebtReport, sort_signals
 from .debt_scan import scan_change
 from .debt_verify import can_auto_recheck, recheck_item
-from .gitops import repo_root, resolve_ref, snapshot_worktree
+from .gitops import repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 from .ledger import DebtLedger, LedgerError, LedgerItem
 from .project_scan import scan_project
 
@@ -108,7 +108,7 @@ def debt_cli(argv: list[str]) -> int:
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--base", default="HEAD"); parser.add_argument("--candidate", default="WORKTREE")
     parser.add_argument("--certificate", type=Path, help="Existing DiffWitness proof/assurance certificate for this exact change"); parser.add_argument("--json", type=Path); parser.add_argument("--no-record", action="store_true"); parser.add_argument("--ignore-budget", action="store_true")
     args = parser.parse_args(argv); repo = repo_root(args.repo); config, debt_config, ledger = _resolve_debt_context(repo, args.config)
-    base_sha = resolve_ref(repo, args.base); candidate_sha, _ = _candidate(repo, args.candidate, exclude_paths=_ledger_snapshot_exclusions(repo, ledger)); _validate_certificate(args.certificate, repo=repo, candidate_sha=candidate_sha)
+    base_sha = resolve_analysis_base(repo, args.base); candidate_sha, _ = _candidate(repo, args.candidate, exclude_paths=_ledger_snapshot_exclusions(repo, ledger)); _validate_certificate(args.certificate, repo=repo, candidate_sha=candidate_sha)
     report = scan_change(repo=repo, base_sha=base_sha, candidate_sha=candidate_sha, certificate_path=args.certificate, test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
     budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config); _print_signals(report); print(); print(f"Budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}")
     for violation in budget.violations: print(f"  ! {violation}")

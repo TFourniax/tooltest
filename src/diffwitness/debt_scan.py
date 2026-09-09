@@ -15,7 +15,7 @@ from .diffing import (
     make_mutations,
     parse_file_patches,
 )
-from .gitops import diff_text, git, git_result
+from .gitops import diff_text, git, git_result, head_commit, snapshot_worktree
 from .security_scan import scan_security_text
 
 
@@ -883,7 +883,7 @@ def scan_project(
     signals.extend(_project_import_cycle_signals(repo, files))
     if duplicate_scan:
         signals.extend(_project_duplicate_signals(repo, files, limit=max_duplicate_signals))
-    head = git(repo, "rev-parse", "--verify", "HEAD^{commit}").strip()
+    head = head_commit(repo) or snapshot_worktree(repo)
     tree = _candidate_tree(repo, head)
     return DebtReport(
         scope="project",

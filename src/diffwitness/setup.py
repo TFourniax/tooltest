@@ -12,7 +12,7 @@ from .gitops import git_metadata_path, repo_root
 from .local_git_state import LocalGitStateError, ensure_local_integration_excludes
 from .native_activation import clear_native_activation
 from .view_mode import get_view_mode
-from .readiness import build_readiness, verification_readiness, native_human_lines
+from .readiness import build_readiness, verification_readiness, native_human_lines, repository_human_lines
 from .runtime_executable import ExecutableResolutionError, resolve_dw_command, resolve_idleproof_command
 
 
@@ -340,6 +340,9 @@ def setup_cli(argv: list[str] | None = None) -> int:
         guided = get_view_mode(_git_project(cwd)) == "guided"
     except Exception:
         guided = False
+
+    for line in repository_human_lines(result["readiness"]["repository"], guided=guided):
+        print(line)
 
     if args.action == "status":
         if guided:

@@ -189,6 +189,8 @@ jobs:
         run: python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
       - name: Exercise optional Protect mode lifecycle from installed wheel
         run: python scripts/protect_release_acceptance.py
+      - name: Qualify first native task before any user commit
+        run: python scripts/unborn_release_acceptance.py
       - name: Qualify competing venv, user Scripts and pipx installations
         shell: bash
         run: |
@@ -235,3 +237,5 @@ jobs:
         run: |
           python -m pip wheel --no-deps --wheel-dir binary-wheel .
           python -c "import pathlib,subprocess,sys; binary=pathlib.Path('dist/dw.exe' if sys.platform == 'win32' else 'dist/dw'); wheel=next(pathlib.Path('binary-wheel').glob('*.whl')); subprocess.check_call([sys.executable,'scripts/installation_resolution_acceptance.py','--wheel',str(wheel),'--standalone',str(binary)])"
+      - name: Qualify standalone first task with explicit installed companion
+        run: python -c "import pathlib,shutil,subprocess,sys; binary=pathlib.Path('dist/dw.exe' if sys.platform == 'win32' else 'dist/dw'); companion=shutil.which('idleproof'); assert companion; subprocess.check_call([sys.executable,'scripts/unborn_release_acceptance.py','--dw',str(binary),'--idleproof',companion])"

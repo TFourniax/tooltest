@@ -1,0 +1,116 @@
+{
+  "empty": {
+    "index-before": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "setup install --agent codex --json": {
+      "exit": 2,
+      "stdout": "{\"schema\": \"diffwitness.setup-error.v1\", \"ok\": false, \"error\": \"DiffWitness sidecar rejected the operation: IdleProof failed before the requested operation could be completed: command failed (128): git rev-list --max-parents=0 HEAD\\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\\nUse '--' to separate paths from revisions, like this:\\n'git <command> [<revision>...] -- [<file>...]'\"}\n",
+      "stderr": ""
+    },
+    "setup status --json": {
+      "exit": 2,
+      "stdout": "{\"schema\": \"diffwitness.setup-error.v1\", \"ok\": false, \"error\": \"DiffWitness sidecar returned an invalid status payload: \"}\n",
+      "stderr": ""
+    },
+    "status --json": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "doctor --json": {
+      "exit": 1,
+      "stdout": "{\n  \"continuity\": {\n    \"error\": null,\n    \"ready\": true,\n    \"status\": {\n      \"counts\": {},\n      \"event_count\": 0,\n      \"event_head\": null,\n      \"events_path\": \"<fixture-root>/empty/.git/diffwitness/events.jsonl\",\n      \"schema\": \"continuity-state-2\",\n      \"state_current\": false,\n      \"state_path\": \"<fixture-root>/empty/.git/diffwitness/state.db\",\n      \"state_present\": false,\n      \"structure_dirty_warning\": false,\n      \"structure_tree\": null\n    }\n  },\n  \"engine\": {\n    \"configured\": false,\n    \"ready\": true,\n    \"required\": false\n  },\n  \"evidence\": {\n    \"checksRun\": false,\n    \"command\": null,\n    \"configured\": false,\n    \"executableReady\": false,\n    \"problem\": \"no safe evidence command detected\",\n    \"ready\": false,\n    \"reason\": \"no safe evidence command detected\",\n    \"selected\": false,\n    \"source\": \"missing\",\n    \"suggestion\": null\n  },\n  \"native\": {\n    \"adapters\": {},\n    \"configured\": false,\n    \"configuredAdapters\": [],\n    \"executableAvailable\": false,\n    \"fullyObserved\": false,\n    \"installed\": false,\n    \"observedAdapters\": [],\n    \"pendingObservationAdapters\": [],\n    \"pendingTrustAdapters\": [],\n    \"ready\": false,\n    \"requiresActionBeforeTask\": false,\n    \"runtimeScope\": \"owned-hooks-present, recorded-executable-present, locally-observed; provider-approval-not-asserted\",\n    \"runtimeUsable\": false,\n    \"schema\": \"diffwitness.native-activation.v1\",\n    \"unknownTrustAdapters\": []\n  },\n  \"protect\": {\n    \"adapters\": {},\n    \"brokenAdapters\": [],\n    \"delegated\": false,\n    \"enabled\": false,\n    \"externalHarnessDetected\": false,\n    \"health\": \"off\",\n    \"mode\": \"off\",\n    \"otherHookActivityDetected\": false,\n    \"pendingAdapters\": [],\n    \"policy\": \"standard\",\n    \"readyAdapters\": [],\n    \"receipts\": {\n      \"categories\": {},\n      \"count\": 0,\n      \"decisions\": {},\n      \"integrity\": true,\n      \"schema\": \"diffwitness.protection-summary.v1\"\n    },\n    \"schema\": \"diffwitness.protect-status.v1\"\n  },\n  \"readiness\": {\n    \"currentProof\": {\n      \"accepted\": false,\n      \"currentTreeVerified\": false,\n      \"freshness\": \"unknown\",\n      \"reason\": \"no readable change envelope\",\n      \"status\": \"unknown\"\n    },\n    \"native\": {\n      \"adapters\": {},\n      \"configured\": false,\n      \"configuredAdapters\": [],\n      \"executableAvailable\": false,\n      \"fullyObserved\": false,\n      \"installed\": false,\n      \"observedAdapters\": [],\n      \"pendingObservationAdapters\": [],\n      \"pendingTrustAdapters\": [],\n      \"ready\": false,\n      \"requiresActionBeforeTask\": false,\n      \"runtimeScope\": \"owned-hooks-present, recorded-executable-present, locally-observed; provider-approval-not-asserted\",\n      \"runtimeUsable\": false,\n      \"schema\": \"diffwitness.native-activation.v1\",\n      \"unknownTrustAdapters\": []\n    },\n    \"protect\": {\n      \"delegated\": false,\n      \"mode\": \"off\",\n      \"ready\": null,\n      \"receiptIntegrity\": true,\n      \"selected\": false\n    },\n    \"schema\": \"diffwitness.readiness.v1\",\n    \"scopedProduct\": {\n      \"blockedBy\": [\n        \"verification-command-unavailable\"\n      ],\n      \"excludes\": [\n        \"provider-approval\",\n        \"test-outcome\",\n        \"current-tree-proof\",\n        \"remote-services\",\n        \"engine-capabilities\",\n        \"continuity-integrity\"\n      ],\n      \"ready\": false,\n      \"scope\": \"selected-local-hooks-and-verification-launcher\",\n      \"workflow\": \"manual\"\n    },\n    \"verification\": {\n      \"checksRun\": false,\n      \"command\": null,\n      \"configured\": false,\n      \"executableReady\": false,\n      \"problem\": \"no safe evidence command detected\",\n      \"ready\": false,\n      \"reason\": \"no safe evidence command detected\",\n      \"selected\": false,\n      \"source\": \"missing\",\n      \"suggestion\": null\n    }\n  },\n  \"ready\": false,\n  \"readyScope\": \"selected-local-preflight-with-engine-and-continuity\",\n  \"repository\": \"<fixture-root>/empty\",\n  \"schema\": \"diffwitness.doctor.v1\"\n}\n",
+      "stderr": ""
+    },
+    "setup status": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "DiffWitness setup failed: DiffWitness sidecar returned an invalid status payload: \n"
+    },
+    "status --view guided": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "status --view technical": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "native-session-start": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "DiffWitness IDE bridge failed before the requested assurance step completed: command failed (128): git rev-parse --verify HEAD^{commit}\nfatal: Needed a single revision\n"
+    },
+    "index-after": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "HEAD-after": {
+      "exit": 128,
+      "stdout": "",
+      "stderr": "fatal: Needed a single revision\n"
+    }
+  },
+  "staged-initial-files": {
+    "index-before": {
+      "exit": 0,
+      "stdout": "100644 b15b1b0797d64623135bb2d04a67bae078fa44c2 0\tapp.py\n",
+      "stderr": ""
+    },
+    "setup install --agent codex --json": {
+      "exit": 2,
+      "stdout": "{\"schema\": \"diffwitness.setup-error.v1\", \"ok\": false, \"error\": \"DiffWitness sidecar rejected the operation: IdleProof failed before the requested operation could be completed: command failed (128): git rev-list --max-parents=0 HEAD\\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\\nUse '--' to separate paths from revisions, like this:\\n'git <command> [<revision>...] -- [<file>...]'\"}\n",
+      "stderr": ""
+    },
+    "setup status --json": {
+      "exit": 2,
+      "stdout": "{\"schema\": \"diffwitness.setup-error.v1\", \"ok\": false, \"error\": \"DiffWitness sidecar returned an invalid status payload: \"}\n",
+      "stderr": ""
+    },
+    "status --json": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "doctor --json": {
+      "exit": 1,
+      "stdout": "{\n  \"continuity\": {\n    \"error\": null,\n    \"ready\": true,\n    \"status\": {\n      \"counts\": {},\n      \"event_count\": 0,\n      \"event_head\": null,\n      \"events_path\": \"<fixture-root>/staged-initial-files/.git/diffwitness/events.jsonl\",\n      \"schema\": \"continuity-state-2\",\n      \"state_current\": false,\n      \"state_path\": \"<fixture-root>/staged-initial-files/.git/diffwitness/state.db\",\n      \"state_present\": false,\n      \"structure_dirty_warning\": true,\n      \"structure_tree\": null\n    }\n  },\n  \"engine\": {\n    \"configured\": false,\n    \"ready\": true,\n    \"required\": false\n  },\n  \"evidence\": {\n    \"checksRun\": false,\n    \"command\": null,\n    \"configured\": false,\n    \"executableReady\": false,\n    \"problem\": \"no safe evidence command detected\",\n    \"ready\": false,\n    \"reason\": \"no safe evidence command detected\",\n    \"selected\": false,\n    \"source\": \"missing\",\n    \"suggestion\": null\n  },\n  \"native\": {\n    \"adapters\": {},\n    \"configured\": false,\n    \"configuredAdapters\": [],\n    \"executableAvailable\": false,\n    \"fullyObserved\": false,\n    \"installed\": false,\n    \"observedAdapters\": [],\n    \"pendingObservationAdapters\": [],\n    \"pendingTrustAdapters\": [],\n    \"ready\": false,\n    \"requiresActionBeforeTask\": false,\n    \"runtimeScope\": \"owned-hooks-present, recorded-executable-present, locally-observed; provider-approval-not-asserted\",\n    \"runtimeUsable\": false,\n    \"schema\": \"diffwitness.native-activation.v1\",\n    \"unknownTrustAdapters\": []\n  },\n  \"protect\": {\n    \"adapters\": {},\n    \"brokenAdapters\": [],\n    \"delegated\": false,\n    \"enabled\": false,\n    \"externalHarnessDetected\": false,\n    \"health\": \"off\",\n    \"mode\": \"off\",\n    \"otherHookActivityDetected\": false,\n    \"pendingAdapters\": [],\n    \"policy\": \"standard\",\n    \"readyAdapters\": [],\n    \"receipts\": {\n      \"categories\": {},\n      \"count\": 0,\n      \"decisions\": {},\n      \"integrity\": true,\n      \"schema\": \"diffwitness.protection-summary.v1\"\n    },\n    \"schema\": \"diffwitness.protect-status.v1\"\n  },\n  \"readiness\": {\n    \"currentProof\": {\n      \"accepted\": false,\n      \"currentTreeVerified\": false,\n      \"freshness\": \"unknown\",\n      \"reason\": \"no readable change envelope\",\n      \"status\": \"unknown\"\n    },\n    \"native\": {\n      \"adapters\": {},\n      \"configured\": false,\n      \"configuredAdapters\": [],\n      \"executableAvailable\": false,\n      \"fullyObserved\": false,\n      \"installed\": false,\n      \"observedAdapters\": [],\n      \"pendingObservationAdapters\": [],\n      \"pendingTrustAdapters\": [],\n      \"ready\": false,\n      \"requiresActionBeforeTask\": false,\n      \"runtimeScope\": \"owned-hooks-present, recorded-executable-present, locally-observed; provider-approval-not-asserted\",\n      \"runtimeUsable\": false,\n      \"schema\": \"diffwitness.native-activation.v1\",\n      \"unknownTrustAdapters\": []\n    },\n    \"protect\": {\n      \"delegated\": false,\n      \"mode\": \"off\",\n      \"ready\": null,\n      \"receiptIntegrity\": true,\n      \"selected\": false\n    },\n    \"schema\": \"diffwitness.readiness.v1\",\n    \"scopedProduct\": {\n      \"blockedBy\": [\n        \"verification-command-unavailable\"\n      ],\n      \"excludes\": [\n        \"provider-approval\",\n        \"test-outcome\",\n        \"current-tree-proof\",\n        \"remote-services\",\n        \"engine-capabilities\",\n        \"continuity-integrity\"\n      ],\n      \"ready\": false,\n      \"scope\": \"selected-local-hooks-and-verification-launcher\",\n      \"workflow\": \"manual\"\n    },\n    \"verification\": {\n      \"checksRun\": false,\n      \"command\": null,\n      \"configured\": false,\n      \"executableReady\": false,\n      \"problem\": \"no safe evidence command detected\",\n      \"ready\": false,\n      \"reason\": \"no safe evidence command detected\",\n      \"selected\": false,\n      \"source\": \"missing\",\n      \"suggestion\": null\n    }\n  },\n  \"ready\": false,\n  \"readyScope\": \"selected-local-preflight-with-engine-and-continuity\",\n  \"repository\": \"<fixture-root>/staged-initial-files\",\n  \"schema\": \"diffwitness.doctor.v1\"\n}\n",
+      "stderr": ""
+    },
+    "setup status": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "DiffWitness setup failed: DiffWitness sidecar returned an invalid status payload: \n"
+    },
+    "status --view guided": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "status --view technical": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<candidate-installation>/bin/dw\", line 8, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"<source>/src/diffwitness/entry/__init__.py\", line 268, in main\n    return status_cli(args[1:])\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 516, in status_cli\n    value = build_project_status(repo, explicit_config=args.config)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 320, in build_project_status\n    \"project\": {\"name\": repo.name, \"branch\": _branch(repo)},\n                                             ^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/status_cli.py\", line 52, in _branch\n    value = git(repo, \"rev-parse\", \"--abbrev-ref\", \"HEAD\").strip()\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 91, in git\n    return _run([\"git\", *args], cwd=repo, check=check, input_text=input_text).stdout\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<source>/src/diffwitness/gitops.py\", line 52, in _run\n    raise GitError(f\"command failed ({proc.returncode}): {' '.join(args)}\\n{proc.stderr.strip()}\")\ndiffwitness.gitops.GitError: command failed (128): git rev-parse --abbrev-ref HEAD\nfatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n"
+    },
+    "native-session-start": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "DiffWitness IDE bridge failed before the requested assurance step completed: command failed (128): git rev-parse --verify HEAD^{commit}\nfatal: Needed a single revision\n"
+    },
+    "index-after": {
+      "exit": 0,
+      "stdout": "100644 b15b1b0797d64623135bb2d04a67bae078fa44c2 0\tapp.py\n",
+      "stderr": ""
+    },
+    "HEAD-after": {
+      "exit": 128,
+      "stdout": "",
+      "stderr": "fatal: Needed a single revision\n"
+    }
+  }
+}

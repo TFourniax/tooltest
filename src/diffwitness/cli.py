@@ -10,9 +10,9 @@ from typing import Any
 from . import __version__
 from .analysis import AnalysisError, run_analysis
 from .config import load_config, write_config
-from .diffing import make_mutations, parse_file_patches
+from .diffing import make_mutations, parse_file_patches, supported_patch_bytes
 from .github_actions import emit_annotations, is_github_actions, write_outputs, write_step_summary
-from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree
+from .gitops import GitError, diff_text, repo_root, resolve_ref, snapshot_worktree, resolve_analysis_base
 from .reporting import build_report, render_markdown, write_json, write_markdown
 
 
@@ -213,7 +213,7 @@ def _prove(args: argparse.Namespace) -> int:
     if max_total_seconds <= 0:
         raise AnalysisError("--max-total-seconds must be > 0")
 
-    base_sha = resolve_ref(repo, args.base)
+    base_sha = resolve_analysis_base(repo, args.base)
     if args.candidate.upper() == "WORKTREE":
         candidate_sha = snapshot_worktree(repo)
         candidate_ref = "WORKTREE"
@@ -332,8 +332,9 @@ def _prove(args: argparse.Namespace) -> int:
     if args.report:
         write_markdown(report, args.report)
     if args.reduction_patch is not None:
+        reduction_bytes = supported_patch_bytes(outcome.reduction_patch or "")
         args.reduction_patch.parent.mkdir(parents=True, exist_ok=True)
-        args.reduction_patch.write_text(outcome.reduction_patch or "", encoding="utf-8")
+        args.reduction_patch.write_bytes(reduction_bytes)
 
     github_mode = is_github_actions() if args.github_actions is None else args.github_actions
     if github_mode:

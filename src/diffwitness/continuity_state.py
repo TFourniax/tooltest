@@ -540,7 +540,7 @@ def state_status(repo: str | Path = ".") -> dict[str, Any]:
 
 def _working_tree_dirty(repo: Path) -> bool:
     try:
-        return bool(git(repo, "status", "--porcelain=v1").strip())
+        return bool(git(repo, "--no-optional-locks", "status", "--porcelain=v1").strip())
     except Exception:
         return True
 
