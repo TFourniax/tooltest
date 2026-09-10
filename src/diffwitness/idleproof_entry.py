@@ -10,6 +10,7 @@ _ORIGINAL_BUILD_PORTAL_SNAPSHOT = _sidecar.build_portal_snapshot
 _ORIGINAL_INTEGRATION_INSTALL = _sidecar.integration_install
 _ORIGINAL_ADAPTER_INSTALLED = _sidecar._adapter_installed
 _ORIGINAL_INTEGRATION_UNINSTALL = _sidecar.integration_uninstall
+_ORIGINAL_PARSER = _sidecar._parser
 
 _CLAUDE_EXEC_EVENTS = {
     "SessionStart": ("session-start", 10),
@@ -227,6 +228,16 @@ def build_portal_snapshot(repo: Path) -> dict[str, Any]:
     return snapshot
 
 
+def _public_parser():
+    parser = _ORIGINAL_PARSER()
+    parser.description = "Local IdleProof integration and Portal connection tools shipped with DiffWitness."
+    for action in parser._actions:
+        if action.dest == "version":
+            action.help = "print the bundled IdleProof integration version"
+            break
+    return parser
+
+
 def main(argv: list[str] | None = None) -> int:
     # Sidecar functions resolve these collaborators from their module globals at call time. Keep
     # the established implementation and install only bounded public-entry compatibility shims.
@@ -234,6 +245,7 @@ def main(argv: list[str] | None = None) -> int:
     _sidecar._adapter_installed = _adapter_installed
     _sidecar.integration_install = integration_install
     _sidecar.integration_uninstall = integration_uninstall
+    _sidecar._parser = _public_parser
     return _sidecar.main(argv)
 
 
