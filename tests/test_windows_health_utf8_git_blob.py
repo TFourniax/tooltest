@@ -3,15 +3,17 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from diffwitness.debt_cli import health_cli
+from diffwitness.runner import run_command
 
 
 @unittest.skipUnless(os.name == "nt", "Windows legacy-codepage reproduction")
-class WindowsHealthUtf8GitBlobTests(unittest.TestCase):
+class WindowsUtf8SubprocessBoundaryTests(unittest.TestCase):
     def test_health_semantic_sensor_reads_utf8_git_blob_without_degrading(self) -> None:
         with tempfile.TemporaryDirectory(prefix="dw-health-utf8-") as td:
             repo = Path(td)
@@ -55,6 +57,28 @@ class WindowsHealthUtf8GitBlobTests(unittest.TestCase):
                 "degraded",
                 f"UTF-8 Git blob caused semantic sensor degradation: {semantic}",
             )
+
+    def test_proof_runner_preserves_utf8_stdout_and_stderr(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="dw-runner-utf8-") as td:
+            repo = Path(td)
+            script = (
+                "import sys; "
+                "sys.stdout.buffer.write('stdout ď\\n'.encode('utf-8')); "
+                "sys.stdout.flush(); "
+                "sys.stderr.buffer.write('stderr ď\\n'.encode('utf-8')); "
+                "sys.stderr.flush()"
+            )
+            command = subprocess.list2cmdline([sys.executable, "-c", script])
+            result = run_command(
+                command,
+                cwd=repo,
+                source_repo=repo,
+                timeout=30,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertFalse(result.timed_out)
+            self.assertEqual(result.stdout_tail, "stdout ď\n")
+            self.assertEqual(result.stderr_tail, "stderr ď\n")
 
 
 if __name__ == "__main__":
