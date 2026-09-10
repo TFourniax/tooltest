@@ -8,7 +8,19 @@ import json
 import sys
 from pathlib import Path
 
-from ..frontend import FrontendError, main as _frontend_main
+
+def _frontend_main(argv: list[str]) -> int:
+    from ..frontend import main as frontend_main
+
+    return frontend_main(argv)
+
+
+def __getattr__(name: str):
+    if name == "FrontendError":
+        from ..frontend import FrontendError
+
+        return FrontendError
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 _PUBLIC_COMMANDS = {
@@ -242,10 +254,19 @@ def _explain(argv: list[str]) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from ..language import LANGUAGES, presentation, saved_language
-    from ..gitops import repo_root
     _configure_stdio()
     args = list(sys.argv[1:] if argv is None else argv)
+
+    # A static version query must not resolve UI preferences, Git state, or the proof frontend.
+    if args and args[0] in {"-V", "--version"}:
+        from .. import __version__
+
+        print(f"diffwitness {__version__}")
+        return 0
+
+    from ..language import LANGUAGES, presentation, saved_language
+    from ..gitops import repo_root
+
     explicit = None
     if args and (args[0] == "--language" or args[0].startswith("--language=")):
         option = args.pop(0)
@@ -276,8 +297,7 @@ def _main(argv: list[str] | None = None) -> int:
     if help_view is not None:
         print(_root_help(explicit_view=None if help_view == "auto" else help_view), end="")
         return 0
-    # Preserve the established packaging/CLI contract. These global options are implemented by the
-    # canonical frontend and must be routed before typo handling sees them as unknown switches.
+    # Preserve the established packaging/CLI contract for programmatic callers that enter here.
     if args[0] in {"-V", "--version"}:
         return _frontend_main(args)
 
