@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from diffwitness.debt_cli import health_cli
+from diffwitness.reporting import write_json
 from diffwitness.runner import run_command
 
 
@@ -80,7 +81,7 @@ class WindowsUtf8SubprocessBoundaryTests(unittest.TestCase):
             self.assertEqual(result.stdout_tail, "stdout ď\n")
             self.assertEqual(result.stderr_tail, "stderr ď\n")
 
-    def test_proof_runner_keeps_non_utf8_diagnostic_bytes_reversible(self) -> None:
+    def test_proof_runner_keeps_non_utf8_diagnostics_json_safe(self) -> None:
         with tempfile.TemporaryDirectory(prefix="dw-runner-bytes-") as td:
             repo = Path(td)
             script = (
@@ -97,10 +98,14 @@ class WindowsUtf8SubprocessBoundaryTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0)
             self.assertFalse(result.timed_out)
-            self.assertEqual(
-                result.stdout_tail.encode("utf-8", errors="surrogateescape"),
-                b"raw \xff\n",
-            )
+            self.assertEqual(result.stdout_tail, "raw \\xff\n")
+
+            output = repo / "diagnostic.json"
+            write_json({"stdout_tail": result.stdout_tail}, output)
+            raw = output.read_bytes()
+            decoded = raw.decode("utf-8")
+            payload = json.loads(decoded)
+            self.assertEqual(payload["stdout_tail"], "raw \\xff\n")
 
 
 if __name__ == "__main__":
