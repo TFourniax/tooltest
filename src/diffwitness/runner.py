@@ -263,7 +263,7 @@ def run_command(
         shell=True,
         text=True,
         encoding="utf-8",
-        errors="surrogateescape",
+        errors="backslashreplace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=command_env(source_repo),
