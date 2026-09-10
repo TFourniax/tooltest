@@ -99,42 +99,22 @@ currently targets supported Claude/Codex live hook surfaces.
 Use `dw <command> --help` for command-specific options.
 """
 
-GUIDED_HELP = """DiffWitness · Guided view — understand what needs attention without hiding the evidence
+GUIDED_HELP = """DiffWitness · Guided view — understand what changed, what is verified, and what needs attention
 
 Start here:
   dw setup                           Connect DiffWitness to Claude/Codex/Cursor for this Git project
-  dw status                          Show what is known, what needs attention, and what to do next
-  dw protect detect                  Check whether live protection should be builtin, external, or off
-  dw protect enable                  Optionally protect supported agent actions while the AI works
+  dw status                          See what is known, unknown, and what to do next
+After setup, use your coding agent normally; run `dw status` after a change.
+
+Useful when needed:
   dw explain                         Explain the latest change from local evidence, with no AI required
-  dw doctor                          Check whether runtime protection and executable evidence are ready
-  dw view technical                  Switch to exact engineering detail at any time
+  dw protect detect                  Check optional live protection without changing configuration
+  dw view technical                  Open the complete engineering command surface
 
-Runtime protection is optional:
-  dw protect use external            Keep your existing harness and let DiffWitness verify the result
-  dw protect disable                 Use no DiffWitness live interception; Proof and Debt still work
+A blocked or observed runtime action is not proof that the final software works.
+DiffWitness verifies the resulting Git change independently. Source code and raw prompts/diffs stay local by default.
 
-Current Codex requires its own hook feature and trust flow before project hooks execute. DiffWitness never
-approves itself; `dw protect status` stays conservative until a live Codex hook reaches Protect.
-
-A blocked or observed runtime action is not proof that the final software works. DiffWitness verifies the
-resulting change independently after generation.
-
-Useful follow-up actions:
-  dw guard -- <agent>                Put any agent/process behind an explicit before/after proof boundary
-  dw plan                            See which known technical obligations can be repaid next
-  dw repay -- <agent>                Ask an agent to repay selected debt and verify the result
-
-If you want smoother wording, `dw explain --help` shows optional local, current-agent, OpenRouter and
-custom-provider presentation modes. They only rephrase the same evidence; the default remains local and
-AI-free, and a Community user is never silently routed to DiffWitness-paid inference.
-
-Guided view changes wording and disclosure only. It does not weaken verification, hide an UNKNOWN as
-success, change Protect mode, or change proof certificates, Debt Ledger state, project source, privacy
-boundaries, or the machine-readable status contract. Source code and raw prompts/diffs stay local by default.
-
-Need the complete engineering command surface now? Run `dw view technical`, then `dw --help` again.
-You can switch back with `dw view guided` without reinstalling or changing the project.
+For every command and advanced workflow: `dw view technical`, then `dw --help`.
 """
 
 # Backward-compatible import for integrations/tests that expect the original constant.
