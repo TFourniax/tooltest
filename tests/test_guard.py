@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import io
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
+from diffwitness.continuity_events import continuity_paths, read_project_events
 from diffwitness.entry import main
 
 
@@ -37,26 +40,34 @@ class PublicGuardTests(unittest.TestCase):
                 "\"import unittest\\nfrom calc import add\\n\\nclass T(unittest.TestCase):\\n    def test_add(self):\\n        self.assertEqual(add(2, 3), 5)\\n\", encoding='utf-8')"
             )
             command = f'"{sys.executable}" -m unittest discover -s tests -q'
-            rc = main(
-                [
-                    "guard",
-                    "--repo",
-                    str(repo),
-                    "--test",
-                    command,
-                    "--policy",
-                    "strict",
-                    "--strategy",
-                    "auto",
-                    "--stability-runs",
-                    "1",
-                    "--",
-                    sys.executable,
-                    "-c",
-                    script,
-                ]
-            )
+            stderr = io.StringIO()
+            with redirect_stderr(stderr):
+                rc = main(
+                    [
+                        "guard",
+                        "--repo",
+                        str(repo),
+                        "--test",
+                        command,
+                        "--policy",
+                        "strict",
+                        "--strategy",
+                        "auto",
+                        "--stability-runs",
+                        "1",
+                        "--",
+                        sys.executable,
+                        "-c",
+                        script,
+                    ]
+                )
             self.assertEqual(rc, 0)
+            self.assertNotIn("Project continuity recording degraded", stderr.getvalue())
+
+            events = read_project_events(continuity_paths(repo).events)
+            self.assertEqual(sum(event["event_type"] == "change.observed" for event in events), 1)
+            self.assertEqual(sum(event["event_type"] == "proof.completed" for event in events), 1)
+            self.assertEqual(sum(event["event_type"] == "debt.snapshot" for event in events), 1)
 
     def test_public_guard_preserves_agent_failure_code_without_claiming_proof(self) -> None:
         with tempfile.TemporaryDirectory() as td:

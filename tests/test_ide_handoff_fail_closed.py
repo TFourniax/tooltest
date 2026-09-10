@@ -6,7 +6,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diffwitness.ide_handoff import _MAX_RETRIES, _retry_or_block, finalize_ide_session
+from diffwitness.engine_protocol import change_id, repository_fingerprint
+from diffwitness.ide_handoff import (
+    _MAX_RETRIES,
+    _continuity_health_path,
+    _record_continuity,
+    _retry_or_block,
+    finalize_ide_session,
+)
 from diffwitness.proof_cli import _state_path
 
 
@@ -69,6 +76,49 @@ class IdeHandoffFailClosedTests(unittest.TestCase):
             self.assertNotIn("decision", repeated)
             self.assertIs(repeated["continue"], False)
             self.assertGreater(state["retries"], _MAX_RETRIES)
+
+    def test_continuity_projection_failure_is_durable_degradation_and_recovery_clears_it(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._repo(Path(td))
+            envelope = Path(td) / "envelope.json"
+            envelope.write_text(
+                json.dumps({"schema_version": "invalid", "change_id": "dwchg_failed_projection"}),
+                encoding="utf-8",
+            )
+
+            failed_change, created, error = _record_continuity(repo, envelope)
+            self.assertEqual(failed_change, "dwchg_failed_projection")
+            self.assertEqual(created, 0)
+            self.assertIn("ContinuityError", error or "")
+
+            health = _continuity_health_path(repo)
+            degraded = json.loads(health.read_text(encoding="utf-8"))
+            self.assertEqual(degraded["state"], "degraded")
+            self.assertEqual(degraded["change_id"], "dwchg_failed_projection")
+            self.assertIn("dw state rebuild", degraded["action"])
+
+            repository = repository_fingerprint(repo)
+            base_tree = "tree-base"
+            candidate_tree = "tree-candidate"
+            cid = change_id(repository=repository, base_tree=base_tree, candidate_tree=candidate_tree)
+            envelope.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "change-envelope-1",
+                        "repository": {"fingerprint": repository},
+                        "base": {"sha": "ephemeral-base", "tree": base_tree},
+                        "candidate": {"sha": "ephemeral-candidate", "tree": candidate_tree},
+                        "change_id": cid,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            recovered_change, recovered_created, recovered_error = _record_continuity(repo, envelope)
+            self.assertEqual(recovered_change, cid)
+            self.assertGreaterEqual(recovered_created, 1)
+            self.assertIsNone(recovered_error)
+            self.assertFalse(health.exists())
 
 
 if __name__ == "__main__":
