@@ -37,6 +37,21 @@ class PortalProxyTests(unittest.TestCase):
         self.assertEqual(rc, 127)
         ensure.assert_called_once_with(Path("/tmp/repo"))
         self.assertIn("Reinstall the matching DiffWitness wheel", err.getvalue())
+        self.assertNotIn("sidecar", err.getvalue().lower())
+
+    def test_start_failure_does_not_expose_internal_sidecar_term(self) -> None:
+        err = io.StringIO()
+        repo_patch, exclude_patch = self.local_state()
+        with (
+            repo_patch,
+            exclude_patch,
+            patch("diffwitness.portal_proxy.shutil.which", return_value="/usr/bin/idleproof"),
+            patch("diffwitness.portal_proxy.subprocess.run", side_effect=OSError("cannot execute")),
+            redirect_stderr(err),
+        ):
+            rc = portal_cli(["status", "--json"])
+        self.assertEqual(rc, 126)
+        self.assertNotIn("sidecar", err.getvalue().lower())
 
     def test_snapshot_is_local_and_does_not_require_sidecar_or_portal_config(self) -> None:
         snapshot = {
