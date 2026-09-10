@@ -6,8 +6,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness.continuity_bridge import record_change_envelope
 from diffwitness.continuity_events import append_project_events, continuity_paths, read_project_events
 from diffwitness.continuity_state import ensure_state
+from diffwitness.engine_protocol import change_id, repository_fingerprint
 
 
 class ContinuityReverificationTests(unittest.TestCase):
@@ -135,6 +137,65 @@ class ContinuityReverificationTests(unittest.TestCase):
                 self.assertEqual(len(change_rows), 1)
                 self.assertEqual(change_rows[0]["base_tree"], "tree-base")
                 self.assertEqual(change_rows[0]["candidate_tree"], "tree-candidate")
+            finally:
+                db.close()
+
+    def test_bridge_reverification_keeps_one_change_and_advances_current_proof(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._repo(Path(td))
+            repository = repository_fingerprint(repo)
+            base_tree = "tree-base"
+            candidate_tree = "tree-candidate"
+            cid = change_id(repository=repository, base_tree=base_tree, candidate_tree=candidate_tree)
+
+            def envelope(cert: str, base_sha: str, candidate_sha: str) -> dict:
+                return {
+                    "schema_version": "change-envelope-1",
+                    "repository": {"fingerprint": repository},
+                    "base": {"sha": base_sha, "tree": base_tree},
+                    "candidate": {"sha": candidate_sha, "tree": candidate_tree},
+                    "change_id": cid,
+                    "proof": {
+                        "certificate_id": cert,
+                        "claim": "causal",
+                        "accepted": True,
+                        "certificate_schema": 2,
+                    },
+                    "debt": {"points": 0, "open_lineages": [], "budget_passed": True},
+                }
+
+            first = record_change_envelope(
+                repo=repo,
+                envelope=envelope("dw2_bridge_first", "snapshot-base-one", "snapshot-candidate-one"),
+                trusted_proof=True,
+            )
+            second = record_change_envelope(
+                repo=repo,
+                envelope=envelope("dw2_bridge_second", "snapshot-base-two", "snapshot-candidate-two"),
+                trusted_proof=True,
+            )
+            self.assertEqual(first["created"]["change"], 1)
+            self.assertEqual(second["created"]["change"], 0)
+            self.assertEqual(second["created"]["proof"], 1)
+
+            events = read_project_events(continuity_paths(repo).events)
+            self.assertEqual(sum(event["event_type"] == "change.observed" for event in events), 1)
+            self.assertEqual(
+                [event["subject"]["id"] for event in events if event["event_type"] == "proof.completed"],
+                ["dw2_bridge_first", "dw2_bridge_second"],
+            )
+
+            state_path = ensure_state(repo)
+            db = sqlite3.connect(state_path)
+            try:
+                current = db.execute(
+                    "select certificate_id from proofs where change_id=? order by "
+                    "case epistemic_status when 'VERIFIED' then 4 when 'OBSERVED' then 3 when 'INFERRED' then 2 else 1 end desc, "
+                    "updated_at desc, certificate_id desc limit 1",
+                    (cid,),
+                ).fetchone()
+                self.assertEqual(current[0], "dw2_bridge_second")
+                self.assertEqual(db.execute("select count(*) from changes where change_id=?", (cid,)).fetchone()[0], 1)
             finally:
                 db.close()
 
