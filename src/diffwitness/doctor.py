@@ -356,7 +356,11 @@ def doctor_cli(argv: list[str]) -> int:
         return 0 if result["ready"] else 1
     except GitError as exc:
         print(f"DiffWitness doctor: {exc}")
-        if not args.json and (args.view or "guided") == "guided":
+        if (
+            not args.json
+            and (args.view or "guided") == "guided"
+            and str(exc).startswith("not a Git repository:")
+        ):
             print(tr(
                 "Next: Run `dw doctor` inside a Git repository. For a new project, run `git init` first.",
                 "Suite : Exécutez `dw doctor` dans un dépôt Git. Pour un nouveau projet, exécutez d’abord `git init`.",
