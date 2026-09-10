@@ -46,14 +46,41 @@ def entrypoint(name: str) -> str:
     return str(Path(value).resolve())
 
 
-def hook(repo: Path, event: str) -> tuple[str, list[str]]:
+def hook(repo: Path, event: str) -> tuple[str, list[str] | None]:
     payload = json.loads((repo / ".codex" / "hooks.json").read_text(encoding="utf-8"))
     for entry in payload.get("hooks", {}).get(event, []):
         for item in entry.get("hooks", []):
             command, args = item.get("command"), item.get("args")
-            if isinstance(command, str) and isinstance(args, list) and "ide-hook" in args:
-                return command, [str(value) for value in args]
-    raise AssertionError(f"no exec-form DiffWitness hook for {event}")
+            if not isinstance(command, str):
+                continue
+            if isinstance(args, list) and all(isinstance(value, str) for value in args):
+                argv = [str(value) for value in args]
+                if "ide-hook" in argv:
+                    return command, argv
+            if "ide-hook" in command:
+                return command, None
+    raise AssertionError(f"no DiffWitness hook for Codex {event}")
+
+
+def run_hook(
+    repo: Path,
+    invocation: tuple[str, list[str] | None],
+    payload: dict[str, object],
+) -> subprocess.CompletedProcess[str]:
+    command, args = invocation
+    common = dict(
+        cwd=repo,
+        input=json.dumps(payload),
+        text=True,
+        encoding="utf-8",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=180,
+        check=False,
+    )
+    if args is not None:
+        return subprocess.run([command, *args], shell=False, **common)
+    return subprocess.run(command, shell=True, **common)
 
 
 class GuardNativeReverificationTests(unittest.TestCase):
@@ -93,33 +120,29 @@ class GuardNativeReverificationTests(unittest.TestCase):
             self.assertEqual(setup.returncode, 0, setup.stderr)
 
             session = "guard-native-same-tree"
-            common = {
+            common: dict[str, object] = {
                 "cwd": str(repo),
                 "session_id": session,
                 "model": "gpt-5.5",
                 "permission_mode": "default",
                 "transcript_path": str(repo / ".codex" / "transcript.jsonl"),
             }
-            start_command, start_args = hook(repo, "SessionStart")
-            started = run(
-                [start_command, *start_args],
-                cwd=repo,
-                input_text=json.dumps({**common, "hook_event_name": "SessionStart", "source": "startup"}),
+            started = run_hook(
+                repo,
+                hook(repo, "SessionStart"),
+                {**common, "hook_event_name": "SessionStart", "source": "startup"},
             )
             self.assertEqual(started.returncode, 0, started.stderr)
 
-            prompt_command, prompt_args = hook(repo, "UserPromptSubmit")
-            prompted = run(
-                [prompt_command, *prompt_args],
-                cwd=repo,
-                input_text=json.dumps(
-                    {
-                        **common,
-                        "hook_event_name": "UserPromptSubmit",
-                        "turn_id": "turn-1",
-                        "prompt": "Fix add so the existing regression test passes",
-                    }
-                ),
+            prompted = run_hook(
+                repo,
+                hook(repo, "UserPromptSubmit"),
+                {
+                    **common,
+                    "hook_event_name": "UserPromptSubmit",
+                    "turn_id": "turn-1",
+                    "prompt": "Fix add so the existing regression test passes",
+                },
             )
             self.assertEqual(prompted.returncode, 0, prompted.stderr)
 
@@ -151,19 +174,16 @@ class GuardNativeReverificationTests(unittest.TestCase):
             guarded_change = guarded_envelope["change_id"]
             guarded_cert = guarded_envelope["proof"]["certificate_id"]
 
-            stop_command, stop_args = hook(repo, "Stop")
-            stopped = run(
-                [stop_command, *stop_args],
-                cwd=repo,
-                input_text=json.dumps(
-                    {
-                        **common,
-                        "hook_event_name": "Stop",
-                        "turn_id": "turn-1",
-                        "stop_hook_active": False,
-                        "last_assistant_message": "Implemented the minimal fix.",
-                    }
-                ),
+            stopped = run_hook(
+                repo,
+                hook(repo, "Stop"),
+                {
+                    **common,
+                    "hook_event_name": "Stop",
+                    "turn_id": "turn-1",
+                    "stop_hook_active": False,
+                    "last_assistant_message": "Implemented the minimal fix.",
+                },
             )
             self.assertEqual(stopped.returncode, 0, stopped.stderr)
             provider_result = json.loads(stopped.stdout)
