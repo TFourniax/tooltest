@@ -98,7 +98,7 @@ def portal_cli(argv: list[str]) -> int:
     executable = shutil.which("idleproof")
     if executable is None:
         print(
-            "DiffWitness Portal sidecar is unavailable. Reinstall the matching DiffWitness wheel and retry.",
+            "DiffWitness Portal integration is unavailable. Reinstall the matching DiffWitness wheel and retry.",
             file=sys.stderr,
         )
         return 127
@@ -110,7 +110,7 @@ def portal_cli(argv: list[str]) -> int:
             check=False,
         )
     except OSError as exc:
-        print(f"DiffWitness Portal could not start its local sidecar: {exc}", file=sys.stderr)
+        print(f"DiffWitness Portal could not start its local integration: {exc}", file=sys.stderr)
         return 126
     return int(proc.returncode)
 
