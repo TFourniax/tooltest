@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness.setup import _guided_setup_error
+
 
 def _run(
     args: list[str],
@@ -77,6 +79,20 @@ class HT004GuidedVocabularyTests(unittest.TestCase):
             self.assertNotIn("sidecar", human.stderr.lower())
             self.assertIn("DiffWitness", human.stderr)
 
+            french = _dw(
+                repo,
+                "--language",
+                "fr",
+                "setup",
+                "--agent",
+                "codex",
+                "--idleproof-command",
+                sys.executable,
+            )
+            self.assertEqual(french.returncode, 2)
+            self.assertNotIn("sidecar", french.stderr.lower())
+            self.assertIn("intégration DiffWitness", french.stderr)
+
             machine = _dw(
                 repo,
                 "setup",
@@ -105,6 +121,20 @@ class HT004GuidedVocabularyTests(unittest.TestCase):
             )
             self.assertEqual(technical_error.returncode, 2)
             self.assertIn("sidecar", technical_error.stderr.lower())
+
+    def test_every_diffwitness_owned_sidecar_diagnostic_has_a_guided_rendering(self) -> None:
+        raw_messages = (
+            "DiffWitness sidecar command failed to start: executable missing",
+            "DiffWitness sidecar rejected the operation: exit 2",
+            "DiffWitness sidecar returned an invalid status payload: nope",
+            "DiffWitness sidecar is incompatible with this release (unexpected integration status schema).",
+            "This DiffWitness installation has no bundled understanding sidecar. Install the matching bundle.",
+        )
+        for raw in raw_messages:
+            with self.subTest(raw=raw):
+                rendered = _guided_setup_error(raw)
+                self.assertNotIn("sidecar", rendered.lower())
+                self.assertNotEqual(rendered, raw)
 
     def test_idleproof_help_does_not_expose_internal_sidecar_architecture(self) -> None:
         idleproof = _entrypoint("idleproof")
