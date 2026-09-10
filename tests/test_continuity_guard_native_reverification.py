@@ -218,7 +218,7 @@ class GuardNativeReverificationTests(unittest.TestCase):
             self.assertEqual(current[0], final_cert)
 
             snapshot = build_portal_snapshot(repo)
-            self.assertEqual(snapshot["changeId"], guarded_change)
+            self.assertEqual(snapshot["change"]["changeId"], guarded_change)
             self.assertEqual(snapshot["assurance"]["proof"]["certificateId"], final_cert)
 
 
