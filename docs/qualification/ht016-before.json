@@ -1,0 +1,478 @@
+{
+  "baseline": "53887986e5fd346a0b692560ef9c53f06436603c",
+  "tree": "4e5da6eb4068f403cda51903c4f0b541dd63ec9d",
+  "guard_exit_codes": {
+    "accepted": 0,
+    "failed": 1
+  },
+  "states": {
+    "A_no_proof": {
+      "doctor:guided": {
+        "rc": 0,
+        "output": "Current Proof: unknown \u00b7 current tree verified=False\nDIFFWITNESS \u00b7 GUIDED CHECK-UP\n\n\u2713 Verification ready: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\n\u2022 Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n\u2022 Live protection: off (optional)\n\u2713 Project memory: ready, currently empty\n\nVerification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.\nEngineering details: `dw view technical`, then `dw doctor`.\n"
+      },
+      "doctor:technical": {
+        "rc": 0,
+        "output": "Current Proof: unknown \u00b7 current tree verified=False\nRepository: /tmp/tmpmy08srmq\nEvidence:   ready \u00b7 configured - /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\nNative:     not configured\nNative integration not configured (optional).\nProtect:    off \u00b7 optional\nBoundary:   Protect runtime observations never establish VERIFIED software behavior.\nAdvisory:   Community planner only\nContinuity: ready \u00b7 0 ProjectEvent(s)\nTrust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED\nPrivacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history\n\nWorkflow:\n  dw setup                               # install native Claude/Codex integration\n  dw guard -- <agent>                   # manual fallback\n  dw protect enable                      # optional live guardrails\n"
+      },
+      "status:guided": {
+        "rc": 0,
+        "output": "DIFFWITNESS \u00b7 GUIDED\n\nReady for the next change\nVerification is executable and the project has no uncovered change.\n\nProject state\nNative integration not configured (optional).\n\u2022 Live protection is off (optional).\n\u2713 Verification can be started.\n\u2022 Working tree is clean; this does not constitute Proof.\n\u2713 No open technical obligations are recorded in the Debt Ledger.\n\u2022 No DiffWitness change history yet.\n\nNext step\n1. Verify the next agent change with the manual boundary\n   No native setup scope is recorded for this repository. Run `dw setup` to use Claude/Codex normally instead.\n   Command: dw guard -- <agent>\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n"
+      },
+      "status:technical": {
+        "rc": 0,
+        "output": "DIFFWITNESS STATUS \u00b7 TECHNICAL VIEW\n\nNative integration not configured (optional).\nProtect       off \u00b7 optional\nEvidence      ready (configured: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q)\nWorking tree  clean\nProof scope   unknown\nDebt          0 point(s) \u00b7 0 open obligation(s)\nLast change   none\n\nNext actions\n1. Verify the next agent change with the manual boundary\n   dw guard -- <agent>\n   No native setup scope is recorded for this repository. Run `dw setup` to use Claude/Codex normally instead.\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n"
+      },
+      "git_status": "",
+      "canonical": {
+        "doctor": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": false,
+            "currentTreeVerified": false,
+            "freshness": "unknown",
+            "reason": "no readable change envelope",
+            "status": "unknown"
+          }
+        },
+        "status": {
+          "exit_code": 0,
+          "verification": {
+            "configured": true,
+            "selected": true,
+            "executableReady": true,
+            "ready": true,
+            "checksRun": false,
+            "source": "configured",
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "reason": "configured project evidence",
+            "problem": null,
+            "suggestion": null
+          },
+          "currentProof": {
+            "status": "unknown",
+            "accepted": false,
+            "reason": "no readable change envelope",
+            "currentTreeVerified": false,
+            "freshness": "unknown"
+          }
+        },
+        "setup": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": false,
+            "currentTreeVerified": false,
+            "freshness": "unknown",
+            "reason": "no readable change envelope",
+            "status": "unknown"
+          }
+        }
+      }
+    },
+    "B_fresh": {
+      "doctor:guided": {
+        "rc": 0,
+        "output": "Current Proof: fresh \u00b7 current tree verified=True\nDIFFWITNESS \u00b7 GUIDED CHECK-UP\n\n\u2713 Verification ready: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\n\u2022 Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n\u2022 Live protection: off (optional)\n\u2713 Project memory: 2 verified event(s)\n\nVerification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.\nEngineering details: `dw view technical`, then `dw doctor`.\n"
+      },
+      "doctor:technical": {
+        "rc": 0,
+        "output": "Current Proof: fresh \u00b7 current tree verified=True\nRepository: /tmp/tmpmy08srmq\nEvidence:   ready \u00b7 configured - /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\nNative:     not configured\nNative integration not configured (optional).\nProtect:    off \u00b7 optional\nBoundary:   Protect runtime observations never establish VERIFIED software behavior.\nAdvisory:   Community planner only\nContinuity: ready \u00b7 2 ProjectEvent(s)\nMemory:     2 entities / 2 relations / 1 changes / 0 debts\nTrust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED\nPrivacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history\n\nWorkflow:\n  dw setup                               # install native Claude/Codex integration\n  dw guard -- <agent>                   # manual fallback\n  dw protect enable                      # optional live guardrails\n"
+      },
+      "status:guided": {
+        "rc": 0,
+        "output": "DIFFWITNESS \u00b7 GUIDED\n\nThe current change is verified\nThe current code exactly matches the latest change accepted by DiffWitness.\n\nProject state\nNative integration not configured (optional).\n\u2022 Live protection is off (optional).\n\u2713 Verification can be started.\n\u2713 The currently visible change is covered by the latest accepted Proof.\n\u2713 No open technical obligations are recorded in the Debt Ledger.\n\u2713 A DiffWitness change history exists.\n\nNext step\n1. Current change is already verified\n   The current worktree exactly matches the latest accepted DiffWitness candidate. Any further edit makes this coverage stale.\n   Command: git status --short\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n"
+      },
+      "status:technical": {
+        "rc": 0,
+        "output": "DIFFWITNESS STATUS \u00b7 TECHNICAL VIEW\n\nNative integration not configured (optional).\nProtect       off \u00b7 optional\nEvidence      ready (configured: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q)\nWorking tree  1 actionable changed file(s)\nProof scope   accepted\nDebt          0 point(s) \u00b7 0 open obligation(s)\nLast change   dwchg_09019cb0e6d6d6cdcd7d0143\n\nNext actions\n1. Current change is already verified\n   git status --short\n   The current worktree exactly matches the latest accepted DiffWitness candidate. Any further edit makes this coverage stale.\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n"
+      },
+      "git_status": "M calculator.py",
+      "canonical": {
+        "doctor": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": true,
+            "current_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "freshness": "fresh",
+            "status": "accepted"
+          }
+        },
+        "status": {
+          "exit_code": 0,
+          "verification": {
+            "configured": true,
+            "selected": true,
+            "executableReady": true,
+            "ready": true,
+            "checksRun": false,
+            "source": "configured",
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "reason": "configured project evidence",
+            "problem": null,
+            "suggestion": null
+          },
+          "currentProof": {
+            "status": "accepted",
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "current_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": true,
+            "freshness": "fresh"
+          }
+        },
+        "setup": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": true,
+            "current_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "freshness": "fresh",
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    "C_stale": {
+      "doctor:guided": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nDIFFWITNESS \u00b7 GUIDED CHECK-UP\n\n\u2713 Verification ready: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\n\u2022 Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n\u2022 Live protection: off (optional)\n\u2713 Project memory: 2 verified event(s)\n\nVerification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.\nEngineering details: `dw view technical`, then `dw doctor`.\n"
+      },
+      "doctor:technical": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nRepository: /tmp/tmpmy08srmq\nEvidence:   ready \u00b7 configured - /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\nNative:     not configured\nNative integration not configured (optional).\nProtect:    off \u00b7 optional\nBoundary:   Protect runtime observations never establish VERIFIED software behavior.\nAdvisory:   Community planner only\nContinuity: ready \u00b7 2 ProjectEvent(s)\nMemory:     2 entities / 2 relations / 1 changes / 0 debts\nTrust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED\nPrivacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history\n\nWorkflow:\n  dw setup                               # install native Claude/Codex integration\n  dw guard -- <agent>                   # manual fallback\n  dw protect enable                      # optional live guardrails\n"
+      },
+      "status:guided": {
+        "rc": 0,
+        "output": "DIFFWITNESS \u00b7 GUIDED\n\nA change needs verification\n1 relevant file(s) have changed since the last applicable Proof.\n\nProject state\nNative integration not configured (optional).\n\u2022 Live protection is off (optional).\n\u2713 Verification can be started.\n\u26a0 1 changed file(s) are not yet covered by a current Proof.\n\u2713 No open technical obligations are recorded in the Debt Ledger.\n\u2713 A DiffWitness change history exists.\n\nNext step\n1. Verify the current change\n   1 actionable changed file(s) are present and are not covered by the latest accepted Proof.\n   Command: dw gate --base 81facc6724c74a0b305795beef590bc25de28cfd --candidate WORKTREE\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n"
+      },
+      "status:technical": {
+        "rc": 0,
+        "output": "DIFFWITNESS STATUS \u00b7 TECHNICAL VIEW\n\nNative integration not configured (optional).\nProtect       off \u00b7 optional\nEvidence      ready (configured: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q)\nWorking tree  1 actionable changed file(s)\nProof scope   stale\nDebt          0 point(s) \u00b7 0 open obligation(s)\nLast change   dwchg_09019cb0e6d6d6cdcd7d0143\n\nNext actions\n1. Verify the current change\n   dw gate --base 81facc6724c74a0b305795beef590bc25de28cfd --candidate WORKTREE\n   1 actionable changed file(s) are present and are not covered by the latest accepted Proof.\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n"
+      },
+      "git_status": "M calculator.py",
+      "canonical": {
+        "doctor": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        },
+        "status": {
+          "exit_code": 0,
+          "verification": {
+            "configured": true,
+            "selected": true,
+            "executableReady": true,
+            "ready": true,
+            "checksRun": false,
+            "source": "configured",
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "reason": "configured project evidence",
+            "problem": null,
+            "suggestion": null
+          },
+          "currentProof": {
+            "status": "stale",
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "currentTreeVerified": false,
+            "freshness": "stale"
+          }
+        },
+        "setup": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        }
+      }
+    },
+    "E_clean_stale": {
+      "doctor:guided": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nDIFFWITNESS \u00b7 GUIDED CHECK-UP\n\n\u2713 Verification ready: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\n\u2022 Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n\u2022 Live protection: off (optional)\n\u2713 Project memory: 2 verified event(s)\n\nVerification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.\nEngineering details: `dw view technical`, then `dw doctor`.\n"
+      },
+      "doctor:technical": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nRepository: /tmp/tmpmy08srmq\nEvidence:   ready \u00b7 configured - /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\nNative:     not configured\nNative integration not configured (optional).\nProtect:    off \u00b7 optional\nBoundary:   Protect runtime observations never establish VERIFIED software behavior.\nAdvisory:   Community planner only\nContinuity: ready \u00b7 2 ProjectEvent(s)\nMemory:     2 entities / 2 relations / 1 changes / 0 debts\nTrust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED\nPrivacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history\n\nWorkflow:\n  dw setup                               # install native Claude/Codex integration\n  dw guard -- <agent>                   # manual fallback\n  dw protect enable                      # optional live guardrails\n"
+      },
+      "status:guided": {
+        "rc": 0,
+        "output": "DIFFWITNESS \u00b7 GUIDED\n\nReady for the next change\nVerification is executable and the project has no uncovered change.\n\nProject state\nNative integration not configured (optional).\n\u2022 Live protection is off (optional).\n\u2713 Verification can be started.\n\u2022 Working tree is clean; this does not constitute Proof.\n\u2713 No open technical obligations are recorded in the Debt Ledger.\n\u2713 A DiffWitness change history exists.\n\nNext step\n1. Verify the next agent change with the manual boundary\n   No native setup scope is recorded for this repository. Run `dw setup` to use Claude/Codex normally instead.\n   Command: dw guard -- <agent>\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n"
+      },
+      "status:technical": {
+        "rc": 0,
+        "output": "DIFFWITNESS STATUS \u00b7 TECHNICAL VIEW\n\nNative integration not configured (optional).\nProtect       off \u00b7 optional\nEvidence      ready (configured: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q)\nWorking tree  clean\nProof scope   stale\nDebt          0 point(s) \u00b7 0 open obligation(s)\nLast change   dwchg_09019cb0e6d6d6cdcd7d0143\n\nNext actions\n1. Verify the next agent change with the manual boundary\n   dw guard -- <agent>\n   No native setup scope is recorded for this repository. Run `dw setup` to use Claude/Codex normally instead.\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n"
+      },
+      "git_status": "",
+      "canonical": {
+        "doctor": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        },
+        "status": {
+          "exit_code": 0,
+          "verification": {
+            "configured": true,
+            "selected": true,
+            "executableReady": true,
+            "ready": true,
+            "checksRun": false,
+            "source": "configured",
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "reason": "configured project evidence",
+            "problem": null,
+            "suggestion": null
+          },
+          "currentProof": {
+            "status": "stale",
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "currentTreeVerified": false,
+            "freshness": "stale"
+          }
+        },
+        "setup": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "03b16c608515214753fbcaeabbd5fa8ffd980aa8",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        }
+      }
+    },
+    "D_failed": {
+      "doctor:guided": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nDIFFWITNESS \u00b7 GUIDED CHECK-UP\n\n\u2713 Verification ready: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\n\u2022 Agent integration not configured. Run `dw setup` for Claude Code/Codex.\n\u2022 Live protection: off (optional)\n\u2713 Project memory: 2 verified event(s)\n\nVerification ready. Run `dw setup` to use Claude Code/Codex without a wrapper.\nEngineering details: `dw view technical`, then `dw doctor`.\n"
+      },
+      "doctor:technical": {
+        "rc": 0,
+        "output": "Current Proof: stale \u00b7 current tree verified=False\nRepository: /tmp/tmpmy08srmq\nEvidence:   ready \u00b7 configured - /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q\nNative:     not configured\nNative integration not configured (optional).\nProtect:    off \u00b7 optional\nBoundary:   Protect runtime observations never establish VERIFIED software behavior.\nAdvisory:   Community planner only\nContinuity: ready \u00b7 2 ProjectEvent(s)\nMemory:     2 entities / 2 relations / 1 changes / 0 debts\nTrust:      DECLARED/INFERRED/OBSERVED never auto-upgrade to VERIFIED\nPrivacy:    no raw prompts/diffs/agent commands in bounded ProjectEvent/Protect history\n\nWorkflow:\n  dw setup                               # install native Claude/Codex integration\n  dw guard -- <agent>                   # manual fallback\n  dw protect enable                      # optional live guardrails\n"
+      },
+      "status:guided": {
+        "rc": 0,
+        "output": "DIFFWITNESS \u00b7 GUIDED\n\nA change needs verification\n1 relevant file(s) have changed since the last applicable Proof.\n\nProject state\nNative integration not configured (optional).\n\u2022 Live protection is off (optional).\n\u2713 Verification can be started.\n\u26a0 1 changed file(s) are not yet covered by a current Proof.\n\u2713 No open technical obligations are recorded in the Debt Ledger.\n\u2713 A DiffWitness change history exists.\n\nNext step\n1. Verify the current change\n   1 actionable changed file(s) are present and are not covered by the latest accepted Proof.\n   Command: dw gate --base 81facc6724c74a0b305795beef590bc25de28cfd --candidate WORKTREE\n2. Optionally protect the agent while it works\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n   Command: dw protect enable\n\nLive protection blocks/observes some actions during work; only executable verification can establish coverage for an exact code version.\nEngineering details: `dw view technical`.\n"
+      },
+      "status:technical": {
+        "rc": 0,
+        "output": "DIFFWITNESS STATUS \u00b7 TECHNICAL VIEW\n\nNative integration not configured (optional).\nProtect       off \u00b7 optional\nEvidence      ready (configured: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q)\nWorking tree  1 actionable changed file(s)\nProof scope   stale\nDebt          0 point(s) \u00b7 0 open obligation(s)\nLast change   dwchg_09019cb0e6d6d6cdcd7d0143\n\nNext actions\n1. Verify the current change\n   dw gate --base 81facc6724c74a0b305795beef590bc25de28cfd --candidate WORKTREE\n   1 actionable changed file(s) are present and are not covered by the latest accepted Proof.\n2. Optionally protect the agent while it works\n   dw protect enable\n   Protect is optional. Enabling it adds deterministic runtime guardrails without changing Proof or Debt semantics.\n\nProtect observations are runtime guard metadata, not executable proof. Gate/Proof claims are exact-tree scoped.\nPrefer less detail? `dw view guided` (or one-off: `dw status --view guided`).\n"
+      },
+      "git_status": "M calculator.py",
+      "canonical": {
+        "doctor": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "f8a77f4bf266e2fa49d8cfcc2ef40fdde9fe01d4",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        },
+        "status": {
+          "exit_code": 0,
+          "verification": {
+            "configured": true,
+            "selected": true,
+            "executableReady": true,
+            "ready": true,
+            "checksRun": false,
+            "source": "configured",
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "reason": "configured project evidence",
+            "problem": null,
+            "suggestion": null
+          },
+          "currentProof": {
+            "status": "stale",
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "current_tree": "f8a77f4bf266e2fa49d8cfcc2ef40fdde9fe01d4",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "currentTreeVerified": false,
+            "freshness": "stale"
+          }
+        },
+        "setup": {
+          "exit_code": 0,
+          "verification": {
+            "checksRun": false,
+            "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python -m unittest -q",
+            "configured": true,
+            "executableReady": true,
+            "problem": null,
+            "ready": true,
+            "reason": "configured project evidence",
+            "selected": true,
+            "source": "configured",
+            "suggestion": null
+          },
+          "currentProof": {
+            "accepted": true,
+            "candidate_tree": "abb41f809515d74311229f9f153a63e6dacef5d7",
+            "change_id": "dwchg_09019cb0e6d6d6cdcd7d0143",
+            "currentTreeVerified": false,
+            "current_tree": "f8a77f4bf266e2fa49d8cfcc2ef40fdde9fe01d4",
+            "freshness": "stale",
+            "reason": "the current worktree differs from the latest captured candidate tree",
+            "status": "stale"
+          }
+        }
+      }
+    }
+  }
+}

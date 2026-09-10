@@ -149,3 +149,24 @@ def repository_human_lines(state: dict, *, guided: bool) -> list[str]:
         if guided else
         tr("Repository: unborn HEAD; empty analytical base; local provisional identity. No user commit or Proof is implied.", 'Dépôt : HEAD unborn ; base d’analyse vide ; identité locale provisoire. Aucun commit utilisateur ni Proof n’est supposé.')
     ]
+
+
+def proof_human_lines(proof: dict) -> list[str]:
+    """Present the existing exact-tree projection; never decide Proof authority here."""
+    lines = [tr(
+        f"Current Proof: {proof['freshness']} · current tree verified={proof['currentTreeVerified']}",
+        f"Proof actuelle : {proof['freshness']} · arbre courant vérifié={proof['currentTreeVerified']}",
+    )]
+    if proof['currentTreeVerified']:
+        lines.append(tr('The current exact code is covered by the latest accepted Proof.',
+                        'Le code actuel exact est couvert par la dernière Proof acceptée.'))
+    elif proof['freshness'] == 'stale':
+        lines.append(tr('The latest Proof is historical. The current code is not covered by it.',
+                        'La dernière Proof est historique. Elle ne couvre pas le code actuel.'))
+    else:
+        lines.append(tr('No accepted Proof establishes coverage for the current exact code.',
+                        'Aucune Proof acceptée ne couvre le code actuel exact.'))
+    if not proof['currentTreeVerified']:
+        lines.append(tr('Next: verify the current change to establish current Proof coverage.',
+                        'Suite : vérifier la modification actuelle pour établir sa couverture Proof.'))
+    return lines

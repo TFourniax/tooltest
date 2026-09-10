@@ -191,6 +191,8 @@ jobs:
         run: python scripts/protect_release_acceptance.py
       - name: Qualify first native task before any user commit
         run: python scripts/unborn_release_acceptance.py
+      - name: Qualify installed doctor exact-tree truthfulness
+        run: python tests/test_doctor_proof_truthfulness.py -v
       - name: Qualify deterministic installed language selection
         run: python scripts/language_acceptance.py
       - name: Qualify competing venv, user Scripts and pipx installations
