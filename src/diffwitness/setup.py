@@ -306,6 +306,36 @@ def _native_human_lines(native: dict, *, guided: bool) -> list[str]:
     return native_human_lines(native, guided=guided)
 
 
+def _guided_setup_error(message: str) -> str:
+    """Humanize DiffWitness-owned implementation vocabulary without changing the raw diagnostic."""
+    prefixes = (
+        (
+            "DiffWitness sidecar command failed to start:",
+            tr("DiffWitness integration could not start:", "L’intégration DiffWitness n’a pas pu démarrer :"),
+        ),
+        (
+            "DiffWitness sidecar rejected the operation:",
+            tr("DiffWitness integration could not complete the operation:", "L’intégration DiffWitness n’a pas pu terminer l’opération :"),
+        ),
+        (
+            "DiffWitness sidecar returned an invalid status payload:",
+            tr("DiffWitness integration returned an invalid status response:", "L’intégration DiffWitness a renvoyé un état invalide :"),
+        ),
+        (
+            "DiffWitness sidecar is incompatible with this release",
+            tr("The installed DiffWitness integration is incompatible with this release", "L’intégration DiffWitness installée est incompatible avec cette version"),
+        ),
+        (
+            "This DiffWitness installation has no bundled understanding sidecar.",
+            tr("This DiffWitness installation is missing its bundled IdleProof integration.", "Cette installation DiffWitness ne contient pas l’intégration IdleProof incluse."),
+        ),
+    )
+    for prefix, replacement in prefixes:
+        if message.startswith(prefix):
+            return replacement + message[len(prefix):]
+    return message
+
+
 def setup_cli(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     cwd = Path.cwd().resolve()
@@ -317,10 +347,16 @@ def setup_cli(argv: list[str] | None = None) -> int:
         else:
             result = setup_install(cwd=cwd, agent=args.agent, idleproof_command=args.idleproof_command)
     except SetupError as exc:
+        raw_error = str(exc)
         if args.json:
-            print(json.dumps({"schema": "diffwitness.setup-error.v1", "ok": False, "error": str(exc)}))
+            print(json.dumps({"schema": "diffwitness.setup-error.v1", "ok": False, "error": raw_error}))
         else:
-            print(tr(f"DiffWitness setup failed: {exc}", f"Échec de la configuration DiffWitness : {exc}"), file=sys.stderr)
+            try:
+                guided = get_view_mode(_git_project(cwd)) == "guided"
+            except Exception:
+                guided = False
+            error = _guided_setup_error(raw_error) if guided else raw_error
+            print(tr(f"DiffWitness setup failed: {error}", f"Échec de la configuration DiffWitness : {error}"), file=sys.stderr)
         return 2
 
     if args.json:
