@@ -18,7 +18,7 @@ WINDOWS = os.name == 'nt'
 
 def run(args, *, cwd, env, payload=None):
     proc = subprocess.run(args, cwd=cwd, env=env, input=payload, text=True,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           shell=isinstance(args, str), timeout=180)
     if proc.returncode:
         raise AssertionError(f'{args!r}: {proc.returncode}\n{proc.stdout}\n{proc.stderr}')
