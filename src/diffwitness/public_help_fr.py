@@ -1,42 +1,21 @@
 """French human help; commands and machine terms remain canonical."""
 
-GUIDED_HELP_FR = """DiffWitness · Vue guidée — comprendre ce qui demande ton attention sans masquer les preuves
+GUIDED_HELP_FR = """DiffWitness · Vue guidée — comprendre ce qui a changé, ce qui est vérifié et ce qui demande ton attention
 
 Commencer :
   dw setup                           Relier DiffWitness à Claude/Codex/Cursor pour ce projet Git
-  dw status                          Voir les faits connus, les points à traiter et les actions suivantes
-  dw protect detect                  Choisir une protection intégrée, externe ou désactivée
-  dw protect enable                  Protéger éventuellement les actions agent pendant le travail
+  dw status                          Voir les faits connus, inconnus et l’action suivante
+Après setup, utilise ton agent de code normalement ; lance `dw status` après une modification.
+
+Quand c’est utile :
   dw explain                         Expliquer la dernière modification à partir des preuves locales, sans IA
-  dw doctor                          Contrôler la protection runtime et la disponibilité des vérifications
-  dw view technical                  Passer aux détails d’ingénierie à tout moment
+  dw protect detect                  Vérifier la protection runtime optionnelle sans modifier la configuration
+  dw view technical                  Ouvrir toutes les commandes et détails d’ingénierie
 
-La protection runtime est optionnelle :
-  dw protect use external            Garder ton harness et laisser DiffWitness vérifier le résultat
-  dw protect disable                 Désactiver l’interception DiffWitness ; Proof et Debt restent disponibles
+Une action runtime bloquée ou observée ne prouve pas que le logiciel final fonctionne.
+DiffWitness vérifie indépendamment la modification Git produite. Sources et prompts/diffs bruts restent locaux par défaut.
 
-Codex contrôle les fonctionnalités et la confiance nécessaires à l’exécution des hooks du projet.
-DiffWitness ne s’approuve jamais lui-même ; `dw protect status` reste conservateur jusqu’à
-l’observation réelle d’un hook Codex par Protect.
-
-Une action runtime bloquée ou observée ne prouve pas que le logiciel fonctionne.
-DiffWitness vérifie indépendamment la modification produite après sa génération.
-
-Actions complémentaires :
-  dw guard -- <agent>                 Encadrer explicitement un agent/processus avant et après son travail
-  dw plan                            Voir les obligations techniques connues pouvant être remboursées
-  dw repay -- <agent>                 Demander un remboursement de dette et en vérifier le résultat
-
-`dw explain --help` présente les modes de reformulation optionnels : modèle local, agent actuel,
-OpenRouter et fournisseur personnalisé. Ils reformulent les mêmes preuves. Le mode par défaut
-reste local, sans IA ; Community n’utilise jamais implicitement l’inférence payée par DiffWitness.
-
-Guided change uniquement la présentation. Cette vue ne réduit pas les exigences de vérification,
-ne transforme pas UNKNOWN en succès et ne change ni Protect, ni les certificats, ni Debt Ledger,
-ni les sources, ni la confidentialité, ni les contrats machine. Sources et prompts/diffs bruts restent locaux.
-
-Pour les commandes d’ingénierie complètes : `dw view technical`, puis `dw --help`.
-Revenir avec `dw view guided` ne réinstalle rien et ne modifie pas le projet.
+Pour toutes les commandes et parcours avancés : `dw view technical`, puis `dw --help`.
 """
 
 TECHNICAL_HELP_FR = """DiffWitness — protéger les actions agent, comprendre, prouver, gérer la dette et préserver la continuité
