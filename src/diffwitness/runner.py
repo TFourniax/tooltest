@@ -170,7 +170,7 @@ def _windows_job_for_process(proc: subprocess.Popen[str]) -> int | None:
         if not job:
             return None
         info = _JobExtendedLimitInformation()
-        info.BasicLimitInformation.LimitFlags = 0x00002000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        info.BasicLimitInformation.LimitFlags = 0x00002000  # JOB_OBJECT_LIMIT_KILL_ON_CLOSE
         if not set_job_info(job, 9, ctypes.byref(info), ctypes.sizeof(info)):
             close_handle(job)
             return None
@@ -262,6 +262,8 @@ def run_command(
         cwd=cwd,
         shell=True,
         text=True,
+        encoding="utf-8",
+        errors="surrogateescape",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=command_env(source_repo),
