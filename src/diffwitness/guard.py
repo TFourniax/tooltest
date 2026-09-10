@@ -299,15 +299,15 @@ def guard_cli(argv: list[str]) -> int:
     if args.report:
         gate_args += ["--report", str(args.report)]
 
-    # Use the public entrypoint rather than gate_cli directly so Guard gets the exact same formal
-    # docs-only/test-only preflight semantics as CI and `dw gate`.
-    from .entry import main as entry_main
+    # Keep the same formal Gate preflights without invoking the public Gate facade, which would
+    # project the same Proof into Continuity before Guard persists its final Proof/Debt envelope.
+    from .frontend import main as frontend_main
 
     with tempfile.TemporaryDirectory(prefix="diffwitness-guard-") as td:
         temp_dir = Path(td)
         proof_path = args.certificate or (temp_dir / "guard-proof.json")
         gate_args += ["--certificate", str(proof_path)]
-        rc = entry_main(["gate", *gate_args])
+        rc = frontend_main(["gate", *gate_args])
         if rc != 0:
             print(tr("\nDiffWitness Guard: PROOF REJECTED", '\nDiffWitness Guard : PROOF REJETÉE'), file=sys.stderr)
             return rc
