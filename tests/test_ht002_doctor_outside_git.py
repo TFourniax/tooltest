@@ -5,8 +5,10 @@ import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from diffwitness.entry import main
+from diffwitness.gitops import GitError
 
 
 class DoctorOutsideGitActionabilityTests(unittest.TestCase):
@@ -74,6 +76,20 @@ class DoctorOutsideGitActionabilityTests(unittest.TestCase):
         self.assertEqual(rc, 2, text)
         self.assertEqual(text, f"DiffWitness doctor: not a Git repository: {root}\n")
         self.assertNotIn("Next:", text)
+
+    def test_other_git_failures_do_not_get_outside_repository_advice(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="dw-ht002-") as td:
+            root = Path(td).resolve()
+            with mock.patch("diffwitness.doctor.repo_root", return_value=root), mock.patch(
+                "diffwitness.doctor.load_config",
+                side_effect=GitError("simulated downstream Git failure"),
+            ):
+                rc, text = self.invoke(root, "en")
+
+        self.assertEqual(rc, 2, text)
+        self.assertEqual(text, "DiffWitness doctor: simulated downstream Git failure\n")
+        self.assertNotIn("git init", text)
+        self.assertNotIn("inside a Git repository", text)
 
 
 if __name__ == "__main__":
