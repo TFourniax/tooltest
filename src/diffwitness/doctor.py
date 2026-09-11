@@ -79,6 +79,7 @@ def _render_guided(
     repo: Path,
     *,
     evidence: dict[str, Any],
+    proof: dict[str, Any],
     protection: dict[str, Any],
     protect_ok: bool,
     continuity: dict[str, Any],
@@ -91,6 +92,31 @@ def _render_guided(
     names = {"claude": "Claude Code", "codex": "Codex", "cursor": "Cursor"}
     print(tr('DIFFWITNESS · GUIDED CHECK-UP', "DIFFWITNESS · CHECK-UP GUIDÉ"))
     print()
+
+    if proof.get("currentTreeVerified"):
+        print(tr(
+            "✓ Current code: covered by the latest accepted Proof.",
+            "✓ Code actuel : couvert par la dernière Proof acceptée.",
+        ))
+    elif proof.get("status") == "stale" or proof.get("freshness") == "stale":
+        print(tr(
+            "⚠ Current code: not covered by the latest accepted Proof.",
+            "⚠ Code actuel : non couvert par la dernière Proof acceptée.",
+        ))
+        print(tr(
+            "  The latest Proof is historical. Verify the current change before relying on it.",
+            "  La dernière Proof est historique. Vérifie la modification actuelle avant de t’y fier.",
+        ))
+    else:
+        print(tr(
+            "• Current code: no accepted Proof covers this exact code yet.",
+            "• Code actuel : aucune Proof acceptée ne couvre encore exactement ce code.",
+        ))
+        print(tr(
+            "  Verify the current change to establish exact-code coverage.",
+            "  Vérifie la modification actuelle pour établir une couverture de ce code exact.",
+        ))
+
     if evidence["ready"]:
         print(tr(f"✓ Ready to run verification: {evidence['command']}", f"✓ Vérification prête : {evidence['command']}"))
         if evidence.get("source") == "detected":
@@ -315,22 +341,24 @@ def doctor_cli(argv: list[str]) -> int:
         if args.json:
             print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
             return 0 if result["ready"] else 1
-        proof = readiness["currentProof"]
-        for line in proof_human_lines(proof):
-            print(line)
-        print(tr(
-            f"Verification command: configured={evidence['configured']} · executable={evidence['executableReady']}",
-            f"Commande de vérification : configurée={evidence['configured']} · exécutable={evidence['executableReady']}",
-        ))
-        print(tr('Doctor checks readiness without running project checks; readiness does not establish Proof coverage.',
-                 'Doctor contrôle la disponibilité sans exécuter les tests ; elle ne constitue pas une couverture Proof.'))
         view = args.view or get_view_mode(repo)
+        if view == "technical":
+            proof = readiness["currentProof"]
+            for line in proof_human_lines(proof):
+                print(line)
+            print(tr(
+                f"Verification command: configured={evidence['configured']} · executable={evidence['executableReady']}",
+                f"Commande de vérification : configurée={evidence['configured']} · exécutable={evidence['executableReady']}",
+            ))
+            print(tr('Doctor checks readiness without running project checks; readiness does not establish Proof coverage.',
+                     'Doctor contrôle la disponibilité sans exécuter les tests ; elle ne constitue pas une couverture Proof.'))
         for line in repository_human_lines(readiness["repository"], guided=view == "guided"):
             print(line)
         if view == "guided":
             _render_guided(
                 repo,
                 evidence=evidence,
+                proof=readiness["currentProof"],
                 protection=protection,
                 protect_ok=protect_ok,
                 continuity=continuity,
