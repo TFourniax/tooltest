@@ -112,9 +112,61 @@ jobs:
           path: release-binary/*
           if-no-files-found: error
 
+  consumer:
+    name: clean consumer · generated workflow · exact public tag
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v7
+        with:
+          name: python-distributions
+          path: ${{ runner.temp }}/release-dist
+      - name: Install exact released wheel and generate consumer workflow
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python -m venv "$RUNNER_TEMP/release-consumer"
+          "$RUNNER_TEMP/release-consumer/bin/python" -m pip install --no-deps "$RUNNER_TEMP"/release-dist/*.whl
+          "$RUNNER_TEMP/release-consumer/bin/python" -m pip check
+          "$RUNNER_TEMP/release-consumer/bin/dw" --version
+
+          git init .
+          git config user.name "DiffWitness Release Consumer"
+          git config user.email "release-consumer@diffwitness.invalid"
+          printf 'VALUE = 1\n' > calc.py
+          git add calc.py
+          git commit -m "consumer baseline"
+
+          evidence='python -c "import calc; assert calc.VALUE == 2"'
+          "$RUNNER_TEMP/release-consumer/bin/dw" init --repo . --test "$evidence"
+
+          expected="uses: TFourniax/tooltest@$GITHUB_REF_NAME"
+          grep -F "$expected" .github/workflows/diffwitness.yml
+          test "$(grep -F -c "$expected" .github/workflows/diffwitness.yml)" -eq 1
+
+          git add .diffwitness.toml .github/workflows/diffwitness.yml
+          git commit -m "consumer DiffWitness workflow"
+          printf 'VALUE = 2\n' > calc.py
+      - name: Exercise the released Action through the exact generated public ref
+        uses: TFourniax/tooltest@v0.4.0a1
+        with:
+          base: HEAD
+          candidate: WORKTREE
+          test: >-
+            python -c "import calc; assert calc.VALUE == 2"
+          policy: balanced
+          strategy: auto
+          debt: "false"
+          ledger-sync: "false"
+          upload-certificate: "false"
+
   github-release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [source, binary]
+    needs: [source, binary, consumer]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -152,7 +204,7 @@ jobs:
 
   pypi:
     if: startsWith(github.ref, 'refs/tags/v') && vars.DIFFWITNESS_PYPI_PUBLISH == 'true'
-    needs: source
+    needs: [source, consumer]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
