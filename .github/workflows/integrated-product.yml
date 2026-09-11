@@ -24,11 +24,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Checkout matching IdleProof sidecar hardening branch
+      - name: Checkout exact MACHINE-qualified IdleProof sidecar candidate
         uses: actions/checkout@v7
         with:
           repository: TFourniax/tooltest-2
-          ref: agent/prealpha-p0-hardening-20260823
+          ref: 7d0d48e0a94310136ca6b2fe75d3bece147e3342
           fetch-depth: 0
           path: idleproof
           persist-credentials: false
