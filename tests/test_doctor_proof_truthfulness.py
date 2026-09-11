@@ -46,21 +46,41 @@ class DoctorProofTruthfulnessTests(unittest.TestCase):
                     rendered_rc, text = self.invoke(repo, args)
                     self.assertEqual(rendered_rc, rc)
                     if language == 'en':
-                        self.assertIn(f'current tree verified={verified}', text)
                         self.assertNotIn('Evidence:   ready', text)
                         self.assertNotIn('project has no uncovered change', text)
-                        if verified:
-                            self.assertIn('The current exact code is covered by the latest accepted Proof.', text)
-                        else:
-                            self.assertIn('Next: verify the current change', text)
-                            self.assertNotIn('The current exact code is covered', text)
-                            if status == 'stale':
-                                self.assertIn('The latest Proof is historical. The current code is not covered by it.', text)
+
+                        if command == 'doctor' and view == 'guided':
+                            # Guided preserves the exact same Proof truth without leaking the raw
+                            # engineering diagnostic vocabulary.
+                            self.assertNotIn(f'current tree verified={verified}', text)
+                            self.assertNotIn('Verification command: configured=', text)
+                            self.assertNotIn('DECLARED/INFERRED/OBSERVED', text)
+                            if verified:
+                                self.assertIn('Current code: covered by the latest accepted Proof.', text)
+                                self.assertNotIn('Current code: not covered', text)
+                            elif status == 'stale':
+                                self.assertIn('Current code: not covered by the latest accepted Proof.', text)
+                                self.assertIn('The latest Proof is historical.', text)
+                                self.assertIn('Verify the current change', text)
                             else:
-                                self.assertIn('No accepted Proof establishes coverage', text)
-                        if command == 'doctor':
-                            self.assertIn('configured=True · executable=True', text)
-                            self.assertIn('without running project checks', text)
+                                self.assertIn('no accepted Proof covers this exact code yet', text)
+                                self.assertIn('Verify the current change', text)
+                        else:
+                            # Technical Doctor and the established Status surfaces retain the
+                            # canonical exact-tree diagnostic contract.
+                            self.assertIn(f'current tree verified={verified}', text)
+                            if verified:
+                                self.assertIn('The current exact code is covered by the latest accepted Proof.', text)
+                            else:
+                                self.assertIn('Next: verify the current change', text)
+                                self.assertNotIn('The current exact code is covered', text)
+                                if status == 'stale':
+                                    self.assertIn('The latest Proof is historical. The current code is not covered by it.', text)
+                                else:
+                                    self.assertIn('No accepted Proof establishes coverage', text)
+                            if command == 'doctor':
+                                self.assertIn('configured=True · executable=True', text)
+                                self.assertIn('without running project checks', text)
                     json_rc, raw = self.invoke(repo, [*args, '--json'])
                     self.assertEqual((json_rc, json.loads(raw)), (rc, canonical))
         self.assertEqual(documents['doctor'], documents['status'])
