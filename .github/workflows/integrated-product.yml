@@ -24,11 +24,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Checkout exact MACHINE-qualified IdleProof sidecar candidate
+      - name: Checkout exact canonical MACHINE-qualified IdleProof sidecar
         uses: actions/checkout@v7
         with:
           repository: TFourniax/tooltest-2
-          ref: 7d0d48e0a94310136ca6b2fe75d3bece147e3342
+          ref: 0a6d6eaa7bf5afab72e185be0d0d97d3b679cd5f
           fetch-depth: 0
           path: idleproof
           persist-credentials: false
