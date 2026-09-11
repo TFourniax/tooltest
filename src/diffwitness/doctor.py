@@ -315,16 +315,17 @@ def doctor_cli(argv: list[str]) -> int:
         if args.json:
             print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
             return 0 if result["ready"] else 1
-        proof = readiness["currentProof"]
-        for line in proof_human_lines(proof):
-            print(line)
-        print(tr(
-            f"Verification command: configured={evidence['configured']} · executable={evidence['executableReady']}",
-            f"Commande de vérification : configurée={evidence['configured']} · exécutable={evidence['executableReady']}",
-        ))
-        print(tr('Doctor checks readiness without running project checks; readiness does not establish Proof coverage.',
-                 'Doctor contrôle la disponibilité sans exécuter les tests ; elle ne constitue pas une couverture Proof.'))
         view = args.view or get_view_mode(repo)
+        if view == "technical":
+            proof = readiness["currentProof"]
+            for line in proof_human_lines(proof):
+                print(line)
+            print(tr(
+                f"Verification command: configured={evidence['configured']} · executable={evidence['executableReady']}",
+                f"Commande de vérification : configurée={evidence['configured']} · exécutable={evidence['executableReady']}",
+            ))
+            print(tr('Doctor checks readiness without running project checks; readiness does not establish Proof coverage.',
+                     'Doctor contrôle la disponibilité sans exécuter les tests ; elle ne constitue pas une couverture Proof.'))
         for line in repository_human_lines(readiness["repository"], guided=view == "guided"):
             print(line)
         if view == "guided":
