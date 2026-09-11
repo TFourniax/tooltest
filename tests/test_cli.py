@@ -95,6 +95,26 @@ class CliTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+
+            dw_proc = run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; from diffwitness.entry import main; raise SystemExit(main(sys.argv[1:]))",
+                    "init",
+                    "--repo",
+                    str(repo),
+                    "--test",
+                    test_command,
+                    "--prepare",
+                    prepare_command,
+                    "--force",
+                ],
+                cwd=repo,
+                check=False,
+            )
+            self.assertEqual(dw_proc.returncode, 0, dw_proc.stderr + dw_proc.stdout)
+
             config = (repo / ".diffwitness.toml").read_text(encoding="utf-8")
             self.assertIn('test = "pytest -q \\"tests/smoke suite\\""', config)
             self.assertIn('prepare = "python -m pip install -e ."', config)
