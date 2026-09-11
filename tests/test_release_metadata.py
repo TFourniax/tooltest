@@ -88,6 +88,23 @@ class ReleaseMetadataTests(unittest.TestCase):
             branches = {item.strip().strip('\"\'') for item in push[1].split(",")}
             self.assertIn("main", branches, f"{workflow} must requalify the merged main commit")
 
+    def test_release_blocks_publication_until_exact_tag_consumer_passes(self) -> None:
+        release = (self.root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+        exact_tag = f"v{__version__}"
+
+        self.assertIn("consumer:\n    name: clean consumer · generated workflow · exact public tag", release)
+        self.assertIn("needs: source", release)
+        self.assertIn('"$RUNNER_TEMP/release-consumer/bin/dw" init --repo . --test "$evidence"', release)
+        self.assertIn('expected="uses: TFourniax/tooltest@$GITHUB_REF_NAME"', release)
+        self.assertIn(f"uses: TFourniax/tooltest@{exact_tag}", release)
+        self.assertIn("needs: [source, binary, consumer]", release)
+        self.assertIn("needs: [source, consumer]", release)
+        self.assertGreaterEqual(
+            release.count("if: startsWith(github.ref, 'refs/tags/v')"),
+            2,
+            "tag consumers and publication must remain tag-only",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
