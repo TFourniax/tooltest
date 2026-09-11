@@ -10,6 +10,13 @@ from pathlib import Path
 
 
 def _frontend_main(argv: list[str]) -> int:
+    # `init` remains implemented by the original causal CLI because it owns the
+    # release/workflow generation contract. Route the public `dw` front door to
+    # that exact implementation instead of duplicating or approximating it.
+    if argv and argv[0] == "init":
+        from ..cli import main as cli_main
+
+        return cli_main(argv)
     from ..frontend import main as frontend_main
 
     return frontend_main(argv)
