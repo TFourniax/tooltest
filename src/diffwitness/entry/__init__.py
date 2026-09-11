@@ -24,7 +24,7 @@ def __getattr__(name: str):
 
 
 _PUBLIC_COMMANDS = {
-    "setup", "status", "view", "language", "protect", "explain", "portal", "doctor", "engine", "guard",
+    "init", "setup", "status", "view", "language", "protect", "explain", "portal", "doctor", "engine", "guard",
     "gate", "prove", "core", "debt", "health", "repay", "recheck", "ledger", "plan",
     "state", "objective", "decision", "invariant", "failed-approach", "relation", "context",
     "envelope", "verify", "note", "ide-hook",
