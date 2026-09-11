@@ -45,6 +45,8 @@ def _run(
         env=env,
         input=input_text,
         text=True,
+        encoding="utf-8",
+        errors="surrogateescape",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )

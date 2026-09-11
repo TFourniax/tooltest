@@ -262,6 +262,8 @@ def run_command(
         cwd=cwd,
         shell=True,
         text=True,
+        encoding="utf-8",
+        errors="backslashreplace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=command_env(source_repo),
