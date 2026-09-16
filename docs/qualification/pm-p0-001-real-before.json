@@ -1,0 +1,28 @@
+{
+  "baseline": "f0d3515b9fd7d72e05e5560610faee5ff26196cf",
+  "fixture": "real failing-before/passing-after unittest through strict Guard",
+  "proof": {
+    "tool": "diffwitness",
+    "certificate_id": "dw2_03bc27e8176161041db9",
+    "claim": "causal",
+    "accepted": true,
+    "certificate_schema": 2
+  },
+  "declaration_event_status": "DECLARED",
+  "context_item": {
+    "id": "dw2_03bc27e8176161041db9",
+    "kind": "objective",
+    "label": "Invented production payment guarantee",
+    "epistemicStatus": "VERIFIED",
+    "updatedAt": "2026-09-16T14:56:05.462811Z",
+    "details": {
+      "priority": "normal",
+      "why": "DECLARATION_ONLY"
+    },
+    "relevance": 48,
+    "relationDepth": 0,
+    "relevanceReason": "task-token-overlap:4"
+  },
+  "historical_envelope_unchanged": true,
+  "result": "REPRODUCED"
+}
