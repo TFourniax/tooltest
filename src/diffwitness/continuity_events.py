@@ -161,23 +161,37 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
         previous = expected_hash
 
 
-def read_project_events(path: Path) -> list[dict[str, Any]]:
+def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
+    """Return validated events and SHA-256 of the exact bytes used to parse them.
+
+    A later file read can observe another writer's bytes. It must never supply the
+    freshness anchor for this validated snapshot. Include whitespace and original
+    line endings in the digest; event-chain validation still uses canonical JSON.
+    """
+    digest = hashlib.sha256()
     if not path.exists():
-        return []
+        return [], digest.hexdigest()
     events: list[dict[str, Any]] = []
     try:
-        with path.open("r", encoding="utf-8") as handle:
-            for number, line in enumerate(handle, start=1):
-                if not line.strip():
-                    continue
-                value = json.loads(line)
-                if not isinstance(value, dict):
-                    raise ContinuityError(f"project event line {number} is not an object")
-                events.append(value)
-    except (OSError, json.JSONDecodeError) as exc:
+        with path.open("rb") as handle:
+            for number, raw in enumerate(handle, start=1):
+                digest.update(raw)
+                # Retain the former text reader's support for CR-only line endings.
+                for line in raw.decode("utf-8").split("\r"):
+                    if not line.strip():
+                        continue
+                    value = json.loads(line)
+                    if not isinstance(value, dict):
+                        raise ContinuityError(f"project event line {number} is not an object")
+                    events.append(value)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
     validate_project_events(events)
-    return events
+    return events, digest.hexdigest()
+
+
+def read_project_events(path: Path) -> list[dict[str, Any]]:
+    return read_project_event_snapshot(path)[0]
 
 
 @contextmanager
