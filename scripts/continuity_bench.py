@@ -92,7 +92,7 @@ def run(events: int, batch_size: int, context_runs: int) -> dict:
         state = rebuild_state(repo, include_structure=True)
         rebuild_seconds = time.perf_counter() - rebuild_started
 
-        # Cold context includes establishing the SHA-256 anchor after a freshly rebuilt strict state.
+        # First context after rebuild: the state already owns its validated byte anchor.
         cold_started = time.perf_counter()
         cold_context = _compile(repo)
         cold_ms = (time.perf_counter() - cold_started) * 1000.0

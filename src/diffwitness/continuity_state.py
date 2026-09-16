@@ -7,12 +7,15 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
-from .continuity_events import continuity_paths, read_project_events
+from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
 from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
 STATE_SCHEMA = "continuity-state-3"
+# Old context_event_file_sha256 stamps could be computed after validation from
+# different bytes. Only a validated snapshot may establish this new cache anchor.
+VALIDATED_EVENT_DIGEST_META = "validated_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:
@@ -421,7 +424,7 @@ def _specialized(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
 def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) -> Path:
     root_repo = repo_root(repo)
     paths = continuity_paths(root_repo)
-    events = read_project_events(paths.events)
+    events, digest = read_project_event_snapshot(paths.events)
     paths.root.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix="state-", suffix=".db", dir=paths.root)
     os.close(fd)
@@ -452,6 +455,7 @@ def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) ->
             conn.execute("insert into meta(key,value) values('schema',?)", (STATE_SCHEMA,))
             conn.execute("insert into meta(key,value) values('event_count',?)", (str(len(events)),))
             conn.execute("insert into meta(key,value) values('event_head',?)", (events[-1]["event_hash"] if events else "",))
+            conn.execute("insert into meta(key,value) values(?,?)", (VALIDATED_EVENT_DIGEST_META, digest))
             conn.execute("insert into meta(key,value) values('repository_root',?)", (str(root_repo),))
             conn.commit()
             if include_structure:
@@ -486,21 +490,34 @@ def _meta(path: Path) -> dict[str, str]:
 def ensure_state(repo: str | Path = ".", *, include_structure: bool = False) -> Path:
     root_repo = repo_root(repo)
     paths = continuity_paths(root_repo)
-    events = read_project_events(paths.events)
+    events, digest = read_project_event_snapshot(paths.events)
     expected_head = events[-1]["event_hash"] if events else ""
     meta = _meta(paths.state)
     if meta.get("schema") != STATE_SCHEMA or meta.get("event_head") != expected_head:
         return rebuild_state(root_repo, include_structure=include_structure)
-    if include_structure:
-        conn = _connect(paths.state)
-        try:
+    needs_anchor = meta.get(VALIDATED_EVENT_DIGEST_META) != digest
+    if not needs_anchor and not include_structure:
+        return paths.state
+    conn = _connect(paths.state)
+    try:
+        # Match the materialized head and schema inside the write transaction: a
+        # concurrent rebuild must not inherit another snapshot's freshness stamp.
+        if needs_anchor:
+            conn.execute(
+                """insert into meta(key,value)
+                   select ?,? where exists(select 1 from meta where key='event_head' and value=?)
+                     and exists(select 1 from meta where key='schema' and value=?)
+                   on conflict(key) do update set value=excluded.value""",
+                (VALIDATED_EVENT_DIGEST_META, digest, expected_head, STATE_SCHEMA),
+            )
+        if include_structure:
             from .structure_provider import refresh_structure_index, structure_index_needs_refresh
 
             if structure_index_needs_refresh(root_repo, conn):
                 refresh_structure_index(root_repo, conn=conn)
-                conn.commit()
-        finally:
-            conn.close()
+        conn.commit()
+    finally:
+        conn.close()
     return paths.state
 
 

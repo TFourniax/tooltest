@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "legitimate_append",
+    "baseline": "18c6a052c23a4548f3c2fd4a9037b535508960dc",
+    "first_objectives": [
+      "OBJ-ONE"
+    ],
+    "next_objectives": [
+      "OBJ-ONE"
+    ],
+    "next_context_returned_successfully": true,
+    "strict_journal_read": {
+      "accepted": true,
+      "count": 2
+    }
+  },
+  {
+    "scenario": "corrupt_after_validation",
+    "baseline": "18c6a052c23a4548f3c2fd4a9037b535508960dc",
+    "first_objectives": [
+      "OBJ-ONE"
+    ],
+    "next_objectives": [
+      "OBJ-ONE"
+    ],
+    "next_context_returned_successfully": true,
+    "strict_journal_read": {
+      "accepted": false,
+      "error": "project event id integrity failed"
+    }
+  }
+]

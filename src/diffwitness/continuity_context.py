@@ -10,7 +10,7 @@ from typing import Any, Iterable
 
 from .config import load_config
 from .continuity_events import continuity_paths
-from .continuity_state import STATE_SCHEMA, ensure_state
+from .continuity_state import STATE_SCHEMA, VALIDATED_EVENT_DIGEST_META, ensure_state
 from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
@@ -18,7 +18,7 @@ _WORD = re.compile(r"[A-Za-z0-9]+")
 _KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "component": 3, "file": 2, "debt": 4}
 _STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
 _MAX_GRAPH_DEPTH = 2
-_CONTEXT_DIGEST_META = "context_event_file_sha256"
+_CONTEXT_DIGEST_META = VALIDATED_EVENT_DIGEST_META
 
 
 def _now() -> str:
@@ -72,18 +72,6 @@ def _read_state_meta(path: Path) -> dict[str, str]:
         return {}
 
 
-def _stamp_validated_digest(state_path: Path, digest: str) -> None:
-    conn = sqlite3.connect(state_path)
-    try:
-        conn.execute(
-            "insert into meta(key,value) values(?,?) on conflict(key) do update set value=excluded.value",
-            (_CONTEXT_DIGEST_META, digest),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-
 def _refresh_structure_if_needed(root: Path, state_path: Path) -> Path:
     try:
         conn = sqlite3.connect(state_path)
@@ -105,18 +93,14 @@ def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
 
     Strict ProjectEvent validation remains the trust root. The first context compilation (or any
     journal byte change) runs ``ensure_state``, which validates the complete hash chain and rebuilds
-    when needed. Only then is the journal byte digest stamped into the derived SQLite state. Hot
+    when needed. The materializer binds the digest of the bytes it actually validated to its state. Hot
     prompts compare SHA-256 instead of reparsing every JSON event. Thus the shortcut is fast but does
     not silently tolerate historical tampering. Proof/Debt authority is unchanged.
     """
     paths = continuity_paths(root)
     digest = _event_file_digest(paths.events)
     if digest is None or not paths.state.exists():
-        state = ensure_state(root, include_structure=refresh_structure)
-        validated_digest = _event_file_digest(paths.events)
-        if validated_digest is not None:
-            _stamp_validated_digest(state, validated_digest)
-        return state
+        return ensure_state(root, include_structure=refresh_structure)
 
     meta = _read_state_meta(paths.state)
     if meta.get("schema") == STATE_SCHEMA and meta.get(_CONTEXT_DIGEST_META) == digest:
@@ -124,11 +108,7 @@ def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
 
     # Missing or changed digest is never auto-adopted. Full parsing/hash-chain validation must
     # establish the new anchor first; a tampered journal raises from ensure_state instead.
-    state = ensure_state(root, include_structure=refresh_structure)
-    validated_digest = _event_file_digest(paths.events)
-    if validated_digest is not None:
-        _stamp_validated_digest(state, validated_digest)
-    return state
+    return ensure_state(root, include_structure=refresh_structure)
 
 
 def _entity_text(row: sqlite3.Row) -> str:
