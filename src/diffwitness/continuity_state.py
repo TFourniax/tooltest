@@ -10,8 +10,9 @@ from typing import Any, Iterable
 from .continuity_events import continuity_paths, read_project_events
 from .gitops import git, repo_root
 
-STATE_SCHEMA = "continuity-state-2"
-_STATUS_RANK = {"DECLARED": 1, "INFERRED": 2, "OBSERVED": 3, "VERIFIED": 4}
+# Rebuild existing derived databases: v2 could attach an earlier assertion's authority
+# to replacement content. The append-only event schema and historical Proof stay intact.
+STATE_SCHEMA = "continuity-state-3"
 
 
 def _canonical(value: Any) -> str:
@@ -202,17 +203,15 @@ def _lifecycle(event_type: str, payload: dict[str, Any]) -> str:
     return explicit if explicit in {"active", "inactive"} else "active"
 
 
-def _strongest(existing: str | None, candidate: str) -> str:
-    if existing and _STATUS_RANK.get(existing, 0) > _STATUS_RANK.get(candidate, 0):
-        return existing
-    return candidate
-
-
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
+    # Adding an edge does not reassert its source entity. In particular, copied
+    # source payloads must not replace newer facts or their evidence provenance.
+    if event["event_type"] == "relation.declared":
+        return
     subject = event["subject"]
     entity_id = str(subject["id"])
-    existing = conn.execute("select epistemic_status from entities where entity_id=?", (entity_id,)).fetchone()
-    status = _strongest(existing["epistemic_status"] if existing else None, event["epistemic_status"])
+    # Authority belongs to this assertion, never to the entity ID for all time.
+    status = event["epistemic_status"]
     payload = event.get("payload") or {}
     conn.execute(
         """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id)
@@ -241,8 +240,6 @@ def _upsert_relations(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
         target = relation["target"]
         rid = _relation_id(source, relation["predicate"], target["id"])
         status = relation.get("epistemic_status") or event["epistemic_status"]
-        existing = conn.execute("select epistemic_status from relations where relation_id=?", (rid,)).fetchone()
-        status = _strongest(existing["epistemic_status"] if existing else None, status)
         conn.execute(
             """insert into relations(relation_id,source_id,predicate,target_id,target_kind,epistemic_status,lifecycle,metadata_json,source_event_id,updated_at)
                values(?,?,?,?,?,?,?,?,?,?)
@@ -284,7 +281,7 @@ def _upsert_debt_open(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
     introduced_change_id = existing["introduced_change_id"] if existing else None
     if introduced_change_id is None and change_id:
         introduced_change_id = change_id
-    status = _strongest(existing["epistemic_status"] if existing else None, event["epistemic_status"])
+    status = event["epistemic_status"]
 
     def chosen(key: str) -> Any:
         value = signal.get(key)
