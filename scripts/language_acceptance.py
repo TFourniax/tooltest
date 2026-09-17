@@ -54,6 +54,20 @@ def main():
         assert 'VUE TECHNIQUE' in run('status')[1]
         run('language','en');run('view','guided')
         assert 'Project state' in run('status')[1]
+        declarations = [
+            ['objective','add','Installed objective','--id','OBJ-INSTALLED'],
+            ['decision','record','Installed decision','--id','DEC-INSTALLED','--objective','OBJ-INSTALLED'],
+            ['invariant','add','Installed invariant','--id','INV-INSTALLED','--objective','OBJ-INSTALLED'],
+            ['failed-approach','record','Installed failed approach','--id','FAIL-INSTALLED','--reason','Recorded failure'],
+        ]
+        for declaration in declarations:
+            assert run(*declaration)[0] == 0
+        events = [json.loads(line) for line in (repo/'.git/diffwitness/events.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
+        declared = [event for event in events if event['subject']['id'] in {'OBJ-INSTALLED','DEC-INSTALLED','INV-INSTALLED','FAIL-INSTALLED'}]
+        assert len(declared) == 4, declared
+        assert all(event['epistemic_status'] == 'DECLARED' and
+                   event['provenance'].get('diffwitness_profile') == 'project-memory-declaration-1'
+                   for event in declared), declared
         assert (repo/'.codex/hooks.json').read_bytes()==hooks
         assert (repo/'.git/index').read_bytes()==index
         assert (repo/'.git/HEAD').read_bytes()==head

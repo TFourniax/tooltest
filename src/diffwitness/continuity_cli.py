@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from .continuity_bridge import record_change_envelope
-from .continuity_contract import project_memory_contract
+from .continuity_contract import (
+    DECLARATION_PROFILE, OBJECTIVE_PRIORITIES, PROFILE_PROVENANCE_FIELD, project_memory_contract,
+)
 from .continuity_context import compile_context, render_context
 from .continuity_debt_bridge import sync_debt_history
 from .continuity_events import append_project_event, continuity_paths, read_project_events
@@ -268,7 +270,7 @@ def _declare(
         epistemic_status="DECLARED",
         payload=payload,
         relations=relations,
-        provenance={"producer": "diffwitness", "source": "human-cli"},
+        provenance={"producer": "diffwitness", "source": "human-cli", PROFILE_PROVENANCE_FIELD: DECLARATION_PROFILE},
         actor={"kind": "human", "id": "local-user"},
         dedupe_key=None,
     )
@@ -284,7 +286,7 @@ def objective_cli(argv: list[str]) -> int:
     add.add_argument("--repo", default=".")
     add.add_argument("--id")
     add.add_argument("--why")
-    add.add_argument("--priority", choices=["low", "normal", "high", "critical"], default="normal")
+    add.add_argument("--priority", choices=OBJECTIVE_PRIORITIES, default="normal")
     add.add_argument("--component", action="append", default=[])
     args = parser.parse_args(argv)
     repo = repo_root(args.repo)

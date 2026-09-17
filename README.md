@@ -555,6 +555,11 @@ hashes and producer extensions are preserved. A listed kind does not imply that 
 complete producer or lifecycle workflow exists. See the
 [contract and compatibility details](docs/qualification/PM_001A.md).
 
+New objective, decision, invariant and failed-approach declarations use the explicit
+[`project-memory-declaration-1` admission profile](docs/qualification/PM_001B1.md).
+It checks their types and keeps their authority `DECLARED`. Unprofiled historical
+events remain readable; no history is rewritten to add the profile.
+
 ## Security model
 
 DiffWitness executes repository-controlled test/setup commands. Treat those commands with the same trust you would require before running that repository's own test suite.

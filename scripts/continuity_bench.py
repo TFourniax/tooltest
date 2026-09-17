@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from diffwitness.continuity_context import compile_context, render_context
+from diffwitness.continuity_contract import DECLARATION_PROFILE, PROFILE_PROVENANCE_FIELD
 from diffwitness.continuity_events import append_project_events, continuity_paths, read_project_events
 from diffwitness.continuity_state import rebuild_state
 
@@ -42,7 +43,8 @@ def _event(index: int, total: int) -> dict:
         "epistemic_status": "DECLARED",
         "payload": payload,
         "relations": [],
-        "provenance": {"producer": "continuity-bench", "source": "synthetic-scale-fixture"},
+        "provenance": {"producer": "continuity-bench", "source": "synthetic-scale-fixture",
+                       PROFILE_PROVENANCE_FIELD: DECLARATION_PROFILE},
         "actor": {"kind": "human", "id": "bench"},
         "dedupe_key": f"bench-objective:{index}",
         "timestamp": f"2026-01-{1 + (index % 28):02d}T00:00:{index % 60:02d}Z",

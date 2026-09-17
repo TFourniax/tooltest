@@ -15,7 +15,7 @@ from .continuity_contract import (
     ENTITY_ID_PATTERN, ENTITY_KIND_PATTERN, EPISTEMIC_STATUSES, EVENT_TYPE_PATTERN,
     EVENT_SCHEMA_VERSION as SCHEMA_VERSION, MAX_BATCH_EVENTS as _MAX_BATCH_EVENTS,
     MAX_EVENT_BYTES as _MAX_EVENT_BYTES, MAX_LABEL_CHARS, MAX_RELATIONS,
-    RELATION_PREDICATE_PATTERN,
+    RELATION_PREDICATE_PATTERN, validate_admission_profile,
 )
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
@@ -110,7 +110,7 @@ def _validate_relations(relations: Any) -> None:
             raise ContinuityError(f"invalid project relation predicate: {predicate!r}")
         _validate_subject(relation.get("target"))
         status = relation.get("epistemic_status")
-        if status is not None and status not in EPISTEMIC_STATUSES:
+        if status is not None and (not isinstance(status, str) or status not in EPISTEMIC_STATUSES):
             raise ContinuityError(f"invalid relation epistemic status: {status!r}")
         metadata = relation.get("metadata", {})
         if not isinstance(metadata, dict):
@@ -124,7 +124,8 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
     event_type = event.get("event_type")
     if not isinstance(event_type, str) or not _EVENT_TYPE.fullmatch(event_type):
         raise ContinuityError(f"invalid project event type{where}: {event_type!r}")
-    if event.get("epistemic_status") not in EPISTEMIC_STATUSES:
+    status = event.get("epistemic_status")
+    if not isinstance(status, str) or status not in EPISTEMIC_STATUSES:
         raise ContinuityError(f"invalid epistemic status{where}")
     if not isinstance(event.get("timestamp"), str) or not event.get("timestamp"):
         raise ContinuityError(f"invalid timestamp{where}")
@@ -137,6 +138,10 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
         raise ContinuityError(f"invalid payload{where}")
     if not isinstance(event.get("provenance"), dict):
         raise ContinuityError(f"invalid provenance{where}")
+    try:
+        validate_admission_profile(event)
+    except ValueError as exc:
+        raise ContinuityError(f"invalid project event profile{where}: {exc}") from exc
     dedupe_key = event.get("dedupe_key")
     if dedupe_key is not None and (not isinstance(dedupe_key, str) or not dedupe_key or len(dedupe_key) > 500):
         raise ContinuityError(f"invalid dedupe key{where}")
