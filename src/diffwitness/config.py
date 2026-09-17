@@ -9,6 +9,7 @@ from typing import Any
 
 from .debt_models import DEBT_CATEGORIES
 from .gitops import git_result
+from .json_contract import strict_json_loads as _strict_json_loads
 
 DEFAULT_CONFIG = ".diffwitness.toml"
 LOCAL_ENGINE_SCHEMA = "diffwitness.local-engine.v1"
@@ -228,22 +229,6 @@ def local_engine_profile_path(repo: Path) -> Path | None:
     if not path.is_absolute():
         path = repo / path
     return path.resolve()
-
-
-def _strict_json_loads(text: str) -> Any:
-    def pairs(values: list[tuple[str, Any]]) -> dict[str, Any]:
-        result: dict[str, Any] = {}
-        for key, value in values:
-            if key in result:
-                raise ValueError(f"duplicate JSON object key: {key}")
-            result[key] = value
-        return result
-
-    return json.loads(
-        text,
-        object_pairs_hook=pairs,
-        parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
-    )
 
 
 def load_local_engine_profile(repo: Path) -> dict[str, Any] | None:

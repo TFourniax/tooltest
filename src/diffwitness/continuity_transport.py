@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import time
 from pathlib import Path
@@ -9,19 +8,17 @@ from typing import Any
 
 from .continuity_events import (
     ContinuityError,
+    _canonical,
     _event_lock,
     continuity_paths,
     read_project_events,
     validate_project_events,
 )
 from .gitops import GitError, git, git_bytes, git_bytes_result, git_result, repo_root
+from .json_contract import strict_json_loads
 
 DEFAULT_CONTINUITY_REF = "refs/diffwitness/project-events"
 CONTINUITY_OBJECT_PATH = "events.jsonl"
-
-
-def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def _serialize(events: list[dict[str, Any]]) -> bytes:
@@ -35,14 +32,16 @@ def _parse(data: bytes) -> list[dict[str, Any]]:
         raise ContinuityError("ProjectEvent checkpoint is not valid UTF-8") from exc
     events: list[dict[str, Any]] = []
     try:
-        for number, raw in enumerate(text.splitlines(), start=1):
+        # JSON strings may contain U+2028/U+2029/U+0085. Only physical CR/LF
+        # delimit records, matching the journal reader's historical framing.
+        for number, raw in enumerate(text.replace("\r\n", "\n").replace("\r", "\n").split("\n"), start=1):
             if not raw.strip():
                 continue
-            value = json.loads(raw)
+            value = strict_json_loads(raw)
             if not isinstance(value, dict):
                 raise ContinuityError(f"ProjectEvent checkpoint line {number} is not an object")
             events.append(value)
-    except json.JSONDecodeError as exc:
+    except (ValueError, RecursionError) as exc:
         raise ContinuityError(f"invalid ProjectEvent checkpoint JSON: {exc}") from exc
     validate_project_events(events)
     return events

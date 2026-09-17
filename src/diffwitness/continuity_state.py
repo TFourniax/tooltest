@@ -13,9 +13,9 @@ from .gitops import git, repo_root
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
 STATE_SCHEMA = "continuity-state-3"
-# Old context_event_file_sha256 stamps could be computed after validation from
-# different bytes. Only a validated snapshot may establish this new cache anchor.
-VALIDATED_EVENT_DIGEST_META = "validated_event_file_sha256"
+# Older stamps either used a separate byte read or a permissive JSON parser.
+# Only a snapshot validated under the strict JSON contract may establish this anchor.
+VALIDATED_EVENT_DIGEST_META = "strict_json_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:

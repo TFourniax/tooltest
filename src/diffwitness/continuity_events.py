@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from .gitops import git, repo_root
+from .json_contract import strict_json_loads
 
 
 class ContinuityError(RuntimeError):
@@ -33,7 +34,10 @@ def _now() -> str:
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    except (TypeError, ValueError, RecursionError) as exc:
+        raise ContinuityError("project event cannot be represented as finite JSON") from exc
 
 
 def _sha(value: Any) -> str:
@@ -180,11 +184,11 @@ def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
                 for line in raw.decode("utf-8").split("\r"):
                     if not line.strip():
                         continue
-                    value = json.loads(line)
+                    value = strict_json_loads(line)
                     if not isinstance(value, dict):
                         raise ContinuityError(f"project event line {number} is not an object")
                     events.append(value)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, RecursionError) as exc:
         raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
     validate_project_events(events)
     return events, digest.hexdigest()
