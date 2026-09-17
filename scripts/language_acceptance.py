@@ -68,6 +68,15 @@ def main():
         assert all(event['epistemic_status'] == 'DECLARED' and
                    event['provenance'].get('diffwitness_profile') == 'project-memory-declaration-1'
                    for event in declared), declared
+        assert run('relation', 'add', 'DEC-INSTALLED', 'related_to', 'OBJ-INSTALLED')[0] == 0
+        journal = repo/'.git/diffwitness/events.jsonl'
+        before_relation_repeat = journal.read_bytes()
+        relation = json.loads(before_relation_repeat.decode('utf-8').splitlines()[-1])
+        assert relation['event_type'] == 'relation.declared', relation
+        assert relation['provenance'].get('diffwitness_profile') == 'project-memory-relation-1', relation
+        assert relation['epistemic_status'] == 'DECLARED', relation
+        assert run('relation', 'add', 'DEC-INSTALLED', 'related_to', 'OBJ-INSTALLED')[0] == 0
+        assert journal.read_bytes() == before_relation_repeat
         assert (repo/'.codex/hooks.json').read_bytes()==hooks
         assert (repo/'.git/index').read_bytes()==index
         assert (repo/'.git/HEAD').read_bytes()==head

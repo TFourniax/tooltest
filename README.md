@@ -569,6 +569,11 @@ New envelope-derived events use the [`project-memory-artifact-1` typed profile](
 Compatible reimports reuse their original events without rewriting history. Real payload,
 provenance or JSON type conflicts fail closed; a profile never authenticates a Proof.
 
+Debt Ledger transitions and relation-only declarations also use
+[typed native profiles](docs/qualification/PM_001B5.md). Debt acceptance remains
+`DECLARED`; resolution remains `OBSERVED`. Adding a relation preserves the source
+entity's content and authority. Compatible legacy reimports keep their original bytes.
+
 ## Security model
 
 DiffWitness executes repository-controlled test/setup commands. Treat those commands with the same trust you would require before running that repository's own test suite.

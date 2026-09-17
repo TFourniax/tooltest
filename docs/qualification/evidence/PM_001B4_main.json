@@ -1,0 +1,303 @@
+{
+  "sha": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+  "tree": "9183a3b7b91008fdb86a0707e438821ff0205134",
+  "current_main": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+  "pr_head": "ae30ba988809d43d800f85be8d0d8c96b2f53d9d",
+  "pr_state": "closed",
+  "pr_merged": true,
+  "pr_merge_commit": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+  "runs": [
+    {
+      "id": 35265872886,
+      "name": "integrated-product-smoke",
+      "head_sha": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/TFourniax/tooltest/actions/runs/35265872886",
+      "jobs": [
+        {
+          "id": 105352792381,
+          "name": "Native Understand → Prove → Owe → Continuity / exact artifacts",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "id": 35265872857,
+      "name": "proofbench",
+      "head_sha": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/TFourniax/tooltest/actions/runs/35265872857",
+      "jobs": [
+        {
+          "id": 105352792174,
+          "name": "causal semantics benchmark",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10516756444,
+          "name": "proofbench-results",
+          "digest": "sha256:361bfcaa9591fba29c676ef8343130d9a0f12915a28142a7532e3a4d5596644f",
+          "expired": false
+        }
+      ]
+    },
+    {
+      "id": 35265872764,
+      "name": "continuitybench",
+      "head_sha": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/TFourniax/tooltest/actions/runs/35265872764",
+      "jobs": [
+        {
+          "id": 105352791502,
+          "name": "continuitybench",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10516791332,
+          "name": "continuitybench-10k",
+          "digest": "sha256:e7af963cd32f21b9ed0fdb4fc45e7c2fb8c626cddb439350e2b983a6d416a3dd",
+          "expired": false
+        }
+      ]
+    },
+    {
+      "id": 35265872852,
+      "name": "test",
+      "head_sha": "8ff07c934ea665cef45aa5a9e7e9a1dd41a4a8cc",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/TFourniax/tooltest/actions/runs/35265872852",
+      "jobs": [
+        {
+          "id": 105352791518,
+          "name": "fatal static checks",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352791808,
+          "name": "test (windows-latest, 3.13)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352791924,
+          "name": "composite Action end-to-end",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352791943,
+          "name": "installed wheel commercial-alpha journeys (macos-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352791953,
+          "name": "test (ubuntu-latest, 3.14)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352791962,
+          "name": "standalone binary (macos-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792035,
+          "name": "test (ubuntu-latest, 3.13)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792084,
+          "name": "test (macos-latest, 3.12)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792087,
+          "name": "test (ubuntu-latest, 3.11)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792108,
+          "name": "test (macos-latest, 3.14)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792114,
+          "name": "test (windows-latest, 3.14)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792119,
+          "name": "test (windows-latest, 3.12)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792122,
+          "name": "standalone binary (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792124,
+          "name": "test (windows-latest, 3.11)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792139,
+          "name": "installed wheel commercial-alpha journeys (windows-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792149,
+          "name": "test (macos-latest, 3.11)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792156,
+          "name": "standalone binary (windows-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792163,
+          "name": "test (macos-latest, 3.13)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792212,
+          "name": "installed wheel commercial-alpha journeys (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792235,
+          "name": "release package preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105352792252,
+          "name": "test (ubuntu-latest, 3.12)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10517156037,
+          "name": "unittest-Linux-py3.11",
+          "digest": "sha256:8aa164c8b2265b12bed484e315a94ef0c07e8f4ab9203b7301758b43c464b633",
+          "expired": false
+        },
+        {
+          "id": 10517061246,
+          "name": "unittest-Linux-py3.13",
+          "digest": "sha256:0c653530f376af468cb78d1c5307f9810c19a731f99a9fd8bd4b3ff53d889e8f",
+          "expired": false
+        },
+        {
+          "id": 10517001240,
+          "name": "preflight-python-distributions",
+          "digest": "sha256:e5c07b360bcd0cfb6b7a7d1773363f09e995c122e06f8a4fbca5afed5f7e30cb",
+          "expired": false
+        },
+        {
+          "id": 10516922944,
+          "name": "unittest-Windows-py3.14",
+          "digest": "sha256:5157a02d4b6bc7ecd9055d780a44c4eaf8d69f7a4e1aee59021acefa409703d8",
+          "expired": false
+        },
+        {
+          "id": 10516906852,
+          "name": "unittest-macOS-py3.12",
+          "digest": "sha256:6a7fa7ad1e0feb2734f3eb7a99e20526f3fe9f754a2e6b7fcd903cb92f68a12a",
+          "expired": false
+        },
+        {
+          "id": 10516672976,
+          "name": "unittest-Windows-py3.11",
+          "digest": "sha256:843db498a991bd1a3dcd8091c898e8b4b5868d26bb3913d9d4605a1745911125",
+          "expired": false
+        },
+        {
+          "id": 10516643123,
+          "name": "unittest-Windows-py3.13",
+          "digest": "sha256:0d21521b6add8af53bfff4921b0a1ed3bbfbcffb029449348dcf45510fd81b96",
+          "expired": false
+        },
+        {
+          "id": 10516626695,
+          "name": "unittest-Linux-py3.12",
+          "digest": "sha256:2d1478c8b61fbe0f55435c65ee8b19e5f72d6ae89ad63ac85e96831fbc110d02",
+          "expired": false
+        },
+        {
+          "id": 10516607818,
+          "name": "unittest-Windows-py3.12",
+          "digest": "sha256:ff3a0f60827176d64776676d8d9499b7cd947e16ddd6241585b0416977435568",
+          "expired": false
+        },
+        {
+          "id": 10516577349,
+          "name": "unittest-macOS-py3.11",
+          "digest": "sha256:701f3b1ada96c6c49d801ab31f48259c9d93e0801b2e14a7eafcfcbf7dfe0877",
+          "expired": false
+        },
+        {
+          "id": 10516561639,
+          "name": "diffwitness-self-health",
+          "digest": "sha256:5a7230dc551635fa767a9ab15f497eae392ba4cb502af58ee47428ab7235b585",
+          "expired": false
+        },
+        {
+          "id": 10516546820,
+          "name": "unittest-Linux-py3.14",
+          "digest": "sha256:f98ac3741810de2de6111336a36d5a14e061e61862db4f880abf6862cf56ea1b",
+          "expired": false
+        },
+        {
+          "id": 10516487438,
+          "name": "unittest-macOS-py3.14",
+          "digest": "sha256:d0bf68d2e745c3f0702aad0e9a2843fb504d6f701cfd09d8b2ec6c073a7df0c1",
+          "expired": false
+        },
+        {
+          "id": 10516447470,
+          "name": "unittest-macOS-py3.13",
+          "digest": "sha256:566c09920132f74efe38fc5fb7bb2c8310bf9e19f62ac07bee3967afd8aca491",
+          "expired": false
+        }
+      ]
+    }
+  ],
+  "qualified": true
+}

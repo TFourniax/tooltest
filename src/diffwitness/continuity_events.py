@@ -16,7 +16,7 @@ from .continuity_contract import (
     EVENT_SCHEMA_VERSION as SCHEMA_VERSION, MAX_BATCH_EVENTS as _MAX_BATCH_EVENTS,
     MAX_EVENT_BYTES as _MAX_EVENT_BYTES, MAX_LABEL_CHARS, MAX_RELATIONS,
     RELATION_PREDICATE_PATTERN, PROFILE_PROVENANCE_FIELD,
-    compatible_artifact_profile_adoption, validate_admission_profile,
+    compatible_profile_adoption, validate_admission_profile,
 )
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
@@ -376,7 +376,7 @@ def append_project_events(
                 probe["event_id"] = _event_id(probe)
                 probe["event_hash"] = _event_hash(probe)
                 old_core, new_core = _semantic_core(event), _semantic_core(probe)
-                if compatible_artifact_profile_adoption(event, probe):
+                if compatible_profile_adoption(event, probe):
                     for core in (old_core, new_core):
                         core["provenance"] = dict(core["provenance"])
                         core["provenance"].pop(PROFILE_PROVENANCE_FIELD, None)

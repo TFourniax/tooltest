@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import re
 from typing import Any
 
 CONTRACT_VERSION = "project-memory-contract-1"
@@ -45,6 +46,18 @@ INACTIVE_EVENT_SUFFIXES = (".superseded", ".retired", ".resolved")
 PROFILE_PROVENANCE_FIELD = "diffwitness_profile"
 DECLARATION_PROFILE = "project-memory-declaration-1"
 ARTIFACT_PROFILE = "project-memory-artifact-1"
+DEBT_LIFECYCLE_PROFILE = "project-memory-debt-lifecycle-1"
+RELATION_PROFILE = "project-memory-relation-1"
+DEBT_LIFECYCLE_SPECS = {
+    name: {"epistemic_status": "DECLARED" if name in {"accepted", "unaccepted"} else "OBSERVED",
+           "change_relation": {"introduced": "introduced_in", "refreshed": "refreshed_in",
+                               "reopened": "reopened_in"}.get(name)}
+    for name in ("introduced", "refreshed", "accepted", "unaccepted", "resolved", "reopened")
+}
+DEBT_SIGNAL_FIELDS = {
+    **dict.fromkeys(("category", "rule_id", "title", "severity", "measurement", "path"), "string"),
+    "points": "nonnegative-integer", "line": "positive-integer", "end_line": "positive-integer",
+}
 OBJECTIVE_PRIORITIES = ("low", "normal", "high", "critical")
 _DECLARATION_SPECS = {
     "objective.declared": {
@@ -120,6 +133,8 @@ def _matches_payload_field(rule: str, value: Any) -> bool:
         return isinstance(value, str) or type(value) is int
     if rule == "nonnegative-integer":
         return type(value) is int and value >= 0
+    if rule == "positive-integer":
+        return type(value) is int and value >= 1
     if rule == "percentage":
         return type(value) is int and 0 <= value <= 100
     if rule == "string":
@@ -144,6 +159,12 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == ARTIFACT_PROFILE:
         _validate_artifact_profile(event)
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == DEBT_LIFECYCLE_PROFILE:
+        _validate_debt_lifecycle_profile(event)
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == RELATION_PROFILE:
+        _validate_relation_profile(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] != DECLARATION_PROFILE:
         raise ValueError("unsupported Project Memory admission profile")
@@ -247,17 +268,109 @@ def _validate_artifact_profile(event: dict[str, Any]) -> None:
             raise ValueError("artifact profile Proof relation authority mismatch")
 
 
-def compatible_artifact_profile_adoption(left: dict[str, Any], right: dict[str, Any]) -> bool:
-    """Only a valid legacy/artifact pair may ignore the additive profile marker.
+def _validate_verification_summary(value: Any) -> None:
+    if not isinstance(value, dict) or len(value) > 20:
+        raise ValueError("debt lifecycle verification must be a bounded object")
+    for key, item in value.items():
+        if not isinstance(key, str) or len(key) > 80 or (
+            item is not None and type(item) not in (str, int, float, bool)
+        ) or (isinstance(item, str) and len(item) > 300):
+            raise ValueError("debt lifecycle verification must contain bounded scalar summaries")
+    # Finite numbers are enforced by the enclosing canonical JSON boundary.
+
+
+def _validate_debt_lifecycle_profile(event: dict[str, Any]) -> None:
+    payload, provenance = event["payload"], event["provenance"]
+    legacy = payload.get("legacy_event_type")
+    spec = DEBT_LIFECYCLE_SPECS.get(legacy) if isinstance(legacy, str) else None
+    if spec is None or event["event_type"] != "debt." + legacy:
+        raise ValueError("debt lifecycle event type does not match legacy_event_type")
+    if event["subject"]["kind"] != "debt" or not event["subject"]["id"].startswith("DW-"):
+        raise ValueError("debt lifecycle subject must be a DW- debt identity")
+    if event["epistemic_status"] != spec["epistemic_status"]:
+        raise ValueError("debt lifecycle authority does not match the transition")
+    digest = provenance.get("legacy_event_hash")
+    if (provenance.get("producer") != "debt-ledger" or provenance.get("source") != "debt-event-1"
+            or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)
+            or event.get("dedupe_key") != "legacy-debt:" + digest):
+        raise ValueError("debt lifecycle provenance and dedupe identity must match the source event")
+    if event["actor"]["kind"] != "ledger-actor" or not _matches_payload_field("nonempty-string", event["actor"].get("id")):
+        raise ValueError("debt lifecycle requires a named ledger actor")
+    if "change_id" not in payload or not _matches_payload_field("nullable-nonempty-string", payload["change_id"]):
+        raise ValueError("debt lifecycle requires a nullable change_id")
+    cid = payload["change_id"]
+    if cid is not None and not re.fullmatch(r"dwchg_[0-9a-f]{24}", cid):
+        raise ValueError("debt lifecycle change_id must be a tree-derived change identity")
+    predicate = spec["change_relation"]
+    relations = event.get("relations", [])
+    if len(relations) != (1 if cid is not None and predicate else 0):
+        raise ValueError("debt lifecycle relations must match the transition and available change")
+    for relation in relations:
+        if (relation["predicate"] != predicate or relation["target"]["kind"] != "change"
+                or relation["target"]["id"] != cid or relation.get("epistemic_status", "OBSERVED") != "OBSERVED"
+                or relation.get("metadata", {}).get("basis") != "validated-debt-ledger-report"):
+            raise ValueError("debt lifecycle relation does not match the observed source change")
+    if predicate:
+        signal = payload.get("signal")
+        if not isinstance(signal, dict):
+            raise ValueError("debt lifecycle requires a signal summary object")
+        for field, rule in DEBT_SIGNAL_FIELDS.items():
+            if field in signal and (not _matches_payload_field(rule, signal[field])
+                                    or isinstance(signal[field], str) and len(signal[field]) > 500):
+                raise ValueError(f"debt lifecycle signal.{field} must be bounded {rule}")
+        if "verification" in signal:
+            _validate_verification_summary(signal["verification"])
+    if legacy == "accepted" and "reason" not in payload:
+        raise ValueError("debt acceptance requires a nullable reason")
+    if "reason" in payload and (not _matches_payload_field("nullable-string", payload["reason"])
+                                or isinstance(payload["reason"], str) and len(payload["reason"]) > 1000):
+        raise ValueError("debt lifecycle reason must be a bounded nullable string")
+    if "forced" in payload and type(payload["forced"]) is not bool:
+        raise ValueError("debt lifecycle forced must be boolean")
+    if "verification" in payload:
+        _validate_verification_summary(payload["verification"])
+
+
+def _validate_relation_profile(event: dict[str, Any]) -> None:
+    provenance = event["provenance"]
+    preserved = provenance.get("preserves_entity_from_event")
+    if event["event_type"] != "relation.declared" or event["epistemic_status"] != "DECLARED":
+        raise ValueError("relation profile requires a DECLARED relation-only event")
+    if (provenance.get("producer") != "diffwitness" or provenance.get("source") != "human-cli"
+            or not isinstance(preserved, str) or not re.fullmatch(r"dwev_[0-9a-f]{24}", preserved)):
+        raise ValueError("relation profile requires native declaration and preserved source event provenance")
+    if event["actor"]["kind"] != "human" or not _matches_payload_field("nonempty-string", event["actor"].get("id")):
+        raise ValueError("relation profile requires a named human declaration actor")
+    relations = event.get("relations", [])
+    if len(relations) != 1:
+        raise ValueError("relation profile requires exactly one declared edge")
+    relation = relations[0]
+    metadata = relation.get("metadata", {})
+    if (relation["predicate"] not in HUMAN_DECLARABLE_RELATIONS
+            or relation.get("epistemic_status", "DECLARED") != "DECLARED"
+            or metadata.get("basis") != "human-declaration"):
+        raise ValueError("relation profile predicate, authority and declaration basis must agree")
+    if "note" in metadata and (not isinstance(metadata["note"], str) or len(metadata["note"]) > 1000):
+        raise ValueError("relation profile note must be a bounded string")
+    expected_key = f"relation:{event['subject']['id']}:{relation['predicate']}:{relation['target']['id']}"
+    if event.get("dedupe_key") != expected_key:
+        raise ValueError("relation profile dedupe identity must match the edge")
+    # Payload is the source snapshot, never replacement entity content or authority.
+
+
+def compatible_profile_adoption(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    """Only a valid legacy/native pair may ignore the additive profile marker.
 
     Validate the legacy assertion under the requested profile too; a marker is
     not a way to bless incompatible history. Neither event is mutated.
     """
     profiles = [event["provenance"].get(PROFILE_PROVENANCE_FIELD) for event in (left, right)]
-    if profiles not in ([None, ARTIFACT_PROFILE], [ARTIFACT_PROFILE, None]):
+    known = (ARTIFACT_PROFILE, DEBT_LIFECYCLE_PROFILE, RELATION_PROFILE)
+    profile = profiles[1] if profiles[0] is None else profiles[0]
+    if profile not in known or profiles not in ([None, profile], [profile, None]):
         return False
     for event in (left, right):
-        probe = {**event, "provenance": {**event["provenance"], PROFILE_PROVENANCE_FIELD: ARTIFACT_PROFILE}}
+        probe = {**event, "provenance": {**event["provenance"], PROFILE_PROVENANCE_FIELD: profile}}
         try:
             validate_admission_profile(probe)
         except ValueError:
@@ -283,6 +396,27 @@ def project_memory_contract() -> dict[str, Any]:
         "schema_version": CONTRACT_VERSION,
         "event_schema": EVENT_SCHEMA_VERSION,
         "admission_profiles": {
+            DEBT_LIFECYCLE_PROFILE: {
+                "provenance_field": PROFILE_PROVENANCE_FIELD,
+                "event_types": {"debt." + name: copy.deepcopy(spec) for name, spec in DEBT_LIFECYCLE_SPECS.items()},
+                "signal_fields": dict(DEBT_SIGNAL_FIELDS),
+                "epistemic_status": "DECLARED acceptance policy; OBSERVED ledger lifecycle, never VERIFIED",
+                "required_provenance_fields": ["producer", "source", "legacy_event_hash"],
+                "required_actor_fields": ["kind", "id"],
+                "unavailable_historical_git_object": "null change_id; no invented relation",
+                "additional_payload_fields": "preserve", "unprofiled_history": "preserve",
+                "unknown_profile_version": "reject", "grants_proof_authority": False,
+            },
+            RELATION_PROFILE: {
+                "provenance_field": PROFILE_PROVENANCE_FIELD,
+                "event_types": {"relation.declared": {"predicates": sorted(HUMAN_DECLARABLE_RELATIONS)}},
+                "epistemic_status": "DECLARED",
+                "required_provenance_fields": ["producer", "source", "preserves_entity_from_event"],
+                "required_actor_fields": ["kind", "id"],
+                "replaces_source_entity": False, "authenticates_human_actor": False,
+                "additional_payload_fields": "preserve-source-snapshot", "unprofiled_history": "preserve",
+                "unknown_profile_version": "reject", "grants_proof_authority": False,
+            },
             ARTIFACT_PROFILE: {
                 "provenance_field": PROFILE_PROVENANCE_FIELD,
                 "event_types": copy.deepcopy(_ARTIFACT_SPECS),

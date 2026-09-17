@@ -16,7 +16,7 @@ from .gitops import git, repo_root
 STATE_SCHEMA = "continuity-state-3"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
-VALIDATED_EVENT_DIGEST_META = "artifact_profile_event_file_sha256"
+VALIDATED_EVENT_DIGEST_META = "lifecycle_profile_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:

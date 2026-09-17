@@ -14,6 +14,16 @@ Before cutting a tag:
 6. the repository is public under its **final community-facing name**;
 7. GitHub Action examples and `diffwitness init` point at that final repository plus the exact release tag rather than a moving `main` branch;
 8. the release-package and standalone-binary preflight jobs are green on the release candidate commit.
+9. every release-required scenario has been tested and validated by a human in
+   real conditions on the coordinated release candidate, with evidence in the
+   [canonical registry](https://github.com/TFourniax/tooltest/issues/74).
+
+HUMAN PASS is reserved for that human validation. Record the tester, date,
+scenario, environment and exact source/installed artifact. Automated tests and
+agent-operated journeys remain MACHINE evidence, including scripts whose names
+contain "human". Historical HUMAN PASS entries keep their original scope and
+candidate; they do not automatically qualify a changed release candidate. Do not
+release Alpha while required human scenarios are NOT RUN or NOT QUALIFIED.
 
 Never cut a release merely to bypass a red or unavailable proof/test gate.
 
