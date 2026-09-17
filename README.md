@@ -563,6 +563,8 @@ events remain readable; no history is rewritten to add the profile.
 Envelope imports reject ambiguous JSON and wrongly typed Proof, debt and understanding
 summary values before appending memory. A manual import remains `OBSERVED`; it cannot
 authorize Proof. See the [bounded import contract](docs/qualification/PM_001B2.md).
+File imports bind their provenance digest to the [exact bytes parsed](docs/qualification/PM_001B3.md),
+even if the source path is subsequently replaced.
 
 ## Security model
 
