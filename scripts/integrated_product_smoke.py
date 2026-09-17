@@ -257,6 +257,11 @@ def assert_continuity(repo: Path, change_id: str) -> None:
     require(change_id in text, "Project Continuity journal is not correlated to the canonical change id")
     for event_type in ("change.observed", "proof.completed", "debt.snapshot"):
         require(f'"event_type":"{event_type}"' in text, f"Project Continuity journal is missing {event_type}")
+    events = [json.loads(line) for line in text.splitlines() if line.strip()]
+    artifacts = [event for event in events if event.get("provenance", {}).get("source") == "change-envelope"]
+    require(bool(artifacts), "native journey produced no artifact-derived events")
+    require(all(event["provenance"].get("diffwitness_profile") == "project-memory-artifact-1"
+                for event in artifacts), "installed native producer omitted typed artifact admission")
     require((repo / ".git" / "diffwitness" / "state.db").is_file(), "Project Continuity did not materialize its rebuildable state")
 
 

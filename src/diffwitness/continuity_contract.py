@@ -6,6 +6,7 @@ historical kinds/predicates remain valid under the existing wire syntax.
 from __future__ import annotations
 
 import copy
+import hashlib
 from typing import Any
 
 CONTRACT_VERSION = "project-memory-contract-1"
@@ -43,6 +44,7 @@ PROJECTION_LIFECYCLES = frozenset({"active", "inactive"})
 INACTIVE_EVENT_SUFFIXES = (".superseded", ".retired", ".resolved")
 PROFILE_PROVENANCE_FIELD = "diffwitness_profile"
 DECLARATION_PROFILE = "project-memory-declaration-1"
+ARTIFACT_PROFILE = "project-memory-artifact-1"
 OBJECTIVE_PRIORITIES = ("low", "normal", "high", "critical")
 _DECLARATION_SPECS = {
     "objective.declared": {
@@ -67,10 +69,59 @@ _DECLARATION_SPECS = {
     },
 }
 
+_ARTIFACT_SPECS = {
+    "change.observed": {
+        "subject_kind": "change", "producer": "diffwitness",
+        "payload_fields": {
+            "repository_fingerprint": "nonempty-string", "base_tree": "nonempty-string",
+            "candidate_tree": "nonempty-string", "base_sha": "nullable-string",
+            "candidate_sha": "nullable-string", "changed_files": "string-list",
+        },
+        "relations": {"affects": "file"},
+    },
+    "proof.completed": {
+        "subject_kind": "proof-certificate", "producer": "diffwitness-proof",
+        "payload_fields": {
+            "change_id": "nonempty-string", "claim": "nonempty-string",
+            "accepted": "boolean", "certificate_schema": "nullable-schema",
+            "authoritative_validation": "boolean",
+        },
+        "relations": {"proves": "change"},
+    },
+    "debt.snapshot": {
+        "subject_kind": "change", "producer": "debt-ledger",
+        "payload_fields": {"change_id": "nonempty-string", "points": "nonnegative-integer",
+                           "obligations": "nonnegative-integer", "budget_passed": "nullable-boolean"},
+        "relations": {},
+    },
+    "debt.observed": {
+        "subject_kind": "debt", "producer": "debt-ledger",
+        "payload_fields": {"change_id": "nonempty-string"},
+        "relations": {"introduced_in": "change"},
+    },
+    "understanding.recorded": {
+        "subject_kind": "understanding", "producer": "idleproof",
+        "payload_fields": {
+            "change_id": "nonempty-string", "coverage": "nullable-percentage",
+            "feature_coverage": "nullable-percentage", "knowledge_debt": "nullable-nonnegative-integer",
+            "feature_debt": "nullable-nonnegative-integer", "receipt_digest": "nullable-string",
+        },
+        "relations": {"describes": "change"},
+    },
+}
+
 
 def _matches_payload_field(rule: str, value: Any) -> bool:
-    if rule == "nullable-string":
-        return value is None or isinstance(value, str)
+    if rule.startswith("nullable-"):
+        return value is None or _matches_payload_field(rule.removeprefix("nullable-"), value)
+    if rule == "nonempty-string":
+        return isinstance(value, str) and bool(value.strip())
+    if rule == "schema":
+        return isinstance(value, str) or type(value) is int
+    if rule == "nonnegative-integer":
+        return type(value) is int and value >= 0
+    if rule == "percentage":
+        return type(value) is int and 0 <= value <= 100
     if rule == "string":
         return isinstance(value, str)
     if rule == "boolean":
@@ -90,6 +141,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == ARTIFACT_PROFILE:
+        _validate_artifact_profile(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] != DECLARATION_PROFILE:
         raise ValueError("unsupported Project Memory admission profile")
@@ -121,6 +175,96 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
             raise ValueError("declaration profile relations require DECLARED authority")
 
 
+def _validate_artifact_profile(event: dict[str, Any]) -> None:
+    # Local import keeps contract discovery independent of the engine runtime.
+    from .engine_protocol import change_id
+
+    kind, payload, provenance = event["event_type"], event["payload"], event["provenance"]
+    spec = _ARTIFACT_SPECS.get(kind)
+    if spec is None or event["subject"]["kind"] != spec["subject_kind"]:
+        raise ValueError("artifact profile event type and subject kind do not match")
+    for field, rule in spec["payload_fields"].items():
+        if field not in payload or not _matches_payload_field(rule, payload[field]):
+            raise ValueError(f"artifact profile payload.{field} must be {rule}")
+    for field, value in (("producer", spec["producer"]), ("source", "change-envelope"),
+                         ("artifact_schema", "change-envelope-1")):
+        if provenance.get(field) != value:
+            raise ValueError(f"artifact profile provenance.{field} must be {value}")
+    if "artifact_digest" in provenance and not _matches_payload_field("nonempty-string", provenance["artifact_digest"]):
+        raise ValueError("artifact profile provenance.artifact_digest must be a non-empty string")
+    if not _matches_payload_field("nonempty-string", event["actor"].get("id")):
+        raise ValueError("artifact profile requires a non-empty string actor.id")
+    if "lifecycle" in payload and (
+        not isinstance(payload["lifecycle"], str) or payload["lifecycle"] not in PROJECTION_LIFECYCLES
+    ):
+        raise ValueError("artifact profile lifecycle must be active or inactive")
+
+    status = "OBSERVED"
+    if kind == "proof.completed":
+        trusted = payload["authoritative_validation"]
+        if provenance.get("authoritative_validation") is not trusted:
+            raise ValueError("artifact profile Proof provenance authority mismatch")
+        if not _matches_payload_field("nonempty-string", provenance.get("imported_by")):
+            raise ValueError("artifact profile Proof requires provenance.imported_by")
+        status = "VERIFIED" if trusted and payload["accepted"] else "OBSERVED"
+    if event["epistemic_status"] != status:
+        raise ValueError("artifact profile epistemic status is inconsistent with the artifact summary")
+
+    subject_id = event["subject"]["id"]
+    relations = event.get("relations", [])
+    cid = payload.get("change_id")
+    if kind == "change.observed":
+        expected = change_id(repository=payload["repository_fingerprint"],
+                             base_tree=payload["base_tree"], candidate_tree=payload["candidate_tree"])
+        if subject_id != expected:
+            raise ValueError("artifact profile change identity mismatch")
+        files = payload["changed_files"]
+        if len(files) != len(set(files)) or len(relations) != len(files):
+            raise ValueError("artifact profile changed files and relations do not match")
+        for file, relation in zip(files, relations, strict=True):
+            target = relation["target"]
+            if (target["id"] != "file:" + hashlib.sha256(file.encode("utf-8")).hexdigest()[:24]
+                    or target.get("label") != file
+                    or relation.get("metadata", {}).get("basis") != "git-diff-name-only"):
+                raise ValueError("artifact profile file relation identity mismatch")
+    elif kind == "debt.snapshot":
+        if subject_id != cid or relations:
+            raise ValueError("artifact profile debt snapshot change identity/relations mismatch")
+    else:
+        if len(relations) != 1 or relations[0]["target"]["id"] != cid:
+            raise ValueError("artifact profile relation must reference the payload change_id")
+        if kind == "debt.observed" and not subject_id.startswith("DW-"):
+            raise ValueError("artifact profile debt lineage must start with DW-")
+        if kind == "understanding.recorded" and subject_id != "understanding:" + cid:
+            raise ValueError("artifact profile understanding identity mismatch")
+    for relation in relations:
+        target_kind = spec["relations"].get(relation["predicate"])
+        if target_kind is None or relation["target"]["kind"] != target_kind:
+            raise ValueError("artifact profile relation predicate and target kind do not match")
+        if relation.get("epistemic_status", status) != status:
+            raise ValueError("artifact profile relation authority mismatch")
+        if kind == "proof.completed" and relation.get("metadata", {}).get("authoritative_validation") is not payload["authoritative_validation"]:
+            raise ValueError("artifact profile Proof relation authority mismatch")
+
+
+def compatible_artifact_profile_adoption(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    """Only a valid legacy/artifact pair may ignore the additive profile marker.
+
+    Validate the legacy assertion under the requested profile too; a marker is
+    not a way to bless incompatible history. Neither event is mutated.
+    """
+    profiles = [event["provenance"].get(PROFILE_PROVENANCE_FIELD) for event in (left, right)]
+    if profiles not in ([None, ARTIFACT_PROFILE], [ARTIFACT_PROFILE, None]):
+        return False
+    for event in (left, right):
+        probe = {**event, "provenance": {**event["provenance"], PROFILE_PROVENANCE_FIELD: ARTIFACT_PROFILE}}
+        try:
+            validate_admission_profile(probe)
+        except ValueError:
+            return False
+    return True
+
+
 def projection_lifecycle(event_type: str, payload: dict[str, Any]) -> str:
     """Preserve the existing projection rule, including suffix precedence."""
     if event_type.endswith(INACTIVE_EVENT_SUFFIXES):
@@ -139,6 +283,19 @@ def project_memory_contract() -> dict[str, Any]:
         "schema_version": CONTRACT_VERSION,
         "event_schema": EVENT_SCHEMA_VERSION,
         "admission_profiles": {
+            ARTIFACT_PROFILE: {
+                "provenance_field": PROFILE_PROVENANCE_FIELD,
+                "event_types": copy.deepcopy(_ARTIFACT_SPECS),
+                "epistemic_status": "OBSERVED; Proof follows existing authoritative runner flag and acceptance",
+                "additional_payload_fields": "preserve",
+                "required_provenance_fields": ["producer", "source", "artifact_schema"],
+                "required_actor_fields": ["kind", "id"],
+                "proof_authority_consistency": "payload, provenance, relation metadata and status agree; not authentication",
+                "unknown_profile_version": "reject",
+                "unprofiled_history": "preserve",
+                "legacy_dedupe": "validate both assertions; ignore only compatible artifact profile marker",
+                "grants_proof_authority": False,
+            },
             DECLARATION_PROFILE: {
                 "provenance_field": PROFILE_PROVENANCE_FIELD,
                 "event_types": copy.deepcopy(_DECLARATION_SPECS),

@@ -169,6 +169,14 @@ def main() -> int:
         # Import admission must not coerce a string into an accepted Proof fact.
         journal = repo / ".git" / "diffwitness" / "events.jsonl"
         before = journal.read_bytes()
+        events = [json.loads(line) for line in before.decode("utf-8").splitlines() if line.strip()]
+        artifacts = [event for event in events if event.get("provenance", {}).get("source") == "change-envelope"]
+        if not artifacts or any(event["provenance"].get("diffwitness_profile") != "project-memory-artifact-1"
+                                for event in artifacts):
+            raise RuntimeError("installed Guard did not emit typed artifact events")
+        proofs = [event for event in artifacts if event["event_type"] == "proof.completed"]
+        if not proofs or any(event["epistemic_status"] != "VERIFIED" for event in proofs):
+            raise RuntimeError("typed artifact adoption lost the real Guard Proof authority")
         invalid_envelope = root / "invalid-envelope.json"
         invalid = json.loads(envelope_path.read_text(encoding="utf-8"))
         invalid["proof"]["accepted"] = "false"
