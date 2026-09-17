@@ -10,14 +10,15 @@ from .gitops import git, repo_root
 from .json_contract import strict_json_loads
 
 
-def _read_envelope(path: Path) -> dict[str, Any]:
+def _read_envelope(path: Path) -> tuple[dict[str, Any], str]:
     try:
-        value = strict_json_loads(path.read_text(encoding="utf-8"))
+        raw = path.read_bytes()
+        value = strict_json_loads(raw.decode("utf-8"))
     except (OSError, ValueError, RecursionError) as exc:
         raise ContinuityError(f"cannot read change envelope {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise ContinuityError("change envelope must be a JSON object")
-    return value
+    return value, "sha256:" + hashlib.sha256(raw).hexdigest()
 
 
 def _integer_field(summary: dict[str, Any], field: str, *, section: str, maximum: int | None = None) -> None:
@@ -132,16 +133,19 @@ def record_change_envelope(
     malformed Debt/Understanding item cannot leave a partial Project State history for the change.
     """
     root = repo_root(repo)
-    if envelope is None:
-        if path is None:
-            raise ContinuityError("record_change_envelope requires envelope or path")
-        envelope = _read_envelope(path)
+    source_digest = None
+    if path is not None:
+        source_envelope, source_digest = _read_envelope(path)
+        if envelope is not None and _canonical(envelope) != _canonical(source_envelope):
+            raise ContinuityError("supplied change envelope does not match the source file")
+        # One parsed byte snapshot supplies both the facts and their provenance.
+        # The path may be replaced or disappear while Git identities are checked.
+        envelope = source_envelope
+    elif envelope is None:
+        raise ContinuityError("record_change_envelope requires envelope or path")
     cid, base_tree, candidate_tree = _validate_envelope(root, envelope)
     repository = str((envelope.get("repository") or {}).get("fingerprint"))
     changed_files = _changed_files(root, envelope)
-    source_digest = None
-    if path is not None and path.exists():
-        source_digest = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
     provenance = {
         "producer": "diffwitness",
         "source": "change-envelope",
