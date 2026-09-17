@@ -560,6 +560,10 @@ New objective, decision, invariant and failed-approach declarations use the expl
 It checks their types and keeps their authority `DECLARED`. Unprofiled historical
 events remain readable; no history is rewritten to add the profile.
 
+Envelope imports reject ambiguous JSON and wrongly typed Proof, debt and understanding
+summary values before appending memory. A manual import remains `OBSERVED`; it cannot
+authorize Proof. See the [bounded import contract](docs/qualification/PM_001B2.md).
+
 ## Security model
 
 DiffWitness executes repository-controlled test/setup commands. Treat those commands with the same trust you would require before running that repository's own test suite.

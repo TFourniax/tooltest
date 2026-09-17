@@ -5,6 +5,7 @@ from .language import tr
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,7 +16,7 @@ from .continuity_contract import (
 )
 from .continuity_context import compile_context, render_context
 from .continuity_debt_bridge import sync_debt_history
-from .continuity_events import append_project_event, continuity_paths, read_project_events
+from .continuity_events import ContinuityError, append_project_event, continuity_paths, read_project_events
 from .continuity_state import ensure_state, rebuild_state, state_status
 from .gitops import repo_root
 from .structure_provider import component_id_for_path
@@ -148,7 +149,11 @@ def state_cli(argv: list[str]) -> int:
     if args.command == "ingest-envelope":
         # A manually supplied envelope is a useful historical artifact, but it is not enough to
         # upgrade its embedded Proof summary to VERIFIED. Guard owns that authoritative bridge.
-        result = record_change_envelope(repo=repo, path=args.envelope, actor="human-import", trusted_proof=False)
+        try:
+            result = record_change_envelope(repo=repo, path=args.envelope, actor="human-import", trusted_proof=False)
+        except ContinuityError as exc:
+            print(tr(f"Change envelope rejected: {exc}", f"Enveloppe de changement refusée : {exc}"), file=sys.stderr)
+            return 2
         sync_debt_history(repo)
         ensure_state(repo)
         _print(result, args.json)
