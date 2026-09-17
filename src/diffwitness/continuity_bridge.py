@@ -1,31 +1,78 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from pathlib import Path
 from typing import Any
 
-from .continuity_events import ContinuityError, append_project_events
+from .continuity_events import ContinuityError, _canonical, append_project_events
 from .engine_protocol import change_id, repository_fingerprint
 from .gitops import git, repo_root
+from .json_contract import strict_json_loads
 
 
 def _read_envelope(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, RecursionError) as exc:
         raise ContinuityError(f"cannot read change envelope {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise ContinuityError("change envelope must be a JSON object")
     return value
 
 
+def _integer_field(summary: dict[str, Any], field: str, *, section: str, maximum: int | None = None) -> None:
+    if field not in summary:
+        return
+    value = summary[field]
+    if (not isinstance(value, int) or isinstance(value, bool) or value < 0
+            or (maximum is not None and value > maximum)):
+        bound = f" between 0 and {maximum}" if maximum is not None else " >= 0"
+        raise ContinuityError(f"change envelope {section}.{field} must be an integer{bound}")
+
+
+def _validate_summaries(envelope: dict[str, Any]) -> None:
+    # Validate supplied scalar values before applying legacy defaults. This is a
+    # bounded admission check, not full change-envelope JSON Schema enforcement.
+    for section in ("proof", "debt", "understanding"):
+        value = envelope.get(section)
+        if value is not None and not isinstance(value, dict):
+            raise ContinuityError(f"change envelope {section} summary must be an object")
+    proof = envelope.get("proof") or {}
+    if "accepted" in proof and not isinstance(proof["accepted"], bool):
+        raise ContinuityError("change envelope proof.accepted must be a boolean")
+    debt = envelope.get("debt") or {}
+    _integer_field(debt, "points", section="debt")
+    budget = debt.get("budget_passed")
+    if budget is not None and not isinstance(budget, bool):
+        raise ContinuityError("change envelope debt.budget_passed must be a boolean or null")
+    lineages = debt.get("open_lineages")
+    if lineages is not None and (not isinstance(lineages, list)
+                                or any(not isinstance(value, str) for value in lineages)):
+        raise ContinuityError("change envelope debt.open_lineages must be an array of strings")
+    understanding = envelope.get("understanding") or {}
+    for field in ("coverage", "feature_coverage"):
+        _integer_field(understanding, field, section="understanding", maximum=100)
+    for field in ("knowledge_debt", "feature_debt"):
+        _integer_field(understanding, field, section="understanding")
+
+
 def _validate_envelope(repo: Path, envelope: dict[str, Any]) -> tuple[str, str, str]:
+    if not isinstance(envelope, dict):
+        raise ContinuityError("change envelope must be a JSON object")
+    # Cover direct callers and overflow (1e999), including discarded extensions.
+    try:
+        _canonical(envelope)
+    except ContinuityError as exc:
+        raise ContinuityError("change envelope must contain finite JSON values") from exc
     if envelope.get("schema_version") != "change-envelope-1":
         raise ContinuityError("unsupported change-envelope schema")
-    repository = (envelope.get("repository") or {}).get("fingerprint")
-    base_tree = (envelope.get("base") or {}).get("tree")
-    candidate_tree = (envelope.get("candidate") or {}).get("tree")
+    for section in ("repository", "base", "candidate"):
+        if not isinstance(envelope.get(section), dict):
+            raise ContinuityError(f"change envelope {section} must be an object")
+    _validate_summaries(envelope)
+    repository = envelope["repository"].get("fingerprint")
+    base_tree = envelope["base"].get("tree")
+    candidate_tree = envelope["candidate"].get("tree")
     cid = envelope.get("change_id")
     if not all(isinstance(value, str) and value for value in (repository, base_tree, candidate_tree, cid)):
         raise ContinuityError("change envelope is missing repository/base/candidate identity")
@@ -107,9 +154,7 @@ def record_change_envelope(
     debt = envelope.get("debt")
     lineages: list[str] = []
     if debt is not None:
-        if not isinstance(debt, dict):
-            raise ContinuityError("change envelope debt summary must be an object")
-        lineages = sorted(set(str(value) for value in (debt.get("open_lineages") or []) if isinstance(value, str)))
+        lineages = sorted(set(debt.get("open_lineages") or []))
         for debt_id in lineages:
             if not debt_id.startswith("DW-"):
                 raise ContinuityError(f"invalid Debt Ledger lineage in envelope: {debt_id}")
@@ -145,11 +190,9 @@ def record_change_envelope(
 
     proof = envelope.get("proof")
     if proof is not None:
-        if not isinstance(proof, dict):
-            raise ContinuityError("change envelope proof summary must be an object")
         cert = str(proof.get("certificate_id") or "")
         if cert:
-            accepted = bool(proof.get("accepted"))
+            accepted = proof.get("accepted", False)
             proof_status = "VERIFIED" if trusted_proof and accepted else "OBSERVED"
             specs.append(
                 {
@@ -191,14 +234,14 @@ def record_change_envelope(
                 "epistemic_status": "OBSERVED",
                 "payload": {
                     "change_id": cid,
-                    "points": int(debt.get("points") or 0),
+                    "points": debt.get("points", 0),
                     "obligations": len(lineages),
                     "budget_passed": debt.get("budget_passed"),
                 },
                 "relations": [],
                 "provenance": {**provenance, "producer": "debt-ledger"},
                 "actor": event_actor,
-                "dedupe_key": f"debt-snapshot:{cid}:{int(debt.get('points') or 0)}:{','.join(lineages)}:{debt.get('budget_passed')}",
+                "dedupe_key": f"debt-snapshot:{cid}:{debt.get('points', 0)}:{','.join(lineages)}:{debt.get('budget_passed')}",
                 "bucket": "debt",
             }
         )
@@ -225,8 +268,6 @@ def record_change_envelope(
 
     understanding = envelope.get("understanding")
     if understanding is not None:
-        if not isinstance(understanding, dict):
-            raise ContinuityError("change envelope understanding summary must be an object")
         digest = str(understanding.get("receipt_digest") or "")
         specs.append(
             {

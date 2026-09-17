@@ -166,6 +166,20 @@ def main() -> int:
         if (envelope.get("privacy") or {}).get("code_uploaded") is not False:
             raise RuntimeError("local change envelope unexpectedly claims source upload")
 
+        # Import admission must not coerce a string into an accepted Proof fact.
+        journal = repo / ".git" / "diffwitness" / "events.jsonl"
+        before = journal.read_bytes()
+        invalid_envelope = root / "invalid-envelope.json"
+        invalid = json.loads(envelope_path.read_text(encoding="utf-8"))
+        invalid["proof"]["accepted"] = "false"
+        invalid_envelope.write_text(json.dumps(invalid), encoding="utf-8")
+        rejected_import = module(repo, "state", "ingest-envelope", str(invalid_envelope), "--json", check=False)
+        if (rejected_import.returncode != 2 or "proof.accepted" not in rejected_import.stdout
+                or "Traceback" in rejected_import.stdout):
+            raise RuntimeError(f"invalid envelope did not fail with a controlled error:\n{rejected_import.stdout}")
+        if journal.read_bytes() != before:
+            raise RuntimeError("rejected envelope changed the existing ProjectEvent journal")
+
         # A stale/rebound Debt report must never be silently correlated to the accepted proof.
         stale_debt = root / "stale-debt.json"
         stale_payload = json.loads(debt_json.read_text(encoding="utf-8"))
@@ -226,6 +240,7 @@ def main() -> int:
             f"witnessed={summary.get('witnessed', 0)}",
             f"debt={envelope.get('debt', {}).get('points', 0)}",
             "stale-evidence=fail-closed",
+            "invalid-envelope=fail-closed",
         )
     return 0
 
