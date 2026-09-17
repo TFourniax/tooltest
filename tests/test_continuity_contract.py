@@ -88,7 +88,7 @@ class ContinuityContractTests(unittest.TestCase):
             state = rebuild_state(repo)
             self.assertEqual(path.read_bytes(), before)
             self.assertEqual(read_project_events(path), events)
-            with sqlite3.connect(state) as conn:
+            with contextlib.closing(sqlite3.connect(state)) as conn:
                 rows = conn.execute("select entity_id,kind,epistemic_status,lifecycle from entities order by entity_id").fetchall()
             self.assertEqual(rows, [
                 ("EXT-1", "vendor-extension", "DECLARED", "active"),
