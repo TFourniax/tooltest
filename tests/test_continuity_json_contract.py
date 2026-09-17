@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 import subprocess
 import tempfile
@@ -123,11 +124,13 @@ class ContinuityJSONContractTests(unittest.TestCase):
     def test_valid_history_keeps_exact_bytes_identifiers_and_reconstruction(self):
         # Frozen by the previous main, before strict JSON admission was implemented.
         golden = Path(__file__).with_name("fixtures") / "project-event-1-valid.jsonl"
-        self.assertEqual(self.original, golden.read_bytes().replace(b"\r\n", b"\n"))
+        canonical_fixture = golden.read_bytes().replace(b"\r\n", b"\n")
+        # Existing os.open/os.write append uses the platform's native line ending.
+        self.assertEqual(self.original, canonical_fixture.replace(b"\n", os.linesep.encode("ascii")))
         original_event = json.loads(self.original)
         for ending in (b"\n", b"\r\n", b"\r"):
             with self.subTest(ending=ending):
-                raw = self.original.replace(b"\n", ending)
+                raw = canonical_fixture.replace(b"\n", ending)
                 self.path.write_bytes(raw)
                 self.assertEqual(read_project_events(self.path), [original_event])
                 self.assertEqual(_parse(raw), [original_event])
