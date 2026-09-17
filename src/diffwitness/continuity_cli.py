@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .continuity_bridge import record_change_envelope
+from .continuity_contract import project_memory_contract
 from .continuity_context import compile_context, render_context
 from .continuity_debt_bridge import sync_debt_history
 from .continuity_events import append_project_event, continuity_paths, read_project_events
@@ -73,6 +74,8 @@ def state_cli(argv: list[str]) -> int:
         description=tr('Inspect, import, sync, or rebuild the reconstructible Project State projection.', 'Examiner, importer, synchroniser ou reconstruire l’état du projet.'),
     )
     sub = parser.add_subparsers(dest="command", required=True)
+    contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
+    contract.add_argument("--json", action="store_true")
     status = sub.add_parser("status")
     status.add_argument("--repo", default=".")
     status.add_argument("--json", action="store_true")
@@ -97,6 +100,15 @@ def state_cli(argv: list[str]) -> int:
     graph.add_argument("--entity")
     graph.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
+    if args.command == "contract":
+        value = project_memory_contract()
+        if args.json:
+            _print(value, True)
+        else:
+            print(f"{value['schema_version']} ({value['event_schema']})")
+            print(tr("Use --json for the canonical vocabulary, provenance and compatibility rules.",
+                     "Utiliser --json pour le vocabulaire canonique, la provenance et les règles de compatibilité."))
+        return 0
     repo = repo_root(args.repo)
 
     if args.command == "status":

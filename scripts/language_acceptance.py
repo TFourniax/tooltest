@@ -36,7 +36,8 @@ def main():
         assert 'configured for DiffWitness' in installed,installed
         hooks=(repo/'.codex/hooks.json').read_bytes()
         expected={'status':('Project state','État du projet'),'doctor':('GUIDED CHECK-UP','CHECK-UP GUIDÉ'),
-                  'setup status':('Verification still','Vérification encore')}
+                  'setup status':('Verification still','Vérification encore'),
+                  'state contract':('project-memory-contract-1','project-memory-contract-1')}
         for command,(en,fr) in expected.items():
             words=command.split()
             if words[0] == 'setup' and args.idleproof:
