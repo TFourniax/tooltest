@@ -7,6 +7,7 @@ import sys
 from typing import Any
 
 from .continuity_contract import HUMAN_DECLARABLE_RELATIONS as _ALLOWED_PREDICATES
+from .continuity_contract import PROFILE_PROVENANCE_FIELD, RELATION_PROFILE
 from .continuity_events import append_project_event
 from .continuity_state import ensure_state
 from .gitops import repo_root
@@ -99,6 +100,7 @@ def relation_cli(argv: list[str]) -> int:
             "producer": "diffwitness",
             "source": "human-cli",
             "preserves_entity_from_event": source_event_id,
+            PROFILE_PROVENANCE_FIELD: RELATION_PROFILE,
         },
         actor={"kind": "human", "id": "local-user"},
         dedupe_key=f"relation:{source_id}:{args.predicate}:{target_id}",

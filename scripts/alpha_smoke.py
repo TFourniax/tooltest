@@ -240,6 +240,42 @@ def main() -> int:
         if (root / "must-not-exist-proof.json").exists():
             raise RuntimeError("failed proof integrity validation still wrote an envelope")
 
+        # Exercise the installed ledger producer and public lifecycle commands.
+        # The obligation is an explicit synthetic fixture, not an observed defect.
+        from diffwitness.debt_models import DebtReport, DebtSignal
+        from diffwitness.ledger import DebtLedger
+
+        ledger_path = repo / ".git" / "diffwitness" / "debt-ledger.jsonl"
+        signal = DebtSignal(category="test", rule_id="smoke.lifecycle", title="Synthetic lifecycle obligation",
+                            severity="low", measurement="deterministic", anchor="installed-smoke",
+                            explanation="Synthetic installed-package acceptance fixture", path="calc.py", line=1)
+        report = DebtReport(scope="change", signals=[signal], base_sha=payload["base"]["sha"],
+                            candidate_tree=payload["candidate"]["tree"])
+        ledger = DebtLedger.load(ledger_path)
+        ledger.record_report(report)
+        signal.title = "Refreshed synthetic lifecycle obligation"
+        ledger.record_report(report)
+        module(repo, "ledger", "accept", signal.debt_id, "--reason", "Synthetic acceptance")
+        module(repo, "ledger", "unaccept", signal.debt_id)
+        module(repo, "ledger", "resolve", signal.debt_id, "--force", "--reason", "Synthetic manual resolution")
+        DebtLedger.load(ledger_path).record_report(report)
+        module(repo, "state", "sync-debt", "--json")
+        ledger_events = [json.loads(line) for line in journal.read_text(encoding="utf-8").splitlines()
+                         if line.strip()]
+        ledger_events = [event for event in ledger_events if event["subject"]["id"] == signal.debt_id]
+        if [event["event_type"] for event in ledger_events] != ["debt." + transition for transition in
+                ("introduced", "refreshed", "accepted", "unaccepted", "resolved", "reopened")]:
+            raise RuntimeError("installed ledger lifecycle lost a transition")
+        for event in ledger_events:
+            expected = "DECLARED" if event["event_type"] in {"debt.accepted", "debt.unaccepted"} else "OBSERVED"
+            if (event["provenance"].get("diffwitness_profile") != "project-memory-debt-lifecycle-1"
+                    or event["epistemic_status"] != expected):
+                raise RuntimeError("installed ledger lifecycle profile or authority mismatch")
+        before_sync_repeat = journal.read_bytes()
+        module(repo, "state", "sync-debt", "--json")
+        if journal.read_bytes() != before_sync_repeat:
+            raise RuntimeError("installed ledger reimport rewrote history")
+
         run([sys.executable, "-m", "unittest", "-q"], cwd=repo)
         print(
             "alpha smoke passed:",
@@ -249,6 +285,7 @@ def main() -> int:
             f"debt={envelope.get('debt', {}).get('points', 0)}",
             "stale-evidence=fail-closed",
             "invalid-envelope=fail-closed",
+            "ledger-lifecycle=6-transitions-idempotent",
         )
     return 0
 
