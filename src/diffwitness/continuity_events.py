@@ -15,7 +15,8 @@ from .continuity_contract import (
     ENTITY_ID_PATTERN, ENTITY_KIND_PATTERN, EPISTEMIC_STATUSES, EVENT_TYPE_PATTERN,
     EVENT_SCHEMA_VERSION as SCHEMA_VERSION, MAX_BATCH_EVENTS as _MAX_BATCH_EVENTS,
     MAX_EVENT_BYTES as _MAX_EVENT_BYTES, MAX_LABEL_CHARS, MAX_RELATIONS,
-    RELATION_PREDICATE_PATTERN, validate_admission_profile,
+    RELATION_PREDICATE_PATTERN, PROFILE_PROVENANCE_FIELD,
+    compatible_artifact_profile_adoption, validate_admission_profile,
 )
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
@@ -374,7 +375,14 @@ def append_project_events(
                 probe = {**candidate, "timestamp": event.get("timestamp"), "prev_hash": event.get("prev_hash")}
                 probe["event_id"] = _event_id(probe)
                 probe["event_hash"] = _event_hash(probe)
-                if _semantic_core(event) != _semantic_core(probe):
+                old_core, new_core = _semantic_core(event), _semantic_core(probe)
+                if compatible_artifact_profile_adoption(event, probe):
+                    for core in (old_core, new_core):
+                        core["provenance"] = dict(core["provenance"])
+                        core["provenance"].pop(PROFILE_PROVENANCE_FIELD, None)
+                # Python equality conflates JSON booleans and numbers (True == 1).
+                # Canonical JSON preserves their types and ignores object key order.
+                if _canonical(old_core) != _canonical(new_core):
                     raise ContinuityError(f"conflicting project event for dedupe key {dedupe_key}")
                 results.append((event, False))
                 continue

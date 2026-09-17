@@ -565,6 +565,9 @@ summary values before appending memory. A manual import remains `OBSERVED`; it c
 authorize Proof. See the [bounded import contract](docs/qualification/PM_001B2.md).
 File imports bind their provenance digest to the [exact bytes parsed](docs/qualification/PM_001B3.md),
 even if the source path is subsequently replaced.
+New envelope-derived events use the [`project-memory-artifact-1` typed profile](docs/qualification/PM_001B4.md).
+Compatible reimports reuse their original events without rewriting history. Real payload,
+provenance or JSON type conflicts fail closed; a profile never authenticates a Proof.
 
 ## Security model
 

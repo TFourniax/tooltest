@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
+from .continuity_contract import ARTIFACT_PROFILE, PROFILE_PROVENANCE_FIELD
 from .continuity_events import ContinuityError, _canonical, append_project_events
 from .engine_protocol import change_id, repository_fingerprint
 from .gitops import git, repo_root
@@ -55,6 +56,23 @@ def _validate_summaries(envelope: dict[str, Any]) -> None:
         _integer_field(understanding, field, section="understanding", maximum=100)
     for field in ("knowledge_debt", "feature_debt"):
         _integer_field(understanding, field, section="understanding")
+    # Check every consumed scalar before legacy defaults/string projection.
+    for section, fields in (("proof", ("certificate_id", "claim")),
+                            ("understanding", ("receipt_digest",)),
+                            ("actor", ("kind", "agent", "id"))):
+        summary = envelope.get(section)
+        if summary is not None and not isinstance(summary, dict):
+            raise ContinuityError(f"change envelope {section} must be an object")
+        for field in fields:
+            if summary is not None and field in summary and not isinstance(summary[field], str):
+                raise ContinuityError(f"change envelope {section}.{field} must be a string")
+    if "certificate_schema" in proof and (not isinstance(proof["certificate_schema"], str)
+                                           and type(proof["certificate_schema"]) is not int):
+        raise ContinuityError("change envelope proof.certificate_schema must be a string or integer")
+    for section in ("base", "candidate"):
+        sha = envelope[section].get("sha")
+        if sha is not None and not isinstance(sha, str):
+            raise ContinuityError(f"change envelope {section}.sha must be a string or null")
 
 
 def _validate_envelope(repo: Path, envelope: dict[str, Any]) -> tuple[str, str, str]:
@@ -132,6 +150,10 @@ def record_change_envelope(
     already validated that certificate. All event specs are validated before one append+fsync, so a
     malformed Debt/Understanding item cannot leave a partial Project State history for the change.
     """
+    if type(trusted_proof) is not bool:
+        raise ContinuityError("trusted_proof must be a boolean supplied by the authoritative runner")
+    if not isinstance(actor, str) or not actor.strip():
+        raise ContinuityError("envelope importer actor must be a non-empty string")
     root = repo_root(repo)
     source_digest = None
     if path is not None:
@@ -150,6 +172,7 @@ def record_change_envelope(
         "producer": "diffwitness",
         "source": "change-envelope",
         "artifact_schema": "change-envelope-1",
+        PROFILE_PROVENANCE_FIELD: ARTIFACT_PROFILE,
     }
     if source_digest:
         provenance["artifact_digest"] = source_digest
