@@ -13,7 +13,7 @@ from diffwitness.idleproof_sidecar import integration_install
 from diffwitness.native_activation import native_activation_summary, record_native_activation
 from diffwitness.protect import evaluate_pre_tool, protect_status, set_protect_mode
 from diffwitness.protect_ui import _render_status
-from diffwitness.setup import _protect_human_lines
+from diffwitness.setup import _persist_setup_scope, _protect_human_lines
 from diffwitness.status_cli import build_project_status
 
 
@@ -25,6 +25,9 @@ class ProviderTrustReadinessTests(unittest.TestCase):
                          "commit", "--allow-empty", "-qm", "baseline")):
                 subprocess.run(["git", *args], cwd=repo, check=True)
             integration_install(repo, agent="codex", dw_command="dw")
+            # This Codex-only journey needs the same explicit scope as `dw setup`.
+            # Otherwise a real Claude executable on PATH expands auto-detection.
+            _persist_setup_scope(repo, ["codex"])
             record_native_activation(repo, "codex")
             native_before = native_activation_summary(repo, ["codex"])
             enabled = set_protect_mode(repo, "builtin", force=True)
