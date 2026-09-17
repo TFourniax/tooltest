@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
+from .continuity_contract import (
+    ENTITY_ID_PATTERN, ENTITY_KIND_PATTERN, EPISTEMIC_STATUSES, EVENT_TYPE_PATTERN,
+    EVENT_SCHEMA_VERSION as SCHEMA_VERSION, MAX_BATCH_EVENTS as _MAX_BATCH_EVENTS,
+    MAX_EVENT_BYTES as _MAX_EVENT_BYTES, MAX_LABEL_CHARS, MAX_RELATIONS,
+    RELATION_PREDICATE_PATTERN,
+)
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
 
@@ -19,14 +25,10 @@ class ContinuityError(RuntimeError):
     pass
 
 
-SCHEMA_VERSION = "project-event-1"
-EPISTEMIC_STATUSES = {"DECLARED", "INFERRED", "OBSERVED", "VERIFIED"}
-_EVENT_TYPE = re.compile(r"^[a-z][a-z0-9-]{1,31}\.[a-z][a-z0-9-]{1,31}$")
-_ENTITY_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_.:/@-]{0,255}$")
+_EVENT_TYPE = re.compile(EVENT_TYPE_PATTERN)
+_ENTITY_ID = re.compile(ENTITY_ID_PATTERN)
 _LOCK_TIMEOUT_SECONDS = 10.0
 _STALE_LOCK_SECONDS = 120.0
-_MAX_EVENT_BYTES = 256 * 1024
-_MAX_BATCH_EVENTS = 2048
 
 
 def _now() -> str:
@@ -90,21 +92,21 @@ def _validate_subject(subject: Any) -> None:
     kind = subject.get("kind")
     if not isinstance(entity_id, str) or not _ENTITY_ID.fullmatch(entity_id):
         raise ContinuityError(f"invalid project entity id: {entity_id!r}")
-    if not isinstance(kind, str) or not re.fullmatch(r"^[a-z][a-z0-9-]{0,63}$", kind):
+    if not isinstance(kind, str) or not re.fullmatch(ENTITY_KIND_PATTERN, kind):
         raise ContinuityError(f"invalid project entity kind: {kind!r}")
     label = subject.get("label")
-    if label is not None and (not isinstance(label, str) or len(label) > 500):
-        raise ContinuityError("project entity label must be a string <= 500 chars")
+    if label is not None and (not isinstance(label, str) or len(label) > MAX_LABEL_CHARS):
+        raise ContinuityError(f"project entity label must be a string <= {MAX_LABEL_CHARS} chars")
 
 
 def _validate_relations(relations: Any) -> None:
-    if not isinstance(relations, list) or len(relations) > 256:
-        raise ContinuityError("project event relations must be a list with at most 256 items")
+    if not isinstance(relations, list) or len(relations) > MAX_RELATIONS:
+        raise ContinuityError(f"project event relations must be a list with at most {MAX_RELATIONS} items")
     for relation in relations:
         if not isinstance(relation, dict):
             raise ContinuityError("project relation must be an object")
         predicate = relation.get("predicate")
-        if not isinstance(predicate, str) or not re.fullmatch(r"^[a-z][a-z0-9_.-]{0,63}$", predicate):
+        if not isinstance(predicate, str) or not re.fullmatch(RELATION_PREDICATE_PATTERN, predicate):
             raise ContinuityError(f"invalid project relation predicate: {predicate!r}")
         _validate_subject(relation.get("target"))
         status = relation.get("epistemic_status")

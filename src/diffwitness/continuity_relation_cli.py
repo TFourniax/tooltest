@@ -6,23 +6,10 @@ import sqlite3
 import sys
 from typing import Any
 
+from .continuity_contract import HUMAN_DECLARABLE_RELATIONS as _ALLOWED_PREDICATES
 from .continuity_events import append_project_event
 from .continuity_state import ensure_state
 from .gitops import repo_root
-
-_ALLOWED_PREDICATES = {
-    "motivated_by",
-    "affects",
-    "introduced_in",
-    "created",
-    "protects",
-    "constrains",
-    "informed",
-    "supersedes",
-    "depends_on",
-    "serves",
-    "related_to",
-}
 
 
 def _loads(raw: str | None) -> dict[str, Any]:

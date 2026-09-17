@@ -541,6 +541,20 @@ Protect is projected only as aggregate `OBSERVED` runtime metadata and is stored
 
 See [`docs/PRODUCT_SURFACES.md`](docs/PRODUCT_SURFACES.md).
 
+## Project Memory contract
+
+Consumers can inspect the versioned vocabulary, provenance conventions, authority
+boundaries and historical compatibility rules without opening a Git repository:
+
+```bash
+dw state contract --json
+```
+
+The descriptor covers the existing `project-event-1` format. Existing event IDs,
+hashes and producer extensions are preserved. A listed kind does not imply that a
+complete producer or lifecycle workflow exists. See the
+[contract and compatibility details](docs/qualification/PM_001A.md).
+
 ## Security model
 
 DiffWitness executes repository-controlled test/setup commands. Treat those commands with the same trust you would require before running that repository's own test suite.

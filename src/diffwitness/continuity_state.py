@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
+from .continuity_contract import projection_lifecycle as _lifecycle
 from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
 from .gitops import git, repo_root
 
@@ -197,13 +198,6 @@ def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
 
     seed = f"{source_id}\0{predicate}\0{target_id}".encode("utf-8")
     return "dwrel_" + hashlib.sha256(seed).hexdigest()[:24]
-
-
-def _lifecycle(event_type: str, payload: dict[str, Any]) -> str:
-    if event_type.endswith((".superseded", ".retired", ".resolved")):
-        return "inactive"
-    explicit = payload.get("lifecycle")
-    return explicit if explicit in {"active", "inactive"} else "active"
 
 
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
