@@ -163,16 +163,22 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
         raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
 
 
-def validate_project_events(events: list[dict[str, Any]]) -> None:
-    previous: str | None = None
-    dedupe: set[str] = set()
-    task_history = TaskHistoryValidator()
-    memory_history = MemoryHistoryValidator()
-    for index, event in enumerate(events, start=1):
+class _ProjectEventValidator:
+    """One request's validated chain and ordered reference state; never persisted."""
+
+    def __init__(self) -> None:
+        self.previous: str | None = None
+        self.dedupe: set[str] = set()
+        self.task_history = TaskHistoryValidator()
+        self.memory_history = MemoryHistoryValidator()
+        self.count = 0
+
+    def admit(self, event: dict[str, Any]) -> None:
+        index = self.count + 1
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
         _validate_event_shape(event, line=index)
-        if event.get("prev_hash") != previous:
+        if event.get("prev_hash") != self.previous:
             raise ContinuityError(f"project event hash chain broken at line {index}")
         if event.get("event_id") != _event_id(event):
             raise ContinuityError(f"project event id integrity failed at line {index}")
@@ -181,21 +187,29 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
             raise ContinuityError(f"project event integrity failed at line {index}")
         dedupe_key = event.get("dedupe_key")
         if dedupe_key is not None:
-            if dedupe_key in dedupe:
+            if dedupe_key in self.dedupe:
                 raise ContinuityError(f"duplicate project event dedupe key at line {index}: {dedupe_key}")
-            dedupe.add(dedupe_key)
-        previous = expected_hash
+            self.dedupe.add(dedupe_key)
+        self.previous = expected_hash
         try:
-            task_history.admit(event)
+            self.task_history.admit(event)
         except ValueError as exc:
             raise ContinuityError(f"invalid task history at line {index}: {exc}") from exc
         try:
-            memory_history.admit(event)
+            self.memory_history.admit(event)
         except ValueError as exc:
             raise ContinuityError(f"invalid memory history at line {index}: {exc}") from exc
+        self.count = index
 
 
-def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
+def validate_project_events(events: list[dict[str, Any]]) -> _ProjectEventValidator:
+    validator = _ProjectEventValidator()
+    for event in events:
+        validator.admit(event)
+    return validator
+
+
+def _read_validated_snapshot(path: Path) -> tuple[list[dict[str, Any]], str, _ProjectEventValidator]:
     """Return validated events and SHA-256 of the exact bytes used to parse them.
 
     A later file read can observe another writer's bytes. It must never supply the
@@ -204,7 +218,7 @@ def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
     """
     digest = hashlib.sha256()
     if not path.exists():
-        return [], digest.hexdigest()
+        return [], digest.hexdigest(), _ProjectEventValidator()
     events: list[dict[str, Any]] = []
     try:
         with path.open("rb") as handle:
@@ -220,8 +234,13 @@ def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
                     events.append(value)
     except (OSError, ValueError, RecursionError) as exc:
         raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
-    validate_project_events(events)
-    return events, digest.hexdigest()
+    validator = validate_project_events(events)
+    return events, digest.hexdigest(), validator
+
+
+def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
+    events, digest, _ = _read_validated_snapshot(path)
+    return events, digest
 
 
 def read_project_events(path: Path) -> list[dict[str, Any]]:
@@ -380,7 +399,7 @@ def append_project_events(
     candidates = [_candidate_from_spec(spec) for spec in events]
 
     with _event_lock(paths):
-        existing = read_project_events(paths.events)
+        existing, _, validator = _read_validated_snapshot(paths.events)
         by_dedupe = {
             str(event["dedupe_key"]): event
             for event in existing
@@ -418,9 +437,10 @@ def append_project_events(
             if dedupe_key is not None:
                 by_dedupe[str(dedupe_key)] = candidate
 
-        # Existing history was already validated by read_project_events. One complete pass here checks
-        # the batch's chain continuity and duplicate semantics before a single byte is appended.
-        validate_project_events([*existing, *appended])
+        # Continue this call's strictly validated prefix. No persisted/cache state
+        # may seed these validators; invalid suffixes discard the whole batch.
+        for event in appended:
+            validator.admit(event)
         _durable_append(paths, appended)
         return results
 

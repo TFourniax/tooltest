@@ -1,0 +1,71 @@
+{
+  "schema_version": "continuity-incremental-diagnostic-1",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "fixture_setup_timed": false,
+  "results": [
+    {
+      "events": 10000,
+      "samples": [
+        {
+          "append_one_seconds": 0.346581,
+          "ensure_state_seconds": 0.379895,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 0.358962,
+          "ensure_state_seconds": 0.382564,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 0.356874,
+          "ensure_state_seconds": 0.413391,
+          "projected_events": 1
+        }
+      ],
+      "rebuild_equivalent": true
+    },
+    {
+      "events": 50000,
+      "samples": [
+        {
+          "append_one_seconds": 1.98924,
+          "ensure_state_seconds": 2.027492,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 1.923413,
+          "ensure_state_seconds": 2.031489,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 2.06515,
+          "ensure_state_seconds": 2.079031,
+          "projected_events": 1
+        }
+      ],
+      "rebuild_equivalent": true
+    },
+    {
+      "events": 100000,
+      "samples": [
+        {
+          "append_one_seconds": 3.876326,
+          "ensure_state_seconds": 4.109513,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 3.921004,
+          "ensure_state_seconds": 4.083618,
+          "projected_events": 1
+        },
+        {
+          "append_one_seconds": 4.032717,
+          "ensure_state_seconds": 4.268245,
+          "projected_events": 1
+        }
+      ],
+      "rebuild_equivalent": true
+    }
+  ]
+}

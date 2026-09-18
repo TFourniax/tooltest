@@ -1,0 +1,79 @@
+test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes (test_continuity_incremental.IncrementalStateTests.test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes) ... 
+  test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes (test_continuity_incremental.IncrementalStateTests.test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes) (corruption=False) ... FAIL
+  test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes (test_continuity_incremental.IncrementalStateTests.test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes) (corruption=True) ... ERROR
+test_append_checks_old_event_shape_once_and_batch_references_still_reject_atomically (test_continuity_incremental.IncrementalStateTests.test_append_checks_old_event_shape_once_and_batch_references_still_reject_atomically) ... FAIL
+test_append_projects_only_suffix_with_one_validated_snapshot (test_continuity_incremental.IncrementalStateTests.test_append_projects_only_suffix_with_one_validated_snapshot) ... FAIL
+test_same_size_same_mtime_prefix_corruption_is_rejected_and_preserves_state (test_continuity_incremental.IncrementalStateTests.test_same_size_same_mtime_prefix_corruption_is_rejected_and_preserves_state) ... ok
+test_suffix_failure_rolls_back_rows_head_digest_and_retry_converges (test_continuity_incremental.IncrementalStateTests.test_suffix_failure_rolls_back_rows_head_digest_and_retry_converges) ... ok
+test_truncation_divergence_missing_anchor_and_event_row_damage_reconstruct (test_continuity_incremental.IncrementalStateTests.test_truncation_divergence_missing_anchor_and_event_row_damage_reconstruct) ... ok
+
+======================================================================
+ERROR: test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes (test_continuity_incremental.IncrementalStateTests.test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes) (corruption=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "repo/tests/test_continuity_incremental.py", line 153, in test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes
+    path = state.ensure_state(self.repo)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "repo/src/diffwitness/continuity_state.py", line 521, in ensure_state
+    return rebuild_state(root_repo, include_structure=include_structure)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "repo/src/diffwitness/continuity_state.py", line 451, in rebuild_state
+    events, digest = read_project_event_snapshot(paths.events)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "python/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "python/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "python/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "repo/tests/test_continuity_incremental.py", line 146, in interleave
+    result = read(path)
+             ^^^^^^^^^^
+  File "repo/src/diffwitness/continuity_events.py", line 223, in read_project_event_snapshot
+    validate_project_events(events)
+  File "repo/src/diffwitness/continuity_events.py", line 178, in validate_project_events
+    raise ContinuityError(f"project event id integrity failed at line {index}")
+diffwitness.continuity_events.ContinuityError: project event id integrity failed at line 1
+
+======================================================================
+FAIL: test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes (test_continuity_incremental.IncrementalStateTests.test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes) (corruption=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "repo/tests/test_continuity_incremental.py", line 154, in test_append_and_corruption_after_snapshot_never_stamp_unvalidated_bytes
+    self.assertEqual(reads.call_count, 1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_append_checks_old_event_shape_once_and_batch_references_still_reject_atomically (test_continuity_incremental.IncrementalStateTests.test_append_checks_old_event_shape_once_and_batch_references_still_reject_atomically)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "repo/tests/test_continuity_incremental.py", line 51, in test_append_checks_old_event_shape_once_and_batch_references_still_reject_atomically
+    self.assertEqual(len(seen), len(set(seen)), 'append must not revalidate the already validated prefix')
+AssertionError: 3 != 2 : append must not revalidate the already validated prefix
+
+======================================================================
+FAIL: test_append_projects_only_suffix_with_one_validated_snapshot (test_continuity_incremental.IncrementalStateTests.test_append_projects_only_suffix_with_one_validated_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "repo/tests/test_continuity_incremental.py", line 73, in test_append_projects_only_suffix_with_one_validated_snapshot
+    self.assertEqual(projected, ['OBJ-TWO'])
+AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']
+
+First differing element 0:
+'OBJ-ONE'
+'OBJ-TWO'
+
+First list contains 1 additional elements.
+First extra element 1:
+'OBJ-TWO'
+
+- ['OBJ-ONE', 'OBJ-TWO']
++ ['OBJ-TWO']
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.426s
+
+FAILED (failures=3, errors=1)

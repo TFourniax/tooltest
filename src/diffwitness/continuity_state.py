@@ -4,11 +4,14 @@ import json
 import os
 import sqlite3
 import tempfile
+from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Iterable
 
 from .continuity_contract import projection_lifecycle as _lifecycle
-from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
+from .continuity_events import (ContinuityPaths, _event_lock, continuity_paths,
+                                read_project_event_snapshot, read_project_events)
 from .continuity_task_contract import is_task_edge_event
 from .continuity_lifecycle_contract import is_memory_lifecycle, lifecycle_view
 from .continuity_search import SEARCHABLE_KINDS, memory_text, tokens
@@ -28,9 +31,13 @@ def _canonical(value: Any) -> str:
 
 def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("pragma foreign_keys=on")
-    conn.execute("pragma busy_timeout=5000")
+    try:
+        conn.row_factory = sqlite3.Row
+        conn.execute("pragma foreign_keys=on")
+        conn.execute("pragma busy_timeout=5000")
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 
@@ -445,10 +452,45 @@ def _specialized(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
         )
 
 
+@contextmanager
+def _state_lock(paths: ContinuityPaths):
+    # The journal and derived state have distinct locks. Never acquire the event
+    # lock here: projection does not append, and a later append remains detectable.
+    with _event_lock(replace(paths, lock=paths.root / "state.lock")):
+        yield
+
+
+def _project_event(conn: sqlite3.Connection, sequence: int, event: dict[str, Any]) -> None:
+    conn.execute(
+        "insert into events(sequence,event_id,event_type,timestamp,epistemic_status,subject_id,subject_kind,event_hash,payload_json,provenance_json) values(?,?,?,?,?,?,?,?,?,?)",
+        (sequence, event["event_id"], event["event_type"], event["timestamp"], event["epistemic_status"],
+         event["subject"]["id"], event["subject"]["kind"], event["event_hash"],
+         _canonical(event.get("payload") or {}), _canonical(event.get("provenance") or {})),
+    )
+    _upsert_entity(conn, event)
+    _upsert_relations(conn, event)
+    _specialized(conn, event)
+
+
+def _stamp_snapshot(conn: sqlite3.Connection, root: Path, events: list[dict[str, Any]], digest: str) -> None:
+    values = {"schema": STATE_SCHEMA, "event_count": str(len(events)),
+              "event_head": events[-1]["event_hash"] if events else "",
+              VALIDATED_EVENT_DIGEST_META: digest, "repository_root": str(root)}
+    conn.executemany("insert into meta(key,value) values(?,?) on conflict(key) do update set value=excluded.value",
+                     values.items())
+
+
 def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) -> Path:
     root_repo = repo_root(repo)
     paths = continuity_paths(root_repo)
-    events, digest = read_project_event_snapshot(paths.events)
+    with _state_lock(paths):
+        events, digest = read_project_event_snapshot(paths.events)
+        return _rebuild_snapshot(root_repo, paths, events, digest, include_structure=include_structure)
+
+
+def _rebuild_snapshot(root_repo: Path, paths: ContinuityPaths, events: list[dict[str, Any]], digest: str,
+                      *, include_structure: bool) -> Path:
+    """Called under the state lock, only with a fully validated byte snapshot."""
     paths.root.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix="state-", suffix=".db", dir=paths.root)
     os.close(fd)
@@ -458,29 +500,8 @@ def rebuild_state(repo: str | Path = ".", *, include_structure: bool = False) ->
         try:
             _schema(conn)
             for sequence, event in enumerate(events, start=1):
-                conn.execute(
-                    "insert into events(sequence,event_id,event_type,timestamp,epistemic_status,subject_id,subject_kind,event_hash,payload_json,provenance_json) values(?,?,?,?,?,?,?,?,?,?)",
-                    (
-                        sequence,
-                        event["event_id"],
-                        event["event_type"],
-                        event["timestamp"],
-                        event["epistemic_status"],
-                        event["subject"]["id"],
-                        event["subject"]["kind"],
-                        event["event_hash"],
-                        _canonical(event.get("payload") or {}),
-                        _canonical(event.get("provenance") or {}),
-                    ),
-                )
-                _upsert_entity(conn, event)
-                _upsert_relations(conn, event)
-                _specialized(conn, event)
-            conn.execute("insert into meta(key,value) values('schema',?)", (STATE_SCHEMA,))
-            conn.execute("insert into meta(key,value) values('event_count',?)", (str(len(events)),))
-            conn.execute("insert into meta(key,value) values('event_head',?)", (events[-1]["event_hash"] if events else "",))
-            conn.execute("insert into meta(key,value) values(?,?)", (VALIDATED_EVENT_DIGEST_META, digest))
-            conn.execute("insert into meta(key,value) values('repository_root',?)", (str(root_repo),))
+                _project_event(conn, sequence, event)
+            _stamp_snapshot(conn, root_repo, events, digest)
             conn.commit()
             if include_structure:
                 from .structure_provider import refresh_structure_index
@@ -511,38 +532,68 @@ def _meta(path: Path) -> dict[str, str]:
         return {}
 
 
+def _validated_prefix_count(conn: sqlite3.Connection, events: list[dict[str, Any]]) -> int | None:
+    meta = dict(conn.execute("select key,value from meta"))
+    anchor = meta.get(VALIDATED_EVENT_DIGEST_META, "")
+    if (meta.get("schema") != STATE_SCHEMA or not isinstance(anchor, str)
+            or len(anchor) != 64 or any(c not in "0123456789abcdef" for c in anchor)):
+        return None
+    try:
+        count = int(meta["event_count"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if count < 0 or count > len(events):
+        return None
+    if meta.get("event_head") != (events[count - 1]["event_hash"] if count else ""):
+        return None
+    # Validate every stored sequence/hash against the strictly validated prefix,
+    # not just a last-row hint. Holes, old chains and inconsistent metadata rebuild.
+    seen = 0
+    for seen, row in enumerate(conn.execute("select sequence,event_id,event_hash from events order by sequence"), 1):
+        if (seen > count or row["sequence"] != seen or row["event_id"] != events[seen - 1]["event_id"]
+                or row["event_hash"] != events[seen - 1]["event_hash"]):
+            return None
+    return count if seen == count else None
+
+
 def ensure_state(repo: str | Path = ".", *, include_structure: bool = False) -> Path:
     root_repo = repo_root(repo)
     paths = continuity_paths(root_repo)
-    events, digest = read_project_event_snapshot(paths.events)
-    expected_head = events[-1]["event_hash"] if events else ""
-    meta = _meta(paths.state)
-    if meta.get("schema") != STATE_SCHEMA or meta.get("event_head") != expected_head:
-        return rebuild_state(root_repo, include_structure=include_structure)
-    needs_anchor = meta.get(VALIDATED_EVENT_DIGEST_META) != digest
-    if not needs_anchor and not include_structure:
-        return paths.state
-    conn = _connect(paths.state)
-    try:
-        # Match the materialized head and schema inside the write transaction: a
-        # concurrent rebuild must not inherit another snapshot's freshness stamp.
-        if needs_anchor:
-            conn.execute(
-                """insert into meta(key,value)
-                   select ?,? where exists(select 1 from meta where key='event_head' and value=?)
-                     and exists(select 1 from meta where key='schema' and value=?)
-                   on conflict(key) do update set value=excluded.value""",
-                (VALIDATED_EVENT_DIGEST_META, digest, expected_head, STATE_SCHEMA),
-            )
-        if include_structure:
-            from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+    with _state_lock(paths):
+        # Read after acquiring the writer lock: an older waiter must never rewind
+        # another materializer's newer snapshot. Hash ALL bytes and validate ALL
+        # shapes, profiles, chain links, dedupe and ordered history references.
+        events, digest = read_project_event_snapshot(paths.events)
+        if paths.state.exists():
+            conn = None
+            try:
+                conn = _connect(paths.state)
+                # Keep lock acquisition failures visible, rather than replacing
+                # a busy database behind another SQLite writer's back.
+                conn.execute("begin immediate")
+                count = _validated_prefix_count(conn, events)
+                if count is not None:
+                    for sequence in range(count, len(events)):
+                        _project_event(conn, sequence + 1, events[sequence])
+                    _stamp_snapshot(conn, root_repo, events, digest)
+                    if include_structure:
+                        from .structure_provider import refresh_structure_index, structure_index_needs_refresh
 
-            if structure_index_needs_refresh(root_repo, conn):
-                refresh_structure_index(root_repo, conn=conn)
-        conn.commit()
-    finally:
-        conn.close()
-    return paths.state
+                        if structure_index_needs_refresh(root_repo, conn):
+                            refresh_structure_index(root_repo, conn=conn)
+                    conn.commit()
+                    return paths.state
+            except sqlite3.DatabaseError as exc:
+                # Rebuild damaged schema/content, but never hide busy/locked,
+                # disk-full or I/O errors behind an attempted file replacement.
+                code = getattr(exc, "sqlite_errorcode", 0) & 0xff
+                if code not in {sqlite3.SQLITE_ERROR, sqlite3.SQLITE_SCHEMA, sqlite3.SQLITE_CORRUPT,
+                                sqlite3.SQLITE_NOTADB, sqlite3.SQLITE_CONSTRAINT}:
+                    raise
+            finally:
+                if conn is not None:
+                    conn.close()  # also rolls back failed suffix projection
+        return _rebuild_snapshot(root_repo, paths, events, digest, include_structure=include_structure)
 
 
 def state_status(repo: str | Path = ".") -> dict[str, Any]:

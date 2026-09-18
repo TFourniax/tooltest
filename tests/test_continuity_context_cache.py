@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import contextlib
 import json
 import sqlite3
 import subprocess
@@ -182,14 +183,19 @@ class ContinuityContextCacheTests(unittest.TestCase):
             finally:
                 conn.close()
             read_meta = continuity_state._meta
+            state_lock = continuity_state._state_lock
 
-            def replace_state_after_meta_read(path):
-                meta = read_meta(path)
+            @contextlib.contextmanager
+            def replace_state_before_lock(paths):
+                # The materializer now reads/validates only after serializing
+                # writers. Schedule the other reconstruction before acquisition.
                 self.add_objective(repo, "OBJ-TWO", "Preserve refund idempotency")
-                rebuild_state(repo)
-                return meta
+                with patch.object(continuity_state, "_state_lock", state_lock):
+                    rebuild_state(repo)
+                with state_lock(paths):
+                    yield
 
-            with patch.object(continuity_state, "_meta", side_effect=replace_state_after_meta_read):
+            with patch.object(continuity_state, "_state_lock", side_effect=replace_state_before_lock):
                 state = ensure_state(repo)
             expected = hashlib.sha256(continuity_paths(repo).events.read_bytes()).hexdigest()
             self.assertEqual(read_meta(state).get(continuity_context._CONTEXT_DIGEST_META), expected)
