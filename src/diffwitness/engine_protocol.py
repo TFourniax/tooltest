@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Sequence
 
-from .gitops import git, head_commit
+from .gitops import GitError, git, head_commit
 from .models import Mutation
 from .runner import _popen_group_kwargs, _terminate_process_tree
 
@@ -131,10 +131,15 @@ def repository_fingerprint(repo: Path) -> str:
     Only roots reachable from the actual HEAD participate, never analytical or
     checkpoint objects. Historical fingerprints are not rewritten on transition.
     """
-    head = head_commit(repo)
-    if head is None:
-        return _unborn_fingerprint(repo)
-    roots = sorted(line.strip() for line in git(repo, "rev-list", "--max-parents=0", head).splitlines() if line.strip())
+    try:
+        # Let Git resolve and traverse the actual HEAD in one process. The final
+        # separator prevents a working-tree path named HEAD from being ambiguous.
+        lineage = git(repo, "rev-list", "--max-parents=0", "HEAD^{commit}", "--")
+    except GitError:
+        if head_commit(repo) is None:
+            return _unborn_fingerprint(repo)
+        raise
+    roots = sorted(line.strip() for line in lineage.splitlines() if line.strip())
     if not roots:
         raise EngineProtocolError("cannot fingerprint repository without a Git root commit")
     return "dwrepo_" + _sha256("\n".join(roots))[:24]

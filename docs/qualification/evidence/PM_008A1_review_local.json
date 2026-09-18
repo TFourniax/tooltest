@@ -1,0 +1,192 @@
+{
+  "schema_version": "context-local-qualification-1",
+  "passed": true,
+  "human": "NOT_RUN",
+  "checks": [
+    {
+      "name": "review_sources",
+      "tests": 6,
+      "passed": 6,
+      "skipped": 0,
+      "seconds": 10.97,
+      "log_file": "pm008a1-review-sources.log",
+      "log_sha256": "aa981fd3876f00325e1429dbed93d73ea5f791ca1cf7a4a0e2dc8cb9fb82e024"
+    },
+    {
+      "name": "review_continuity",
+      "tests": 131,
+      "passed": 131,
+      "skipped": 0,
+      "seconds": 255.313,
+      "log_file": "pm008a1-review-continuity.log",
+      "log_sha256": "28acee32c15219790ad53f328d097f161d986e29123950a061d222298eb72c96"
+    },
+    {
+      "name": "review_native",
+      "tests": 5,
+      "passed": 5,
+      "skipped": 0,
+      "seconds": 16.34,
+      "log_file": "pm008a1-review-native.log",
+      "log_sha256": "b8f1341ad9853ce40a8ae5af7ba26574e27d916b6368add20d0ee4dbc8fd0ba0"
+    },
+    {
+      "name": "review_utf8",
+      "tests": 3,
+      "passed": 3,
+      "skipped": 0,
+      "seconds": 2.524,
+      "log_file": "pm008a1-review-utf8.log",
+      "log_sha256": "fa6519debeed59078ad9aac704793f5eda6659dcd8f8bcd7c1b7407a5ec90359"
+    }
+  ],
+  "consumer": {
+    "schema": "idleproof-core-context-smoke-2",
+    "passed": true,
+    "coreVersion": "diffwitness 0.4.0a1",
+    "tasks": 1,
+    "review": "DECLARED",
+    "retiredExcluded": true,
+    "nativePrompts": 12,
+    "human": "NOT_RUN"
+  },
+  "final_benchmark": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7218837,
+    "state_db_bytes": 20164608,
+    "append_seconds": 4.568968,
+    "full_log_verify_seconds": 0.85714,
+    "rebuild_seconds": 2.029604,
+    "context": {
+      "cold_ms": 248.243,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 232.972,
+        "median": 242.765,
+        "p95": 258.493,
+        "max": 258.493
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_5329d3d1b620cda17b17891b",
+    "passed": true,
+    "failures": []
+  },
+  "files_sha256": {
+    "src/diffwitness/continuity_context.py": "f3187a7f05b5d00b781592124f3d00f92e507105b7f57885a919f1997729d30e",
+    "src/diffwitness/continuity_state.py": "cafa8d6837a7f460ee0c7c67e8cfdb06bad64f70a88548905e1d063b92901e42",
+    "src/diffwitness/engine_protocol.py": "4040eb7f3281e3daf76a9264e6eed49271214693e0031b5b9197f5c0f857b12f",
+    "tests/test_continuity_context_sources.py": "033bd83271268f67a61a4deacb8661271c3982a8896ac0471c19c6bc83eb24eb",
+    "tests/test_continuity_schema_transaction.py": "164183cb178c9aa54b2844d7c0d90015348b2f4b8fc96dad2dfd8bc5673a1957",
+    "tests/test_context_process_budget.py": "2a9a7dd0086bb01326380560fbc9ea776b8efd0985c2950c953d89a8a97d85d6"
+  },
+  "limits": [
+    "518-test full local suite predates schema and review corrections; 517 PASS, one POSIX skip",
+    "Final post-review local coverage: 131 continuity, five native, three UTF-8, actual Core/IdleProof consumer",
+    "Selected subject histories with long runs of non-assertion events can add lookup cost",
+    "10k benchmark launch overlapped the tail of the passing consumer check; local diagnostic, not controlled isolated host timing",
+    "No complete 50k/100k, full PM-008/PM-012 or Alpha acceptance"
+  ],
+  "report_text": "Avant les corrections transactionnelle et de revue : suite complète de 518 tests, **517 réussis et un ignoré** (contrat de lien symbolique pipx propre à POSIX). Après la correction issue de la revue : **131 tests de continuité, cinq parcours natifs, trois tests UTF-8 et l'interopérabilité réelle Core/IdleProof avec 12 prompts réussis**. Les six tests de sources sont inclus dans la continuité ; ils ne s'ajoutent pas à son total. Les régressions couvrent les citations périmées, la cohérence d'instantané, le retour arrière et la préservation de l'ancien état. Le dernier contrôle à 10 000 événements passe : p95 **258.493 ms**, reconstruction **2.029604 s**. Aucun test humain sur ce candidat n'est revendiqué.",
+  "pr_number": 101,
+  "pr_url": "https://github.com/TFourniax/tooltest/pull/101",
+  "pre_review": {
+    "schema_version": "context-local-qualification-1",
+    "passed": true,
+    "human": "NOT_RUN",
+    "checks": [
+      {
+        "name": "pre_schema_full",
+        "tests": 518,
+        "passed": 517,
+        "skipped": 1,
+        "seconds": 939.416,
+        "log_file": "pm008a1-full-suite.log",
+        "log_sha256": "08eb140ab017e4c65c5dfd88c6ea08ec7369e25b61e4bab8d3643408c1c40244"
+      },
+      {
+        "name": "final_continuity",
+        "tests": 130,
+        "passed": 130,
+        "skipped": 0,
+        "seconds": 255.834,
+        "log_file": "pm008a1-final-continuity.log",
+        "log_sha256": "b0ace8149a4fa4bda493ca3b2370e34a0a2aaee6e5fbc68dd7fc16f230a5ccd3"
+      },
+      {
+        "name": "final_native",
+        "tests": 5,
+        "passed": 5,
+        "skipped": 0,
+        "seconds": 16.499,
+        "log_file": "pm008a1-final-native.log",
+        "log_sha256": "3bceea5029d4d2a603d655cb26fecf402bc3a7243a264fb9362fbcffbb61ccd2"
+      },
+      {
+        "name": "final_utf8",
+        "tests": 3,
+        "passed": 3,
+        "skipped": 0,
+        "seconds": 2.743,
+        "log_file": "pm008a1-final-utf8.log",
+        "log_sha256": "a6b9537ee919471c2d26f1136040fd72b861695751300930b77add9e7d56d7f5"
+      }
+    ],
+    "consumer": {
+      "schema": "idleproof-core-context-smoke-2",
+      "passed": true,
+      "coreVersion": "diffwitness 0.4.0a1",
+      "tasks": 1,
+      "review": "DECLARED",
+      "retiredExcluded": true,
+      "nativePrompts": 12,
+      "human": "NOT_RUN"
+    },
+    "final_benchmark": {
+      "schema_version": "continuity-bench-2",
+      "events": 10000,
+      "batch_size": 2000,
+      "event_log_bytes": 7218837,
+      "state_db_bytes": 20111360,
+      "append_seconds": 5.252737,
+      "full_log_verify_seconds": 0.832236,
+      "rebuild_seconds": 2.022254,
+      "context": {
+        "cold_ms": 241.575,
+        "hot_runs": 7,
+        "hot_ms": {
+          "min": 224.463,
+          "median": 239.086,
+          "p95": 274.538,
+          "max": 274.538
+        }
+      },
+      "context_chars": 647,
+      "context_id": "dwctx_9b7c25bf30376e0ba5564b7a",
+      "passed": true,
+      "failures": []
+    },
+    "files_sha256": {
+      "src/diffwitness/continuity_context.py": "0cd316748b8b5cc5e1cc0c8a9e7cc47e0d4a9ae99b0e197445d6aefc36f5985e",
+      "src/diffwitness/continuity_state.py": "405814d3c37bc4e0af38d9acdda0866b0c4a69239ba1596d79fcdffc469390b0",
+      "src/diffwitness/engine_protocol.py": "5a094d2cb4538fb28835546c1d4fa5ca30e40455d98c2fa103b39307916c7893",
+      "tests/test_continuity_context_sources.py": "267eef65eea1e7bfc129cfafd1ef67af7aca6d57dfbd3a23fbc610884f6184b1",
+      "tests/test_continuity_schema_transaction.py": "5edf632ea84772fe423830401715b81c179187abd03a70c89f5dae0d77eb340a",
+      "tests/test_context_process_budget.py": "d000c3788d01ff90b71ca4b37635a50a97054a08be79c253f9c07c352ed1ee08"
+    },
+    "limits": [
+      "518-test suite ran before the schema BEGIN change",
+      "Final 130 continuity tests include both schema regression cases",
+      "POSIX pipx symlink test skipped on local Windows",
+      "No complete 50k/100k, full PM-008/PM-012 or Alpha acceptance"
+    ],
+    "report_text": "Avant la correction transactionnelle : suite complète de 518 tests, **517 réussis et un ignoré** (contrat de lien symbolique pipx propre à POSIX). Après la dernière modification : **130 tests de continuité, cinq parcours natifs, trois tests UTF-8 et l'interopérabilité réelle Core/IdleProof avec 12 prompts réussis**. Les tests de reconstruction couvrent le retour arrière et la préservation de l'ancien état. Le contrôle final à 10 000 événements passe : p95 **274.538 ms**, reconstruction **2.022254 s**. Aucun test humain sur ce candidat n'est revendiqué."
+  },
+  "review_regression": {
+    "failed_subcases": 3,
+    "log_file": "pm008a1-review-regression.log",
+    "log_sha256": "62da322ff9298e2b014092ae8b597b494bd5a071cee5a04fc86afaae76b6b280"
+  }
+}

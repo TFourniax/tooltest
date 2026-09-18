@@ -1,0 +1,15 @@
+{
+  "schema_version": "local-qualification-observation-1",
+  "date": "2026-09-18",
+  "source_commit": "fdc8c2776b9f9657bc4e7645f1e637440c82f8a7",
+  "source_tree": "0b880d4dbf18d898c454b5d5083af3b4609fa05e",
+  "runtime": {"os": "Windows", "python": "3.12.14", "git": "2.54.0.windows.1", "pyinstaller": "6.22.3", "pyinstaller_hooks_contrib": "2026.7"},
+  "binary_sha256": "cba278b392f7481f33445b689f48fa15177e99eeb7346e24ff66856131c34d07",
+  "installation": "isolated non-editable wheel build from the exact source commit",
+  "checks": [
+    {"name": "PyInstaller onefile build", "result": "MACHINE_PASS"},
+    {"name": "scripts/language_acceptance.py with frozen dw and isolated companion", "per_command_timeout_seconds": 60, "result": "MACHINE_PASS"},
+    {"name": "frozen state bootstrap-git --max-commits 2 --json on previously imported actual Core history", "repository_commit": "c6dc05bae725014d32ea764cecbe131cef6bc17b", "created": 0, "result": "MACHINE_PASS"}
+  ],
+  "limits": ["No published binary or release", "CI used Python 3.12.10 and Git 2.55.0.windows.5", "Local success does not diagnose intermittent hosted Windows timeout", "HUMAN NOT RUN"]
+}
