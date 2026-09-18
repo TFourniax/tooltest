@@ -10,6 +10,8 @@ import hashlib
 import re
 from typing import Any
 
+from .continuity_task_contract import TASK_PROFILE, task_profile_descriptor, validate_task_profile
+
 CONTRACT_VERSION = "project-memory-contract-1"
 EVENT_SCHEMA_VERSION = "project-event-1"
 _STATUS_MEANINGS = (
@@ -39,7 +41,7 @@ HUMAN_DECLARABLE_RELATIONS = frozenset({
 })
 KNOWN_RELATIONS = HUMAN_DECLARABLE_RELATIONS | frozenset({
     "served_by", "affected", "proves", "describes", "refreshed_in", "reopened_in",
-    "imports", "calls-name",
+    "imports", "calls-name", "worked_on", "motivates",
 })
 PROJECTION_LIFECYCLES = frozenset({"active", "inactive"})
 INACTIVE_EVENT_SUFFIXES = (".superseded", ".retired", ".resolved")
@@ -156,6 +158,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == TASK_PROFILE:
+        validate_task_profile(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == ARTIFACT_PROFILE:
         _validate_artifact_profile(event)
@@ -396,6 +401,7 @@ def project_memory_contract() -> dict[str, Any]:
         "schema_version": CONTRACT_VERSION,
         "event_schema": EVENT_SCHEMA_VERSION,
         "admission_profiles": {
+            TASK_PROFILE: task_profile_descriptor(),
             DEBT_LIFECYCLE_PROFILE: {
                 "provenance_field": PROFILE_PROVENANCE_FIELD,
                 "event_types": {"debt." + name: copy.deepcopy(spec) for name, spec in DEBT_LIFECYCLE_SPECS.items()},

@@ -20,6 +20,7 @@ from .continuity_contract import (
 )
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
+from .continuity_task_contract import TaskHistoryValidator
 
 
 class ContinuityError(RuntimeError):
@@ -154,6 +155,7 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
 def validate_project_events(events: list[dict[str, Any]]) -> None:
     previous: str | None = None
     dedupe: set[str] = set()
+    task_history = TaskHistoryValidator()
     for index, event in enumerate(events, start=1):
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
@@ -171,6 +173,10 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
                 raise ContinuityError(f"duplicate project event dedupe key at line {index}: {dedupe_key}")
             dedupe.add(dedupe_key)
         previous = expected_hash
+        try:
+            task_history.admit(event)
+        except ValueError as exc:
+            raise ContinuityError(f"invalid task history at line {index}: {exc}") from exc
 
 
 def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:

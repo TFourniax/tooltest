@@ -33,7 +33,7 @@ def __getattr__(name: str):
 _PUBLIC_COMMANDS = {
     "init", "setup", "status", "view", "language", "protect", "explain", "portal", "doctor", "engine", "guard",
     "gate", "prove", "core", "debt", "health", "repay", "recheck", "ledger", "plan",
-    "state", "objective", "decision", "invariant", "failed-approach", "relation", "context",
+    "state", "objective", "decision", "invariant", "failed-approach", "relation", "context", "task",
     "envelope", "verify", "note", "ide-hook",
 }
 
@@ -353,6 +353,9 @@ def _main(argv: list[str] | None = None) -> int:
     if args[0] == "relation":
         from ..continuity_relation_cli import relation_cli
         return relation_cli(args[1:])
+    if args[0] == "task":
+        from ..continuity_tasks import task_cli
+        return task_cli(args[1:])
     if args[0] == "context":
         from ..continuity_context_command import context_command_cli
         return context_command_cli(args[1:])

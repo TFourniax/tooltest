@@ -22,6 +22,13 @@ def _guided_context(context: Mapping[str, Any], *, max_chars: int) -> str:
             if isinstance(item, Mapping):
                 lines.append(f"- {item.get('path')}")
 
+    tasks = list(context.get("tasks") or [])
+    if tasks:
+        lines += ["", tr('Related tasks (declared intent)', "Tâches liées (intentions déclarées)")]
+        for item in tasks[:6]:
+            if isinstance(item, Mapping):
+                lines.append(f"- {item.get('label')} [{item.get('epistemicStatus')}]")
+
     objectives = list(context.get("objectives") or [])
     if objectives:
         lines += ["", tr('Objectives to keep in mind', "Objectifs à garder en tête")]

@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 from .continuity_contract import projection_lifecycle as _lifecycle
 from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
+from .continuity_task_contract import is_task_edge_event
 from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
@@ -16,7 +17,7 @@ from .gitops import git, repo_root
 STATE_SCHEMA = "continuity-state-3"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
-VALIDATED_EVENT_DIGEST_META = "lifecycle_profile_event_file_sha256"
+VALIDATED_EVENT_DIGEST_META = "task_profile_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:
@@ -203,7 +204,7 @@ def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
     # Adding an edge does not reassert its source entity. In particular, copied
     # source payloads must not replace newer facts or their evidence provenance.
-    if event["event_type"] == "relation.declared":
+    if event["event_type"] == "relation.declared" or is_task_edge_event(event):
         return
     subject = event["subject"]
     entity_id = str(subject["id"])

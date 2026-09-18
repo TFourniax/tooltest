@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
 from .continuity_task_session import task_context_query, update_task_session
 from .gitops import repo_root, snapshot_worktree
-from .ide_handoff import finalize_ide_session
+from .ide_handoff import finalize_ide_session, _read_session_state, _write_session_state, _set_continuity_health
 from .native_activation import SUPPORTED_NATIVE_PROVIDERS, record_native_activation
 from .proof_cli import _state_path
 
@@ -52,7 +53,7 @@ def _session_id(payload: dict[str, Any]) -> str:
 def session_start(payload: dict[str, Any]) -> dict[str, Any] | None:
     repo = repo_root(_cwd(payload))
     session_id = _session_id(payload)
-    state = {"base": snapshot_worktree(repo), "retries": 0, "repo": str(repo)}
+    state = {"base": snapshot_worktree(repo), "retries": 0, "repo": str(repo), "task_boundary_id": uuid.uuid4().hex}
     path = _state_path(repo, session_id)
     staged = path.with_suffix(path.suffix + ".tmp")
     staged.write_text(json.dumps(state), encoding="utf-8")
@@ -145,6 +146,22 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     except Exception:
         return None
 
+    memory_warning = ""
+    path = _state_path(repo, session_id)
+    state = _read_session_state(path)
+    try:
+        from .continuity_tasks import record_native_task
+
+        record_native_task(repo, session_id, task, state.get("task_boundary_id"))
+    except Exception:
+        # Keep prompt contents out of durable diagnostics too. A missed participant cannot be
+        # silently repaired by a later successful import of another task in the same boundary.
+        memory_warning = "Task memory is degraded: durable participation could not be recorded."
+        _set_continuity_health(repo, state="degraded", error=memory_warning)
+        if state:
+            state["task_memory_error"] = True
+            _write_session_state(path, state)
+
     rendered = ""
     try:
         from .continuity_context_enriched import compile_context, render_context
@@ -173,6 +190,7 @@ def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
         + _native_boundary_policy(repo, session_id)
         + "\n\n"
         + _idleproof_session_policy(repo)
+        + ("\n\n" + memory_warning if memory_warning else "")
         + ("\n\n" + rendered if rendered else "")
     )
     return {
