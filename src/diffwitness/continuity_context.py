@@ -409,6 +409,7 @@ def compile_context(
         debts = _open_debts(conn, changes, limit=max_items)
         event_head_row = conn.execute("select value from meta where key='event_head'").fetchone()
         structure_tree_row = conn.execute("select value from meta where key='structure_tree'").fetchone()
+        coverage_row = conn.execute("select value from meta where key='structure_coverage'").fetchone()
     finally:
         conn.close()
 
@@ -437,6 +438,9 @@ def compile_context(
     )
 
     warnings: list[str] = []
+    coverage = _loads(coverage_row[0]) if coverage_row else None
+    if coverage is not None and not coverage.get("complete"):
+        warnings.append("Structure coverage is incomplete: some Git source files were omitted or could not be parsed; see state.structureCoverage.")
     try:
         if git(root, "--no-optional-locks", "status", "--porcelain=v1").strip():
             warnings.append("Working tree is dirty; structure index is bound to HEAD and may lag uncommitted edits.")
@@ -451,6 +455,7 @@ def compile_context(
         "state": {
             "eventHead": event_head_row[0] if event_head_row else None,
             "structureTree": structure_tree_row[0] if structure_tree_row else None,
+            "structureCoverage": coverage,
         },
         "objectives": [entity for entity in entities if entity["kind"] == "objective"],
         "tasks": [entity for entity in entities if entity["kind"] == "task"],

@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import ast
 import hashlib
-import os
+import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 from .gitops import git, repo_root
-
-
-_EXCLUDED_DIRS = {'.git','.venv','venv','node_modules','dist','build','.tox','.mypy_cache','.pytest_cache','__pycache__'}
+from .structure_sources import SNAPSHOT_VERSION, tree_sources
 
 
 def _now() -> str:
@@ -35,20 +33,6 @@ def _head_tree(repo: Path) -> str:
         return ''
 
 
-def _python_files(repo: Path, limit: int = 2000) -> list[Path]:
-    files=[]
-    for root, dirs, names in os.walk(repo):
-        dirs[:] = [d for d in dirs if d not in _EXCLUDED_DIRS and not d.startswith('.')]
-        for name in names:
-            if not name.endswith('.py'):
-                continue
-            path=Path(root)/name
-            files.append(path)
-            if len(files)>=limit:
-                return sorted(files)
-    return sorted(files)
-
-
 def _module_name(relative: str) -> str:
     p=PurePosixPath(relative)
     parts=list(p.with_suffix('').parts)
@@ -60,14 +44,16 @@ def _module_name(relative: str) -> str:
 def structure_index_needs_refresh(repo: str | Path, conn: sqlite3.Connection) -> bool:
     root=repo_root(repo)
     row=conn.execute("select value from meta where key='structure_tree'").fetchone()
+    version=conn.execute("select value from meta where key='structure_snapshot_version'").fetchone()
     current=_head_tree(root)
-    return row is None or str(row[0]) != current
+    return row is None or str(row[0]) != current or version is None or version[0] != SNAPSHOT_VERSION
 
 
 def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_files: int = 2000) -> dict[str,int|str]:
     root=repo_root(repo)
     tree=_head_tree(root)
     indexed_at=_now()
+    files, coverage=tree_sources(root, tree, suffixes=('.py',), max_files=max_files)
     conn.execute('delete from structure_edges')
     conn.execute('delete from structure_symbols')
     conn.execute('delete from structure_components')
@@ -75,9 +61,7 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     parsed: dict[str, ast.AST] = {}
     module_to_component: dict[str,str] = {}
     path_to_component: dict[str,str] = {}
-    files=_python_files(root,limit=max_files)
-    for path in files:
-        rel=path.relative_to(root).as_posix()
+    for rel, content in files:
         module=_module_name(rel)
         component_id=component_id_for_path(rel)
         path_to_component[rel]=component_id
@@ -88,8 +72,9 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
             (component_id,rel,'python',module or None,'OBSERVED','python-ast',tree or None,indexed_at),
         )
         try:
-            parsed[rel]=ast.parse(path.read_text(encoding='utf-8',errors='strict'))
-        except (OSError,UnicodeError,SyntaxError,ValueError):
+            parsed[rel]=ast.parse(content.decode('utf-8', errors='strict'))
+        except (OSError,UnicodeError,SyntaxError,ValueError,RecursionError):
+            coverage['unparsed'] += 1
             continue
 
     symbols_by_component_name: dict[tuple[str,str],str] = {}
@@ -167,4 +152,7 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     conn.execute("insert into meta(key,value) values('structure_provider',?) on conflict(key) do update set value=excluded.value",('python-ast',))
     conn.execute("insert into meta(key,value) values('structure_indexed_at',?) on conflict(key) do update set value=excluded.value",(indexed_at,))
     conn.execute("insert into meta(key,value) values('structure_file_count',?) on conflict(key) do update set value=excluded.value",(str(len(files)),))
-    return {'files':len(files),'parsed':len(parsed),'edges':edge_count,'tree':tree}
+    coverage['complete'] = coverage['complete'] and coverage['unparsed'] == 0
+    conn.execute("insert into meta(key,value) values('structure_snapshot_version',?) on conflict(key) do update set value=excluded.value",(SNAPSHOT_VERSION,))
+    conn.execute("insert into meta(key,value) values('structure_coverage',?) on conflict(key) do update set value=excluded.value",(json.dumps(coverage, sort_keys=True),))
+    return {**coverage, 'parsed':len(parsed),'edges':edge_count,'tree':tree}
