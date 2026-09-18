@@ -200,7 +200,7 @@ def state_cli(argv: list[str]) -> int:
                 relations = [
                     dict(row)
                     for row in conn.execute(
-                        "select source_id,predicate,target_id,target_kind,epistemic_status from relations where lifecycle='active' order by updated_at desc limit 200"
+                        "select source_id,predicate,target_id,target_kind,epistemic_status from active_memory_relations order by updated_at desc limit 200"
                     )
                 ]
         finally:
@@ -284,8 +284,13 @@ def _declare(
 
 
 def objective_cli(argv: list[str]) -> int:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+        from .continuity_lifecycle import memory_lifecycle_cli
+        return memory_lifecycle_cli("objective", argv)
     parser = argparse.ArgumentParser(prog="dw objective")
     sub = parser.add_subparsers(dest="command", required=True)
+    from .continuity_lifecycle import add_lifecycle_parsers
+    add_lifecycle_parsers(sub)
     add = sub.add_parser("add")
     add.add_argument("label", nargs="+")
     add.add_argument("--repo", default=".")
@@ -311,8 +316,13 @@ def objective_cli(argv: list[str]) -> int:
 
 
 def decision_cli(argv: list[str]) -> int:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+        from .continuity_lifecycle import memory_lifecycle_cli
+        return memory_lifecycle_cli("decision", argv)
     parser = argparse.ArgumentParser(prog="dw decision")
     sub = parser.add_subparsers(dest="command", required=True)
+    from .continuity_lifecycle import add_lifecycle_parsers
+    add_lifecycle_parsers(sub)
     add = sub.add_parser("record")
     add.add_argument("label", nargs="+")
     add.add_argument("--repo", default=".")
@@ -345,8 +355,13 @@ def decision_cli(argv: list[str]) -> int:
 
 
 def invariant_cli(argv: list[str]) -> int:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+        from .continuity_lifecycle import memory_lifecycle_cli
+        return memory_lifecycle_cli("invariant", argv)
     parser = argparse.ArgumentParser(prog="dw invariant")
     sub = parser.add_subparsers(dest="command", required=True)
+    from .continuity_lifecycle import add_lifecycle_parsers
+    add_lifecycle_parsers(sub)
     add = sub.add_parser("add")
     add.add_argument("label", nargs="+")
     add.add_argument("--repo", default=".")
@@ -374,8 +389,13 @@ def invariant_cli(argv: list[str]) -> int:
 
 
 def failed_approach_cli(argv: list[str]) -> int:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+        from .continuity_lifecycle import memory_lifecycle_cli
+        return memory_lifecycle_cli("failed-approach", argv)
     parser = argparse.ArgumentParser(prog="dw failed-approach")
     sub = parser.add_subparsers(dest="command", required=True)
+    from .continuity_lifecycle import add_lifecycle_parsers
+    add_lifecycle_parsers(sub)
     add = sub.add_parser("record")
     add.add_argument("label", nargs="+")
     add.add_argument("--repo", default=".")

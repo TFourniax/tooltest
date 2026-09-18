@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .continuity_context_enriched import compile_context, render_context
+from .continuity_context import render_memory_item
 from .gitops import repo_root
 from .view_mode import VIEW_MODES, get_view_mode
 
@@ -34,21 +35,28 @@ def _guided_context(context: Mapping[str, Any], *, max_chars: int) -> str:
         lines += ["", tr('Objectives to keep in mind', "Objectifs à garder en tête")]
         for item in objectives[:6]:
             if isinstance(item, Mapping):
-                lines.append(f"- {item.get('label')}")
+                lines.append("- " + render_memory_item(item))
 
     decisions = list(context.get("decisions") or [])
     if decisions:
         lines += ["", tr('Decisions already made', "Décisions déjà prises")]
         for item in decisions[:6]:
             if isinstance(item, Mapping):
-                lines.append(f"- {item.get('label')}")
+                lines.append("- " + render_memory_item(item))
 
     invariants = list(context.get("invariants") or [])
     if invariants:
         lines += ["", tr('Rules to preserve', "Règles à ne pas casser")]
         for item in invariants[:6]:
             if isinstance(item, Mapping):
-                lines.append(f"- {item.get('label')}")
+                lines.append("- " + render_memory_item(item))
+
+    approaches = list(context.get("failedApproaches") or [])
+    if approaches:
+        lines += ["", tr('Previous failed approaches', "Approches ayant échoué")]
+        for item in approaches[:6]:
+            if isinstance(item, Mapping):
+                lines.append("- " + render_memory_item(item))
 
     debts = list(context.get("knownDebt") or [])
     if debts:

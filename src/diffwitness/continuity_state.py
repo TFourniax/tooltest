@@ -10,14 +10,15 @@ from typing import Any, Iterable
 from .continuity_contract import projection_lifecycle as _lifecycle
 from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
 from .continuity_task_contract import is_task_edge_event
+from .continuity_lifecycle_contract import is_memory_lifecycle, lifecycle_view
 from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
-STATE_SCHEMA = "continuity-state-3"
+STATE_SCHEMA = "continuity-state-4"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
-VALIDATED_EVENT_DIGEST_META = "task_profile_event_file_sha256"
+VALIDATED_EVENT_DIGEST_META = "memory_lifecycle_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:
@@ -64,6 +65,8 @@ def _schema(conn: sqlite3.Connection) -> None:
         );
         create index entities_kind_idx on entities(kind, lifecycle, updated_at desc);
 
+        create table memory_lifecycle(entity_id text primary key, lifecycle_json text not null);
+
         create table relations(
           relation_id text primary key,
           source_id text not null,
@@ -78,6 +81,10 @@ def _schema(conn: sqlite3.Connection) -> None:
         );
         create index relations_source_idx on relations(source_id, predicate);
         create index relations_target_idx on relations(target_id, predicate);
+        create view active_memory_relations as select r.* from relations r
+          where r.lifecycle='active'
+            and not exists(select 1 from entities e where e.entity_id=r.source_id and e.lifecycle='inactive')
+            and not exists(select 1 from entities e where e.entity_id=r.target_id and e.lifecycle='inactive');
 
         create table changes(
           change_id text primary key,
@@ -204,6 +211,12 @@ def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
     # Adding an edge does not reassert its source entity. In particular, copied
     # source payloads must not replace newer facts or their evidence provenance.
+    if is_memory_lifecycle(event):
+        value = lifecycle_view(event)
+        conn.execute("update entities set lifecycle=? where entity_id=?", ("active" if value["active"] else "inactive", event["subject"]["id"]))
+        conn.execute("insert into memory_lifecycle(entity_id,lifecycle_json) values(?,?) on conflict(entity_id) do update set lifecycle_json=excluded.lifecycle_json",
+                     (event["subject"]["id"], _canonical(value)))
+        return
     if event["event_type"] == "relation.declared" or is_task_edge_event(event):
         return
     subject = event["subject"]
