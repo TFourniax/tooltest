@@ -73,16 +73,16 @@ def _refresh_structure_if_needed(root: Path, state_path: Path) -> Path:
     try:
         conn = sqlite3.connect(state_path)
         try:
-            from .structure_provider import refresh_structure_index, _structure_index_needs_refresh
+            from .structure_provider import _structure_index_needs_refresh
 
-            if _structure_index_needs_refresh(root, conn):
-                refresh_structure_index(root, conn=conn)
-                conn.commit()
+            needs_refresh = _structure_index_needs_refresh(root, conn)
         finally:
             conn.close()
     except sqlite3.DatabaseError:
         return ensure_state(root, include_structure=True)
-    return state_path
+    # All derived writes share the materializer lock, including explicit rebuilds.
+    # Close this reader before entering the writer path (also required on Windows).
+    return ensure_state(root, include_structure=True) if needs_refresh else state_path
 
 
 def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:

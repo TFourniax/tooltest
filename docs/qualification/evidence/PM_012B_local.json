@@ -1,0 +1,60 @@
+{
+  "baseline_sha": "4f8f9b12f19fff7860ec7bfed4c885971a0e0cb5",
+  "baseline_tree": "e8a66ec457630db28072a262cc6895018164bca7",
+  "type": "MACHINE",
+  "human": "NOT RUN",
+  "files": {
+    "src/diffwitness/continuity_events.py": "9928abfcd418a898165147c868ff9f39d1b1b808307faa7a0b975b695817df06",
+    "src/diffwitness/continuity_state.py": "0bd3b114852d4cf55d8b12520234797c44cb0c83e2adf3b2615b5b243da4b000",
+    "src/diffwitness/continuity_context.py": "b8e2867e90b606a901b1fbb06d66f5bb5f5f4f3617cd7ef4b7811ec69ba952ab",
+    "tests/test_continuity_incremental.py": "1528e84105bc16ae52d94a64fd33220fc750e10b64a045d757bfa7280b8c74b5",
+    "tests/test_continuity_context_cache.py": "489a52a7aee745035ad3a1be8d4adb4c57d78b45c72ea0a1d16b5ad518405415",
+    "scripts/continuity_incremental_bench.py": "ca8f1f3bd0fd47c076bfb2a2cbecbea973d04bba2484bf9e533be9aa64a9891e"
+  },
+  "local_full": {
+    "tests": 533,
+    "passed": 529,
+    "skipped": 4,
+    "seconds": 57.721,
+    "failure_attempt": {
+      "tests": 532,
+      "failures": 6,
+      "skipped": 4,
+      "seconds": 48.969,
+      "reason": "installed entrypoints missing from invocation PATH"
+    }
+  },
+  "initial_regressions": {
+    "tests": 6,
+    "failures": 3,
+    "errors": 1,
+    "seconds": 0.426
+  },
+  "expanded_initial": {
+    "tests": 11,
+    "seconds": 1.2
+  },
+  "notes": [
+    "Full suite includes final additional SQLite busy-writer regression.",
+    "All four local skips are Windows legacy-codepage regressions.",
+    "Initial snapshot corruption error was fail-closed on a second read, not an integrity bypass.",
+    "Short local checks overlapped portions of baseline 50k/100k measurement. No statistical/isolated-host claim."
+  ],
+  "review": {
+    "actor": "implementing agent",
+    "independent": false,
+    "scope": [
+      "exact event validation parity",
+      "suffix projection and SQLite snapshot binding",
+      "rollback/rebuild and writer serialization",
+      "no timeout or budget relaxation",
+      "no authority or task privacy change"
+    ],
+    "limits": [
+      "strict O(history) validation retained",
+      "local state lock does not coordinate older writers",
+      "derived-cache authentication unchanged",
+      "larger-history budgets remain unqualified"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "continuity-incremental-diagnostic-1",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "fixture_setup_timed": false,
+  "results": [
+    {
+      "events": 10000,
+      "samples": [
+        {
+          "append_one_seconds": 0.611043,
+          "ensure_state_seconds": 1.344534,
+          "projected_events": 10001
+        },
+        {
+          "append_one_seconds": 0.685099,
+          "ensure_state_seconds": 1.359111,
+          "projected_events": 10002
+        },
+        {
+          "append_one_seconds": 0.702225,
+          "ensure_state_seconds": 1.281988,
+          "projected_events": 10003
+        }
+      ],
+      "rebuild_equivalent": true
+    },
+    {
+      "events": 50000,
+      "samples": [
+        {
+          "append_one_seconds": 3.413375,
+          "ensure_state_seconds": 8.830043,
+          "projected_events": 50001
+        },
+        {
+          "append_one_seconds": 3.655687,
+          "ensure_state_seconds": 8.333882,
+          "projected_events": 50002
+        },
+        {
+          "append_one_seconds": 3.664658,
+          "ensure_state_seconds": 7.913989,
+          "projected_events": 50003
+        }
+      ],
+      "rebuild_equivalent": true
+    },
+    {
+      "events": 100000,
+      "samples": [
+        {
+          "append_one_seconds": 6.863109,
+          "ensure_state_seconds": 17.191934,
+          "projected_events": 100001
+        },
+        {
+          "append_one_seconds": 7.366227,
+          "ensure_state_seconds": 16.371508,
+          "projected_events": 100002
+        },
+        {
+          "append_one_seconds": 7.607392,
+          "ensure_state_seconds": 16.214376,
+          "projected_events": 100003
+        }
+      ],
+      "rebuild_equivalent": true
+    }
+  ]
+}
