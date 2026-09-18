@@ -1,0 +1,14 @@
+test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes) ... FAIL
+
+======================================================================
+FAIL: test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_continuity_append_cache.py", line 143, in test_unterminated_valid_record_gets_separator_without_changing_old_bytes
+    self.assertTrue(self.path.read_bytes().startswith(prefix + b'\n'))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 0.031s
+
+FAILED (failures=1)

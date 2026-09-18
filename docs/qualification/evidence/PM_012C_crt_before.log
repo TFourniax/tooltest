@@ -1,0 +1,25 @@
+test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk (test_continuity_append_cache.AppendCacheTests.test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk) ... FAIL
+
+======================================================================
+FAIL: test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk (test_continuity_append_cache.AppendCacheTests.test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_continuity_append_cache.py", line 196, in test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk
+    self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])
+AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']
+
+First differing element 0:
+'OBJ-ONE'
+'OBJ-TWO'
+
+First list contains 1 additional elements.
+First extra element 1:
+'OBJ-TWO'
+
+- ['OBJ-ONE', 'OBJ-TWO']
++ ['OBJ-TWO']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.024s
+
+FAILED (failures=1)
