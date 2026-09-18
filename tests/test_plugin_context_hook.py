@@ -51,17 +51,32 @@ class PluginContextHookTests(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[1]
         env = os.environ.copy()
         env["PLUGIN_ROOT"] = str(project_root)
-        return subprocess.run(
-            [sys.executable, str(project_root / "integrations" / "plugin_hook.py"), command],
-            cwd=repo,
-            env=env,
-            input=json.dumps(payload),
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=timeout,
-            check=False,
+        # Preserve a child stack before the unchanged deadline so an intermittent
+        # hosted-runner timeout identifies the blocking operation, not just its CLI.
+        trace = (
+            "import faulthandler,runpy,sys; "
+            "faulthandler.dump_traceback_later(float(sys.argv.pop(1))); "
+            "script=sys.argv.pop(1); runpy.run_path(script,run_name='__main__')"
         )
+        try:
+            return subprocess.run(
+                [sys.executable, "-c", trace, str(max(0.1, timeout - 2)),
+                 str(project_root / "integrations" / "plugin_hook.py"), command],
+                cwd=repo,
+                env=env,
+                input=json.dumps(payload),
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as error:
+            detail = error.stderr
+            if detail:
+                print(detail.decode("utf-8", errors="backslashreplace") if isinstance(detail, bytes) else detail,
+                      file=sys.stderr)
+            raise
 
     def test_prompt_submit_injects_bounded_epistemic_context_without_persisting_prompt(self):
         with tempfile.TemporaryDirectory() as td:
