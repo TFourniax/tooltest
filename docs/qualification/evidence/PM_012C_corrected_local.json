@@ -1,0 +1,56 @@
+{
+  "schema": "pm-012c-corrected-local-1",
+  "previous_head": "d9ca22279f7da49a2357d8fc03ad07a4668e72a7",
+  "full": {
+    "run": 546,
+    "pass": 542,
+    "skip": 4,
+    "seconds": 54.071
+  },
+  "continuity": {
+    "run": 156,
+    "pass": 156,
+    "seconds": 12.374
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "files": {
+    "src/diffwitness/continuity_events.py": "7d1cbac8b3cac9c08162befd49104c906ef635036ced13dcfe85944401f9b3ae",
+    "tests/test_continuity_append_cache.py": "d4e40908ee35b82ebeabb5557e8f386baed89765d6a5e089b75691222292825f"
+  },
+  "logs": {
+    "PM_012C_full_crt.log": "567cd931459c3c28448622bc74bf75a9d446a8b0c15b158c0aebfbdc5a262e30",
+    "PM_012C_continuity_crt.log": "3899a4f607488836dc7822bb0028ce159c228ac4bae88d1a3ecdecfd25e0680e",
+    "PM_012C_crt_before.log": "73252a1ed12a4706d1f15d2b0c044e303d5487d9b38c5b1d439643ead2bce1be",
+    "PM_012C_wheel_corrected.log": "a0dcb47bd4d1a0062f24d2dc388337f7cbb60b1b9d7bda0bd3938ada69c24dcd"
+  },
+  "benchmark_10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20172800,
+    "append_seconds": 0.850326,
+    "full_log_verify_seconds": 0.359162,
+    "rebuild_seconds": 0.797463,
+    "context": {
+      "cold_ms": 14.754,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 13.331,
+        "median": 13.69,
+        "p95": 15.453,
+        "max": 15.453
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_992f4f419de84f0681212f8b",
+    "passed": true,
+    "failures": []
+  },
+  "classification": "MACHINE",
+  "limits": [
+    "Windows correction still needs exact CI",
+    "prior 50k/100k failures retained; final larger-scale latency not requalified"
+  ]
+}

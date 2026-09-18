@@ -137,10 +137,10 @@ class AppendCacheTests(unittest.TestCase):
 
     def test_unterminated_valid_record_gets_separator_without_changing_old_bytes(self):
         self.append(objective('OBJ-ONE'))
-        prefix = self.path.read_bytes().rstrip(b'\n')
+        prefix = self.path.read_bytes().rstrip(b'\r\n')
         self.path.write_bytes(prefix)
         self.append(objective('OBJ-TWO'))
-        self.assertTrue(self.path.read_bytes().startswith(prefix + b'\n'))
+        self.assertTrue(self.path.read_bytes().startswith(prefix + os.linesep.encode('ascii')))
         self.assertEqual(len(journal.read_project_events(self.path)), 2)
 
     def test_failed_task_reference_cannot_replace_cached_task_identity(self):
@@ -173,6 +173,31 @@ class AppendCacheTests(unittest.TestCase):
             self.path.write_bytes(before + suffix)
             with self.assertRaises(journal.ContinuityError):
                 self.append(objective('OBJ-THREE'))
+
+    def test_crt_text_translation_cannot_make_cached_bytes_differ_from_disk(self):
+        # Reproduce Windows CRT O_TEXT on every OS; actual Windows CI also runs
+        # the ordinary append-count tests without this simulation.
+        binary_flag = getattr(os, 'O_BINARY', 0x8000)
+        original_open, original_write = os.open, os.write
+        modes = {}
+        def crt_open(path, flags, *args):
+            fd = original_open(path, flags if os.name == 'nt' else flags & ~binary_flag, *args)
+            modes[fd] = bool(flags & binary_flag)
+            return fd
+        def crt_write(fd, raw):
+            if os.name != 'nt' and not modes.get(fd):
+                original_write(fd, raw.replace(b'\n', b'\r\n'))
+                return len(raw)
+            return original_write(fd, raw)
+        with patch.object(os, 'O_BINARY', binary_flag, create=True), \
+             patch.object(os, 'open', crt_open), patch.object(os, 'write', crt_write), \
+             patch.object(journal, '_record_separator', return_value=b'\r\n', create=True):
+            self.append(objective('OBJ-ONE'))
+            self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])
+        raw = self.path.read_bytes()
+        self.assertEqual(raw.count(b'\r\n'), 2)
+        self.assertNotIn(b'\r\r\n', raw)
+        self.assertEqual(len(journal.read_project_events(self.path)), 2)
 
 
 if __name__ == '__main__':

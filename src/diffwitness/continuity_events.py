@@ -413,10 +413,15 @@ def _candidate_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
     return candidate
 
 
+def _record_separator() -> bytes:
+    return os.linesep.encode("ascii")
+
+
 def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> bytes:
     if not events:
         return b""
-    raw = b"".join((_canonical(event) + "\n").encode("utf-8") for event in events)
+    separator = _record_separator()
+    raw = b"".join(_canonical(event).encode("utf-8") + separator for event in events)
     # A valid imported last JSON object need not end in a newline. Preserve its
     # bytes and add a record separator before appending the next event.
     try:
@@ -424,11 +429,13 @@ def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> byt
             if handle.seek(0, os.SEEK_END):
                 handle.seek(-1, os.SEEK_END)
                 if handle.read(1) not in (b"\n", b"\r"):
-                    raw = b"\n" + raw
+                    raw = separator + raw
     except FileNotFoundError:
         pass
     paths.root.mkdir(parents=True, exist_ok=True)
-    fd = os.open(paths.events, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    # O_TEXT translates LF to CRLF in the Windows CRT. Format native endings
+    # explicitly and write binary so the checkpoint records actual disk bytes.
+    fd = os.open(paths.events, os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_BINARY", 0), 0o600)
     try:
         offset = 0
         while offset < len(raw):

@@ -1,0 +1,192 @@
+{
+  "head": "d9ca22279f7da49a2357d8fc03ad07a4668e72a7",
+  "run": 35402939988,
+  "jobs": [
+    {
+      "id": 105786566214,
+      "name": "release package preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:34Z",
+      "completed_at": "2026-09-18T22:45:54Z"
+    },
+    {
+      "id": 105786566239,
+      "name": "composite Action end-to-end",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:45:48Z"
+    },
+    {
+      "id": 105786566247,
+      "name": "standalone binary (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:41Z",
+      "completed_at": "2026-09-18T22:47:17Z"
+    },
+    {
+      "id": 105786566257,
+      "name": "test (windows-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-18T22:45:50Z",
+      "completed_at": "2026-09-18T22:52:58Z"
+    },
+    {
+      "id": 105786566258,
+      "name": "installed wheel commercial-alpha journeys (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:51:21Z"
+    },
+    {
+      "id": 105786566279,
+      "name": "test (ubuntu-latest, 3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:47:00Z"
+    },
+    {
+      "id": 105786566289,
+      "name": "standalone binary (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:50:16Z"
+    },
+    {
+      "id": 105786566316,
+      "name": "standalone binary (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:34Z",
+      "completed_at": "2026-09-18T22:46:45Z"
+    },
+    {
+      "id": 105786566328,
+      "name": "installed wheel commercial-alpha journeys (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:50Z",
+      "completed_at": "2026-09-18T22:47:04Z"
+    },
+    {
+      "id": 105786566356,
+      "name": "test (windows-latest, 3.13)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-18T22:45:36Z",
+      "completed_at": "2026-09-18T22:53:58Z"
+    },
+    {
+      "id": 105786566363,
+      "name": "installed wheel commercial-alpha journeys (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:39Z",
+      "completed_at": "2026-09-18T22:48:01Z"
+    },
+    {
+      "id": 105786566378,
+      "name": "test (ubuntu-latest, 3.13)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:47:03Z"
+    },
+    {
+      "id": 105786566381,
+      "name": "test (macos-latest, 3.14)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:42Z",
+      "completed_at": "2026-09-18T22:50:13Z"
+    },
+    {
+      "id": 105786566393,
+      "name": "test (ubuntu-latest, 3.14)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:46:56Z"
+    },
+    {
+      "id": 105786566426,
+      "name": "test (windows-latest, 3.14)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:53:36Z"
+    },
+    {
+      "id": 105786566449,
+      "name": "test (macos-latest, 3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:41Z",
+      "completed_at": "2026-09-18T22:49:53Z"
+    },
+    {
+      "id": 105786566453,
+      "name": "fatal static checks",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:35Z",
+      "completed_at": "2026-09-18T22:45:44Z"
+    },
+    {
+      "id": 105786566490,
+      "name": "test (macos-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:40Z",
+      "completed_at": "2026-09-18T22:49:16Z"
+    },
+    {
+      "id": 105786566599,
+      "name": "test (macos-latest, 3.13)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:47:26Z",
+      "completed_at": "2026-09-18T22:52:46Z"
+    },
+    {
+      "id": 105786566643,
+      "name": "test (windows-latest, 3.12)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-18T22:45:46Z",
+      "completed_at": "2026-09-18T22:55:09Z"
+    },
+    {
+      "id": 105786566656,
+      "name": "test (ubuntu-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T22:45:34Z",
+      "completed_at": "2026-09-18T22:46:44Z"
+    }
+  ],
+  "logs": [
+    {
+      "job_id": 105786566257,
+      "extracted_failure_block": "2026-09-18T22:52:52.8431461Z FAIL: test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed)\n2026-09-18T22:52:52.8432489Z ----------------------------------------------------------------------\n2026-09-18T22:52:52.8432945Z Traceback (most recent call last):\n2026-09-18T22:52:52.8439626Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 61, in test_external_suffix_is_validated_and_invalid_suffix_fails_closed\n2026-09-18T22:52:52.8440432Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-EXTERNAL', 'OBJ-TWO'])\n2026-09-18T22:52:52.8441012Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO'] != ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:52:52.8441346Z \n2026-09-18T22:52:52.8441440Z First differing element 0:\n2026-09-18T22:52:52.8441659Z 'OBJ-ONE'\n2026-09-18T22:52:52.8441844Z 'OBJ-EXTERNAL'\n2026-09-18T22:52:52.8441983Z \n2026-09-18T22:52:52.8442083Z First list contains 1 additional elements.\n2026-09-18T22:52:52.8442378Z First extra element 2:\n2026-09-18T22:52:52.8442571Z 'OBJ-TWO'\n2026-09-18T22:52:52.8442665Z \n2026-09-18T22:52:52.8442781Z - ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:52:52.8443051Z ?  -----------\n2026-09-18T22:52:52.8443156Z \n2026-09-18T22:52:52.8443264Z + ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:52:52.8443426Z \n2026-09-18T22:52:52.8443529Z ======================================================================\n2026-09-18T22:52:52.8444514Z FAIL: test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete)\n2026-09-18T22:52:52.8445310Z ----------------------------------------------------------------------\n2026-09-18T22:52:52.8445617Z Traceback (most recent call last):\n2026-09-18T22:52:52.8446753Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 39, in test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete\n2026-09-18T22:52:52.8447442Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])\n2026-09-18T22:52:52.8447907Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']\n2026-09-18T22:52:52.8448152Z \n2026-09-18T22:52:52.8448242Z First differing element 0:\n2026-09-18T22:52:52.8448468Z 'OBJ-ONE'\n2026-09-18T22:52:52.8448672Z 'OBJ-TWO'\n2026-09-18T22:52:52.8448763Z \n2026-09-18T22:52:52.8448890Z First list contains 1 additional elements.\n2026-09-18T22:52:52.8449135Z First extra element 1:\n2026-09-18T22:52:52.8449326Z 'OBJ-TWO'\n2026-09-18T22:52:52.8449416Z \n2026-09-18T22:52:52.8449521Z - ['OBJ-ONE', 'OBJ-TWO']\n2026-09-18T22:52:52.8449738Z + ['OBJ-TWO']\n2026-09-18T22:52:52.8449862Z \n2026-09-18T22:52:52.8449961Z ======================================================================\n2026-09-18T22:52:52.8450648Z FAIL: test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes)\n2026-09-18T22:52:52.8451373Z ----------------------------------------------------------------------\n2026-09-18T22:52:52.8451664Z Traceback (most recent call last):\n2026-09-18T22:52:52.8452238Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 143, in test_unterminated_valid_record_gets_separator_without_changing_old_bytes\n2026-09-18T22:52:52.8453013Z     self.assertTrue(self.path.read_bytes().startswith(prefix + b'\\n'))\n2026-09-18T22:52:52.8453334Z AssertionError: False is not true\n2026-09-18T22:52:52.8453502Z \n2026-09-18T22:52:52.8453626Z ----------------------------------------------------------------------\n2026-09-18T22:52:52.8453894Z Ran 545 tests in 405.388s\n2026-09-18T22:52:52.8454028Z \n2026-09-18T22:52:52.8454126Z FAILED (failures=3, skipped=1)"
+    },
+    {
+      "job_id": 105786566356,
+      "extracted_failure_block": "2026-09-18T22:53:52.9069018Z FAIL: test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed)\n2026-09-18T22:53:52.9070245Z ----------------------------------------------------------------------\n2026-09-18T22:53:52.9070760Z Traceback (most recent call last):\n2026-09-18T22:53:52.9080571Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 61, in test_external_suffix_is_validated_and_invalid_suffix_fails_closed\n2026-09-18T22:53:52.9081862Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-EXTERNAL', 'OBJ-TWO'])\n2026-09-18T22:53:52.9082678Z     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:52.9083398Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO'] != ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:52.9083866Z \n2026-09-18T22:53:52.9084028Z First differing element 0:\n2026-09-18T22:53:52.9084341Z 'OBJ-ONE'\n2026-09-18T22:53:52.9084602Z 'OBJ-EXTERNAL'\n2026-09-18T22:53:52.9085242Z \n2026-09-18T22:53:52.9085497Z First list contains 1 additional elements.\n2026-09-18T22:53:52.9085850Z First extra element 2:\n2026-09-18T22:53:52.9086105Z 'OBJ-TWO'\n2026-09-18T22:53:52.9086245Z \n2026-09-18T22:53:52.9086355Z - ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:52.9086674Z ?  -----------\n2026-09-18T22:53:52.9086831Z \n2026-09-18T22:53:52.9086966Z + ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:52.9087140Z \n2026-09-18T22:53:52.9087567Z ======================================================================\n2026-09-18T22:53:52.9088553Z FAIL: test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete)\n2026-09-18T22:53:52.9089535Z ----------------------------------------------------------------------\n2026-09-18T22:53:52.9089917Z Traceback (most recent call last):\n2026-09-18T22:53:52.9090741Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 39, in test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete\n2026-09-18T22:53:52.9091662Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])\n2026-09-18T22:53:52.9092200Z     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:52.9092660Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']\n2026-09-18T22:53:52.9092949Z \n2026-09-18T22:53:52.9093082Z First differing element 0:\n2026-09-18T22:53:52.9093344Z 'OBJ-ONE'\n2026-09-18T22:53:52.9093558Z 'OBJ-TWO'\n2026-09-18T22:53:52.9093690Z \n2026-09-18T22:53:52.9093805Z First list contains 1 additional elements.\n2026-09-18T22:53:52.9094136Z First extra element 1:\n2026-09-18T22:53:52.9094409Z 'OBJ-TWO'\n2026-09-18T22:53:52.9094514Z \n2026-09-18T22:53:52.9094637Z - ['OBJ-ONE', 'OBJ-TWO']\n2026-09-18T22:53:52.9094894Z + ['OBJ-TWO']\n2026-09-18T22:53:52.9095011Z \n2026-09-18T22:53:52.9095160Z ======================================================================\n2026-09-18T22:53:52.9096057Z FAIL: test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes)\n2026-09-18T22:53:52.9097107Z ----------------------------------------------------------------------\n2026-09-18T22:53:52.9097477Z Traceback (most recent call last):\n2026-09-18T22:53:52.9098255Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 143, in test_unterminated_valid_record_gets_separator_without_changing_old_bytes\n2026-09-18T22:53:52.9099064Z     self.assertTrue(self.path.read_bytes().startswith(prefix + b'\\n'))\n2026-09-18T22:53:52.9099490Z     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:52.9099843Z AssertionError: False is not true\n2026-09-18T22:53:52.9100046Z \n2026-09-18T22:53:52.9100190Z ----------------------------------------------------------------------\n2026-09-18T22:53:52.9100545Z Ran 545 tests in 472.532s\n2026-09-18T22:53:52.9100716Z \n2026-09-18T22:53:52.9100826Z FAILED (failures=3, skipped=1)"
+    },
+    {
+      "job_id": 105786566426,
+      "extracted_failure_block": "2026-09-18T22:53:32.3080519Z FAIL: test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed)\n2026-09-18T22:53:32.3081896Z ----------------------------------------------------------------------\n2026-09-18T22:53:32.3082499Z Traceback (most recent call last):\n2026-09-18T22:53:32.3094025Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 61, in test_external_suffix_is_validated_and_invalid_suffix_fails_closed\n2026-09-18T22:53:32.3095526Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-EXTERNAL', 'OBJ-TWO'])\n2026-09-18T22:53:32.3096448Z     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:32.3097698Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO'] != ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:32.3098306Z \n2026-09-18T22:53:32.3098459Z First differing element 0:\n2026-09-18T22:53:32.3098840Z 'OBJ-ONE'\n2026-09-18T22:53:32.3099153Z 'OBJ-EXTERNAL'\n2026-09-18T22:53:32.3099372Z \n2026-09-18T22:53:32.3099575Z First list contains 1 additional elements.\n2026-09-18T22:53:32.3100036Z First extra element 2:\n2026-09-18T22:53:32.3100385Z 'OBJ-TWO'\n2026-09-18T22:53:32.3100545Z \n2026-09-18T22:53:32.3100733Z - ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:32.3101184Z ?  -----------\n2026-09-18T22:53:32.3101372Z \n2026-09-18T22:53:32.3101551Z + ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:53:32.3101826Z \n2026-09-18T22:53:32.3102316Z ======================================================================\n2026-09-18T22:53:32.3103825Z FAIL: test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete)\n2026-09-18T22:53:32.3105414Z ----------------------------------------------------------------------\n2026-09-18T22:53:32.3106047Z Traceback (most recent call last):\n2026-09-18T22:53:32.3107267Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 39, in test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete\n2026-09-18T22:53:32.3108598Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])\n2026-09-18T22:53:32.3109303Z     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:32.3109959Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']\n2026-09-18T22:53:32.3110361Z \n2026-09-18T22:53:32.3110537Z First differing element 0:\n2026-09-18T22:53:32.3110866Z 'OBJ-ONE'\n2026-09-18T22:53:32.3111140Z 'OBJ-TWO'\n2026-09-18T22:53:32.3111284Z \n2026-09-18T22:53:32.3111466Z First list contains 1 additional elements.\n2026-09-18T22:53:32.3111871Z First extra element 1:\n2026-09-18T22:53:32.3112187Z 'OBJ-TWO'\n2026-09-18T22:53:32.3112361Z \n2026-09-18T22:53:32.3112487Z - ['OBJ-ONE', 'OBJ-TWO']\n2026-09-18T22:53:32.3112838Z + ['OBJ-TWO']\n2026-09-18T22:53:32.3113039Z \n2026-09-18T22:53:32.3113238Z ======================================================================\n2026-09-18T22:53:32.3114687Z FAIL: test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes)\n2026-09-18T22:53:32.3116394Z ----------------------------------------------------------------------\n2026-09-18T22:53:32.3117064Z Traceback (most recent call last):\n2026-09-18T22:53:32.3118571Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 143, in test_unterminated_valid_record_gets_separator_without_changing_old_bytes\n2026-09-18T22:53:32.3119839Z     self.assertTrue(self.path.read_bytes().startswith(prefix + b'\\n'))\n2026-09-18T22:53:32.3120518Z     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2026-09-18T22:53:32.3121045Z AssertionError: False is not true\n2026-09-18T22:53:32.3121328Z \n2026-09-18T22:53:32.3121612Z ----------------------------------------------------------------------\n2026-09-18T22:53:32.3122206Z Ran 545 tests in 457.412s\n2026-09-18T22:53:32.3122455Z \n2026-09-18T22:53:32.3122658Z FAILED (failures=3, skipped=1)"
+    },
+    {
+      "job_id": 105786566643,
+      "extracted_failure_block": "2026-09-18T22:55:05.3394608Z FAIL: test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed)\n2026-09-18T22:55:05.3396125Z ----------------------------------------------------------------------\n2026-09-18T22:55:05.3396794Z Traceback (most recent call last):\n2026-09-18T22:55:05.3408077Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 61, in test_external_suffix_is_validated_and_invalid_suffix_fails_closed\n2026-09-18T22:55:05.3409818Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-EXTERNAL', 'OBJ-TWO'])\n2026-09-18T22:55:05.3411504Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO'] != ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:55:05.3412174Z \n2026-09-18T22:55:05.3412370Z First differing element 0:\n2026-09-18T22:55:05.3412772Z 'OBJ-ONE'\n2026-09-18T22:55:05.3413096Z 'OBJ-EXTERNAL'\n2026-09-18T22:55:05.3413322Z \n2026-09-18T22:55:05.3413503Z First list contains 1 additional elements.\n2026-09-18T22:55:05.3414017Z First extra element 2:\n2026-09-18T22:55:05.3414407Z 'OBJ-TWO'\n2026-09-18T22:55:05.3414620Z \n2026-09-18T22:55:05.3414830Z - ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:55:05.3415325Z ?  -----------\n2026-09-18T22:55:05.3415526Z \n2026-09-18T22:55:05.3415732Z + ['OBJ-EXTERNAL', 'OBJ-TWO']\n2026-09-18T22:55:05.3416022Z \n2026-09-18T22:55:05.3416275Z ======================================================================\n2026-09-18T22:55:05.3418225Z FAIL: test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete)\n2026-09-18T22:55:05.3419972Z ----------------------------------------------------------------------\n2026-09-18T22:55:05.3420648Z Traceback (most recent call last):\n2026-09-18T22:55:05.3421978Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 39, in test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete\n2026-09-18T22:55:05.3423584Z     self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])\n2026-09-18T22:55:05.3424600Z AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']\n2026-09-18T22:55:05.3425149Z \n2026-09-18T22:55:05.3425318Z First differing element 0:\n2026-09-18T22:55:05.3425764Z 'OBJ-ONE'\n2026-09-18T22:55:05.3426106Z 'OBJ-TWO'\n2026-09-18T22:55:05.3426325Z \n2026-09-18T22:55:05.3426565Z First list contains 1 additional elements.\n2026-09-18T22:55:05.3427107Z First extra element 1:\n2026-09-18T22:55:05.3427508Z 'OBJ-TWO'\n2026-09-18T22:55:05.3427683Z \n2026-09-18T22:55:05.3427869Z - ['OBJ-ONE', 'OBJ-TWO']\n2026-09-18T22:55:05.3428291Z + ['OBJ-TWO']\n2026-09-18T22:55:05.3428524Z \n2026-09-18T22:55:05.3428718Z ======================================================================\n2026-09-18T22:55:05.3430649Z FAIL: test_unterminated_valid_record_gets_separator_without_changing_old_bytes (test_continuity_append_cache.AppendCacheTests.test_unterminated_valid_record_gets_separator_without_changing_old_bytes)\n2026-09-18T22:55:05.3432413Z ----------------------------------------------------------------------\n2026-09-18T22:55:05.3433129Z Traceback (most recent call last):\n2026-09-18T22:55:05.3434421Z   File \"D:\\a\\tooltest\\tooltest\\tests\\test_continuity_append_cache.py\", line 143, in test_unterminated_valid_record_gets_separator_without_changing_old_bytes\n2026-09-18T22:55:05.3436076Z     self.assertTrue(self.path.read_bytes().startswith(prefix + b'\\n'))\n2026-09-18T22:55:05.3436791Z AssertionError: False is not true\n2026-09-18T22:55:05.3437146Z \n2026-09-18T22:55:05.3437406Z ----------------------------------------------------------------------\n2026-09-18T22:55:05.3438056Z Ran 545 tests in 539.291s\n2026-09-18T22:55:05.3438361Z \n2026-09-18T22:55:05.3438530Z FAILED (failures=3, skipped=1)"
+    }
+  ]
+}
