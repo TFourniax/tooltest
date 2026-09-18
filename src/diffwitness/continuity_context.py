@@ -15,7 +15,7 @@ from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
 _WORD = re.compile(r"[A-Za-z0-9]+")
-_KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "component": 3, "file": 2, "debt": 4}
+_KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "task": 5, "component": 3, "file": 2, "debt": 4}
 _STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
 _MAX_GRAPH_DEPTH = 2
 _CONTEXT_DIGEST_META = VALIDATED_EVENT_DIGEST_META
@@ -113,6 +113,9 @@ def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
 
 def _entity_text(row: sqlite3.Row) -> str:
     payload = _loads(row["payload_json"])
+    if row["kind"] == "task":
+        # Native digests describe identity, not intent. Only explicitly saved text is searchable.
+        return " ".join([str(row["label"] or ""), str(row["entity_id"]), str(payload.get("why") or "")])
     return " ".join(
         [str(row["label"] or ""), str(row["entity_id"]), json.dumps(payload, ensure_ascii=False, sort_keys=True)]
     )
@@ -172,7 +175,7 @@ def _relevant_entities(
     """Rank all active project memory by direct task match plus a bounded two-hop graph walk."""
     task_tokens = _tokens(task)
     rows = conn.execute(
-        "select * from entities where lifecycle='active' and kind in ('objective','decision','invariant','failed-approach','component','file') order by updated_at desc"
+        "select * from entities where lifecycle='active' and kind in ('objective','task','decision','invariant','failed-approach','component','file') order by updated_at desc"
     ).fetchall()
     by_id = {str(row["entity_id"]): row for row in rows}
     scores: dict[str, int] = {}
@@ -187,6 +190,10 @@ def _relevant_entities(
             scores[entity_id] = score
             depths[entity_id] = 0
             reasons[entity_id] = f"task-token-overlap:{overlap}"
+        if entity_id in task.split():
+            scores[entity_id] = max(scores.get(entity_id, 0), 1000)
+            depths[entity_id] = 0
+            reasons[entity_id] = "exact-entity-id"
         if row["kind"] == "invariant" and payload.get("critical") is True:
             score = max(scores.get(entity_id, 0), 30 + _STATUS_BONUS.get(str(row["epistemic_status"]), 0))
             scores[entity_id] = score
@@ -291,7 +298,7 @@ def _recent_changes(
     if relevant_ids:
         placeholders = ",".join("?" for _ in relevant_ids)
         rows = conn.execute(
-            f"select source_id,target_id from relations where predicate in ('affects','introduced_in','motivated_by','created','protects','constrains') and (source_id in ({placeholders}) or target_id in ({placeholders}))",
+            f"select source_id,target_id from relations where lifecycle='active' and predicate in ('affects','introduced_in','motivated_by','created','protects','constrains','worked_on','motivates') and (source_id in ({placeholders}) or target_id in ({placeholders}))",
             (*relevant_ids, *relevant_ids),
         ).fetchall()
         for row in rows:
@@ -445,6 +452,7 @@ def compile_context(
             "structureTree": structure_tree_row[0] if structure_tree_row else None,
         },
         "objectives": [entity for entity in entities if entity["kind"] == "objective"],
+        "tasks": [entity for entity in entities if entity["kind"] == "task"],
         "decisions": [entity for entity in entities if entity["kind"] == "decision"],
         "invariants": [entity for entity in entities if entity["kind"] == "invariant"],
         "failedApproaches": [entity for entity in entities if entity["kind"] == "failed-approach"],
@@ -482,6 +490,7 @@ def render_context(context: dict[str, Any], *, max_chars: int = 12000) -> str:
         return lines
 
     lines = [f"TASK\n{context['task']}", ""]
+    lines += block("RELATED TASKS", context.get("tasks", []), lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
     lines += block("PROJECT OBJECTIVES", context["objectives"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
     lines += block("RELEVANT COMPONENTS", context["components"], lambda item: f"[{item['epistemicStatus']}] {item['path']} ({item['provider']})") + [""]
     lines += block("RELATED DECISIONS", context["decisions"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]

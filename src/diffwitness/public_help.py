@@ -61,6 +61,7 @@ Explicit/manual workflows:
 Project continuity:
   dw context <task>                    Compile bounded task context from project memory + structure
   dw objective add <text>              Record a project objective
+  dw task add|describe|link|show        Save task intent and inspect linked changes
   dw decision record <text>            Record a decision and its rationale/relations
   dw invariant add <text>              Record a project invariant; --critical makes it always relevant
   dw failed-approach record <text>     Preserve an approach that should not be repeated

@@ -77,6 +77,7 @@ Parcours explicites/manuels :
 Continuité du projet :
   dw context <task>                     Compiler le contexte borné de la mémoire et de la structure
   dw objective add <text>               Enregistrer un objectif
+  dw task add|describe|link|show         Enregistrer une tâche et retrouver ses changements
   dw decision record <text>             Enregistrer une décision, sa justification et ses relations
   dw invariant add <text>               Enregistrer une règle ; --critical la rend toujours pertinente
   dw failed-approach record <text>      Conserver une approche à ne pas répéter

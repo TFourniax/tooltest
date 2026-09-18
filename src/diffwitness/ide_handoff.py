@@ -130,14 +130,18 @@ def _envelope_change_id(envelope_path: Path) -> str | None:
     return str(raw) if isinstance(raw, str) and raw else None
 
 
-def _record_continuity(repo: Path, envelope_path: Path) -> tuple[str | None, int, str | None]:
+def _record_continuity(repo: Path, envelope_path: Path, *, task_refs: list[dict[str, str]] | None = None,
+                       task_error: bool = False) -> tuple[str | None, int, str | None]:
     envelope_change_id = _envelope_change_id(envelope_path)
     try:
+        if task_error:
+            raise ValueError("Native task participation could not be captured completely for this boundary")
         result = record_change_envelope(
             repo=repo,
             path=envelope_path,
             actor="diffwitness-ide-hook",
             trusted_proof=True,
+            task_refs=task_refs,
         )
         ensure_state(repo)
         created = result.get("created") or {}
@@ -170,7 +174,8 @@ def finalize_ide_session(
 
     payload = payload if isinstance(payload, dict) else {}
     root = repo_root(payload.get("cwd") or repo)
-    sid = str(payload.get("session_id") or session_id or "default")
+    sid = str(payload.get("session_id") or payload.get("conversation_id")
+              or payload.get("parent_conversation_id") or session_id or "default")
     path = _state_path(root, sid)
     if not path.exists():
         return _terminal_failure(
@@ -188,6 +193,16 @@ def finalize_ide_session(
             "boundary for a new task. Do not launch a nested agent from this session.",
         )
 
+    # Snapshot participants before running Proof; later prompts must not be associated with
+    # this candidate simply because they arrived during the evidence execution.
+    task_refs = None
+    task_error = bool(state.get("task_memory_error"))
+    try:
+        from .continuity_tasks import boundary_task_refs
+
+        task_refs = boundary_task_refs(root, sid, state.get("task_boundary_id"))
+    except Exception:
+        task_error = True
     candidate = snapshot_worktree(root)
     if candidate == base:
         return _success("DiffWitness: no repository change to prove.")
@@ -282,7 +297,9 @@ def finalize_ide_session(
             # human-facing artifact paths must not leak into that protocol stream.
             quiet=True,
         )
-        change_id, continuity_events, continuity_error = _record_continuity(root, envelope_path)
+        change_id, continuity_events, continuity_error = _record_continuity(
+            root, envelope_path, task_refs=task_refs, task_error=task_error,
+        )
         _sync_idleproof_assurance(root, envelope_path)
 
         if not budget.passed:

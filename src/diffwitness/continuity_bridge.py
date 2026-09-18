@@ -142,6 +142,7 @@ def record_change_envelope(
     path: Path | None = None,
     actor: str = "diffwitness",
     trusted_proof: bool = False,
+    task_refs: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Project a frozen change envelope into one atomic continuity event batch.
 
@@ -323,10 +324,17 @@ def record_change_envelope(
             }
         )
 
+    if task_refs is not None:
+        from .continuity_tasks import native_link_specs
+
+        specs.extend({**spec, "bucket": "task"} for spec in native_link_specs(cid, task_refs))
+
     # `bucket` is bridge-local accounting and never becomes part of ProjectEvent semantics.
     event_specs = [{key: value for key, value in spec.items() if key != "bucket"} for spec in specs]
     results = append_project_events(repo=root, events=event_specs)
     counts = {"change": 0, "proof": 0, "debt": 0, "understanding": 0}
+    if task_refs is not None:
+        counts["task"] = 0
     for spec, (_, created) in zip(specs, results, strict=True):
         if created:
             counts[str(spec["bucket"])] += 1

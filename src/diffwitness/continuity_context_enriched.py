@@ -24,7 +24,7 @@ def _context_id(context: dict[str, Any]) -> str:
 def _linked_debt_ids(context: dict[str, Any]) -> set[str]:
     relevant_ids = {
         str(item.get("id"))
-        for bucket in ("objectives", "decisions", "invariants", "failedApproaches")
+        for bucket in ("objectives", "tasks", "decisions", "invariants", "failedApproaches")
         for item in context.get(bucket, [])
         if isinstance(item, dict) and item.get("id")
     }

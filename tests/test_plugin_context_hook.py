@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from diffwitness.continuity_events import append_project_event, continuity_paths
+from diffwitness.continuity_events import append_project_event, continuity_paths, read_project_events
 from diffwitness.ide_handoff import finalize_ide_session
 from diffwitness.proof_cli import _state_path
 from diffwitness.structure_provider import component_id_for_path
@@ -88,7 +88,10 @@ class PluginContextHookTests(unittest.TestCase):
             self.assertIn("DECLARED", context)
             self.assertIn("executed DiffWitness evidence remains authoritative", context)
             self.assertNotIn("change-proof: dw guard", context)
-            self.assertEqual(continuity_paths(repo).events.read_bytes(), before)
+            self.assertTrue(continuity_paths(repo).events.read_bytes().startswith(before))
+            tasks = [e for e in read_project_events(continuity_paths(repo).events) if e["event_type"] == "task.recorded"]
+            self.assertEqual(len(tasks), 1)
+            self.assertEqual(tasks[0]["subject"]["label"], "Task " + tasks[0]["subject"]["id"])
             self.assertNotIn(prompt, continuity_paths(repo).events.read_text(encoding="utf-8"))
 
     def test_prompt_submit_fails_open_outside_git_repository(self):
@@ -150,6 +153,10 @@ class PluginContextHookTests(unittest.TestCase):
             )
             self.assertEqual(started.returncode, 0, started.stderr)
 
+            for prompt in ("Fix addition correctness", "New task: preserve arithmetic compatibility"):
+                submitted = self.run_hook(repo, {"session_id": session_id, "cwd": str(repo), "prompt": prompt})
+                self.assertEqual(submitted.returncode, 0, submitted.stderr)
+
             (repo / "app.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
             stopped = self.run_hook(
                 repo,
@@ -176,6 +183,17 @@ class PluginContextHookTests(unittest.TestCase):
             self.assertIn('"event_type":"change.observed"', events)
             self.assertIn('"event_type":"proof.completed"', events)
             self.assertIn('"event_type":"debt.snapshot"', events)
+
+            records = read_project_events(continuity_paths(repo).events)
+            links = [e for e in records if e["event_type"] == "task.linked"]
+            self.assertEqual(len(links), 2)
+            self.assertEqual(len({e["subject"]["id"] for e in links}), 2)
+            for link in links:
+                self.assertEqual(link["payload"]["change_id"], envelope["change_id"])
+                self.assertEqual(link["epistemic_status"], "OBSERVED")
+                self.assertFalse(link["relations"][0]["metadata"]["causal_proof"])
+            proof = next(e for e in records if e["event_type"] == "proof.completed")
+            self.assertEqual(proof["epistemic_status"], "VERIFIED")
 
     def test_native_handoff_blocks_an_intact_but_canonically_unaccepted_proof_before_debt_or_continuity(self):
         with tempfile.TemporaryDirectory() as td:
