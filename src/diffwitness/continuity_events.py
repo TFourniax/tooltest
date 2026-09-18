@@ -68,7 +68,11 @@ class ContinuityPaths:
 
 
 def continuity_paths(repo: str | Path = ".") -> ContinuityPaths:
-    root_repo = repo_root(repo)
+    return _paths_for_root(repo_root(repo))
+
+
+def _paths_for_root(root_repo: Path) -> ContinuityPaths:
+    """Internal path resolution after the caller has already validated the Git root."""
     root = _git_common_dir(root_repo) / "diffwitness"
     return ContinuityPaths(
         root=root,

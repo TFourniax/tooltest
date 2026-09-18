@@ -42,7 +42,10 @@ def _module_name(relative: str) -> str:
 
 
 def structure_index_needs_refresh(repo: str | Path, conn: sqlite3.Connection) -> bool:
-    root=repo_root(repo)
+    return _structure_index_needs_refresh(repo_root(repo), conn)
+
+
+def _structure_index_needs_refresh(root: Path, conn: sqlite3.Connection) -> bool:
     row=conn.execute("select value from meta where key='structure_tree'").fetchone()
     version=conn.execute("select value from meta where key='structure_snapshot_version'").fetchone()
     current=_head_tree(root)

@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
 from .config import load_config
-from .continuity_events import continuity_paths
+from .continuity_events import _paths_for_root
+from .continuity_search import memory_text, select_context_entities, tokens as _tokens
 from .continuity_state import STATE_SCHEMA, VALIDATED_EVENT_DIGEST_META, ensure_state
 from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
-_WORD = re.compile(r"[A-Za-z0-9]+")
 _KIND_BONUS = {"invariant": 8, "decision": 6, "failed-approach": 7, "objective": 5, "task": 5, "component": 3, "file": 2, "debt": 4}
 _STATUS_BONUS = {"VERIFIED": 3, "OBSERVED": 2, "INFERRED": 1, "DECLARED": 0}
 _MAX_GRAPH_DEPTH = 2
@@ -23,10 +22,6 @@ _CONTEXT_DIGEST_META = VALIDATED_EVENT_DIGEST_META
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
-
-def _tokens(value: str) -> set[str]:
-    return {token.lower() for token in _WORD.findall(value or "") if len(token) >= 3}
 
 
 def _loads(raw: str | None) -> dict[str, Any]:
@@ -76,9 +71,9 @@ def _refresh_structure_if_needed(root: Path, state_path: Path) -> Path:
     try:
         conn = sqlite3.connect(state_path)
         try:
-            from .structure_provider import refresh_structure_index, structure_index_needs_refresh
+            from .structure_provider import refresh_structure_index, _structure_index_needs_refresh
 
-            if structure_index_needs_refresh(root, conn):
+            if _structure_index_needs_refresh(root, conn):
                 refresh_structure_index(root, conn=conn)
                 conn.commit()
         finally:
@@ -97,7 +92,7 @@ def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
     prompts compare SHA-256 instead of reparsing every JSON event. Thus the shortcut is fast but does
     not silently tolerate historical tampering. Proof/Debt authority is unchanged.
     """
-    paths = continuity_paths(root)
+    paths = _paths_for_root(root)
     digest = _event_file_digest(paths.events)
     if digest is None or not paths.state.exists():
         return ensure_state(root, include_structure=refresh_structure)
@@ -113,12 +108,7 @@ def _advisory_state_path(root: Path, *, refresh_structure: bool) -> Path:
 
 def _entity_text(row: sqlite3.Row) -> str:
     payload = _loads(row["payload_json"])
-    if row["kind"] == "task":
-        # Native digests describe identity, not intent. Only explicitly saved text is searchable.
-        return " ".join([str(row["label"] or ""), str(row["entity_id"]), str(payload.get("why") or "")])
-    return " ".join(
-        [str(row["label"] or ""), str(row["entity_id"]), json.dumps(payload, ensure_ascii=False, sort_keys=True)]
-    )
+    return memory_text(row["kind"], row["entity_id"], row["label"], payload)
 
 
 def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
@@ -162,7 +152,7 @@ def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list
 
 def _semantic_relations(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return conn.execute(
-        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from active_memory_relations order by updated_at desc"
+        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from active_memory_relations where source_id in (select entity_id from _dw_candidates) or target_id in (select entity_id from _dw_candidates) order by updated_at desc"
     ).fetchall()
 
 
@@ -175,9 +165,8 @@ def _relevant_entities(
 ) -> list[dict[str, Any]]:
     """Rank all active project memory by direct task match plus a bounded two-hop graph walk."""
     task_tokens = _tokens(task)
-    rows = conn.execute(
-        "select e.*,m.lifecycle_json from entities e left join memory_lifecycle m on m.entity_id=e.entity_id where e.lifecycle='active' and e.kind in ('objective','task','decision','invariant','failed-approach','component','file') order by e.updated_at desc"
-    ).fetchall()
+    component_ids = set(seed_component_ids)
+    rows = select_context_entities(conn, task, component_ids)
     by_id = {str(row["entity_id"]): row for row in rows}
     scores: dict[str, int] = {}
     depths: dict[str, int] = {}
@@ -202,7 +191,6 @@ def _relevant_entities(
             reasons[entity_id] = "critical-invariant"
 
     relations = _semantic_relations(conn)
-    component_ids = set(seed_component_ids)
     for relation in relations:
         source = str(relation["source_id"])
         target = str(relation["target_id"])
