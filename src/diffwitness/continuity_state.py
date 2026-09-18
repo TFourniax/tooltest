@@ -15,7 +15,7 @@ from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
-STATE_SCHEMA = "continuity-state-4"
+STATE_SCHEMA = "continuity-state-5"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
 VALIDATED_EVENT_DIGEST_META = "memory_lifecycle_event_file_sha256"
