@@ -5,12 +5,42 @@ import shutil
 import subprocess
 import tempfile
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path, PurePosixPath
-from typing import Iterator
+from typing import Callable, Iterator
 
 
 class GitError(RuntimeError):
     pass
+
+
+_RESOLVED_REPOSITORY_PATHS: ContextVar[dict[tuple[str, Path], Path] | None] = ContextVar(
+    "diffwitness_resolved_repository_paths", default=None
+)
+
+
+@contextmanager
+def repository_resolution_scope() -> Iterator[None]:
+    """Reuse only Git-resolved paths during one synchronous advisory operation.
+
+    No content, HEAD, evidence, journal digest or validation result is cached.
+    Reset even on exceptions; subsequent operations must resolve Git again.
+    """
+    token = _RESOLVED_REPOSITORY_PATHS.set({})
+    try:
+        yield
+    finally:
+        _RESOLVED_REPOSITORY_PATHS.reset(token)
+
+
+def _cached_repository_path(kind: str, path: Path, resolve: Callable[[], Path]) -> Path:
+    cache = _RESOLVED_REPOSITORY_PATHS.get()
+    if cache is None:
+        return resolve()
+    key = (kind, path.resolve())
+    if key not in cache:
+        cache[key] = resolve()
+    return cache[key]
 
 
 _TRANSIENT_DIRS = {
@@ -112,6 +142,10 @@ def git_bytes(
 
 def repo_root(path: str | Path = ".") -> Path:
     path = Path(path).resolve()
+    return _cached_repository_path("root", path, lambda: _resolve_repo_root(path))
+
+
+def _resolve_repo_root(path: Path) -> Path:
     proc = _run(["git", "rev-parse", "--show-toplevel"], cwd=path, check=False)
     if proc.returncode != 0:
         raise GitError(f"not a Git repository: {path}")

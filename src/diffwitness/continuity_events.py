@@ -50,6 +50,12 @@ def _sha(value: Any) -> str:
 
 
 def _git_common_dir(repo: Path) -> Path:
+    from .gitops import _cached_repository_path
+
+    return _cached_repository_path("common", repo, lambda: _resolve_git_common_dir(repo))
+
+
+def _resolve_git_common_dir(repo: Path) -> Path:
     raw = git(repo, "rev-parse", "--git-common-dir").strip()
     if not raw:
         raise ContinuityError("cannot resolve Git common directory")

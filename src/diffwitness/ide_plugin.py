@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .continuity_task_session import task_context_query, update_task_session
-from .gitops import repo_root, snapshot_worktree
+from .gitops import repo_root, snapshot_worktree, repository_resolution_scope
 from .ide_handoff import finalize_ide_session, _read_session_state, _write_session_state, _set_continuity_health
 from .native_activation import SUPPORTED_NATIVE_PROVIDERS, record_native_activation
 from .proof_cli import _state_path
@@ -133,6 +133,11 @@ def _native_context(context: dict[str, Any]) -> dict[str, Any]:
 
 
 def user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
+    with repository_resolution_scope():
+        return _user_prompt_submit(payload)
+
+
+def _user_prompt_submit(payload: dict[str, Any]) -> dict[str, Any] | None:
     raw_prompt = payload.get("prompt")
     if not isinstance(raw_prompt, str) or not raw_prompt.strip():
         return None

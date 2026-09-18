@@ -90,6 +90,10 @@ class IndexedContextTests(unittest.TestCase):
                     with patch.object(context, "select_context_entities", return_value=all_rows), patch.object(context, "_semantic_relations", return_value=all_edges):
                         exhaustive = context._relevant_entities(conn, query, 90, seed_component_ids=["MEM-80"])
                     self.assertEqual(indexed, exhaustive)
+                    with patch.object(context, "select_context_entities", return_value=list(reversed(all_rows))), patch.object(context, "_semantic_relations", return_value=list(reversed(all_edges))):
+                        reordered = context._relevant_entities(conn, query, 90, seed_component_ids=["MEM-80"])
+                    compact = lambda items: [(item['id'],item['relevance'],item['relationDepth'],item['relevanceReason']) for item in items]
+                    self.assertEqual(compact(exhaustive), compact(reordered), "retrieval must not depend on row/edge iteration order")
 
 
 if __name__ == "__main__":

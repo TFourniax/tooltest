@@ -21,6 +21,7 @@ def run(args: list[str], *, cwd: Path, env: dict[str, str] | None = None, timeou
         cwd=cwd,
         env=env,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         timeout=timeout,

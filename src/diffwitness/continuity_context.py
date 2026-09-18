@@ -190,7 +190,10 @@ def _relevant_entities(
             depths[entity_id] = 0
             reasons[entity_id] = "critical-invariant"
 
-    relations = _semantic_relations(conn)
+    # Equal graph paths must choose the same explanatory reference regardless of
+    # SQL plan, row insertion order or Python's per-process hash randomization.
+    relations = sorted(_semantic_relations(conn), key=lambda row: (
+        str(row["source_id"]), str(row["predicate"]), str(row["target_id"])))
     for relation in relations:
         source = str(relation["source_id"])
         target = str(relation["target_id"])
@@ -219,7 +222,7 @@ def _relevant_entities(
     frontier = {entity_id for entity_id, depth in depths.items() if depth <= 1}
     for _ in range(_MAX_GRAPH_DEPTH):
         next_frontier: set[str] = set()
-        for source in frontier:
+        for source in sorted(frontier):
             source_depth = depths.get(source, 0)
             if source_depth >= _MAX_GRAPH_DEPTH:
                 continue
