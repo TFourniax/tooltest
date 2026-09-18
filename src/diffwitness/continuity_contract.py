@@ -12,6 +12,7 @@ from typing import Any
 
 from .continuity_task_contract import TASK_PROFILE, task_profile_descriptor, validate_task_profile
 from .continuity_lifecycle_contract import MEMORY_LIFECYCLE_PROFILE, memory_lifecycle_descriptor, validate_memory_lifecycle
+from .continuity_git_contract import GIT_HISTORY_PROFILE, git_history_descriptor, validate_git_history
 
 CONTRACT_VERSION = "project-memory-contract-1"
 EVENT_SCHEMA_VERSION = "project-event-1"
@@ -34,7 +35,7 @@ MAX_LABEL_CHARS = 500
 ENTITY_KINDS = (
     "task", "objective", "decision", "invariant", "failed-approach", "feature",
     "component", "symbol", "dependency", "change", "proof-certificate", "debt",
-    "understanding", "file", "external-module",
+    "understanding", "file", "external-module", "git-commit", "git-message",
 )
 HUMAN_DECLARABLE_RELATIONS = frozenset({
     "motivated_by", "affects", "introduced_in", "created", "protects", "constrains",
@@ -159,6 +160,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == GIT_HISTORY_PROFILE:
+        validate_git_history(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == MEMORY_LIFECYCLE_PROFILE:
         validate_memory_lifecycle(event)
@@ -405,6 +409,7 @@ def project_memory_contract() -> dict[str, Any]:
         "schema_version": CONTRACT_VERSION,
         "event_schema": EVENT_SCHEMA_VERSION,
         "admission_profiles": {
+            GIT_HISTORY_PROFILE: git_history_descriptor(),
             MEMORY_LIFECYCLE_PROFILE: memory_lifecycle_descriptor(),
             TASK_PROFILE: task_profile_descriptor(),
             DEBT_LIFECYCLE_PROFILE: {

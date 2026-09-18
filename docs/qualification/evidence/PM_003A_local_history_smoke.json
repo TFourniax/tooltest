@@ -1,0 +1,50 @@
+{
+  "scope": "Windows local isolated clone of public Core history; 25-commit first-parent page",
+  "first": {
+    "schema_version": "git-history-bootstrap-1",
+    "tip": "c6dc05bae725014d32ea764cecbe131cef6bc17b",
+    "next_ref": "f43fab7b845407f1dbb6b9a8d6167934678238e0",
+    "complete": false,
+    "scope": "first-parent",
+    "boundary": null,
+    "commits": 25,
+    "events": 25,
+    "created": 25,
+    "files_omitted": 0,
+    "messages_unreadable": 0,
+    "include_messages": false,
+    "limits": {
+      "commits": 25,
+      "commitBytes": 262144,
+      "pathsPerCommit": 64,
+      "collectionSeconds": 60,
+      "messageChars": 4096
+    }
+  },
+  "replay": {
+    "schema_version": "git-history-bootstrap-1",
+    "tip": "c6dc05bae725014d32ea764cecbe131cef6bc17b",
+    "next_ref": "f43fab7b845407f1dbb6b9a8d6167934678238e0",
+    "complete": false,
+    "scope": "first-parent",
+    "boundary": null,
+    "commits": 25,
+    "events": 25,
+    "created": 0,
+    "files_omitted": 0,
+    "messages_unreadable": 0,
+    "include_messages": false,
+    "limits": {
+      "commits": 25,
+      "commitBytes": 262144,
+      "pathsPerCommit": 64,
+      "collectionSeconds": 60,
+      "messageChars": 4096
+    }
+  },
+  "first_seconds": 5.555686,
+  "replay_seconds": 4.305706,
+  "journal_bytes": 74373,
+  "journal_sha256": "3edafdefde01a1a9bb9ff0c8d0b2116e4af7ab23e682f9b3cd38e481d4a5d51e",
+  "human": "NOT RUN"
+}

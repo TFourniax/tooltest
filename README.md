@@ -555,6 +555,12 @@ hashes and producer extensions are preserved. A listed kind does not imply that 
 complete producer or lifecycle workflow exists. See the
 [contract and compatibility details](docs/qualification/PM_001A.md).
 
+Initialize local memory from an existing repository with
+`dw state bootstrap-git --json`. It imports bounded first-parent history and
+returns a ref for the next page. Messages are digest-only unless explicitly
+included as declarations; no executed Proof is inferred. See the
+[Git history guide](docs/GIT_HISTORY.md) for coverage and privacy limits.
+
 New objective, decision, invariant and failed-approach declarations use the explicit
 [`project-memory-declaration-1` admission profile](docs/qualification/PM_001B1.md).
 It checks their types and keeps their authority `DECLARED`. Unprofiled historical
