@@ -1,0 +1,55 @@
+{
+  "schema": "pm-012c-local-1",
+  "classification": "MACHINE",
+  "baseline": "d5e0bfeaa843a7c2503ef6852d25fcce4429dcda",
+  "full": {
+    "run": 545,
+    "pass": 541,
+    "skip": 4,
+    "seconds": 55.635
+  },
+  "continuity": {
+    "run": 155,
+    "pass": 155,
+    "seconds": 12.393
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "files": {
+    "src/diffwitness/continuity_events.py": "650142270c813e362740b49ebae6b54b09495ed19ff99a11e0c290628f711869",
+    "tests/test_continuity_append_cache.py": "4a3228fa7f563b3caaf177ef450286c4bb46fb4c444170b26d852f06f5abde40"
+  },
+  "local_logs": {
+    "full": {
+      "sha256": "d065f9ab3adf8b6257fd12e5e1f416cd9781d746112e052217d2defbaef30437"
+    },
+    "continuity": {
+      "sha256": "d2baca6487b29e2a398b7db3707409603fbd548e47d82d8d5ca9610640272837"
+    },
+    "targeted": {
+      "sha256": "7e661e1a04d8751c1c9cbc4afd13bbb69065236a5aa94c2062c658c43a9a9efb"
+    },
+    "regressions_before": {
+      "sha256": "503ee1d34f592ce1e9ae0e448880cd580bfe64f1de1c1cf703089918c5bf5d4c"
+    },
+    "unterminated_before": {
+      "sha256": "06e5b3147a96df9965d99b674521e337c8d7abfba1364e3f1fdc9e4d2fcfe36e"
+    },
+    "wheel": {
+      "sha256": "a8ae962576d0da85832354fb87ad2d4ce61cf2940c48f05398777572e9a80724"
+    },
+    "install": {
+      "sha256": "147084607f5cc437782c792afc23d34a1f3891217f87a6361308012c18d4c092"
+    },
+    "install_offline": {
+      "sha256": "6c739a8b2e49981a00e4275dbfbbc56857b1974032b9d633fa4f5a21e05a6c48"
+    }
+  },
+  "limits": [
+    "50k verify/rebuild FAIL",
+    "100k append/verify/rebuild FAIL",
+    "process-local only; no persisted validation",
+    "bounded raw bytes are not total Python RAM",
+    "shared-host diagnostic; baseline 100k briefly overlaps other local work"
+  ]
+}

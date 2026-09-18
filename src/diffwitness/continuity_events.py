@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
 import re
 import time
+import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -164,7 +166,7 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
 
 
 class _ProjectEventValidator:
-    """One request's validated chain and ordered reference state; never persisted."""
+    """Privately owned validated chain and ordered reference state; never persisted."""
 
     def __init__(self) -> None:
         self.previous: str | None = None
@@ -245,6 +247,68 @@ def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
 
 def read_project_events(path: Path) -> list[dict[str, Any]]:
     return read_project_event_snapshot(path)[0]
+
+
+@dataclass(frozen=True, slots=True)
+class _AppendCheckpoint:
+    path: Path
+    raw: bytes
+    validator: _ProjectEventValidator
+    by_dedupe: dict[str, dict[str, Any]]
+
+
+_APPEND_CACHE_MAX_BYTES = 128 * 1024 * 1024
+_APPEND_CACHE_MAX_EVENTS = 100_000
+_append_checkpoint: _AppendCheckpoint | None = None
+_append_checkpoint_lock = threading.Lock()
+
+
+def _append_history(path: Path) -> tuple[bytes, _ProjectEventValidator, dict[str, dict[str, Any]]]:
+    """Take exclusive ownership of a byte-bound, process-private checkpoint.
+
+    Remove it BEFORE any fallible read/admission/write. No failed operation can
+    publish speculative reference or dedupe state. Other repositories may evict
+    this optimization; the journal lock already serializes this repository.
+    """
+    global _append_checkpoint
+    with _append_checkpoint_lock:
+        cached, _append_checkpoint = _append_checkpoint, None
+    try:
+        raw = path.read_bytes()
+    except FileNotFoundError:
+        raw = b""
+    except OSError as exc:
+        raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
+    if (cached is not None and cached.path == path and raw.startswith(cached.raw)
+            and (not cached.raw or cached.raw.endswith((b"\n", b"\r")))):
+        validator, by_dedupe = cached.validator, cached.by_dedupe
+        suffix = raw[len(cached.raw):]
+    else:
+        validator, by_dedupe = _ProjectEventValidator(), {}
+        suffix = raw
+    try:
+        # Match the strict reader's LF/CR framing; Unicode separators are data.
+        for physical_line in suffix.split(b"\n"):
+            for line in physical_line.split(b"\r"):
+                text = line.decode("utf-8")
+                if not text.strip():
+                    continue
+                event = strict_json_loads(text)
+                validator.admit(event)
+                if event.get("dedupe_key") is not None:
+                    by_dedupe[event["dedupe_key"]] = event
+    except (ValueError, RecursionError) as exc:
+        raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
+    return raw, validator, by_dedupe
+
+
+def _remember_append(path: Path, raw: bytes, validator: _ProjectEventValidator,
+                     by_dedupe: dict[str, dict[str, Any]]) -> None:
+    global _append_checkpoint
+    if (len(raw) <= _APPEND_CACHE_MAX_BYTES and validator.count <= _APPEND_CACHE_MAX_EVENTS
+            and (not raw or raw.endswith((b"\n", b"\r")))):
+        with _append_checkpoint_lock:
+            _append_checkpoint = _AppendCheckpoint(path, raw, validator, by_dedupe)
 
 
 @contextmanager
@@ -349,10 +413,20 @@ def _candidate_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
     return candidate
 
 
-def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> None:
+def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> bytes:
     if not events:
-        return
+        return b""
     raw = b"".join((_canonical(event) + "\n").encode("utf-8") for event in events)
+    # A valid imported last JSON object need not end in a newline. Preserve its
+    # bytes and add a record separator before appending the next event.
+    try:
+        with paths.events.open("rb") as handle:
+            if handle.seek(0, os.SEEK_END):
+                handle.seek(-1, os.SEEK_END)
+                if handle.read(1) not in (b"\n", b"\r"):
+                    raw = b"\n" + raw
+    except FileNotFoundError:
+        pass
     paths.root.mkdir(parents=True, exist_ok=True)
     fd = os.open(paths.events, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
     try:
@@ -376,6 +450,7 @@ def _durable_append(paths: ContinuityPaths, events: list[dict[str, Any]]) -> Non
             pass
         finally:
             os.close(directory_fd)
+    return raw
 
 
 def append_project_events(
@@ -396,18 +471,15 @@ def append_project_events(
         return []
     root_repo = repo_root(repo)
     paths = continuity_paths(root_repo)
-    candidates = [_candidate_from_spec(spec) for spec in events]
+    # Detach nested caller data before a candidate can enter private validator
+    # state. Returned objects are detached again at the public boundary below.
+    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
 
     with _event_lock(paths):
-        existing, _, validator = _read_validated_snapshot(paths.events)
-        by_dedupe = {
-            str(event["dedupe_key"]): event
-            for event in existing
-            if event.get("dedupe_key") is not None
-        }
+        raw, validator, by_dedupe = _append_history(paths.events)
         results: list[tuple[dict[str, Any], bool]] = []
         appended: list[dict[str, Any]] = []
-        previous_hash = existing[-1]["event_hash"] if existing else None
+        previous_hash = validator.previous
 
         for candidate in candidates:
             dedupe_key = candidate.get("dedupe_key")
@@ -437,12 +509,13 @@ def append_project_events(
             if dedupe_key is not None:
                 by_dedupe[str(dedupe_key)] = candidate
 
-        # Continue this call's strictly validated prefix. No persisted/cache state
-        # may seed these validators; invalid suffixes discard the whole batch.
+        # Only privately owned validation state bound to ALL prefix bytes can
+        # seed these validators. Invalid suffixes discard the whole checkpoint.
         for event in appended:
             validator.admit(event)
-        _durable_append(paths, appended)
-        return results
+        written = _durable_append(paths, appended)
+        _remember_append(paths.events, raw + written, validator, by_dedupe)
+        return copy.deepcopy(results)
 
 
 def append_project_event(

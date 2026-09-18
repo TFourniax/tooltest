@@ -1,0 +1,53 @@
+test_caller_inputs_and_results_cannot_mutate_cached_history (test_continuity_append_cache.AppendCacheTests.test_caller_inputs_and_results_cannot_mutate_cached_history) ... ok
+test_concurrent_calls_have_one_chain_and_dedupe (test_continuity_append_cache.AppendCacheTests.test_concurrent_calls_have_one_chain_and_dedupe) ... ok
+test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed) ... FAIL
+test_failed_batch_cannot_advance_cached_lifecycle_or_dedupe (test_continuity_append_cache.AppendCacheTests.test_failed_batch_cannot_advance_cached_lifecycle_or_dedupe) ... ok
+test_partial_write_never_publishes_checkpoint (test_continuity_append_cache.AppendCacheTests.test_partial_write_never_publishes_checkpoint) ... ok
+test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete) ... FAIL
+test_same_size_timestamp_corruption_is_rejected_before_append (test_continuity_append_cache.AppendCacheTests.test_same_size_timestamp_corruption_is_rejected_before_append) ... ok
+test_valid_rewrite_truncation_and_crlf_unicode_keep_chain_truth (test_continuity_append_cache.AppendCacheTests.test_valid_rewrite_truncation_and_crlf_unicode_keep_chain_truth) ... ok
+
+======================================================================
+FAIL: test_external_suffix_is_validated_and_invalid_suffix_fails_closed (test_continuity_append_cache.AppendCacheTests.test_external_suffix_is_validated_and_invalid_suffix_fails_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_continuity_append_cache.py", line 61, in test_external_suffix_is_validated_and_invalid_suffix_fails_closed
+    self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-EXTERNAL', 'OBJ-TWO'])
+AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO'] != ['OBJ-EXTERNAL', 'OBJ-TWO']
+
+First differing element 0:
+'OBJ-ONE'
+'OBJ-EXTERNAL'
+
+First list contains 1 additional elements.
+First extra element 2:
+'OBJ-TWO'
+
+- ['OBJ-ONE', 'OBJ-EXTERNAL', 'OBJ-TWO']
+?  -----------
+
++ ['OBJ-EXTERNAL', 'OBJ-TWO']
+
+======================================================================
+FAIL: test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete (test_continuity_append_cache.AppendCacheTests.test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_continuity_append_cache.py", line 39, in test_repeated_append_validates_only_new_suffix_but_public_read_remains_complete
+    self.assertEqual(self.admitted(lambda: self.append(objective('OBJ-TWO'))), ['OBJ-TWO'])
+AssertionError: Lists differ: ['OBJ-ONE', 'OBJ-TWO'] != ['OBJ-TWO']
+
+First differing element 0:
+'OBJ-ONE'
+'OBJ-TWO'
+
+First list contains 1 additional elements.
+First extra element 1:
+'OBJ-TWO'
+
+- ['OBJ-ONE', 'OBJ-TWO']
++ ['OBJ-TWO']
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.357s
+
+FAILED (failures=2)
