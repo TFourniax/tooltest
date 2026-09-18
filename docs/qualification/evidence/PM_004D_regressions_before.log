@@ -1,0 +1,42 @@
+test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically (test_structure_transport.StructureTransportTests.test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically) ... ok
+test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json) ... FAIL
+test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid) ... ERROR
+test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage) ... ERROR
+
+======================================================================
+ERROR: test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_structure_transport.py", line 77, in test_results_are_detached_and_empty_batch_is_valid
+    from diffwitness.structure_transport import extract_request
+ModuleNotFoundError: No module named 'diffwitness.structure_transport'
+
+======================================================================
+ERROR: test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_structure_transport.py", line 65, in test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage
+    from diffwitness.structure_transport import extract_request
+ModuleNotFoundError: No module named 'diffwitness.structure_transport'
+
+======================================================================
+FAIL: test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<candidate-source>/tests/test_structure_transport.py", line 33, in test_real_cli_outside_git_preserves_python_provider_and_french_json
+    self.assertTrue(all(r.returncode == 0 for r in results), '\n'.join(r.stderr for r in results))
+AssertionError: False is not true : usage: dw state [-h]
+                {contract,status,rebuild,sync-debt,bootstrap-git,ingest-envelope,events,graph}
+                ...
+dw state: error: argument command: invalid choice: 'extract' (choose from contract, status, rebuild, sync-debt, bootstrap-git, ingest-envelope, events, graph)
+
+usage: dw state [-h]
+                {contract,status,rebuild,sync-debt,bootstrap-git,ingest-envelope,events,graph}
+                ...
+dw state: error: argument command: invalid choice: 'extract' (choose from contract, status, rebuild, sync-debt, bootstrap-git, ingest-envelope, events, graph)
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.305s
+
+FAILED (failures=1, errors=2)

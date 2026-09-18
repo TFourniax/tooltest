@@ -1,0 +1,171 @@
+{
+  "schema": "pm-004d-local-1",
+  "base": "46d132f0a298d9381e125ab4f60bd78cb64ea352",
+  "base_tree": "a42ee9e917e28276c7d61fb840df7990459e8e03",
+  "classification": "MACHINE",
+  "full": {
+    "run": 551,
+    "pass": 547,
+    "skip": 4,
+    "seconds": 57.368
+  },
+  "node_installed_consumer": "PASS",
+  "installed_fr_en": "PASS",
+  "compile": "PASS",
+  "wheel": "PASS",
+  "files": {
+    "src/diffwitness/structure_transport.py": "624d587871a70436eb40b710f33dfcadfc00560068747b73f641890c27026aa2",
+    "src/diffwitness/continuity_cli.py": "65db574cbc2b9c5dd9452d6929ba6cb23d0006179cef20589a21de8effff3764",
+    "tests/test_structure_transport.py": "29f50772bf045169efe8d02825e8422fe4e173f823e11053aab56001ca41fd89",
+    "scripts/structure_transport_consumer.mjs": "4f5a41381de3629ce3472435884c43423eeac1fb1e37a28d13db829087a823ca",
+    "scripts/language_acceptance.py": "cae3eedcbf090068607b656a1f35e7f3f5680910f90746f59dc9d2b935dce2a7",
+    "scripts/integrated_product_smoke.py": "f3f1f95a4f6819ca6cb8c72ecf8a7ba99402bad7e85d4dd1b057bedd7352f9c2"
+  },
+  "local_logs": {
+    "PM_004D_full.log": "a0ad040e3b814af3bbb2637f5826b7e5d7f14f187454bf6ba0189020ec09fbd2",
+    "PM_004D_full_corrected.log": "fe97fc328c54008dad70848ca1208ecb1c7647fc3d383d49491cc161e80d519d",
+    "PM_004D_full_final.log": "2913181687bf2ecc93f35c28a25889e325fd6996c77ae97efdd66cf96d64c077",
+    "PM_004D_wheel_final.log": "7f53e6330f7b338f2f99e361e8fde6fe8da86a600da142afd2b9025764d9877c",
+    "PM_004D_node_final.log": "e1b45963acf76c7ecc3a6d068c6be183f61a48f667e4d696d5a12b706fc360c3",
+    "PM_004D_language_final.log": "5ab0688865bf2121f2ae35b7522f888c60d188bbfb9f2a34b6feea2c217b6b11"
+  },
+  "initial_full_invocation_failures": [
+    {
+      "test": "ERROR: test_setup_install_prepares_local_excludes_before_sidecar_runs (test_local_git_state.LocalGitStateTests.test_setup_install_prepares_local_excludes_before_sidecar_runs)",
+      "reason": "diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes (test_native_patch_bytes.NativePatchBytesTests.test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes) (eol=\"b'\\\\n'\")",
+      "reason": "diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes (test_native_patch_bytes.NativePatchBytesTests.test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes) (eol=\"b'\\\\r\\\\n'\")",
+      "reason": "diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_codex_requires_live_activation_then_becomes_ready_after_observed_hook (test_protect.ProtectTests.test_codex_requires_live_activation_then_becomes_ready_after_observed_hook)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding (test_protect.ProtectTests.test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_force_builtin_merges_and_disable_preserves_foreign_hooks (test_protect.ProtectTests.test_force_builtin_merges_and_disable_preserves_foreign_hooks)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_no_detected_adapter_does_not_create_provider_scaffolds (test_protect.ProtectTests.test_no_detected_adapter_does_not_create_provider_scaffolds)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_observe_policy_records_but_does_not_block (test_protect.ProtectTests.test_observe_policy_records_but_does_not_block)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_parallel_first_codex_hooks_record_one_durable_activation (test_protect.ProtectTests.test_parallel_first_codex_hooks_record_one_durable_activation)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_post_tool_reports_invalid_json_as_observed (test_protect.ProtectTests.test_post_tool_reports_invalid_json_as_observed)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_receipt_integrity_detects_tampering (test_protect.ProtectTests.test_receipt_integrity_detects_tampering)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_secret_is_blocked_but_secret_value_is_not_persisted (test_protect.ProtectTests.test_secret_is_blocked_but_secret_value_is_not_persisted)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_standard_blocks_destructive_git_without_recording_raw_command (test_protect.ProtectTests.test_standard_blocks_destructive_git_without_recording_raw_command)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_strict_dependency_install_blocks_on_current_codex_adapter (test_protect.ProtectTests.test_strict_dependency_install_blocks_on_current_codex_adapter)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_strict_dependency_install_requests_confirmation_for_claude (test_protect.ProtectTests.test_strict_dependency_install_requests_confirmation_for_claude)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_write_outside_repository_is_blocked (test_protect.ProtectTests.test_write_outside_repository_is_blocked)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_dry_run_clean_is_not_misclassified_as_forced (test_protect_command_normalization.ProtectCommandNormalizationTests.test_dry_run_clean_is_not_misclassified_as_forced)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_git_global_options_cannot_bypass_forced_clean (test_protect_command_normalization.ProtectCommandNormalizationTests.test_git_global_options_cannot_bypass_forced_clean)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_global_options_are_normalized_for_other_destructive_git_subcommands (test_protect_command_normalization.ProtectCommandNormalizationTests.test_global_options_are_normalized_for_other_destructive_git_subcommands)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_protect_honors_explicit_setup_adapter_scope (test_protect_command_normalization.ProtectCommandNormalizationTests.test_protect_honors_explicit_setup_adapter_scope)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_forced_git_clean_is_denied_before_execution_and_never_mints_proof (test_protect_destructive_end_to_end.ProtectDestructiveEndToEndTests.test_forced_git_clean_is_denied_before_execution_and_never_mints_proof)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_codex_reenable_waits_for_observation_without_inventing_trust_state (test_provider_trust_readiness.ProviderTrustReadinessTests.test_codex_reenable_waits_for_observation_without_inventing_trust_state)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_current_proof_staleness_is_independent_of_native_readiness (test_readiness.ReadinessTests.test_current_proof_staleness_is_independent_of_native_readiness)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_ht005_missing_hooks_preserves_configured_but_repairs_in_every_view (test_readiness.ReadinessTests.test_ht005_missing_hooks_preserves_configured_but_repairs_in_every_view)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_ht012_unobserved_then_observed_is_independent_of_provider_trust_and_proof (test_readiness.ReadinessTests.test_ht012_unobserved_then_observed_is_independent_of_provider_trust_and_proof)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_mixed_adapters_do_not_hide_the_unobserved_one (test_readiness.ReadinessTests.test_mixed_adapters_do_not_hide_the_unobserved_one)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_protect_optional_delegated_and_pending_are_separate_from_proof (test_readiness.ReadinessTests.test_protect_optional_delegated_and_pending_are_separate_from_proof)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_missing_override_does_not_remove_existing_hooks (test_runtime_executable.RuntimeExecutableTests.test_missing_override_does_not_remove_existing_hooks)",
+      "reason": "diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "ERROR: test_setup_and_status_are_useful_without_commits_or_evidence (test_unborn_repository.UnbornRepositoryTests.test_setup_and_status_are_useful_without_commits_or_evidence)",
+      "reason": "diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+    },
+    {
+      "test": "FAIL: test_claude_hooks_use_exec_form_and_complete_native_change (test_human_blocker_regressions.HumanBlockerRegressionTests.test_claude_hooks_use_exec_form_and_complete_native_change)",
+      "reason": "AssertionError: 2 != 0 : DiffWitness setup failed: This DiffWitness installation is missing its bundled IdleProof integration. Install the matching bundle or provide --idleproof-command / DIFFWITNESS_IDLEPROOF_BIN."
+    },
+    {
+      "test": "FAIL: test_french_environment_defaults_to_english_without_persisting_language (test_language.LanguageTests.test_french_environment_defaults_to_english_without_persisting_language) (args=['setup', 'status'])",
+      "reason": "AssertionError: 2 not found in (0, 1) : DiffWitness setup failed: This DiffWitness installation is missing its bundled IdleProof integration. Install the matching bundle or provide --idleproof-command / DIFFWITNESS_IDLEPROOF_BIN."
+    },
+    {
+      "test": "FAIL: test_french_human_surfaces_and_json_are_language_and_view_invariant (test_language.LanguageTests.test_french_human_surfaces_and_json_are_language_and_view_invariant)",
+      "reason": "AssertionError: 'Verification still' not found in ''"
+    },
+    {
+      "test": "FAIL: test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared (test_local_git_state.LocalGitStateTests.test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared)",
+      "reason": "AssertionError: 'non-invasive local Git state' not found in \"Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.\""
+    }
+  ],
+  "limits": [
+    "Python provider only; unsupported file fallback is not semantic extraction",
+    "source hashes do not establish Git or Proof authority",
+    "upstream fresh-main gates and own exact PR/main gates still pending"
+  ]
+}

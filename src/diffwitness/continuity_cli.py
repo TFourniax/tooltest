@@ -79,6 +79,8 @@ def state_cli(argv: list[str]) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
     contract.add_argument("--json", action="store_true")
+    extract = sub.add_parser("extract", help=tr("Extract source-bound facts from a bounded stdin batch.", "Extraire les faits d’un lot borné de sources sur l’entrée standard."))
+    extract.add_argument("--json", action="store_true", required=True)
     status = sub.add_parser("status")
     status.add_argument("--repo", default=".")
     status.add_argument("--json", action="store_true")
@@ -109,6 +111,9 @@ def state_cli(argv: list[str]) -> int:
     graph.add_argument("--entity")
     graph.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
+    if args.command == "extract":
+        from .structure_transport import extraction_cli
+        return extraction_cli()
     if args.command == "contract":
         value = project_memory_contract()
         if args.json:

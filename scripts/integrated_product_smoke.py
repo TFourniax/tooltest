@@ -89,6 +89,9 @@ def install_exact_artifacts(root: Path, idleproof_repo: Path) -> tuple[Path, Pat
     node = shutil.which("node")
     require(bool(npm), "npm is required for the exact IdleProof sidecar artifact journey")
     require(bool(node), "node is required for the exact IdleProof sidecar artifact journey")
+    consumer_env = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
+    check([str(node), str(ROOT / "scripts" / "structure_transport_consumer.mjs"), str(dw)],
+          cwd=root, env=consumer_env, timeout=30)
     packed = json.loads(check([str(npm), "pack", "--json"], cwd=idleproof_repo, timeout=120))
     require(isinstance(packed, list) and packed and packed[0].get("filename"), "npm pack did not return an IdleProof artifact")
     tarball = idleproof_repo / packed[0]["filename"]
