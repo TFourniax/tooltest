@@ -21,11 +21,11 @@ class ContextSourceTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.repo = fixtures.ContinuityKernelTests().repo(Path(temp.name))
 
-    def record(self, label='Refund decision', status='DECLARED'):
+    def record(self, label='Refund decision', status='DECLARED', timestamp=None):
         event, _ = append_project_event(repo=self.repo, event_type='decision.recorded',
             subject={'id':'DEC-CITED', 'kind':'decision', 'label':label}, epistemic_status=status,
             payload={'why':'Refund safety'}, provenance={'producer':'test', 'source':'human-cli',
-                                                        'private_metadata':'PRIVATE_SOURCE_SENTINEL'})
+                                                        'private_metadata':'PRIVATE_SOURCE_SENTINEL'}, timestamp=timestamp)
         return event
 
     def item(self):
@@ -58,6 +58,22 @@ class ContextSourceTests(unittest.TestCase):
         with self.assertRaises(ContinuityError):
             self.item()
 
+    def test_stale_source_pointer_with_identical_assertions_is_rejected(self):
+        for timestamp in ('2026-09-18T12:00:01Z', '2026-09-18T12:00:00Z'):
+            with self.subTest(second_timestamp=timestamp):
+                first = self.record(timestamp='2026-09-18T12:00:00Z')
+                second = self.record(timestamp=timestamp)
+                self.assertNotEqual(first['event_id'], second['event_id'])
+                self.assertEqual(self.item()['source']['eventId'], second['event_id'])
+                with contextlib.closing(sqlite3.connect(continuity_paths(self.repo).state)) as conn:
+                    conn.execute('update entities set source_event_id=? where entity_id=?',
+                                 (first['event_id'], 'DEC-CITED'))
+                    conn.commit()
+                with self.assertRaises(ContinuityError):
+                    self.item()
+                rebuild_state(self.repo, include_structure=False)
+                self.assertEqual(self.item()['source']['eventId'], second['event_id'])
+
     def test_confirmation_cites_its_review_separately_from_the_assertion(self):
         assertion = self.record(status='INFERRED')
         review = append_project_events(repo=self.repo, events=[
@@ -73,7 +89,8 @@ class ContextSourceTests(unittest.TestCase):
 
     def test_inconsistent_assertion_status_or_details_cannot_be_cited(self):
         self.record()
-        for column, value in (('epistemic_status', 'VERIFIED'), ('payload_json', '{"why":"altered"}')):
+        for column, value in (('epistemic_status', 'VERIFIED'), ('payload_json', '{"why":"altered"}'),
+                              ('updated_at', 'altered-timestamp')):
             with self.subTest(column=column):
                 rebuild_state(self.repo, include_structure=False)
                 with contextlib.closing(sqlite3.connect(continuity_paths(self.repo).state)) as conn:

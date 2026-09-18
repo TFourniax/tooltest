@@ -9,8 +9,10 @@ from typing import Any, Iterable
 
 from .config import load_project_config
 from .continuity_events import ContinuityError, _paths_for_root
+from .continuity_lifecycle_contract import is_memory_lifecycle
 from .continuity_search import memory_text, select_context_entities, tokens as _tokens
 from .continuity_state import STATE_SCHEMA, VALIDATED_EVENT_DIGEST_META, ensure_state
+from .continuity_task_contract import is_task_edge_event
 from .engine_protocol import repository_fingerprint
 from .gitops import git, repo_root
 
@@ -113,6 +115,7 @@ def _entity_text(row: sqlite3.Row) -> str:
 
 def _entity_view(row: sqlite3.Row, source: sqlite3.Row | None) -> dict[str, Any]:
     if (source is None or source["subject_id"] != row["entity_id"]
+            or source["event_id"] != row["source_event_id"] or source["timestamp"] != row["updated_at"]
             or source["subject_kind"] != row["kind"] or source["epistemic_status"] != row["epistemic_status"]
             or source["payload_json"] != row["payload_json"] or source["provenance_json"] != row["provenance_json"]):
         raise ContinuityError("context assertion source is missing or inconsistent; rebuild Project State")
@@ -127,6 +130,25 @@ def _entity_view(row: sqlite3.Row, source: sqlite3.Row | None) -> dict[str, Any]
         "source": {"kind": "project-event", "eventId": source["event_id"], "eventHash": source["event_hash"]},
         "lifecycle": _loads(row["lifecycle_json"]) if "lifecycle_json" in row.keys() else {},
     }
+
+
+def _assertion_source(conn: sqlite3.Connection, entity_id: str) -> sqlite3.Row | None:
+    # Resolve the latest projecting event independently of the cached pointer.
+    # Equal timestamps/content do not make an earlier declaration its source.
+    # The subject/sequence index visits only this selected entity's history.
+    cursor = conn.execute(
+        "select event_id,event_hash,event_type,timestamp,subject_id,subject_kind,"
+        "epistemic_status,payload_json,provenance_json from events "
+        "where subject_id=? order by sequence desc", (entity_id,))
+    try:
+        for source in cursor:
+            event = {"event_type": source["event_type"], "provenance": _loads(source["provenance_json"])}
+            if (event["event_type"] != "relation.declared" and not is_memory_lifecycle(event)
+                    and not is_task_edge_event(event)):
+                return source
+        return None
+    finally:
+        cursor.close()
 
 
 def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list[dict[str, Any]]:
@@ -254,18 +276,9 @@ def _relevant_entities(
     ]
     ranked.sort(key=lambda item: (-item[0], item[1], str(item[2]["updated_at"]), str(item[2]["entity_id"])))
     selected = ranked[:limit]
-    # Resolve only the selected assertions, not all indexed candidates.
-    source_ids = sorted({str(row["source_event_id"]) for _, _, row, _ in selected})
-    sources = {}
-    if source_ids:
-        placeholders = ",".join("?" for _ in source_ids)
-        sources = {row["event_id"]: row for row in conn.execute(
-            "select event_id,event_hash,subject_id,subject_kind,epistemic_status,payload_json,provenance_json "
-            f"from events where event_id in ({placeholders})",
-            source_ids)}
     return [
         {
-            **_entity_view(row, sources.get(row["source_event_id"])),
+            **_entity_view(row, _assertion_source(conn, row["entity_id"])),
             "relevance": score,
             "relationDepth": depth,
             "relevanceReason": reason,

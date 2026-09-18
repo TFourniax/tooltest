@@ -23,7 +23,13 @@ snapshot. The head identifies the packet's materialized journal snapshot, not a
 promise that no event has arrived since. A missing source or a mismatch between
 source and assertion causes a visible error; rebuild Project State with
 `dw state rebuild` after investigating the cache. Only selected source rows are
-looked up, using their indexed IDs.
+looked up: the subject/sequence index finds each selected entity's latest
+projecting event independently of its cached pointer, skipping relation-only,
+task-edge and applicability-review events using the projection's predicates.
+The assertion timestamp must also match `updatedAt`. Repeated identical
+declarations remain distinct sources even when they share a timestamp. This
+visits the selected subjects' history until the assertion is found; it does not
+scan unrelated subjects, and cost can grow with intervening non-assertion events.
 
 The journal's validated byte digest remains the freshness check. Event hashes
 detect changes relative to that journal; they do not authenticate authors or
