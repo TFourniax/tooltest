@@ -11,11 +11,12 @@ from .continuity_contract import projection_lifecycle as _lifecycle
 from .continuity_events import continuity_paths, read_project_event_snapshot, read_project_events
 from .continuity_task_contract import is_task_edge_event
 from .continuity_lifecycle_contract import is_memory_lifecycle, lifecycle_view
+from .continuity_search import SEARCHABLE_KINDS, memory_text, tokens
 from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
-STATE_SCHEMA = "continuity-state-5"
+STATE_SCHEMA = "continuity-state-6"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
 VALIDATED_EVENT_DIGEST_META = "memory_lifecycle_event_file_sha256"
@@ -61,9 +62,13 @@ def _schema(conn: sqlite3.Connection) -> None:
           updated_at text not null,
           payload_json text not null,
           provenance_json text not null,
-          source_event_id text not null
+          source_event_id text not null,
+          critical integer not null default 0
         );
         create index entities_kind_idx on entities(kind, lifecycle, updated_at desc);
+        create index entities_critical_idx on entities(critical,lifecycle);
+        create table entity_terms(entity_id text not null, term text not null, primary key(entity_id,term));
+        create index entity_terms_term_idx on entity_terms(term,entity_id);
 
         create table memory_lifecycle(entity_id text primary key, lifecycle_json text not null);
 
@@ -225,12 +230,12 @@ def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
     status = event["epistemic_status"]
     payload = event.get("payload") or {}
     conn.execute(
-        """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id)
-           values(?,?,?,?,?,?,?,?,?)
+        """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id,critical)
+           values(?,?,?,?,?,?,?,?,?,?)
            on conflict(entity_id) do update set
              kind=excluded.kind,label=coalesce(excluded.label,entities.label),epistemic_status=excluded.epistemic_status,
              lifecycle=excluded.lifecycle,updated_at=excluded.updated_at,payload_json=excluded.payload_json,
-             provenance_json=excluded.provenance_json,source_event_id=excluded.source_event_id""",
+             provenance_json=excluded.provenance_json,source_event_id=excluded.source_event_id,critical=excluded.critical""",
         (
             entity_id,
             subject["kind"],
@@ -241,8 +246,16 @@ def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
             _canonical(payload),
             _canonical(event.get("provenance") or {}),
             event["event_id"],
+            int(subject["kind"] == "invariant" and payload.get("critical") is True),
         ),
     )
+    conn.execute("delete from entity_terms where entity_id=?", (entity_id,))
+    if subject["kind"] in SEARCHABLE_KINDS:
+        label = subject.get("label")
+        if label is None:
+            label = conn.execute("select label from entities where entity_id=?", (entity_id,)).fetchone()[0]
+        values = tokens(memory_text(subject["kind"], entity_id, label, payload))
+        conn.executemany("insert into entity_terms(entity_id,term) values(?,?)", ((entity_id, term) for term in values))
 
 
 def _upsert_relations(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
