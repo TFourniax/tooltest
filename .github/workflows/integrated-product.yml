@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: TFourniax/tooltest-2
-          ref: 0a6d6eaa7bf5afab72e185be0d0d97d3b679cd5f
+          ref: e008a720bcfc63b0eb37e513e43cdf7e60d7ce87
           fetch-depth: 0
           path: idleproof
           persist-credentials: false

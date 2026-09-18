@@ -28,6 +28,7 @@ def run(
         env=env,
         input=input_text,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         timeout=timeout,
