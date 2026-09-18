@@ -35,8 +35,11 @@ def _connect(path: Path) -> sqlite3.Connection:
 
 
 def _schema(conn: sqlite3.Connection) -> None:
+    # This is a fresh temporary database. Keep DDL and the subsequent event
+    # projection in one durable transaction, committed by rebuild_state.
     conn.executescript(
         """
+        begin;
         create table meta(key text primary key, value text not null);
         create table events(
           sequence integer primary key,

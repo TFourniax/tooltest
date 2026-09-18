@@ -1,0 +1,121 @@
+{
+  "sha": "18517a993244bfc0993387a93a676327619e4165",
+  "tree": "55482e2dd00dc27ce8a058c46cd4b6c16f3eaaa4",
+  "current_main": "c2d17881d8b156d1a01f09f631131597c5c246d0",
+  "pr_head": "18517a993244bfc0993387a93a676327619e4165",
+  "pr_state": "open",
+  "pr_merged": false,
+  "pr_merge_commit": "23c3a95f087ec4807c8983c830df25e21cfed589",
+  "runs": [
+    {
+      "id": 35343640417,
+      "name": "test",
+      "head_sha": "18517a993244bfc0993387a93a676327619e4165",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/TFourniax/tooltest-2/actions/runs/35343640417",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 105595043968,
+          "name": "installed package commercial-alpha journey (windows-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044150,
+          "name": "real Core context consumer (windows-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044173,
+          "name": "installed package commercial-alpha journey (macos-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044227,
+          "name": "test (macos-latest, 22)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044257,
+          "name": "real Core context consumer (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044264,
+          "name": "real Core context consumer (macos-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044268,
+          "name": "installed package commercial-alpha journey (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044269,
+          "name": "test (ubuntu-latest, 20)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044304,
+          "name": "test (macos-latest, 20)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044309,
+          "name": "ExplainBench + adversarial quality + performance budgets",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044328,
+          "name": "test (macos-latest, 24)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044405,
+          "name": "test (windows-latest, 24)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044431,
+          "name": "test (windows-latest, 20)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044473,
+          "name": "test (ubuntu-latest, 24)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044487,
+          "name": "test (ubuntu-latest, 22)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 105595044496,
+          "name": "test (windows-latest, 22)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifacts": []
+    }
+  ],
+  "qualified": true
+}

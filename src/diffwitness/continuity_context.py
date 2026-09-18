@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from .config import load_config
-from .continuity_events import _paths_for_root
+from .config import load_project_config
+from .continuity_events import ContinuityError, _paths_for_root
 from .continuity_search import memory_text, select_context_entities, tokens as _tokens
 from .continuity_state import STATE_SCHEMA, VALIDATED_EVENT_DIGEST_META, ensure_state
 from .engine_protocol import repository_fingerprint
@@ -111,7 +111,11 @@ def _entity_text(row: sqlite3.Row) -> str:
     return memory_text(row["kind"], row["entity_id"], row["label"], payload)
 
 
-def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
+def _entity_view(row: sqlite3.Row, source: sqlite3.Row | None) -> dict[str, Any]:
+    if (source is None or source["subject_id"] != row["entity_id"]
+            or source["subject_kind"] != row["kind"] or source["epistemic_status"] != row["epistemic_status"]
+            or source["payload_json"] != row["payload_json"] or source["provenance_json"] != row["provenance_json"]):
+        raise ContinuityError("context assertion source is missing or inconsistent; rebuild Project State")
     payload = _loads(row["payload_json"])
     return {
         "id": row["entity_id"],
@@ -120,6 +124,7 @@ def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
         "epistemicStatus": row["epistemic_status"],
         "updatedAt": row["updated_at"],
         "details": payload,
+        "source": {"kind": "project-event", "eventId": source["event_id"], "eventHash": source["event_hash"]},
         "lifecycle": _loads(row["lifecycle_json"]) if "lifecycle_json" in row.keys() else {},
     }
 
@@ -248,14 +253,24 @@ def _relevant_entities(
         for entity_id in scores
     ]
     ranked.sort(key=lambda item: (-item[0], item[1], str(item[2]["updated_at"]), str(item[2]["entity_id"])))
+    selected = ranked[:limit]
+    # Resolve only the selected assertions, not all indexed candidates.
+    source_ids = sorted({str(row["source_event_id"]) for _, _, row, _ in selected})
+    sources = {}
+    if source_ids:
+        placeholders = ",".join("?" for _ in source_ids)
+        sources = {row["event_id"]: row for row in conn.execute(
+            "select event_id,event_hash,subject_id,subject_kind,epistemic_status,payload_json,provenance_json "
+            f"from events where event_id in ({placeholders})",
+            source_ids)}
     return [
         {
-            **_entity_view(row),
+            **_entity_view(row, sources.get(row["source_event_id"])),
             "relevance": score,
             "relationDepth": depth,
             "relevanceReason": reason,
         }
-        for score, depth, row, reason in ranked[:limit]
+        for score, depth, row, reason in selected
     ]
 
 
@@ -387,6 +402,8 @@ def compile_context(
     conn = sqlite3.connect(state_path)
     conn.row_factory = sqlite3.Row
     try:
+        # Keep assertions, citations and the packet anchor in one read snapshot.
+        conn.execute("begin")
         components = _related_files(conn, task, limit=max_items)
         entities = _relevant_entities(
             conn,
@@ -404,7 +421,9 @@ def compile_context(
     finally:
         conn.close()
 
-    config = load_config(root, None)
+    # Required test commands come from project config; advisory context does not
+    # use the optional local engine profile or make an assurance decision.
+    config = load_project_config(root, None)
     evidence: list[dict[str, Any]] = []
     test = config.get("test")
     if isinstance(test, str) and test.strip():
@@ -467,6 +486,7 @@ def compile_context(
             "contextIsAdvisory": True,
             "proofRemainsAuthoritative": True,
             "stateFreshness": "SHA-256 match against a previously full-chain-validated ProjectEvent journal",
+            "sourceReferences": "Event hashes identify journal assertions as of state.eventHead; they do not authenticate authors or establish code applicability.",
         },
     }
     stable = {key: value for key, value in payload.items() if key != "generated_at"}

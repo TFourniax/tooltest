@@ -1,0 +1,28 @@
+{
+  "schema_version": "schema-construction-benchmark-1",
+  "baseline_commit": "660ffc3e9795846f32100d4ac84a76887f6d3b75",
+  "milliseconds": {
+    "autocommit": [
+      73.038,
+      73.463,
+      78.266,
+      83.83,
+      73.583,
+      70.53,
+      69.511
+    ],
+    "atomic": [
+      4.861,
+      3.758,
+      6.158,
+      7.991,
+      4.183,
+      4.156,
+      5.795
+    ]
+  },
+  "identical_schema": true,
+  "sqlite_integrity": "PASS",
+  "durability_settings": "unchanged defaults",
+  "human": "NOT_RUN"
+}
