@@ -369,7 +369,12 @@ def _main(argv: list[str] | None = None) -> int:
             "invariant": invariant_cli,
             "failed-approach": failed_approach_cli,
         }
-        return handlers[args[0]](args[1:])
+        from ..continuity_events import ContinuityError
+        try:
+            return handlers[args[0]](args[1:])
+        except ContinuityError as exc:
+            print(f"DiffWitness: {exc}", file=sys.stderr)
+            return 2
     return _frontend_main(args)
 
 

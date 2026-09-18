@@ -130,6 +130,7 @@ def _entity_view(row: sqlite3.Row) -> dict[str, Any]:
         "epistemicStatus": row["epistemic_status"],
         "updatedAt": row["updated_at"],
         "details": payload,
+        "lifecycle": _loads(row["lifecycle_json"]) if "lifecycle_json" in row.keys() else {},
     }
 
 
@@ -161,7 +162,7 @@ def _related_files(conn: sqlite3.Connection, task: str, limit: int = 12) -> list
 
 def _semantic_relations(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return conn.execute(
-        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' order by updated_at desc"
+        "select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from active_memory_relations order by updated_at desc"
     ).fetchall()
 
 
@@ -175,7 +176,7 @@ def _relevant_entities(
     """Rank all active project memory by direct task match plus a bounded two-hop graph walk."""
     task_tokens = _tokens(task)
     rows = conn.execute(
-        "select * from entities where lifecycle='active' and kind in ('objective','task','decision','invariant','failed-approach','component','file') order by updated_at desc"
+        "select e.*,m.lifecycle_json from entities e left join memory_lifecycle m on m.entity_id=e.entity_id where e.lifecycle='active' and e.kind in ('objective','task','decision','invariant','failed-approach','component','file') order by e.updated_at desc"
     ).fetchall()
     by_id = {str(row["entity_id"]): row for row in rows}
     scores: dict[str, int] = {}
@@ -272,7 +273,7 @@ def _relations_for(conn: sqlite3.Connection, ids: list[str]) -> list[dict[str, A
         return []
     placeholders = ",".join("?" for _ in ids)
     rows = conn.execute(
-        f"select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from relations where lifecycle='active' and (source_id in ({placeholders}) or target_id in ({placeholders})) order by updated_at desc limit 200",
+        f"select source_id,predicate,target_id,target_kind,epistemic_status,metadata_json from active_memory_relations where (source_id in ({placeholders}) or target_id in ({placeholders})) order by updated_at desc limit 200",
         (*ids, *ids),
     ).fetchall()
     return [
@@ -298,7 +299,7 @@ def _recent_changes(
     if relevant_ids:
         placeholders = ",".join("?" for _ in relevant_ids)
         rows = conn.execute(
-            f"select source_id,target_id from relations where lifecycle='active' and predicate in ('affects','introduced_in','motivated_by','created','protects','constrains','worked_on','motivates') and (source_id in ({placeholders}) or target_id in ({placeholders}))",
+            f"select source_id,target_id from active_memory_relations where predicate in ('affects','introduced_in','motivated_by','created','protects','constrains','worked_on','motivates') and (source_id in ({placeholders}) or target_id in ({placeholders}))",
             (*relevant_ids, *relevant_ids),
         ).fetchall()
         for row in rows:
@@ -479,6 +480,17 @@ def compile_context(
     return payload
 
 
+def render_memory_item(item: dict[str, Any], *, technical: bool = False) -> str:
+    from .language import tr
+
+    prefix = f"{item.get('id', '')} " if technical else ""
+    text = f"{prefix}{item.get('label') or item.get('id', '')} [{item.get('epistemicStatus', 'UNKNOWN')}]"
+    lifecycle = item.get("lifecycle") or {}
+    if lifecycle.get("action") == "confirmed":
+        text += tr(" · applicability confirmed [DECLARED]: ", " · applicabilité confirmée [DECLARED] : ") + str(lifecycle["reason"])
+    return text
+
+
 def render_context(context: dict[str, Any], *, max_chars: int = 12000) -> str:
     def block(title: str, items: list[Any], formatter) -> list[str]:
         lines = [title]
@@ -491,12 +503,12 @@ def render_context(context: dict[str, Any], *, max_chars: int = 12000) -> str:
 
     lines = [f"TASK\n{context['task']}", ""]
     lines += block("RELATED TASKS", context.get("tasks", []), lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
-    lines += block("PROJECT OBJECTIVES", context["objectives"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
+    lines += block("PROJECT OBJECTIVES", context["objectives"], lambda item: render_memory_item(item, technical=True)) + [""]
     lines += block("RELEVANT COMPONENTS", context["components"], lambda item: f"[{item['epistemicStatus']}] {item['path']} ({item['provider']})") + [""]
-    lines += block("RELATED DECISIONS", context["decisions"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
-    lines += block("CRITICAL / RELEVANT INVARIANTS", context["invariants"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
+    lines += block("RELATED DECISIONS", context["decisions"], lambda item: render_memory_item(item, technical=True)) + [""]
+    lines += block("CRITICAL / RELEVANT INVARIANTS", context["invariants"], lambda item: render_memory_item(item, technical=True)) + [""]
     lines += block("KNOWN DEBT", context["knownDebt"], lambda item: f"{item['debt_id']} [{item['epistemic_status']}] open · introduced {item['introduced_change_id'] or 'unknown'}") + [""]
-    lines += block("PREVIOUS FAILED APPROACHES", context["failedApproaches"], lambda item: f"{item['id']} [{item['epistemicStatus']}] {item['label']}") + [""]
+    lines += block("PREVIOUS FAILED APPROACHES", context["failedApproaches"], lambda item: render_memory_item(item, technical=True)) + [""]
     lines += block(
         "RECENT RELATED CHANGES",
         context["recentRelatedChanges"],

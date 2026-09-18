@@ -21,6 +21,7 @@ from .continuity_contract import (
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
 from .continuity_task_contract import TaskHistoryValidator
+from .continuity_lifecycle_contract import MemoryHistoryValidator
 
 
 class ContinuityError(RuntimeError):
@@ -156,6 +157,7 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
     previous: str | None = None
     dedupe: set[str] = set()
     task_history = TaskHistoryValidator()
+    memory_history = MemoryHistoryValidator()
     for index, event in enumerate(events, start=1):
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
@@ -177,6 +179,10 @@ def validate_project_events(events: list[dict[str, Any]]) -> None:
             task_history.admit(event)
         except ValueError as exc:
             raise ContinuityError(f"invalid task history at line {index}: {exc}") from exc
+        try:
+            memory_history.admit(event)
+        except ValueError as exc:
+            raise ContinuityError(f"invalid memory history at line {index}: {exc}") from exc
 
 
 def read_project_event_snapshot(path: Path) -> tuple[list[dict[str, Any]], str]:
