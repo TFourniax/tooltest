@@ -26,8 +26,11 @@ def _read_payload() -> dict[str, Any]:
     except OSError:
         return {}
     try:
-        value = json.load(sys.stdin)
-    except (json.JSONDecodeError, OSError):
+        raw = getattr(sys.stdin, "buffer", sys.stdin).read()
+        # Native providers send UTF-8 JSON regardless of the Windows code page.
+        # Invalid bytes must not be replaced or hashed as a different task.
+        value = json.loads(raw.decode("utf-8", errors="strict") if isinstance(raw, bytes) else raw)
+    except (json.JSONDecodeError, UnicodeError, OSError):
         return {}
     return value if isinstance(value, dict) else {}
 

@@ -6,6 +6,12 @@ prompt digest and length, session digest and ordinal; it does not automatically
 save the prompt, its shortened anchor, the session identifier or the current focus.
 Digests are identifiers, not anonymization guarantees or evidence of intent.
 
+Native task identity uses the first 12,000 Unicode code points of the input, before
+whitespace compaction. Digest and length describe that accepted prefix. Temporary
+anchor/focus text is limited to 1,200 code points; the durable journal does not
+retain that text. Native JSON input and output use UTF-8 independently of the host
+locale. Previously saved task identities and records are not rewritten.
+
 Each armed native session boundary has a distinct ID. Its recorded participants
 are linked to the exact change observed by the Stop handoff. If several tasks
 participated, all are retained. This `OBSERVED` association means “worked on in

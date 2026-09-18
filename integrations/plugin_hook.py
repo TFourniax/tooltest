@@ -21,16 +21,9 @@ if str(SRC) not in sys.path:
 
 
 def _read_hook_payload() -> dict[str, Any]:
-    try:
-        if sys.stdin.isatty():
-            return {}
-    except OSError:
-        return {}
-    try:
-        value = json.load(sys.stdin)
-    except (json.JSONDecodeError, OSError):
-        return {}
-    return value if isinstance(value, dict) else {}
+    from diffwitness.ide_plugin import _read_payload
+
+    return _read_payload()
 
 
 def _with_provider(payload: dict[str, Any], provider: str | None) -> dict[str, Any]:
@@ -119,6 +112,9 @@ def _session_stop(provider: str | None) -> int:
 
 
 def run() -> int:
+    from diffwitness.entry import _configure_stdio
+
+    _configure_stdio()
     commands = {"session-start", "session-stop", "user-prompt-submit", "protect-pre", "protect-post"}
     if len(sys.argv) < 2 or sys.argv[1] not in commands:
         print(
