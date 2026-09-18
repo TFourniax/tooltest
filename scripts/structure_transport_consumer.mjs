@@ -16,13 +16,15 @@ const input = JSON.stringify({schema_version:'structure-request-1', files:[
 const env = {...process.env};
 delete env.PYTHONPATH;
 try {
-  const values = ['en','fr'].map(language => {
-    const child = spawnSync(dw, ['--language',language,'state','extract','--json'],
+  const values = [null,'en','fr'].map(language => {
+    const args = [...(language ? ['--language',language] : []),'state','extract','--json'];
+    const child = spawnSync(dw, args,
       {cwd, env, input, encoding:'utf8', timeout:10000, maxBuffer:1024*1024, windowsHide:true});
     assert.equal(child.status, 0, child.stderr || String(child.error));
     return JSON.parse(child.stdout);
   });
   assert.deepEqual(values[0], values[1]);
+  assert.deepEqual(values[0], values[2]);
   const result = values[0];
   assert.equal(result.schema_version, 'structure-response-1');
   assert.equal(result.files[0].source_sha256, createHash('sha256').update(source).digest('hex'));

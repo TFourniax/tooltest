@@ -282,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
             print("DiffWitness: language must be en or fr; use `dw --language en <command>`.", file=sys.stderr)
             return 2
     # Provider protocol output must not depend on a human UI preference.
-    if args and args[0] in {"ide-hook", "session-start", "session-stop"}:
+    if (args and args[0] in {"ide-hook", "session-start", "session-stop"}) or args[:2] == ["state", "extract"]:
         language = "en"
     else:
         local_args = args[:args.index("--")] if "--" in args else args

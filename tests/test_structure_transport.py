@@ -96,6 +96,20 @@ class StructureTransportTests(unittest.TestCase):
                 self.assertEqual(stdout.getvalue(), '')
                 self.assertIn('wire-byte bound', stderr.getvalue())
 
+    def test_public_entry_never_discovers_repository_or_reads_language_preferences(self):
+        from diffwitness.entry import main
+        for options in ([], ['--language', 'en'], ['--language=fr']):
+            with self.subTest(options=options):
+                stdin = io.TextIOWrapper(io.BytesIO(json.dumps(self.request([])).encode()), encoding='utf-8')
+                stdout = io.StringIO()
+                with patch('diffwitness.gitops.repo_root', side_effect=AssertionError('repository lookup forbidden')) as root, \
+                     patch('diffwitness.language.saved_language', side_effect=AssertionError('preferences forbidden')) as language, \
+                     patch.object(sys, 'stdin', stdin), contextlib.redirect_stdout(stdout):
+                    self.assertEqual(main([*options, 'state', 'extract', '--json']), 0)
+                root.assert_not_called()
+                language.assert_not_called()
+                self.assertEqual(json.loads(stdout.getvalue())['files'], [])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,34 @@
+{
+  "schema": "pm-004d-reviewed-local-1",
+  "classification": "MACHINE",
+  "base": "46d132f0a298d9381e125ab4f60bd78cb64ea352",
+  "superseded_head": "65f73c6990bf36a65a7385519dc4fc809349050f",
+  "review_id": 4051360393,
+  "review_reproduction": "FAIL before correction",
+  "full": {
+    "run": 552,
+    "pass": 548,
+    "skips": 4,
+    "seconds": 55.44
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_node": "PASS",
+  "installed_fr_en": "PASS",
+  "files": {
+    "src/diffwitness/entry/__init__.py": "27f90e2c9fe191e13b21f727d823d31e1b570ae3f760d6b4ceace1b3c6f5c585",
+    "src/diffwitness/structure_transport.py": "624d587871a70436eb40b710f33dfcadfc00560068747b73f641890c27026aa2",
+    "src/diffwitness/continuity_cli.py": "65db574cbc2b9c5dd9452d6929ba6cb23d0006179cef20589a21de8effff3764",
+    "tests/test_structure_transport.py": "5c27e90c26381700a38cb11775968bd5ffbae7b5f139dbf821194c5713f40b2c",
+    "scripts/structure_transport_consumer.mjs": "dadef8baaea6ee927af630f7f5329178659c70b2d22982ce83645bf5e5ac9430",
+    "scripts/language_acceptance.py": "cae3eedcbf090068607b656a1f35e7f3f5680910f90746f59dc9d2b935dce2a7",
+    "scripts/integrated_product_smoke.py": "f3f1f95a4f6819ca6cb8c72ecf8a7ba99402bad7e85d4dd1b057bedd7352f9c2"
+  },
+  "logs": {
+    "PM_004D_review_before.log": "af0b9ef6023cd7a80aef9641806ea57960ff8cc4ce254cbac70f555b3e211651",
+    "PM_004D_full_review.log": "757b0647974ac295f02598790b42176cf35e7a8b4d116b32293ff0912ba5091c",
+    "PM_004D_wheel_review.log": "7127657084406ccb6bf3d7dde2db7a9a5be27839f7b598f44aacbf197cccdca6",
+    "PM_004D_node_review.log": "e1b45963acf76c7ecc3a6d068c6be183f61a48f667e4d696d5a12b706fc360c3",
+    "PM_004D_language_review.log": "5ab0688865bf2121f2ae35b7522f888c60d188bbfb9f2a34b6feea2c217b6b11"
+  }
+}
