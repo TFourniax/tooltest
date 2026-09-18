@@ -1,5 +1,7 @@
 """Installed artifact language contract; no provider runtime replay is needed."""
 import argparse
+import base64
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,8 +25,8 @@ def main():
         (repo/'app.py').write_bytes(b'value = 1\n')
         subprocess.run(['git','-C',str(repo),'add','app.py'],check=True,env=env)
         index=(repo/'.git/index').read_bytes();head=(repo/'.git/HEAD').read_bytes()
-        def run(*args):
-            p=subprocess.run([str(dw),*args],cwd=repo,env=env,capture_output=True,text=True,encoding='utf-8',timeout=60)
+        def run(*args, input_text=None):
+            p=subprocess.run([str(dw),*args],cwd=repo,env=env,input=input_text,capture_output=True,text=True,encoding='utf-8',timeout=60)
             assert p.returncode in (0,1),(args,p.returncode,p.stdout,p.stderr)
             return p.returncode,p.stdout
         _,default=run('status')
@@ -46,6 +48,14 @@ def main():
             assert rc==rc2 and en in a and fr in b,(command,a,b)
             _,a=run('--language','en',*words,'--json');_,b=run('--language','fr',*words,'--json')
             assert json.loads(a)==json.loads(b),(command,a,b)
+        source = 'def café():\n    pass\n'.encode('utf-8')
+        request = json.dumps({'schema_version':'structure-request-1', 'files':[
+            {'path':'source.py','content_base64':base64.b64encode(source).decode('ascii')}]})
+        extractions = [json.loads(run('--language', lang, 'state', 'extract', '--json', input_text=request)[1])
+                       for lang in ('en', 'fr')]
+        assert extractions[0] == extractions[1]
+        assert extractions[0]['files'][0]['source_sha256'] == hashlib.sha256(source).hexdigest()
+        assert extractions[0]['files'][0]['symbols'][0]['qualified_name'] == 'source.café'
         run('language','fr')
         assert 'État du projet' in run('status')[1]
         run('view','technical')
