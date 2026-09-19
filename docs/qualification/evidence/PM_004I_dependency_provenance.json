@@ -1,0 +1,33 @@
+{
+  "schema": "pm-004i-dependency-provenance-1",
+  "classification": "MACHINE",
+  "sources": [
+    {
+      "repository": "tree-sitter/tree-sitter-java",
+      "version": "0.23.5",
+      "pyproject_blob": "46fef628fb8a838e3bbf6c7723fc76ea67471fd2"
+    },
+    {
+      "repository": "tree-sitter/tree-sitter-c-sharp",
+      "version": "0.23.5",
+      "pyproject_blob": "f594c2bea2f4ddb64f8057d1ad2840b659eaca4a"
+    },
+    {
+      "repository": "tree-sitter-grammars/tree-sitter-kotlin",
+      "version": "1.1.0",
+      "pyproject_blob": "4ed60a7d2601ee83d7901f5571e7644945b8a352"
+    }
+  ],
+  "license": "MIT in primary package manifests",
+  "runtime": "existing0.25.2, native timeout only; no callback",
+  "binary_availability": {
+    "PM_004I_wheel_availability_macos/tree_sitter_kotlin-1.1.0-cp39-abi3-macosx_11_0_arm64.whl": "910b41a580dae00d319e555075f3886a41386d1067931b14c7de504eeae3ae2a",
+    "PM_004I_wheel_availability_macos/tree_sitter_c_sharp-0.23.5-cp310-abi3-macosx_11_0_arm64.whl": "a75994a11f6fed3f5b8c36ad6a00e5dc43205bd912c43af3a2a54fdf649664eb",
+    "PM_004I_wheel_availability_macos/tree_sitter_java-0.23.5-cp39-abi3-macosx_11_0_arm64.whl": "24acd59c4720dedad80d548fe4237e43ef2b7a4e94c8549b0ca6e4c4d7bf6e69",
+    "PM_004I_wheel_availability_windows/tree_sitter_c_sharp-0.23.5-cp310-abi3-win_amd64.whl": "41a28cfa3d9ea50f5629e44550a03188c8fbd5079803dfc03554b6fd594b33fa",
+    "PM_004I_wheel_availability_windows/tree_sitter_java-0.23.5-cp39-abi3-win_amd64.whl": "1ee45e790f8d31d416bc84a09dac2e2c6bc343e89b8a2e1d550513498eedfde7",
+    "PM_004I_wheel_availability_windows/tree_sitter_kotlin-1.1.0-cp39-abi3-win_amd64.whl": "d4d3f330f515ba8b91da04a5335eb9ff3ce071c7b7855958912f2560f6e14976"
+  },
+  "note": "Downloads prove availability only, not execution on those OS. Actual CI remains required.",
+  "index_query_diagnostic": "Two pypi.org15s read timeouts for tree-sitter-java, then all three version queries succeeded. Optional wheel installation/downloads succeeded."
+}

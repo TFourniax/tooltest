@@ -1,0 +1,99 @@
+FF.FFFFFF
+======================================================================
+FAIL: test_actual_transport_source_binding_and_authority (tests.test_structure_managed.ManagedSyntaxTests.test_actual_transport_source_binding_and_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 102, in test_actual_transport_source_binding_and_authority
+    self.assertEqual(response['coverage'],{'files':3,'parsed':3,'unparsed':0,'unsupported':0})
+AssertionError: {'files': 3, 'parsed': 0, 'unsupported': 3, 'unparsed': 0} != {'files': 3, 'parsed': 3, 'unparsed': 0, 'unsupported': 0}
+- {'files': 3, 'parsed': 0, 'unparsed': 0, 'unsupported': 3}
+?                        ^                                ^
+
++ {'files': 3, 'parsed': 3, 'unparsed': 0, 'unsupported': 0}
+?                        ^                                ^
+
+
+======================================================================
+FAIL: test_csharp_file_namespace_nested_members_and_aliases (tests.test_structure_managed.ManagedSyntaxTests.test_csharp_file_namespace_nested_members_and_aliases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 84, in test_csharp_file_namespace_nested_members_and_aliases
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_immutable_tree_index_uses_all_three_shared_providers (tests.test_structure_managed.ManagedSyntaxTests.test_immutable_tree_index_uses_all_three_shared_providers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 146, in test_immutable_tree_index_uses_all_three_shared_providers
+    self.assertEqual({r[0] for r in conn.execute('select language from structure_components')},{'java','csharp','kotlin'})
+AssertionError: Items in the second set but not the first:
+'csharp'
+'java'
+'kotlin'
+
+======================================================================
+FAIL: test_java_package_types_nested_members_and_static_imports (tests.test_structure_managed.ManagedSyntaxTests.test_java_package_types_nested_members_and_static_imports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 76, in test_java_package_types_nested_members_and_static_imports
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_kotlin_package_named_objects_aliases_and_decoys (tests.test_structure_managed.ManagedSyntaxTests.test_kotlin_package_named_objects_aliases_and_decoys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 92, in test_kotlin_package_named_objects_aliases_and_decoys
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_missing_grammar_remains_recognized_empty (tests.test_structure_managed.ManagedSyntaxTests.test_missing_grammar_remains_recognized_empty) (path='src/Gateway.java')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 113, in test_missing_grammar_remains_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider))
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('java', 'tree-sitter-java')
+
+First differing element 0:
+'unknown'
+'java'
+
+- ('unknown', 'file-only')
++ ('java', 'tree-sitter-java')
+
+======================================================================
+FAIL: test_missing_grammar_remains_recognized_empty (tests.test_structure_managed.ManagedSyntaxTests.test_missing_grammar_remains_recognized_empty) (path='src/Gateway.cs')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 113, in test_missing_grammar_remains_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider))
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('csharp', 'tree-sitter-c-sharp')
+
+First differing element 0:
+'unknown'
+'csharp'
+
+- ('unknown', 'file-only')
++ ('csharp', 'tree-sitter-c-sharp')
+
+======================================================================
+FAIL: test_missing_grammar_remains_recognized_empty (tests.test_structure_managed.ManagedSyntaxTests.test_missing_grammar_remains_recognized_empty) (path='src/Gateway.kt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 113, in test_missing_grammar_remains_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider))
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('kotlin', 'tree-sitter-kotlin')
+
+First differing element 0:
+'unknown'
+'kotlin'
+
+- ('unknown', 'file-only')
++ ('kotlin', 'tree-sitter-kotlin')
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.072s
+
+FAILED (failures=8)

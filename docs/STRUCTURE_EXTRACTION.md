@@ -113,3 +113,38 @@ invalid syntax retain empty unparsed coverage, as for JS/TS.
 Primary grammars: [Go](https://github.com/tree-sitter/tree-sitter-go) and
 [Rust](https://github.com/tree-sitter/tree-sitter-rust). Further requested languages,
 all consumer adapters and enhanced standalone distribution remain open.
+
+## Optional Java, Kotlin and C# syntax
+
+The same `structure` extra pins Java0.23.5, Kotlin1.1.0 and C#0.23.5 grammars.
+Suffixes `.java`, `.kt`, `.kts` and `.cs` select `tree-sitter-java`,
+`tree-sitter-kotlin` and `tree-sitter-c-sharp`; language values are `java`,
+`kotlin` and `csharp`. Profile5 refreshes prior derived projections. Python and
+the existing optional languages retain their contracts and providers.
+
+Named classes, interfaces, enums, records/structs, annotations, delegates,
+objects/type aliases and named member methods are retained where those syntax
+forms apply. Lexical package/namespace/nested-type scope enters the qualified
+name: `Gateway.java::com.example.Gateway.refund`. Module identity remains the
+source path. Source declarations/imports are OBSERVED, identifier-only calls
+INFERRED. Java/C# named constructors and bodyless signatures have distinct kinds.
+Alias names and comment trivia do not replace import targets; wildcard/global
+qualifiers remain explicit. Imports stay external textual paths.
+
+This is bounded syntax coverage. Overloaded declarations sharing a materialized
+name/kind key remain empty/unparsed, pending a compatible overload identity model.
+The pinned Kotlin grammar also rejects compact class members without a separator
+before the same-line closing brace; the provider preserves empty unparsed coverage
+without rewriting input. Anonymous/generated members, Kotlin secondary constructors,
+complex generic import aliases, conditional-preprocessor declarations, annotation
+processing, package/type resolution and extension/runtime dispatch are not claimed.
+Strings/comments cannot invent declarations; real calls inside interpolation may
+still appear as inferred syntax. No compiler, build tool or project code runs.
+
+Required dependencies stay empty; missing/incompatible grammars, syntax errors,
+invalid UTF-8 and shared source/native-time/node limits return empty unparsed
+results. Installed optional wheels are qualified separately from dependency-free
+skips. Other languages, all consumers and enhanced standalone distribution remain
+open. Grammar version/API sources: [Java](https://github.com/tree-sitter/tree-sitter-java/blob/master/pyproject.toml),
+[Kotlin](https://github.com/tree-sitter-grammars/tree-sitter-kotlin/blob/master/pyproject.toml),
+[C#](https://github.com/tree-sitter/tree-sitter-c-sharp/blob/master/pyproject.toml).

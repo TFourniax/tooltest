@@ -1,0 +1,35 @@
+F
+======================================================================
+FAIL: test_kotlin_type_kinds_signatures_and_comment_free_import_paths (tests.test_structure_managed.ManagedSyntaxTests.test_kotlin_type_kinds_signatures_and_comment_free_import_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_managed/tests/test_structure_managed.py", line 114, in test_kotlin_type_kinds_signatures_and_comment_free_import_paths
+    self.assertEqual({s.qualified_name:s.kind for s in v.symbols},
+AssertionError: {'a.kt::Pay': 'class', 'a.kt::Pay.charge': 'method', 'a.[41 chars]ass'} != {'a.kt::Pay': 'interface', 'a.kt::Pay.charge': 'method-s[59 chars]ion'}
+- {'a.kt::Marker': 'class',
+?                   -- ^^
+
++ {'a.kt::Marker': 'annotation',
+?                    ^^^^^^^^^
+
+-  'a.kt::Pay': 'class',
+?                 ^^^^
+
++  'a.kt::Pay': 'interface',
+?                +++++++ ^
+
+-  'a.kt::Pay.charge': 'method',
++  'a.kt::Pay.charge': 'method-signature',
+?                             ++++++++++
+
+-  'a.kt::Status': 'class'}
+?                   ^^^^^
+
++  'a.kt::Status': 'enum'}
+?                   ^^^^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.016s
+
+FAILED (failures=1)
