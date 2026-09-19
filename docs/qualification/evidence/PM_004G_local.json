@@ -1,0 +1,90 @@
+{
+  "schema": "pm-004g-local-1",
+  "classification": "MACHINE",
+  "parent": "6b374e4a4584ac0331c637d6d1842f6b2a910b27",
+  "profile": "structure-providers-3",
+  "full_final": {
+    "run": 569,
+    "pass": 565,
+    "skips": 4,
+    "seconds": 56.257
+  },
+  "base_before_final_receiver_correction": {
+    "run": 569,
+    "pass": 553,
+    "skips": 16,
+    "seconds": 58.045
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_actual_grammars": "PASS",
+  "pip_check": "PASS",
+  "benchmark_stage": "10k and Python consumer diagnostics precede final Go receiver-comment correction; remote candidate/main gates qualify exact published source",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20148224,
+    "append_seconds": 0.797002,
+    "full_log_verify_seconds": 0.353772,
+    "rebuild_seconds": 0.78375,
+    "context": {
+      "cold_ms": 15.481,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 13.774,
+        "median": 14.644,
+        "p95": 22.212,
+        "max": 22.212
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_89fd4dc72688cf652c200e04",
+    "passed": true,
+    "failures": []
+  },
+  "python_consumer": "IdleProof PERF PASS (Python/Core) \u00b7 hook p95 84.8ms \u00b7 max 104.6ms \u00b7 Stop 120.9ms \u00b7 state p95 0.3ms",
+  "failures_retained": [
+    "initial6 methods yield6 assertions including subtests; one method already passes",
+    "Rust comments included in import/receiver paths before field-based correction",
+    "Go receiver comment hides method before parameter-node selection"
+  ],
+  "files": {
+    "src/diffwitness/structure_native.py": "8a02d817a86a945bfb7f2811ce7ffea4cafb13ff92d229db88876f53e44ac61d",
+    "src/diffwitness/structure_syntax.py": "9886926c63f4b541271cfc1b26771bae3c5c6be50f3fa3b77a347afa5ba754aa",
+    "src/diffwitness/structure_provider.py": "8e2dcba3d35deb20151036f9b05b272923d91b0c0e0f733ae81fbd1177c4870b",
+    "src/diffwitness/structure_registry.py": "2e85a61ff77965d6a6e9a9f655dc73280d72915c76bca4fde847b96325fef3f7",
+    "tests/test_structure_native.py": "191db52a9e8fa3504f2137c8b3cb05822341bce1963d4e84341e4b6ead3aee26",
+    "scripts/structure_syntax_acceptance.py": "841a48f4f14ecc87e41368926008ebae07f1f82703e399622924be919d44663e",
+    "pyproject.toml": "f12d1b450068a135b38bc1a3ea869c078e71e5c2f45597b992e4be4d6d974715",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65"
+  },
+  "logs": {
+    "PM_004G_10k.log": "bbb0681d1c8570e2c61abefe91e9eb32f66671ae504a931379e3a0dbee8ab610",
+    "PM_004G_base_editable.log": "e1e51c5e3822754fde975dd24f98f24708a434350e2f0b0c6878cfd47c9cf470",
+    "PM_004G_before.log": "6101a423f2b56666e912c58a423f2c37fe7c0a096ac284e2504a7f38db71428a",
+    "PM_004G_dependencies.log": "7cc68d526a933849d44e0d85d3c635bb0c6883a4eae8bb72d08ea76d656737ef",
+    "PM_004G_editable.log": "2b07eaf76de94e73daef9fde95f5e0210f83121a0392024cedcdd35f79b11be2",
+    "PM_004G_full.log": "bc3aa79672664bc8415d24d4ad7be1bd691b14adf2f13b13033f187fbc5cfae6",
+    "PM_004G_full_base.log": "3712dc8cbecdaf9d9844ade12041759e4a258360a111d6d87c8b2ae6a956d29c",
+    "PM_004G_full_review.log": "74f08e6203b57a9431ebfee53916df744cd05279eecdc0414ddc3a7e724e63e8",
+    "PM_004G_go_comment_before.log": "fc489f6ee73fa16b40c776846f78c699fd852d0038259be47e7680d71d5d436c",
+    "PM_004G_install.log": "e4702b8e6e211d757d0b46e2bb1d013c32d330ac29e77b549a7e3b5c75c2e8f4",
+    "PM_004G_install_final.log": "586cf9bfa7183542062e750abb5a342385ac0df3edef19b3396cef814451a94d",
+    "PM_004G_install_optional.log": "12c6d5229e16eb11eacf0a5c124a7130fde743fd764e5c0aceb48e4fe0d58e52",
+    "PM_004G_installed.log": "cc9c1b6900a12b3a670860532113e56063f29cfc1a250b46be935b3eb32cf104",
+    "PM_004G_installed_final.log": "cc9c1b6900a12b3a670860532113e56063f29cfc1a250b46be935b3eb32cf104",
+    "PM_004G_python_perf.log": "2d0c2f5a6a5d7eaa48d60247642d8a2fa69c938a969f69171d6477f5e0e52126",
+    "PM_004G_rebase.log": "23f6cd3b92d4df8a1958627878d9101a3058a965d52680ebec069064da56bb7c",
+    "PM_004G_review_before.log": "da32e53b41096b7c6a86a9f1124cb4e413b3967a83a7d616d893bf2c889eeae9",
+    "PM_004G_structure.log": "51d73f88e2703e44e66428eada4910d444e50b6ddad42679d2a4df87edd0ca3b",
+    "PM_004G_structure_corrected.log": "612cd0ed3bb0b85d497b506e971ce37e98045eb2b80553d7bf340ad0e020d10b",
+    "PM_004G_structure_review.log": "27a6e9be49b852e013a9d1541c064d231f651d9b8deec255cbc34a7a4ccb722e",
+    "PM_004G_wheel.log": "c3a4e8875b85ad51643f3e31b78efcc06ec62b8a9f3f124065105d73eb13721e",
+    "PM_004G_wheel_final.log": "ae998a5d58260f7565848ec71dc8b60d0363b068963b3108b9fb0fc110ff6e6e"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "archive_note": "PM_004G_before.log archive removes trailing whitespace; original outputs log and its recorded SHA256 are preserved."
+}

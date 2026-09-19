@@ -83,3 +83,33 @@ basenames such as `widget.test` resolve only when exactly one supported JS/TS
 source candidate is captured; other-language sources are never selected by that
 resolver. The extraction profile is versioned when adapter/resolver semantics
 change so existing projections cannot retain the superseded behavior.
+
+## Optional Go and Rust syntax
+
+The same `structure` extra includes Go0.25.0 and Rust0.24.2 grammars for `.go`
+and `.rs`, with the same pinned runtime and admission bounds. Provider names are
+`tree-sitter-go` and `tree-sitter-rust`. Module identity remains the relative path;
+qualified names are `path.go::Name` / `path.rs::Name`. Profile3 invalidates older
+derived projections. Required dependencies remain empty.
+
+Go facts include named functions, types/aliases/structs/interfaces and methods
+on named receivers (including pointers/generics), plus grouped literal imports.
+Rust facts include functions, modules, structs/enums/traits/unions/type aliases,
+trait signatures and methods of named implementations. Nested module scope and
+explicit trait-implementation names are retained in the syntactic qualifier.
+Grouped/aliased `use`, `self`, wildcard and `extern crate` paths are observed;
+comments inside a path never become part of its name. Identifier-only calls
+remain inferred. Native-language imports stay external textual dependencies.
+
+These facts do not resolve Go packages, Rust modules/types/traits, dependencies,
+build flags, conditional compilation, macro expansion or runtime behavior.
+Complex tuple/reference/associated implementation receivers are not resolved;
+their methods are omitted rather than assigned an arbitrary child type. Escaped
+Go import strings are omitted pending a language-specific decoder. A parsed file
+means successful bounded syntax extraction, not complete semantic coverage.
+No Go/Cargo build or project code executes. Missing/incompatible grammars and
+invalid syntax retain empty unparsed coverage, as for JS/TS.
+
+Primary grammars: [Go](https://github.com/tree-sitter/tree-sitter-go) and
+[Rust](https://github.com/tree-sitter/tree-sitter-rust). Further requested languages,
+all consumer adapters and enhanced standalone distribution remain open.
