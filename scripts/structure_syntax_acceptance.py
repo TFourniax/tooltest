@@ -58,5 +58,13 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
     for source, prefix in [('config.json', ''), ('config.toml', ''), ('config.yaml', '/@0')]:
         assert {s['qualified_name'] for s in by_path[source]['symbols']} == {source + '::' + prefix + p for p in ['/service', '/service/secret']}
     assert 'private-value' not in json.dumps(response), 'configuration values must not be retained'
+    overflow = {'schema_version': 'structure-request-1', 'files': [{
+        'path': 'overflow.json', 'content_base64': base64.b64encode(b'{"nested":[{"timeout":1e999}]}').decode()}]}
+    rejected = subprocess.run([dw, 'state', 'extract', '--json'], cwd=td, env=env,
+                              input=json.dumps(overflow), capture_output=True, text=True,
+                              encoding='utf-8', timeout=10)
+    assert rejected.returncode == 0, rejected.stderr
+    empty = json.loads(rejected.stdout)['files'][0]
+    assert empty['parsed'] is False and not empty['symbols'] and not empty['imports'] and not empty['calls']
     assert not list(Path(td).iterdir()), 'source-byte extraction must not persist files'
 print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned code/SQL/config providers, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')

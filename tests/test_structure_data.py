@@ -123,6 +123,18 @@ class DataSyntaxTests(unittest.TestCase):
         self.assertTrue(sql.parsed)
         self.assertEqual([s.qualified_name for s in sql.symbols],['a.sql::public.accounts'])
 
+    @unittest.skipUnless(AVAILABLE,'actual optional SQL/config grammars not installed')
+    def test_overflowing_json_values_fail_closed_at_every_nesting_level(self):
+        for source in ('{"timeout":1e999}', '{"nested":[{"value":-1e999}]}', '[1e999]',
+                       '{"outer":{"inside":{"value":1e999}}}'):
+            with self.subTest(source=source):
+                value=self.extract('config.json',source)
+                self.assertFalse(value.parsed)
+                self.assertEqual((value.symbols,value.imports,value.calls),((),(),()))
+        for source in ('{"timeout":1e308}', '{"timeout":1e-999}', '{"large":'+'9'*300+'}'):
+            with self.subTest(source=source):
+                self.assertTrue(self.extract('config.json',source).parsed)
+
     def test_missing_grammars_remain_recognized_empty(self):
         for (p,s,language,provider),package in zip(FIXTURES,PACKAGES[1:]):
             with self.subTest(path=p),patch.dict(sys.modules,{package:None}):

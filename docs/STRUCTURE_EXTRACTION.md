@@ -203,7 +203,7 @@ New exact24+3/review and fresh main required. All evidence remains MACHINE.
 
 The same structure extra includes SQL0.3.11, JSON0.24.8, TOML0.7.0 and YAML0.7.2
 for .sql/.json/.toml/.yaml/.yml. Provider names are tree-sitter-sql/json/toml/yaml,
-module identity is the source path, and profile7 invalidates prior projections.
+module identity is the source path, and profile7a invalidates prior projections.
 Existing exact-pin/native250ms/no-callback/source/hash/authority bounds apply.
 No database, interpreter, custom YAML constructor or runtime environment runs.
 
@@ -237,3 +237,7 @@ https://github.com/tree-sitter/tree-sitter-json,
 https://github.com/tree-sitter-grammars/tree-sitter-toml and
 https://github.com/tree-sitter-grammars/tree-sitter-yaml . Exact manifests and binary
 wheel digests are recorded in qualification evidence; actual3OS tests are required.
+
+JSON overflow values (including nested1e999) are explicitly rejected after strict
+parsing; finite values/large integers remain valid. This does not redefine TOML
+inf/nan syntax. Review4052729869 and fail-before evidence are retained.

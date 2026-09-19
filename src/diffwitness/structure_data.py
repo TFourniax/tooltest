@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tomllib
 
 from .json_contract import strict_json_loads
@@ -158,5 +159,13 @@ def data_declarations(language, root, content, text, symbol):
         _toml(root, text, symbol)
     else:
         if language == 'json':
-            strict_json_loads(content.decode('utf-8'))
+            pending = [strict_json_loads(content.decode('utf-8'))]
+            while pending:
+                value = pending.pop()
+                if isinstance(value, dict):
+                    pending.extend(value.values())
+                elif isinstance(value, list):
+                    pending.extend(value)
+                elif isinstance(value, float) and not math.isfinite(value):
+                    raise ValueError('non-finite JSON configuration value')
         _json_yaml(language, root, text, symbol)
