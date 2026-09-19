@@ -1,0 +1,30 @@
+test_comments_inside_rust_paths_do_not_become_names_or_dependencies (test_structure_native.NativeSyntaxTests.test_comments_inside_rust_paths_do_not_become_names_or_dependencies) ... FAIL
+test_go_functions_receivers_types_and_grouped_imports (test_structure_native.NativeSyntaxTests.test_go_functions_receivers_types_and_grouped_imports) ... ok
+test_index_binds_go_and_rust_facts_to_captured_tree (test_structure_native.NativeSyntaxTests.test_index_binds_go_and_rust_facts_to_captured_tree) ... ok
+test_malformed_syntax_encoding_and_transport_source_binding (test_structure_native.NativeSyntaxTests.test_malformed_syntax_encoding_and_transport_source_binding) ... ok
+test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) ... ok
+test_new_suffixes_cannot_forge_javascript_local_import_resolution (test_structure_native.NativeSyntaxTests.test_new_suffixes_cannot_forge_javascript_local_import_resolution) ... ok
+test_qualified_rust_impl_and_trait_names_preserve_owner_scope (test_structure_native.NativeSyntaxTests.test_qualified_rust_impl_and_trait_names_preserve_owner_scope) ... ok
+test_rust_scopes_import_groups_and_macro_decoys (test_structure_native.NativeSyntaxTests.test_rust_scopes_import_groups_and_macro_decoys) ... ok
+
+======================================================================
+FAIL: test_comments_inside_rust_paths_do_not_become_names_or_dependencies (test_structure_native.NativeSyntaxTests.test_comments_inside_rust_paths_do_not_become_names_or_dependencies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 124, in test_comments_inside_rust_paths_do_not_become_names_or_dependencies
+    self.assertEqual([item.target for item in value.imports], ['std::collections::HashMap'])
+AssertionError: Lists differ: ['std/*decoy*/::collections::HashMap'] != ['std::collections::HashMap']
+
+First differing element 0:
+'std/*decoy*/::collections::HashMap'
+'std::collections::HashMap'
+
+- ['std/*decoy*/::collections::HashMap']
+?      ---------
+
++ ['std::collections::HashMap']
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.055s
+
+FAILED (failures=1)

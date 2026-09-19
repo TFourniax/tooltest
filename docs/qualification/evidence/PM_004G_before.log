@@ -1,0 +1,75 @@
+test_go_functions_receivers_types_and_grouped_imports (test_structure_native.NativeSyntaxTests.test_go_functions_receivers_types_and_grouped_imports) ... FAIL
+test_index_binds_go_and_rust_facts_to_captured_tree (test_structure_native.NativeSyntaxTests.test_index_binds_go_and_rust_facts_to_captured_tree) ... FAIL
+test_malformed_syntax_encoding_and_transport_source_binding (test_structure_native.NativeSyntaxTests.test_malformed_syntax_encoding_and_transport_source_binding) ... FAIL
+test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) ...
+  test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) (language='go') ... FAIL
+  test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) (language='rust') ... FAIL
+test_new_suffixes_cannot_forge_javascript_local_import_resolution (test_structure_native.NativeSyntaxTests.test_new_suffixes_cannot_forge_javascript_local_import_resolution) ... ok
+test_rust_scopes_import_groups_and_macro_decoys (test_structure_native.NativeSyntaxTests.test_rust_scopes_import_groups_and_macro_decoys) ... FAIL
+
+======================================================================
+FAIL: test_go_functions_receivers_types_and_grouped_imports (test_structure_native.NativeSyntaxTests.test_go_functions_receivers_types_and_grouped_imports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 57, in test_go_functions_receivers_types_and_grouped_imports
+    self.assertTrue(value.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_index_binds_go_and_rust_facts_to_captured_tree (test_structure_native.NativeSyntaxTests.test_index_binds_go_and_rust_facts_to_captured_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 125, in test_index_binds_go_and_rust_facts_to_captured_tree
+    self.assertEqual({row[0] for row in conn.execute('select language from structure_components')}, {'go', 'rust'})
+AssertionError: Items in the second set but not the first:
+'rust'
+'go'
+
+======================================================================
+FAIL: test_malformed_syntax_encoding_and_transport_source_binding (test_structure_native.NativeSyntaxTests.test_malformed_syntax_encoding_and_transport_source_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 101, in test_malformed_syntax_encoding_and_transport_source_binding
+    self.assertEqual(response['coverage'], {'files': 2, 'parsed': 2, 'unparsed': 0, 'unsupported': 0})
+AssertionError: {'files': 2, 'parsed': 0, 'unsupported': 2, 'unparsed': 0} != {'files': 2, 'parsed': 2, 'unparsed': 0, 'unsupported': 0}
+- {'files': 2, 'parsed': 0, 'unparsed': 0, 'unsupported': 2}
+?                        ^                                ^
+
++ {'files': 2, 'parsed': 2, 'unparsed': 0, 'unsupported': 0}
+?                        ^                                ^
+
+
+======================================================================
+FAIL: test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) (language='go')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 87, in test_missing_grammars_preserve_recognized_empty_unparsed_coverage
+    self.assertEqual(value.language, language)
+AssertionError: 'unknown' != 'go'
+- unknown
++ go
+
+
+======================================================================
+FAIL: test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) (language='rust')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 87, in test_missing_grammars_preserve_recognized_empty_unparsed_coverage
+    self.assertEqual(value.language, language)
+AssertionError: 'unknown' != 'rust'
+- unknown
++ rust
+
+
+======================================================================
+FAIL: test_rust_scopes_import_groups_and_macro_decoys (test_structure_native.NativeSyntaxTests.test_rust_scopes_import_groups_and_macro_decoys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 70, in test_rust_scopes_import_groups_and_macro_decoys
+    self.assertTrue(value.parsed)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.070s
+
+FAILED (failures=6)

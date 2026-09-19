@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_go_functions_receivers_types_and_grouped_imports (tests.test_structure_native.NativeSyntaxTests.test_go_functions_receivers_types_and_grouped_imports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 69, in test_go_functions_receivers_types_and_grouped_imports
+    self.assertEqual({s.qualified_name for s in commented.symbols},
+AssertionError: Items in the second set but not the first:
+'a.go::Gateway.Charge'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.015s
+
+FAILED (failures=1)

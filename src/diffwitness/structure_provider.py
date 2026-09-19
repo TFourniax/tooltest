@@ -103,8 +103,9 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     for item in extracted:
         source = components[item.path]
         for imported in item.imports:
-            target = (modules.get((item.language, imported.target)) if item.language == 'python'
-                      else _syntax_import_component(item.path, imported.target, components))
+            target = (modules.get((item.language, imported.target)) if item.language == 'python' else
+                      _syntax_import_component(item.path, imported.target, components)
+                      if item.language in {'javascript', 'typescript'} else None)
             authority = 'INFERRED' if target and item.language != 'python' else imported.epistemic_status
             kind = "component" if target else "external-module"
             target = target or f"module:{imported.target}"

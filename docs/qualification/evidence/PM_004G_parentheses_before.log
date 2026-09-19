@@ -1,0 +1,23 @@
+FF
+======================================================================
+FAIL: test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types (tests.test_structure_native.NativeSyntaxTests.test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types) (path='a.go')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 145, in test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types
+    self.assertEqual({s.qualified_name for s in value.symbols},
+AssertionError: Items in the second set but not the first:
+'a.go::Gateway.Charge'
+
+======================================================================
+FAIL: test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types (tests.test_structure_native.NativeSyntaxTests.test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types) (path='a.rs')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_go_rust/tests/test_structure_native.py", line 145, in test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types
+    self.assertEqual({s.qualified_name for s in value.symbols},
+AssertionError: Items in the second set but not the first:
+'a.rs::Gateway.charge'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.020s
+
+FAILED (failures=2)
