@@ -14,7 +14,8 @@ from .structure_sources import MAX_SOURCE_FILE_BYTES
 
 PINNED = {'tree-sitter': '0.25.2', 'tree-sitter-javascript': '0.25.0', 'tree-sitter-typescript': '0.23.2',
           'tree-sitter-go': '0.25.0', 'tree-sitter-rust': '0.24.2',
-          'tree-sitter-java': '0.23.5', 'tree-sitter-c-sharp': '0.23.5', 'tree-sitter-kotlin': '1.1.0', 'tree-sitter-ruby': '0.23.1', 'tree-sitter-php': '0.24.1'}
+          'tree-sitter-java': '0.23.5', 'tree-sitter-c-sharp': '0.23.5', 'tree-sitter-kotlin': '1.1.0', 'tree-sitter-ruby': '0.23.1', 'tree-sitter-php': '0.24.1', 'tree-sitter-sql': '0.3.11', 'tree-sitter-json': '0.24.8',
+          'tree-sitter-toml': '0.7.0', 'tree-sitter-yaml': '0.7.2'}
 SPECS = {
     **{suffix: ('javascript', 'tree-sitter-javascript', 'tree_sitter_javascript', 'language')
        for suffix in ('.js', '.jsx', '.mjs', '.cjs')},
@@ -23,6 +24,9 @@ SPECS = {
     '.tsx': ('typescript', 'tree-sitter-typescript', 'tree_sitter_typescript', 'language_tsx'),
     '.go': ('go', 'tree-sitter-go', 'tree_sitter_go', 'language'),
     '.rs': ('rust', 'tree-sitter-rust', 'tree_sitter_rust', 'language'),
+    **{'.' + lang: (lang, 'tree-sitter-' + lang, 'tree_sitter_' + lang, 'language')
+       for lang in ('sql', 'json', 'toml', 'yaml')},
+    '.yml': ('yaml', 'tree-sitter-yaml', 'tree_sitter_yaml', 'language'),
     '.rb': ('ruby', 'tree-sitter-ruby', 'tree_sitter_ruby', 'language'),
     '.php': ('php', 'tree-sitter-php', 'tree_sitter_php', 'language_php'),
     '.java': ('java', 'tree-sitter-java', 'tree_sitter_java', 'language'),
@@ -96,6 +100,12 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
     if language in {'go', 'rust'}:
         from .structure_native import native_declarations
         imports.extend(native_declarations(language, tree.root_node, text, symbol))
+    elif language in {'sql', 'json', 'toml', 'yaml'}:
+        from .structure_data import data_declarations
+        try:
+            data_declarations(language, tree.root_node, content, text, symbol)
+        except (ValueError, UnicodeError, RecursionError):
+            return empty
     elif language in {'ruby', 'php'}:
         from .structure_dynamic import dynamic_declarations, dynamic_call_name
         imports.extend(dynamic_declarations(language, tree.root_node, nodes, text, symbol))
@@ -153,6 +163,8 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
                 if target is not None and target.type == 'string' and len(raw) > 2 and '\\' not in raw:
                     imports.append(StructuralImport(raw[1:-1]))
     for node in nodes:
+        if language in {'sql', 'json', 'toml', 'yaml'}:
+            continue
         if language in {'ruby', 'php'}:
             name = dynamic_call_name(language, node, text)
             if name is not None:

@@ -1,0 +1,44 @@
+{
+  "schema": "pm-004k-dependencies-1",
+  "primary_manifests": [
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-json\"\ndescription = \"JSON grammar for tree-sitter\"\nversion = \"0.24.8\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"json\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"License :: OSI Approved :: MIT License\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [\n  { name = \"Max Brunsfeld\", email = \"maxbrunsfeld@gmail.com\" },\n  { name = \"Amaan Qureshi\", email = \"amaanq12@gmail.com\" },\n]\nrequires-python = \">=3.9\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter/tree-sitter-json\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.22\"]\n\n[tool.cibuildwheel]\nbuild = \"cp39-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "20a85e2776af0b675b6458c9798e7e39f7cdb3bc",
+      "display_url": "https://github.com/tree-sitter/tree-sitter-json/blob/master/pyproject.toml",
+      "display_title": "pyproject.toml"
+    },
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-toml\"\ndescription = \"TOML grammar for tree-sitter\"\nversion = \"0.7.0\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"toml\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [{ name = \"Ika\", email = \"ikatyang@gmail.com\" }]\nrequires-python = \">=3.9\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter-grammars/tree-sitter-toml\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.22\"]\n\n[tool.cibuildwheel]\nbuild = \"cp39-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "555bb414893845be4dd1d4509cb1edb285f616b5",
+      "display_url": "https://github.com/tree-sitter-grammars/tree-sitter-toml/blob/master/pyproject.toml",
+      "display_title": "pyproject.toml"
+    },
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-yaml\"\ndescription = \"YAML grammar for tree-sitter\"\nversion = \"0.7.2\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"yaml\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [\n  { name = \"Ika\", email = \"ikatyang@gmail.com\" },\n  { name = \"Amaan Qureshi\", email = \"amaanq12@gmail.com\" },\n]\nrequires-python = \">=3.10\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter-grammars/tree-sitter-yaml\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.24\"]\n\n[tool.cibuildwheel]\nbuild = \"cp310-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "c84854ed6a1fe0ace3603bde8497bf659098208a",
+      "display_url": "https://github.com/tree-sitter-grammars/tree-sitter-yaml/blob/master/pyproject.toml",
+      "display_title": "pyproject.toml"
+    },
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-sql\"\ndescription = \"Tree-sitter Grammar for SQL\"\nversion = \"0.3.11\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"sql\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"License :: OSI Approved :: MIT License\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [{ name = \"derek stride\" }]\nrequires-python = \">=3.10\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/derekstride/tree-sitter-sql.git\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.25\"]\n\n[tool.cibuildwheel]\nbuild = \"cp310-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "72992c2b9a0fe73e3e7b8e5247aeb92c33c2136f",
+      "display_url": "https://github.com/DerekStride/tree-sitter-sql/blob/main/pyproject.toml",
+      "display_title": "pyproject.toml"
+    }
+  ],
+  "binary_availability": {
+    "tree_sitter_yaml-0.7.2-cp310-abi3-win_amd64.whl": "7587b5ca00fc4f9a548eff649697a3b395370b2304b399ceefa2087d8a6c9186",
+    "tree_sitter_toml-0.7.0-cp39-abi3-win_amd64.whl": "2760a04f06937b01b1562a2135cd7e8207e399e73ef75bbebc77e37b1ad3b15d",
+    "tree_sitter_sql-0.3.11-cp310-abi3-win_amd64.whl": "c57b877702d218c0856592d33320c02b2dc8411d8820b3bf7b81be86c54fa0bb",
+    "tree_sitter_json-0.24.8-cp39-abi3-win_amd64.whl": "e4849a03cd7197267b2688a4506a90a13568a8e0e8588080bd0212fcb38974e3",
+    "tree_sitter_toml-0.7.0-cp39-abi3-macosx_11_0_arm64.whl": "18be09538e9775cddc0290392c4e2739de2201260af361473ca60b5c21f7bd22",
+    "tree_sitter_sql-0.3.11-cp310-abi3-macosx_11_0_arm64.whl": "a33cd6880ab2debef036f80365c32becb740ec79946805598488732b6c515fff",
+    "tree_sitter_yaml-0.7.2-cp310-abi3-macosx_11_0_arm64.whl": "0807b7966e23ddf7dddc4545216e28b5a58cdadedcecca86b8d8c74271a07870",
+    "tree_sitter_json-0.24.8-cp39-abi3-macosx_11_0_arm64.whl": "62b4c45b561db31436a81a3f037f71ec29049f4fc9bf5269b6ec3ebaaa35a1cd"
+  },
+  "note": "Downloads prove availability, not actual3OS behavior. Primary TOML/YAML pages failed in web tool; authoritative repository manifests fetched through GitHub."
+}

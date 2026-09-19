@@ -21,6 +21,10 @@ sources['Gateway.cs'] = b'namespace Payments; public class Gateway { public void
 sources['Gateway.kt'] = b'class Gateway {\n fun refund() {}\n}\n'
 sources['gateway.rb'] = b'class Gateway; def refund(); end; end\n'
 sources['gateway.php'] = b"<?php namespace Payments; require('client.php'); class Gateway { function refund() {} }\n"
+sources['schema.sql'] = b'CREATE TABLE accounts (id int);\n'
+sources['config.json'] = b'{"service":{"secret":"private-value"}}'
+sources['config.toml'] = b'[service]\nsecret = "private-value"\n'
+sources['config.yaml'] = b'service:\n  secret: private-value\n'
 request = {'schema_version': 'structure-request-1', 'files': [
     {'path': name, 'content_base64': base64.b64encode(content).decode()} for name, content in sources.items()]}
 env = {key: value for key, value in os.environ.items() if key != 'PYTHONPATH'}
@@ -34,7 +38,7 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
         values.append(json.loads(result.stdout))
     assert values[0] == values[1] == values[2]
     response = values[0]
-    assert response['coverage'] == {'files': 12, 'parsed': 10, 'unparsed': 1, 'unsupported': 1}, response
+    assert response['coverage'] == {'files': 16, 'parsed': 14, 'unparsed': 1, 'unsupported': 1}, response
     for item, (name, content) in zip(response['files'], sources.items()):
         assert item['path'] == name and item['source_sha256'] == hashlib.sha256(content).hexdigest()
         assert all(symbol['epistemic_status'] == 'OBSERVED' for symbol in item['symbols'])
@@ -50,5 +54,17 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
     assert {s['qualified_name'] for s in by_path['gateway.rb']['symbols']} == {'gateway.rb::Gateway', 'gateway.rb::Gateway.refund'}
     assert {s['qualified_name'] for s in by_path['gateway.php']['symbols']} == {'gateway.php::Payments.Gateway', 'gateway.php::Payments.Gateway.refund'}
     assert [i['target'] for i in by_path['gateway.php']['imports']] == ['client.php']
+    assert {s['qualified_name'] for s in by_path['schema.sql']['symbols']} == {'schema.sql::accounts'}
+    for source, prefix in [('config.json', ''), ('config.toml', ''), ('config.yaml', '/@0')]:
+        assert {s['qualified_name'] for s in by_path[source]['symbols']} == {source + '::' + prefix + p for p in ['/service', '/service/secret']}
+    assert 'private-value' not in json.dumps(response), 'configuration values must not be retained'
+    overflow = {'schema_version': 'structure-request-1', 'files': [{
+        'path': 'overflow.json', 'content_base64': base64.b64encode(b'{"nested":[{"timeout":1e999}]}').decode()}]}
+    rejected = subprocess.run([dw, 'state', 'extract', '--json'], cwd=td, env=env,
+                              input=json.dumps(overflow), capture_output=True, text=True,
+                              encoding='utf-8', timeout=10)
+    assert rejected.returncode == 0, rejected.stderr
+    empty = json.loads(rejected.stdout)['files'][0]
+    assert empty['parsed'] is False and not empty['symbols'] and not empty['imports'] and not empty['calls']
     assert not list(Path(td).iterdir()), 'source-byte extraction must not persist files'
-print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned JS/TS/Go/Rust/Java/Kotlin/C#/Ruby/PHP, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')
+print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned code/SQL/config providers, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')

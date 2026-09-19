@@ -1,0 +1,85 @@
+{
+  "schema": "pm-004k-reviewed-local-1",
+  "classification": "MACHINE",
+  "development_parent": "19f81dc01b3b8aedd0487ff865a503746715b5f1",
+  "profile": "structure-providers-7a",
+  "initial_failed_full": {
+    "run": 597,
+    "fail": 1,
+    "skips": 4,
+    "seconds": 56.131,
+    "reason": "SQL marginalia omission; full suite launched before inspecting failed targeted gate, sequencing mistake preserved"
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "measurement": "Shared host; benchmark after both suites and installed protocol. No50k/100k qualification.",
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "supersedes": "PM_004K_rebased_local.json",
+  "qualified_parent": "472108f614f2541af49a4f7de98a81e882de5f81",
+  "structure_tests": 66,
+  "review": 4052729869,
+  "full": {
+    "run": 603,
+    "pass": 599,
+    "skips": 4,
+    "seconds": 56.67
+  },
+  "base_historical": {
+    "run": 602,
+    "pass": 560,
+    "skips": 42,
+    "seconds": 58.555
+  },
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20078592,
+    "append_seconds": 0.806985,
+    "full_log_verify_seconds": 0.370927,
+    "rebuild_seconds": 0.82117,
+    "context": {
+      "cold_ms": 17.319,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 15.327,
+        "median": 16.087,
+        "p95": 17.211,
+        "max": 17.211
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_b0eb69615ab7a9b494638049",
+    "passed": true,
+    "failures": []
+  },
+  "files": {
+    "src/diffwitness/structure_data.py": "ab97afc71b2cc0240852842f38701f25126c3f661f3b4cd6a43eb00563e78e6f",
+    "src/diffwitness/structure_syntax.py": "27218de38fc091bc47832c8e98cc03ff856bb7033247ee72fa694598ad08db59",
+    "src/diffwitness/structure_registry.py": "e7b82b7bf9766ba380afdf0911633e9dbe26461f713b434891cecefb6cab9a4f",
+    "tests/test_structure_data.py": "bc8bc8fc17611bbe4839c3d7fbdbaa90d6065961af3a2627fa70592e4094f609",
+    "scripts/structure_syntax_acceptance.py": "97798b0793c84ded27ec2d25d1e3e795418fddb0645a81a64cd5cf07e5eeca29",
+    "pyproject.toml": "e976f36828c347f523a4d34faea78be72bf1387fec823288a5822821844b3c82",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298",
+    "src/diffwitness/continuity_events.py": "a9c03c13407e38677561ff55a92536e5b1d6ba77533dab1770669efbb3729b9a",
+    "tests/test_continuity_lock.py": "5478d4f7bab152ccfe6bc53c31271fa5876c18e2fe5f8bcebc470053f354fcc9",
+    "src/diffwitness/structure_dynamic.py": "5b7fe2604b53ff58df9f04c75cbcbbd159da11cf70ac5b9775b213338be64406",
+    "tests/test_structure_dynamic.py": "285ed577e18066ebba95f64adbf023d8c5a9969edd0849ae89d3e01f8d1bb79e"
+  },
+  "logs": {
+    "PM_004K_overflow_10k.log": "15ab6d7c30fc0116664004f9f3d717d346a0ee4ecf13742f6ba22b9d69ab1715",
+    "PM_004K_overflow_structure.log": "c66bae89b5f9aaa49abd8e8d91809b5a023723aaf242d2ca2f97da53fe763a31",
+    "PM_004K_overflow_installed.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_004K_overflow_full.log": "e481fad94e6b38081f040c6854b0689b2d951f51acd050a308581dca572af1c7",
+    "PM_004K_overflow_review_before.log": "3d2c3ddc0d84543bd624296914cbc3678110c5ddb773ef58bca9ff1ff0c7f7f5",
+    "PM_004K_overflow_wheel.log": "42ef973be574955afdf6fecbc9c80fc293eeaf73a59fff31a6292ccc92b761df",
+    "PM_004K_overflow_10k.json": "15ab6d7c30fc0116664004f9f3d717d346a0ee4ecf13742f6ba22b9d69ab1715",
+    "PM_004K_overflow_consumer.log": "d6a446be05efeef7b5a22cc4f2d2624d9e4c261c259090926fa1cd075e947c2a",
+    "PM_004K_overflow_pipcheck.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+  }
+}

@@ -1,0 +1,51 @@
+test_actual_transport_hash_authority_positions_and_no_values (test_structure_data.DataSyntaxTests.test_actual_transport_hash_authority_positions_and_no_values) ... ok
+test_decoded_keys_positions_and_invalid_surrogates (test_structure_data.DataSyntaxTests.test_decoded_keys_positions_and_invalid_surrogates) ... ok
+test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed (test_structure_data.DataSyntaxTests.test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed) ... ok
+test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values (test_structure_data.DataSyntaxTests.test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values) ... ok
+test_json_keys_are_unambiguous_and_array_items_distinct (test_structure_data.DataSyntaxTests.test_json_keys_are_unambiguous_and_array_items_distinct) ... ok
+test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) ... ok
+test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) ...
+  test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"timeout":1e999}') ... FAIL
+  test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"nested":[{"value":-1e999}]}') ... FAIL
+  test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='[1e999]') ... FAIL
+  test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"outer":{"inside":{"value":1e999}}}') ... FAIL
+test_sql_only_top_level_ddl_names_not_query_or_literal_decoys (test_structure_data.DataSyntaxTests.test_sql_only_top_level_ddl_names_not_query_or_literal_decoys) ... ok
+test_toml_tables_and_nested_array_table_scopes (test_structure_data.DataSyntaxTests.test_toml_tables_and_nested_array_table_scopes) ... ok
+test_yaml_document_scopes_without_alias_or_tag_execution (test_structure_data.DataSyntaxTests.test_yaml_document_scopes_without_alias_or_tag_execution) ... ok
+
+======================================================================
+FAIL: test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"timeout":1e999}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 132, in test_overflowing_json_values_fail_closed_at_every_nesting_level
+    self.assertFalse(value.parsed)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"nested":[{"value":-1e999}]}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 132, in test_overflowing_json_values_fail_closed_at_every_nesting_level
+    self.assertFalse(value.parsed)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='[1e999]')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 132, in test_overflowing_json_values_fail_closed_at_every_nesting_level
+    self.assertFalse(value.parsed)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) (source='{"outer":{"inside":{"value":1e999}}}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 132, in test_overflowing_json_values_fail_closed_at_every_nesting_level
+    self.assertFalse(value.parsed)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.082s
+
+FAILED (failures=4)
