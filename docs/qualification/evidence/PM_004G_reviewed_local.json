@@ -1,0 +1,38 @@
+{
+  "schema": "pm-004g-reviewed-local-1",
+  "classification": "MACHINE",
+  "superseded_head": "507f0ee810fd257c1dc8b6094c571141dc1c59bc",
+  "reviews": [
+    4051720040
+  ],
+  "profile": "structure-providers-4",
+  "reproduction": "Two actual Go/Rust assertions fail before fix; first full570 still fails one Rust assertion. Correct comma-free single-child tuple_type wrapper then passes. Tuple owners (T,), (A,B), () remain omitted.",
+  "full": {
+    "run": 570,
+    "pass": 566,
+    "skips": 4,
+    "seconds": 57.35
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_consumer": "PASS",
+  "files": {
+    "src/diffwitness/structure_native.py": "11609ce1e5e5a5930a2da15f18631725356a5cd22cf80ba5747436de78a9eb3b",
+    "src/diffwitness/structure_registry.py": "e44f645a26be98d1615be00d67b0fe56cca277caea93f884eebef0fc8fa66416",
+    "src/diffwitness/structure_syntax.py": "9886926c63f4b541271cfc1b26771bae3c5c6be50f3fa3b77a347afa5ba754aa",
+    "src/diffwitness/structure_provider.py": "8e2dcba3d35deb20151036f9b05b272923d91b0c0e0f733ae81fbd1177c4870b",
+    "tests/test_structure_native.py": "81d25b9bdbe0cafc604bce4e22cdd9661323c7ceb90fb7d7ac0ff0cdc2cf2550",
+    "scripts/structure_syntax_acceptance.py": "841a48f4f14ecc87e41368926008ebae07f1f82703e399622924be919d44663e",
+    "pyproject.toml": "f12d1b450068a135b38bc1a3ea869c078e71e5c2f45597b992e4be4d6d974715"
+  },
+  "logs": {
+    "PM_004G_parentheses_before.log": "0855bba9058c2224fe40a3ba935a3c2f9f6ee730544e4057de22bc6d9e3eb0cd",
+    "PM_004G_full_parentheses.log": "7ab0c51ee7442a70d05041f40e8b085fa9383889b34aa243d2313dba9ff360ff",
+    "PM_004G_parentheses_fixed.log": "774d1086a37de6d8b9e2865f12621648cb23ee1c9a1e8f5919ee23e907dcf70c",
+    "PM_004G_full_parentheses_final.log": "24ce57bc346263ff6d05d2376710e8babb144d63344d6648b85462c03fdf16a0",
+    "PM_004G_wheel_review_final.log": "afe72c0149dd3f3d7a2e1e7f47e42e4b29eba5e3680dd8c1ee8357fbce602552",
+    "PM_004G_installed_review_final.log": "cc9c1b6900a12b3a670860532113e56063f29cfc1a250b46be935b3eb32cf104"
+  },
+  "initial_CI": "24/24 and all three companions PASS; review correction supersedes initial candidate, no merge",
+  "human": "NOT RUN"
+}

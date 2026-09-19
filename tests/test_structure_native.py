@@ -136,6 +136,20 @@ class NativeSyntaxTests(unittest.TestCase):
         self.assertEqual(unsupported.symbols, (), 'do not invent A as the tuple receiver name')
 
     @unittest.skipUnless(AVAILABLE, 'optional actual Go/Rust grammars not installed')
+    def test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types(self):
+        for path, source in [('a.go', 'package p\ntype Gateway struct{}\nfunc (g (/* note */ *Gateway)) Charge() {}'),
+                             ('a.rs', 'struct Gateway; impl (/* note , */ (Gateway)) { fn charge() {} }')]:
+            with self.subTest(path=path):
+                value = self.extract(path, source)
+                self.assertTrue(value.parsed)
+                self.assertEqual({s.qualified_name for s in value.symbols},
+                                 {path+'::Gateway', path+'::Gateway.'+('Charge' if path.endswith('.go') else 'charge')})
+        for owner in ['(A, B)', '(A,)', '()']:
+            tuple_owner = self.extract('a.rs', 'impl Pay for '+owner+' { fn charge() {} }')
+            self.assertTrue(tuple_owner.parsed)
+            self.assertEqual(tuple_owner.symbols, ())
+
+    @unittest.skipUnless(AVAILABLE, 'optional actual Go/Rust grammars not installed')
     def test_index_binds_go_and_rust_facts_to_captured_tree(self):
         from diffwitness.continuity_state import rebuild_state
         with tempfile.TemporaryDirectory() as td:

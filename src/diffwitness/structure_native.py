@@ -36,8 +36,14 @@ def _base_type(node, text):
             return _path_text(node, text)
         if node.type == 'generic_type':
             node = node.child_by_field_name('type')
-        elif node.type == 'pointer_type':
-            node = next((child for child in node.named_children if 'comment' not in child.type), None)
+        elif node.type in {'pointer_type', 'parenthesized_type'}:
+            children = [child for child in node.named_children if 'comment' not in child.type]
+            node = children[0] if len(children) == 1 else None
+        elif node.type == 'tuple_type' and not any(child.type == ',' for child in node.children):
+            # Rust grammar also uses tuple_type for a parenthesized type. Only
+            # the comma-free single child is a transparent wrapper; (T,) is not.
+            children = [child for child in node.named_children if 'comment' not in child.type]
+            node = children[0] if len(children) == 1 else None
         else:
             return None
     return None
