@@ -197,3 +197,43 @@ rebuild.795546s,cold22.732/hotp9522.175ms PASS unchanged budgets. Initial base58
 suite remains historical; corrected remote base/full suites must qualify the new
 head. Initial#108 CI state preserved separately and does not qualify this change.
 New exact24+3/review and fresh main required. All evidence remains MACHINE.
+
+
+## Optional SQL and configuration keys
+
+The same structure extra includes SQL0.3.11, JSON0.24.8, TOML0.7.0 and YAML0.7.2
+for .sql/.json/.toml/.yaml/.yml. Provider names are tree-sitter-sql/json/toml/yaml,
+module identity is the source path, and profile7 invalidates prior projections.
+Existing exact-pin/native250ms/no-callback/source/hash/authority bounds apply.
+No database, interpreter, custom YAML constructor or runtime environment runs.
+
+SQL keeps top-level named table/view/index/function/type/schema DDL. Identifier
+quoting and case are retained; source comments are excluded using actual syntax
+trivia, including this grammar's marginalia nodes. Query/string/function-body
+contents cannot invent outer declarations. No query/runtime dependency inference,
+column semantics or dialect correctness claim. The tested CREATE PROCEDURE form
+is rejected by this pinned grammar and remains empty/unparsed, not rewritten.
+
+Configuration output contains only key names/positions and source hashes, never
+values. Paths use / separators with ~0 for literal tilde and ~1 for literal slash;
+array entries use their zero-based index. YAML documents have separate /@0,/@1
+prefixes. TOML table declarations have config-table kind; keys have config-key.
+Array-table child scopes follow their actual lexical occurrence. Quoted keys are
+decoded with the appropriate supported parser; ambiguous/unsupported keys are not
+guessed. JSON/TOML standard-library validation rejects duplicate/invalid forms.
+YAML duplicate retained key identities fail closed; observations remain syntax-
+only, without implicit type coercion or alias/merge expansion. Literal tag/anchor
+syntax can surround actual mappings but is never executed. Complex/multiline or
+YAML-only escaped keys remain unresolved, with no value-derived fallback facts.
+
+JSON key paths containing invalid Unicode surrogates are empty/unparsed. No
+configuration values, environment interpolation or loaded aliases enter
+facts. This does not validate an application's config schema or executed setup.
+Unsupported text formats keep existing file-only fallback. All consumers and
+longitudinal identities still require their separate qualified adapters.
+
+Primary grammars: https://github.com/DerekStride/tree-sitter-sql,
+https://github.com/tree-sitter/tree-sitter-json,
+https://github.com/tree-sitter-grammars/tree-sitter-toml and
+https://github.com/tree-sitter-grammars/tree-sitter-yaml . Exact manifests and binary
+wheel digests are recorded in qualification evidence; actual3OS tests are required.

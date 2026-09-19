@@ -1,0 +1,139 @@
+test_actual_transport_hash_authority_positions_and_no_values (test_structure_data.DataSyntaxTests.test_actual_transport_hash_authority_positions_and_no_values) ... FAIL
+test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed (test_structure_data.DataSyntaxTests.test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed) ... ok
+test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values (test_structure_data.DataSyntaxTests.test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values) ... FAIL
+test_json_keys_are_unambiguous_and_array_items_distinct (test_structure_data.DataSyntaxTests.test_json_keys_are_unambiguous_and_array_items_distinct) ... FAIL
+test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) ...
+  test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='schema.sql') ... FAIL
+  test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.json') ... FAIL
+  test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.toml') ... FAIL
+  test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.yaml') ... FAIL
+test_sql_only_top_level_ddl_names_not_query_or_literal_decoys (test_structure_data.DataSyntaxTests.test_sql_only_top_level_ddl_names_not_query_or_literal_decoys) ... FAIL
+test_toml_tables_and_nested_array_table_scopes (test_structure_data.DataSyntaxTests.test_toml_tables_and_nested_array_table_scopes) ... FAIL
+test_yaml_document_scopes_without_alias_or_tag_execution (test_structure_data.DataSyntaxTests.test_yaml_document_scopes_without_alias_or_tag_execution) ... FAIL
+
+======================================================================
+FAIL: test_actual_transport_hash_authority_positions_and_no_values (test_structure_data.DataSyntaxTests.test_actual_transport_hash_authority_positions_and_no_values)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 124, in test_actual_transport_hash_authority_positions_and_no_values
+    self.assertEqual(r['coverage'],{'files':4,'parsed':4,'unparsed':0,'unsupported':0})
+AssertionError: {'files': 4, 'parsed': 0, 'unsupported': 4, 'unparsed': 0} != {'files': 4, 'parsed': 4, 'unparsed': 0, 'unsupported': 0}
+- {'files': 4, 'parsed': 0, 'unparsed': 0, 'unsupported': 4}
+?                        ^                                ^
+
++ {'files': 4, 'parsed': 4, 'unparsed': 0, 'unsupported': 0}
+?                        ^                                ^
+
+
+======================================================================
+FAIL: test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values (test_structure_data.DataSyntaxTests.test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 143, in test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values
+    self.assertEqual({r[0]for r in conn.execute('select language from structure_components')},{'sql','json','toml','yaml'})
+AssertionError: Items in the second set but not the first:
+'json'
+'sql'
+'toml'
+'yaml'
+
+======================================================================
+FAIL: test_json_keys_are_unambiguous_and_array_items_distinct (test_structure_data.DataSyntaxTests.test_json_keys_are_unambiguous_and_array_items_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 75, in test_json_keys_are_unambiguous_and_array_items_distinct
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='schema.sql')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 116, in test_missing_grammars_remain_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider));self.assertFalse(v.parsed)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('sql', 'tree-sitter-sql')
+
+First differing element 0:
+'unknown'
+'sql'
+
+- ('unknown', 'file-only')
++ ('sql', 'tree-sitter-sql')
+
+======================================================================
+FAIL: test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 116, in test_missing_grammars_remain_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider));self.assertFalse(v.parsed)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('json', 'tree-sitter-json')
+
+First differing element 0:
+'unknown'
+'json'
+
+- ('unknown', 'file-only')
++ ('json', 'tree-sitter-json')
+
+======================================================================
+FAIL: test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.toml')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 116, in test_missing_grammars_remain_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider));self.assertFalse(v.parsed)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('toml', 'tree-sitter-toml')
+
+First differing element 0:
+'unknown'
+'toml'
+
+- ('unknown', 'file-only')
++ ('toml', 'tree-sitter-toml')
+
+======================================================================
+FAIL: test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) (path='config.yaml')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 116, in test_missing_grammars_remain_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider));self.assertFalse(v.parsed)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('yaml', 'tree-sitter-yaml')
+
+First differing element 0:
+'unknown'
+'yaml'
+
+- ('unknown', 'file-only')
++ ('yaml', 'tree-sitter-yaml')
+
+======================================================================
+FAIL: test_sql_only_top_level_ddl_names_not_query_or_literal_decoys (test_structure_data.DataSyntaxTests.test_sql_only_top_level_ddl_names_not_query_or_literal_decoys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 64, in test_sql_only_top_level_ddl_names_not_query_or_literal_decoys
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_toml_tables_and_nested_array_table_scopes (test_structure_data.DataSyntaxTests.test_toml_tables_and_nested_array_table_scopes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 84, in test_toml_tables_and_nested_array_table_scopes
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_yaml_document_scopes_without_alias_or_tag_execution (test_structure_data.DataSyntaxTests.test_yaml_document_scopes_without_alias_or_tag_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 94, in test_yaml_document_scopes_without_alias_or_tag_execution
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.072s
+
+FAILED (failures=10)

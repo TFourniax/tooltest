@@ -1,0 +1,24 @@
+FAIL: test_decoded_keys_positions_and_invalid_surrogates (test_structure_data.DataSyntaxTests.test_decoded_keys_positions_and_invalid_surrogates)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_data/tests/test_structure_data.py", line 124, in test_decoded_keys_positions_and_invalid_surrogates
+    self.assertEqual([s.qualified_name for s in sql.symbols],['a.sql::public.accounts'])
+AssertionError: Lists differ: [] != ['a.sql::public.accounts']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'a.sql::public.accounts'
+
+- []
++ ['a.sql::public.accounts']
+
+----------------------------------------------------------------------
+Ran 597 tests in 56.131s
+
+FAILED (failures=1, skipped=4)
+certificate: dwv1_be997ba95bfbb3a7b017
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID

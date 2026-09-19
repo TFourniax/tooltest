@@ -1,0 +1,88 @@
+{
+  "schema": "pm-004k-local-1",
+  "classification": "MACHINE",
+  "development_parent": "130b5ed7e7c9bb76db4618a0eb333dc3ab60d3fb",
+  "profile": "structure-providers-7",
+  "full": {
+    "run": 597,
+    "pass": 593,
+    "skips": 4,
+    "seconds": 59.279
+  },
+  "base": {
+    "run": 597,
+    "pass": 556,
+    "skips": 41,
+    "seconds": 58.899
+  },
+  "initial_failed_full": {
+    "run": 597,
+    "fail": 1,
+    "skips": 4,
+    "seconds": 56.131,
+    "reason": "SQL marginalia omission; full suite launched before inspecting failed targeted gate, sequencing mistake preserved"
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20094976,
+    "append_seconds": 0.826186,
+    "full_log_verify_seconds": 0.365281,
+    "rebuild_seconds": 0.826878,
+    "context": {
+      "cold_ms": 19.803,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 17.118,
+        "median": 17.864,
+        "p95": 18.74,
+        "max": 18.74
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_40e5f26ea7ebe57f88b4dbd7",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host; benchmark after both suites and installed protocol. No50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_data.py": "dd2a4f82e891fede9ecf99c4ba489234fa0a555601d0fcc57765b1a6dd84ad58",
+    "src/diffwitness/structure_syntax.py": "27218de38fc091bc47832c8e98cc03ff856bb7033247ee72fa694598ad08db59",
+    "src/diffwitness/structure_registry.py": "263a89a76dba795c6846129081bff405b182a82020e5d4dfced98b0fc99c5f19",
+    "tests/test_structure_data.py": "f1eaf9c3467f5644a96d1cdbde9b3df7120d144e7ca18f365fbd4557fcec152d",
+    "scripts/structure_syntax_acceptance.py": "7a857cbc52a06225ba1a9cf038ce839ad6b063081f0974056834d11e533ac4e4",
+    "pyproject.toml": "e976f36828c347f523a4d34faea78be72bf1387fec823288a5822821844b3c82",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298"
+  },
+  "logs": {
+    "PM_004K_10k.log": "65352816542a6aa91e5898a0ced42e73a1c8515be078ccc98a3b672b64cc6302",
+    "PM_004K_base_install.log": "96fb807cb89852c5035acf9f1c9fd8f2604bc64050a5b67c7dfcea47b0a4b70b",
+    "PM_004K_before.log": "7bbd7e102a46032b3725474a40f4482c65660d3245877c985f63c768feaa8f13",
+    "PM_004K_consumer_install.log": "79df2db17b128dc670f6a4d06c63e3848c74fb9a8bd6980c1516a864ad0103da",
+    "PM_004K_editable.log": "d89112a15caa0ad14410402631b2a424530e7cb6011f7a7c19e843b95652b774",
+    "PM_004K_extra_discovery.log": "e2e7a2b56165e46a7d1ab637a6d00366ae57c398e783d8b80bcba337df6a3b09",
+    "PM_004K_full.log": "fc974f3281ddf412e5d39ad473b156dc954fd8cc53f3e3c02b80ccb06e0bca4f",
+    "PM_004K_full_base.log": "226edbd7d42473b30506c470f632b2ce45389f8880d703cfdcd6d30cd73a16df",
+    "PM_004K_full_final.log": "8aabdfec9b20b3f2af796dc778ca0796d381585014b7bef262e4d3c73b62e50d",
+    "PM_004K_installed.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_004K_pip_check.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004K_probe_install.log": "a208bc9b462176b83c58f0ed4875c08e39e7e15da4df1f91e2bd30985aa9abbf",
+    "PM_004K_structure.log": "ba181cd2443d841e429e141950dbabff24cfbd322587c60a6d72d1e4635b70a4",
+    "PM_004K_structure_reviewed.log": "d22343fd551c1ca2011e0897d97cf3d0c04320c4b663bd4f26a0fa95a8f81d64",
+    "PM_004K_syntax_discovery.log": "3cacca317e3ec7e0d38cfd652fe2ca3f9f7e234bc230284611a46575fa52100b",
+    "PM_004K_targeted_first.log": "e9d67ee3dfbba655135adbc1565a09183b658a3b3f91bdea7fbcb6d3a1b6729f",
+    "PM_004K_targeted_review.log": "1a5136d9242e6637a57b79e725b8ef4e02ac3a7ae18f5a114719997a2f7bf861",
+    "PM_004K_wheel.log": "61683626844559008c4f6d17474c52e0910ae2d07c1af12a726b94650982c78a",
+    "PM_004K_wheels_macos.log": "17f5af29c5071780448ee11074c301a22aa6d0b5d43f0cfcc51db1e53644d364",
+    "PM_004K_wheels_windows.log": "566ff1126658cc667ecb754b5e1b6b558450544b43e9dbcb1f779a57a8130f88"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY"
+}

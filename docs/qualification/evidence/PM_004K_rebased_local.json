@@ -1,0 +1,84 @@
+{
+  "schema": "pm-004k-rebased-local-1",
+  "classification": "MACHINE",
+  "development_parent": "19f81dc01b3b8aedd0487ff865a503746715b5f1",
+  "profile": "structure-providers-7",
+  "full": {
+    "run": 602,
+    "pass": 598,
+    "skips": 4,
+    "seconds": 62.584
+  },
+  "base": {
+    "run": 602,
+    "pass": 560,
+    "skips": 42,
+    "seconds": 58.555
+  },
+  "initial_failed_full": {
+    "run": 597,
+    "fail": 1,
+    "skips": 4,
+    "seconds": 56.131,
+    "reason": "SQL marginalia omission; full suite launched before inspecting failed targeted gate, sequencing mistake preserved"
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20127744,
+    "append_seconds": 0.882979,
+    "full_log_verify_seconds": 0.3863,
+    "rebuild_seconds": 0.835704,
+    "context": {
+      "cold_ms": 18.682,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 16.075,
+        "median": 16.429,
+        "p95": 17.63,
+        "max": 17.63
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_ba3ed8d2ce11ef0d0bdade0b",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host; benchmark after both suites and installed protocol. No50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_data.py": "dd2a4f82e891fede9ecf99c4ba489234fa0a555601d0fcc57765b1a6dd84ad58",
+    "src/diffwitness/structure_syntax.py": "27218de38fc091bc47832c8e98cc03ff856bb7033247ee72fa694598ad08db59",
+    "src/diffwitness/structure_registry.py": "263a89a76dba795c6846129081bff405b182a82020e5d4dfced98b0fc99c5f19",
+    "tests/test_structure_data.py": "f1eaf9c3467f5644a96d1cdbde9b3df7120d144e7ca18f365fbd4557fcec152d",
+    "scripts/structure_syntax_acceptance.py": "22f84898ab813113fdeddb9c5246a5e31fc37b6f9652dac51bc316a8221303e9",
+    "pyproject.toml": "e976f36828c347f523a4d34faea78be72bf1387fec823288a5822821844b3c82",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298",
+    "src/diffwitness/continuity_events.py": "a9c03c13407e38677561ff55a92536e5b1d6ba77533dab1770669efbb3729b9a",
+    "tests/test_continuity_lock.py": "5478d4f7bab152ccfe6bc53c31271fa5876c18e2fe5f8bcebc470053f354fcc9",
+    "src/diffwitness/structure_dynamic.py": "5b7fe2604b53ff58df9f04c75cbcbbd159da11cf70ac5b9775b213338be64406",
+    "tests/test_structure_dynamic.py": "285ed577e18066ebba95f64adbf023d8c5a9969edd0849ae89d3e01f8d1bb79e"
+  },
+  "logs": {
+    "PM_004K_rebased_10k.json": "98974c6b06e35170fa46717b6bfc9693689de00f7bf6f31d3b12f10f621eff07",
+    "PM_004K_rebased_pipcheck.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004K_rebased_full.log": "7edb48947cd38e981c0a261d74f50b441d8264734a64e60adb0f39035be0863c",
+    "PM_004K_rebased_consumer.log": "82ea48e7afea655d978c6754d0921d3f757fa7f64f8b2722563887abaa208ff1",
+    "PM_004K_rebased_wheel.log": "5bec6764631128f64dbea507ddcfac7ee4cc5b67cd8fbfc74d6470923fb213a7",
+    "PM_004K_rebased_base.log": "b6b75dfd235b34e7a1c8134acf9cf4944a89b1a1833dd60ae493bd8669b920fd",
+    "PM_004K_rebased_installed.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_004K_rebased_structure.log": "9c859823aef9cd6d03a840f26ac622c19fda1e08bafacc56d7f53412fd9467e8",
+    "PM_004K_rebased_10k.log": "98974c6b06e35170fa46717b6bfc9693689de00f7bf6f31d3b12f10f621eff07"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "supersedes": "PM_004K_local.json",
+  "qualified_parent": "472108f614f2541af49a4f7de98a81e882de5f81",
+  "structure_tests": 65
+}
