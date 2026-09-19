@@ -44,6 +44,9 @@ def _php_path(node, text):
 
 
 def _literal(node, text):
+    while node is not None and node.type == 'parenthesized_expression':
+        children = [child for child in node.named_children if 'comment' not in child.type]
+        node = children[0] if len(children) == 1 else None
     if node is None or node.type not in {'string', 'encapsed_string'}:
         return None
     raw = text(node)

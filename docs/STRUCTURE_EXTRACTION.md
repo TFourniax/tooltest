@@ -182,3 +182,18 @@ and https://github.com/tree-sitter/tree-sitter-php/blob/v0.24.1/pyproject.toml .
 PHP master0.24.2 was unavailable at package discovery; the released tagged0.24.1
 pin was installed and its cross-platform wheels downloaded. Actual platform
 qualification is required; download availability alone is not a behavior PASS.
+
+## PR review4051931757 — parenthesized PHP paths
+
+Actual regression FAILs before correction: require('client.php'), commented nested
+include_once and triple-parenthesized require_once yield zero rather than three
+static targets. Unwrap only one expression through each parenthesized node; skip
+syntax comments, retain dynamic/concatenation omission. Installed multilingual
+producer now asserts the parenthesized import. Profile6a invalidates initial6.
+
+Final corrected589/585PASS/four skips56.434s;56 structural tests, compile/wheel/
+installed protocol/pip check PASS. Fresh sequential10k append.860561/verify.381102/
+rebuild.795546s,cold22.732/hotp9522.175ms PASS unchanged budgets. Initial base588
+suite remains historical; corrected remote base/full suites must qualify the new
+head. Initial#108 CI state preserved separately and does not qualify this change.
+New exact24+3/review and fresh main required. All evidence remains MACHINE.

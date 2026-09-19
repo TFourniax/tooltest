@@ -20,7 +20,7 @@ sources['Gateway.java'] = b'class Gateway { void refund() {} }\n'
 sources['Gateway.cs'] = b'namespace Payments; public class Gateway { public void Refund() {} }\n'
 sources['Gateway.kt'] = b'class Gateway {\n fun refund() {}\n}\n'
 sources['gateway.rb'] = b'class Gateway; def refund(); end; end\n'
-sources['gateway.php'] = b'<?php namespace Payments; class Gateway { function refund() {} }\n'
+sources['gateway.php'] = b"<?php namespace Payments; require('client.php'); class Gateway { function refund() {} }\n"
 request = {'schema_version': 'structure-request-1', 'files': [
     {'path': name, 'content_base64': base64.b64encode(content).decode()} for name, content in sources.items()]}
 env = {key: value for key, value in os.environ.items() if key != 'PYTHONPATH'}
@@ -49,5 +49,6 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
     assert {s['qualified_name'] for s in by_path['Gateway.kt']['symbols']} == {'Gateway.kt::Gateway', 'Gateway.kt::Gateway.refund'}
     assert {s['qualified_name'] for s in by_path['gateway.rb']['symbols']} == {'gateway.rb::Gateway', 'gateway.rb::Gateway.refund'}
     assert {s['qualified_name'] for s in by_path['gateway.php']['symbols']} == {'gateway.php::Payments.Gateway', 'gateway.php::Payments.Gateway.refund'}
+    assert [i['target'] for i in by_path['gateway.php']['imports']] == ['client.php']
     assert not list(Path(td).iterdir()), 'source-byte extraction must not persist files'
 print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned JS/TS/Go/Rust/Java/Kotlin/C#/Ruby/PHP, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')

@@ -126,6 +126,13 @@ class DynamicSyntaxTests(unittest.TestCase):
                 self.assertEqual(conn.execute("select count(*) from structure_edges where predicate='calls-name'").fetchone()[0],0)
 
 
+    @unittest.skipUnless(AVAILABLE,'actual optional Ruby/PHP grammars not installed')
+    def test_php_parenthesized_static_include_paths_keep_edges_without_dynamic_guesses(self):
+        source="<?php require('client.php'); include_once(( /* comment */ \"config.php\" )); require_once((('nested.php'))); include($dynamic); require('part' . '/dynamic.php');"
+        value=self.extract('a.php',source)
+        self.assertTrue(value.parsed)
+        self.assertEqual([i.target for i in value.imports],['client.php','config.php','nested.php'])
+
     def test_missing_grammars_are_recognized_empty(self):
         for (p,s,language,provider),package in zip(FIXTURES,PACKAGES[1:]):
             with self.subTest(path=p),patch.dict(sys.modules,{package:None}):
