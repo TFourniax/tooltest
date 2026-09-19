@@ -1,0 +1,93 @@
+{
+  "schema": "pm-004i-local-1",
+  "classification": "MACHINE",
+  "parent": "0c342bc2fb12edb2d58da39958e3c0667a22a1db",
+  "profile": "structure-providers-5",
+  "full": {
+    "run": 579,
+    "pass": 575,
+    "skips": 4,
+    "seconds": 56.217
+  },
+  "base": {
+    "run": 579,
+    "pass": 554,
+    "skips": 25,
+    "seconds": 56.545
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20086784,
+    "append_seconds": 0.875599,
+    "full_log_verify_seconds": 0.358022,
+    "rebuild_seconds": 0.811659,
+    "context": {
+      "cold_ms": 15.791,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 14.464,
+        "median": 14.968,
+        "p95": 15.244,
+        "max": 15.244
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_4acd053993554cb93fdeb402",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host; benchmark after both complete suites, no local measurement overlap. Not a final50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_managed.py": "6ae5ed56be221914c973cb080642156f3bbc3d787ef79df3e967b4072d2b7b18",
+    "src/diffwitness/structure_syntax.py": "3fcb4075613d07c9630523c58e342b96bdef824d6b340cbfe835e15125d48846",
+    "src/diffwitness/structure_registry.py": "052a4fb8d51eaa36827817f5cb4e0394dab78f601da7f5dd19a98c2e0344d37f",
+    "tests/test_structure_managed.py": "e806230d6bf6c3019e18b8082fa38760a86efe8dd0257155af4adb26b301cce7",
+    "scripts/structure_syntax_acceptance.py": "ccfc675a3b5c052bd997be7b450093acbc51da3c31c2df8dd9e08aaeb8b7f564",
+    "pyproject.toml": "b6c5478108cb6d6c197d8670126c0b12e0d2ed47a43528ba8219a61fc03041b0",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298"
+  },
+  "logs": {
+    "PM_004I_10k.log": "348b5b19cb27420786cca962799fcdd03473aa7ab01ea95fc479a09f8c7724e7",
+    "PM_004I_base_editable.log": "397e22374b3e857b7919bbe56de9dc0beb8260057206d63ed37cd336a1e67b73",
+    "PM_004I_before.log": "55079ef398ad4a45542aa1fa91374f1eaa29404efe997d8ca9bbe6c7f48f394e",
+    "PM_004I_editable.log": "e808770733d27928959c43ef97eb10b617dbcc04132c191d12d2a0fe6ab07ebf",
+    "PM_004I_full.log": "d37161ea78ae89a21c2b92f0bc6565c7b19df615f798bd00a157a4cebcda6f24",
+    "PM_004I_full_base.log": "75ce93fbdb1e347fe1dea1e3b51eaa51f7da22820b7f660dcb472864b33dd53e",
+    "PM_004I_full_final.log": "348d00e4f377b6e7ccaeef266185ca53efad7f3e53e7d5268795d22cd8c8ff14",
+    "PM_004I_install.log": "a4e67a4f27f657d859ca520561ac64559941973071406fae121200bf14dfb708",
+    "PM_004I_installed.log": "6349cfb9e103b1695b477dc636305017215ce5aaababcee63eba6f85167c6e05",
+    "PM_004I_kind_review_before.log": "12af47eb2710509b34729d9a64e5cf2fcafe7181cc06d5c4346e83f2ec2e4964",
+    "PM_004I_macos_wheels.log": "9495dd6755d63f7351dafbeec22835d5521246d0c44c2529cea6c504248e8493",
+    "PM_004I_optional_install.log": "6e7617e90a39cc6d0e4155e165d692ce05ae0c04e00452bba923f27d777b493e",
+    "PM_004I_raw_strings.log": "e92b0ffd03bb5447a0dbd23d6627ba8b9193e54e2b435416328ff01c3080cf06",
+    "PM_004I_structure.log": "59556b5f857b8d4802f69e174582a57e7e47b1139565260c8c81d0d8175f3fb3",
+    "PM_004I_structure_review.log": "a3f09835a5f098ec1f5632eb3dd91ff8ce1704669cf8847920e3d4a6ff6d0910",
+    "PM_004I_wheel.log": "aade189b50fa9b5eebae313730a8463fc44448df3d735f028ef91bd9143f610d",
+    "PM_004I_windows_wheels.log": "d781d9c1502252f0c070550d56a2035fc24d03997c77876e76a7b8c3e60ee190",
+    "PM_004I_integrated.log": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136"
+  },
+  "failures": [
+    "initial7 methods yield8 assertions",
+    "Kotlin class_declaration classification omits interface/enum/annotation/signature kinds before review correction"
+  ],
+  "limits": [
+    "overload identity conflicts empty/unparsed",
+    "pinned Kotlin compact member syntax empty/unparsed",
+    "semantic/package/build/conditional resolution not implemented",
+    "consumer adoption and other languages still open"
+  ],
+  "archive_note": "Archived failure logs remove trailing whitespace; original outputs and their hashes preserved.",
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "sidecar_pin": "042c94c7883cd47ca7cc6962398ec4e223039489",
+  "sidecar_exact_main_gate": "35413691822 16/16 PASS",
+  "integrated_exact_sidecar_artifacts": "PASS with qualified IdleProof042c94c7883cd47ca7cc6962398ec4e223039489"
+}
