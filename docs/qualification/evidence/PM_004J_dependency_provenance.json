@@ -1,0 +1,42 @@
+{
+  "sources": [
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-ruby\"\ndescription = \"Ruby grammar for tree-sitter\"\nversion = \"0.23.1\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"ruby\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"License :: OSI Approved :: MIT License\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [\n  { name = \"Max Brunsfeld\", email = \"maxbrunsfeld@gmail.com\" },\n  { name = \"Amaan Qureshi\", email = \"amaanq12@gmail.com\" },\n]\nrequires-python = \">=3.9\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter/tree-sitter-ruby\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.22\"]\n\n[tool.cibuildwheel]\nbuild = \"cp39-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "03642904b2d113322f97434eaca65025ddbab361",
+      "display_url": "https://github.com/tree-sitter/tree-sitter-ruby/blob/master/pyproject.toml",
+      "display_title": "pyproject.toml"
+    },
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-php\"\ndescription = \"PHP grammar for tree-sitter\"\nversion = \"0.24.2\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"php\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [\n  { name = \"Max Brunsfeld\", email = \"maxbrunsfeld@gmail.com\" },\n  { name = \"Amaan Qureshi\", email = \"amaanq12@gmail.com\" },\n]\nrequires-python = \">=3.10\"\nlicense = \"LICENSE\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter/tree-sitter-php\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.24\"]\n\n[tool.cibuildwheel]\nbuild = \"cp310-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "1103a9b146da3f09eeefb25deb3dc122bd6c5a76",
+      "display_url": "https://github.com/tree-sitter/tree-sitter-php/blob/master/pyproject.toml",
+      "display_title": "pyproject.toml"
+    },
+    {
+      "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-sql\"\ndescription = \"Tree-sitter Grammar for SQL\"\nversion = \"0.3.11\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"sql\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"License :: OSI Approved :: MIT License\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [{ name = \"derek stride\" }]\nrequires-python = \">=3.10\"\nlicense.text = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/derekstride/tree-sitter-sql.git\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.25\"]\n\n[tool.cibuildwheel]\nbuild = \"cp310-*\"\nbuild-frontend = \"build\"\n",
+      "encoding": "utf-8",
+      "sha": "72992c2b9a0fe73e3e7b8e5247aeb92c33c2136f",
+      "display_url": "https://github.com/DerekStride/tree-sitter-sql/blob/main/pyproject.toml",
+      "display_title": "pyproject.toml"
+    }
+  ],
+  "classification": "primary manifest discovery only; no new parser behavior qualified",
+  "php_pin": "0.24.1",
+  "php_master_0.24.2": "Not available from package index; initial install failed. Released tagged0.24.1 selected.",
+  "binary_downloads": {
+    "tree_sitter_php-0.24.1-cp310-abi3-win_amd64.whl": "1a1b65b72a8410d421f914ee13d38fd546a94d01cb834f69b27c78ba7589a5b5",
+    "tree_sitter_ruby-0.23.1-cp39-abi3-win_amd64.whl": "02e2c19ebefe29226c14aa63e11e291d990f5b5c20a99940ab6e7eda44e744e5",
+    "tree_sitter_ruby-0.23.1-cp39-abi3-macosx_11_0_arm64.whl": "aa4ee7433bd42fac22e2dad4a3c0f332292ecf482e610316828c711a0bb7f794",
+    "tree_sitter_php-0.24.1-cp310-abi3-macosx_11_0_arm64.whl": "29759c67d4c27a68c227ed82c0b7e4699617b1bd23757d50c081f81a12b4f80d"
+  },
+  "note": "Downloads establish wheel availability only; all3OS actual execution still required.",
+  "php_released_manifest": {
+    "content": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"tree-sitter-php\"\ndescription = \"PHP grammar for tree-sitter\"\nversion = \"0.24.1\"\nkeywords = [\"incremental\", \"parsing\", \"tree-sitter\", \"php\"]\nclassifiers = [\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Compilers\",\n  \"Topic :: Text Processing :: Linguistic\",\n  \"Typing :: Typed\",\n]\nauthors = [\n  { name = \"Max Brunsfeld\", email = \"maxbrunsfeld@gmail.com\" },\n  { name = \"Amaan Qureshi\", email = \"amaanq12@gmail.com\" },\n]\nrequires-python = \">=3.10\"\nlicense = \"MIT\"\nreadme = \"README.md\"\n\n[project.urls]\nHomepage = \"https://github.com/tree-sitter/tree-sitter-php\"\n\n[project.optional-dependencies]\ncore = [\"tree-sitter~=0.24\"]\n\n[tool.cibuildwheel]\nbuild = \"cp310-*\"\nbuild-frontend = \"build\"\n",
+    "encoding": "utf-8",
+    "sha": "2d906fa37765c062aa00d9c7902b5a6cec60ed9b",
+    "display_url": "https://github.com/tree-sitter/tree-sitter-php/blob/v0.24.1/pyproject.toml",
+    "display_title": "pyproject.toml"
+  }
+}

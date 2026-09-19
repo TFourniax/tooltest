@@ -148,3 +148,37 @@ skips. Other languages, all consumers and enhanced standalone distribution remai
 open. Grammar version/API sources: [Java](https://github.com/tree-sitter/tree-sitter-java/blob/master/pyproject.toml),
 [Kotlin](https://github.com/tree-sitter-grammars/tree-sitter-kotlin/blob/master/pyproject.toml),
 [C#](https://github.com/tree-sitter/tree-sitter-c-sharp/blob/master/pyproject.toml).
+
+
+## Optional Ruby and PHP syntax
+
+The same structure extra adds Ruby0.23.1 and PHP0.24.1 for .rb and .php,
+provider names tree-sitter-ruby/tree-sitter-php. Source-byte transport and
+immutable-tree indexing share the same native250ms/no-callback boundary, exact
+package admission and source/hash/authority contract. Profile6 refreshes prior
+projections. Python remains dependency-free; absent grammars remain recognized
+empty/unparsed. Nothing installs packages or executes project code at runtime.
+
+Ruby lexical modules/classes, instance methods and self singleton methods have
+source-bound names. PHP block/semicolon/global namespaces, named classes/interfaces/
+traits/enums and methods/signatures retain lexical scope. Static quoted Ruby
+require/require_relative and PHP use/require/include references are observed
+syntax; require_relative receives an explicit ./ prefix if necessary. This does
+not establish package ownership, filesystem resolution or execution. Ruby/PHP
+identifier-only call expressions are INFERRED; ambiguous bare Ruby identifiers
+are not guessed to be calls. PHP call targets are not linked by bare name because
+the contract lacks call namespace and cannot safely choose between homonyms.
+
+Comments, ordinary strings and heredoc/nowdoc bodies do not invent declarations.
+Real interpolation calls remain syntax. Escaped/interpolated/dynamic import paths,
+computed singleton receivers, generated/nested runtime declarations, metaprogramming,
+package/type resolution and dispatch are omitted. Duplicate name/kind identities,
+including repeated class reopening in one Ruby file, remain empty/unparsed rather
+than arbitrarily selecting one declaration. Grammar acceptance is not runtime
+correctness. Other suffixes, SQL/config and all consumer adoption remain separate.
+
+Primary manifests: https://github.com/tree-sitter/tree-sitter-ruby/blob/master/pyproject.toml
+and https://github.com/tree-sitter/tree-sitter-php/blob/v0.24.1/pyproject.toml .
+PHP master0.24.2 was unavailable at package discovery; the released tagged0.24.1
+pin was installed and its cross-platform wheels downloaded. Actual platform
+qualification is required; download availability alone is not a behavior PASS.

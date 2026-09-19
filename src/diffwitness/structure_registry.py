@@ -11,7 +11,7 @@ from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
 
 SUPPORTED_SUFFIXES = ('.py', *SPECS)
 # Bump when extraction/resolution semantics change even with identical grammars.
-PROVIDER_PROFILE = 'structure-providers-5'
+PROVIDER_PROFILE = 'structure-providers-6'
 
 
 def provider_profile() -> str:

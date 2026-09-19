@@ -1,0 +1,82 @@
+{
+  "schema": "pm-004j-local-1",
+  "classification": "MACHINE",
+  "development_parent": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+  "profile": "structure-providers-6",
+  "full": {
+    "run": 588,
+    "pass": 584,
+    "skips": 4,
+    "seconds": 56.951
+  },
+  "base": {
+    "run": 588,
+    "pass": 555,
+    "skips": 33,
+    "seconds": 58.054
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20127744,
+    "append_seconds": 0.841207,
+    "full_log_verify_seconds": 0.36129,
+    "rebuild_seconds": 0.826792,
+    "context": {
+      "cold_ms": 17.837,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 14.983,
+        "median": 15.448,
+        "p95": 16.245,
+        "max": 16.245
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_3ea1c5455572d34be68a8357",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host;10k after both complete suites and package checks. No50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_dynamic.py": "62fb17f6dcdc246fff664bca9f0e0e797180a957d5a22bdef2a63a5b7c1c65e5",
+    "src/diffwitness/structure_syntax.py": "dcae2178864b30df33eb653b3753ca40bf10a550486efdf64938edf18b0e8d15",
+    "src/diffwitness/structure_registry.py": "82986fa6bd7482b0a9242a1a24c51a777771e89e1a9062f1b43c341f0ec96967",
+    "tests/test_structure_dynamic.py": "9a4b159543f552f8f0da4b886d521e5f4674f81fdd1eb7fa952f0107cc61d5bc",
+    "scripts/structure_syntax_acceptance.py": "63e6db4ef844690c70a1a83b73159b39e5c8c5ff4e89714962f4826eb157f0f2",
+    "pyproject.toml": "b477fa328c56b623f5a2dbf76e5acc91e2cdeaf93adeb50515235ae9dd033a73",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298"
+  },
+  "logs": {
+    "PM_004J_10k.log": "65959a5106e244df75258063f71fae9325b192e07e1b46d3156a9180dbb1ebc7",
+    "PM_004J_base_install.log": "8e1e7c4e2e305d633a112b126ee81f57eb078102a20a1833616d9223a6d9d43e",
+    "PM_004J_before.log": "927af8ef06000d31b0ad512320e4e69b2a1822f5122728d00b34914ddff14d55",
+    "PM_004J_consumer_install.log": "c31f7358eb9a271183efa986a312c8292819c03563eec6526037467d67c13aac",
+    "PM_004J_editable.log": "a0549848825ec5a2b4f0a800a8af61ee96be7cdfb82c8fad672b51d46d547fac",
+    "PM_004J_full.log": "2682ab64b6d65ea6ac3030a08fa453e73375f43b0d1a3fda546f7aaea66dd631",
+    "PM_004J_full_base.log": "371d9edc5ee2a0746d62cea62399570f75c5af83692f9e67d7eced7a76787624",
+    "PM_004J_installed.log": "64502ddf4a592186f10baf2390c4d1c91a9a0bb4db22ab3fe1c718ba5cbe7a30",
+    "PM_004J_namespace_review_before.log": "5bb9ccb49db87f136637859cf3f8b14dec1ce87ae20eee974a5015efccef558a",
+    "PM_004J_pip_check.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004J_probe_install.log": "3aa625ae6f23ef382e4238bcb865c41a9cfc30c349840c5faeb779d99bf833c9",
+    "PM_004J_probe_install_retry.log": "b982b801826f89928e8a6f8c38e23028db445405c302d9d9454a8851b698d10d",
+    "PM_004J_scope_discovery.log": "ba99277d697077ae76bf6d7d4228626341cd0a0aee061e16319183314501ea27",
+    "PM_004J_structure.log": "54724e32e4715feb7a85a13a94c63f45dabdd496d466412f6b7f80c7de1e7bfc",
+    "PM_004J_syntax_discovery.log": "c55920fda833c1050df0e8feea014b1196644a4758fd99a05ba64698b3584971",
+    "PM_004J_targeted_first.log": "1ea26b287c654a1095474fbe21ad3758eccd8ab0d40d2ce34c9fdd1fea2bb3d5",
+    "PM_004J_wheel.log": "e967e7b09f4e756d9090e1300bb800ab6774316bcb5484e7ff1f4b385184adae",
+    "PM_004J_wheels_macos.log": "dfa742e4aad5ae48e8e1827b5aca7bc2396367ff8e89c934e32afbb25480c961",
+    "PM_004J_wheels_windows.log": "d66a017603d5eff686d42d1210f780fefdb11bdd92b3a8ba4e80de063deef8b9"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "qualified_parent": "a47c6d5b657aae993e6ab58eb66a4473386431f8",
+  "parent_gate": "35414513294 24/24 +three companions PASS"
+}

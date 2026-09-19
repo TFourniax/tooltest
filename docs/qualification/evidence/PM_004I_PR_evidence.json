@@ -1,0 +1,349 @@
+{
+  "schema": "diffwitness-qualification-1",
+  "classification": "MACHINE",
+  "unit": "PM-004i",
+  "repository": "TFourniax/tooltest",
+  "pull_request": 107,
+  "sha": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+  "tree": "2283e4bb7c9c2a05fe5de77324f0c7103acd3e5d",
+  "runs": [
+    {
+      "id": 35413970860,
+      "name": "continuitybench",
+      "head_sha": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+      "event": "pull_request",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970860",
+      "jobs": [
+        {
+          "id": 105818843643,
+          "name": "continuitybench",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970860/job/105818843643"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10575396668,
+          "name": "continuitybench-10k",
+          "digest": "sha256:1b573292067a7ee592132ed4e66eb2beff884a7d6b9e3ea4ed3fd11c5c3c9fe8",
+          "size_in_bytes": 445,
+          "expired": false
+        }
+      ]
+    },
+    {
+      "id": 35413970862,
+      "name": "integrated-product-smoke",
+      "head_sha": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+      "event": "pull_request",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970862",
+      "jobs": [
+        {
+          "id": 105818843675,
+          "name": "Native Understand \u2192 Prove \u2192 Owe \u2192 Continuity / exact artifacts",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970862/job/105818843675"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "id": 35413970907,
+      "name": "test",
+      "head_sha": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+      "event": "pull_request",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907",
+      "jobs": [
+        {
+          "id": 105818843787,
+          "name": "composite Action end-to-end",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843787"
+        },
+        {
+          "id": 105818843874,
+          "name": "fatal static checks",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843874"
+        },
+        {
+          "id": 105818843898,
+          "name": "test (ubuntu-latest, 3.11)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843898"
+        },
+        {
+          "id": 105818843901,
+          "name": "release package preflight",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843901"
+        },
+        {
+          "id": 105818843924,
+          "name": "test (windows-latest, 3.11)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843924"
+        },
+        {
+          "id": 105818843929,
+          "name": "test (ubuntu-latest, 3.12)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843929"
+        },
+        {
+          "id": 105818843933,
+          "name": "test (windows-latest, 3.14)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843933"
+        },
+        {
+          "id": 105818843938,
+          "name": "test (windows-latest, 3.12)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843938"
+        },
+        {
+          "id": 105818843960,
+          "name": "test (macos-latest, 3.14)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843960"
+        },
+        {
+          "id": 105818843961,
+          "name": "test (ubuntu-latest, 3.13)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843961"
+        },
+        {
+          "id": 105818843963,
+          "name": "installed wheel commercial-alpha journeys (macos-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843963"
+        },
+        {
+          "id": 105818843972,
+          "name": "installed wheel commercial-alpha journeys (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843972"
+        },
+        {
+          "id": 105818843974,
+          "name": "test (macos-latest, 3.13)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843974"
+        },
+        {
+          "id": 105818843981,
+          "name": "test (windows-latest, 3.13)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818843981"
+        },
+        {
+          "id": 105818844003,
+          "name": "installed optional syntax providers (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844003"
+        },
+        {
+          "id": 105818844027,
+          "name": "installed wheel commercial-alpha journeys (ubuntu-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844027"
+        },
+        {
+          "id": 105818844030,
+          "name": "installed optional syntax providers (macos-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844030"
+        },
+        {
+          "id": 105818844039,
+          "name": "standalone binary (macos-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844039"
+        },
+        {
+          "id": 105818844049,
+          "name": "test (macos-latest, 3.11)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844049"
+        },
+        {
+          "id": 105818844051,
+          "name": "installed optional syntax providers (ubuntu-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844051"
+        },
+        {
+          "id": 105818844066,
+          "name": "standalone binary (ubuntu-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844066"
+        },
+        {
+          "id": 105818844103,
+          "name": "standalone binary (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844103"
+        },
+        {
+          "id": 105818844149,
+          "name": "test (macos-latest, 3.12)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844149"
+        },
+        {
+          "id": 105818844155,
+          "name": "test (ubuntu-latest, 3.14)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970907/job/105818844155"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10575955502,
+          "name": "unittest-Windows-py3.13",
+          "digest": "sha256:ea0790538ff9179d4972eeb0546f5223e19ff28e970300a55576ac30071d2111",
+          "size_in_bytes": 23293,
+          "expired": false
+        },
+        {
+          "id": 10575765516,
+          "name": "unittest-macOS-py3.14",
+          "digest": "sha256:1473bae66ba5a460c94fade98dbe7e02153acfba608ce2d0c7e13c8236759fd3",
+          "size_in_bytes": 23144,
+          "expired": false
+        },
+        {
+          "id": 10575635566,
+          "name": "unittest-Linux-py3.14",
+          "digest": "sha256:467ab9ece5b331d2b1950ae693f511008f6c50b5be685ccb87b81813c4e0b71b",
+          "size_in_bytes": 23058,
+          "expired": false
+        },
+        {
+          "id": 10575560613,
+          "name": "diffwitness-self-health",
+          "digest": "sha256:2c6af9667ecd0cfa975fe84ab7c57a5026c3e90af93b3390dd0c375fb6913c76",
+          "size_in_bytes": 4992,
+          "expired": false
+        },
+        {
+          "id": 10575485826,
+          "name": "unittest-Windows-py3.14",
+          "digest": "sha256:55e7bee448f9a1f5cae91fcf26d4b6ff903aa7fe2932870157424f89ca7fde56",
+          "size_in_bytes": 23314,
+          "expired": false
+        },
+        {
+          "id": 10575465817,
+          "name": "unittest-Linux-py3.12",
+          "digest": "sha256:b3b30a56ba6308ba6b17bcc6559edb8a578cdfa83994be0f5ea60b060f3b8d18",
+          "size_in_bytes": 22949,
+          "expired": false
+        },
+        {
+          "id": 10575462019,
+          "name": "unittest-Windows-py3.12",
+          "digest": "sha256:b0bf97b3ab444ff03e059d3530cfdf85f293ea8a95d8eff46f4a4483667c0a87",
+          "size_in_bytes": 23309,
+          "expired": false
+        },
+        {
+          "id": 10575306829,
+          "name": "unittest-Linux-py3.13",
+          "digest": "sha256:d641b3a8a532a8af18805b7419bde276cdba4a9dfa00bd03ec5adf626b6bc9d7",
+          "size_in_bytes": 23023,
+          "expired": false
+        },
+        {
+          "id": 10575257021,
+          "name": "unittest-Linux-py3.11",
+          "digest": "sha256:9401e5ea9eb1fcbd01c353e6b85401584161cd8563c4bae1fae1a55c6786842e",
+          "size_in_bytes": 22929,
+          "expired": false
+        },
+        {
+          "id": 10575037151,
+          "name": "preflight-python-distributions",
+          "digest": "sha256:3ee234176d321f63f6e66fe86a0a98c1c9f6ed9a1339e0dc10eee623380e9ebe",
+          "size_in_bytes": 779191,
+          "expired": false
+        },
+        {
+          "id": 10574987463,
+          "name": "unittest-macOS-py3.13",
+          "digest": "sha256:a42bfe13709a64ae63857ca1eec4d53b2d8d996f31d29dc211728dfb4317009c",
+          "size_in_bytes": 23139,
+          "expired": false
+        },
+        {
+          "id": 10574957445,
+          "name": "unittest-macOS-py3.11",
+          "digest": "sha256:98c1e2d3a46437856865ad8b9ee14fc3e5a160c9f105aaa5fce4928c4ef835e7",
+          "size_in_bytes": 23125,
+          "expired": false
+        },
+        {
+          "id": 10574927568,
+          "name": "unittest-macOS-py3.12",
+          "digest": "sha256:51b74b101679aa64d830df3dbf2b125045764ce5ac3b47099992c7b61bc8d7fa",
+          "size_in_bytes": 23131,
+          "expired": false
+        },
+        {
+          "id": 10574912625,
+          "name": "unittest-Windows-py3.11",
+          "digest": "sha256:12cbc3ac13c3e80f1de89c76b50ccc55e92a889f09cb1f0eb4f818c2273d667f",
+          "size_in_bytes": 23314,
+          "expired": false
+        }
+      ]
+    },
+    {
+      "id": 35413970861,
+      "name": "proofbench",
+      "head_sha": "c93a4cce065fb3514a6013a5e62059cc12b0ac84",
+      "event": "pull_request",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970861",
+      "jobs": [
+        {
+          "id": 105818843736,
+          "name": "causal semantics benchmark",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest/actions/runs/35413970861/job/105818843736"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 10574753863,
+          "name": "proofbench-results",
+          "digest": "sha256:24affaa7257af7f982bcb57680c368e3a93cc8fe9e7e64deffdf3b99b16cbb1a",
+          "size_in_bytes": 447,
+          "expired": false
+        }
+      ]
+    }
+  ],
+  "review": {
+    "inline_findings": [],
+    "review_submissions": [],
+    "bot_reaction": {
+      "id": 514301138,
+      "content": "+1",
+      "user": "chatgpt-codex-connector[bot]"
+    },
+    "implementing_agent": "actual syntax field/source/authority/scope/consumer review; Kotlin kind regression failed then corrected before publication",
+    "synthetic_merge": "ba1dd67d1597286f926e9406691cf587718e37cf",
+    "tree": "2283e4bb7c9c2a05fe5de77324f0c7103acd3e5d",
+    "monitoring_note": "Live logs for3 still-running Windows jobs returned404 BlobNotFound; final job results and diagnostic artifact metadata fetched successfully. No rerun or timeout/budget change."
+  }
+}
