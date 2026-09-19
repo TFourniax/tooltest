@@ -54,11 +54,12 @@ def _syntax_import_component(relative: str, target: str, components: dict[str, s
     if base == '..' or base.startswith('../') or base.startswith('/'):
         return None
     candidates = [base]
-    if not posixpath.splitext(base)[1]:
-        suffixes = [suffix for suffix in SUPPORTED_SUFFIXES if suffix != '.py']
+    suffixes = ('.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts')
+    if posixpath.splitext(base)[1] not in suffixes:
         candidates += [base + suffix for suffix in suffixes]
         candidates += [base + '/index' + suffix for suffix in suffixes]
-    matches = {components[path] for path in candidates if path in components}
+    matches = {components[path] for path in candidates
+               if path in components and posixpath.splitext(path)[1] in suffixes}
     return next(iter(matches)) if len(matches) == 1 else None
 
 

@@ -10,7 +10,8 @@ from .structure_python import extract_python
 from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
 
 SUPPORTED_SUFFIXES = ('.py', *SPECS)
-PROVIDER_PROFILE = 'structure-providers-1'
+# Bump when extraction/resolution semantics change even with identical grammars.
+PROVIDER_PROFILE = 'structure-providers-2'
 
 
 def provider_profile() -> str:

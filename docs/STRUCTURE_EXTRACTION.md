@@ -74,3 +74,12 @@ listed JS/TS syntax; it does not complete all requested languages or consumers.
 Primary parser references: [Python binding](https://github.com/tree-sitter/py-tree-sitter),
 [JavaScript grammar](https://github.com/tree-sitter/tree-sitter-javascript),
 [TypeScript grammar](https://github.com/tree-sitter/tree-sitter-typescript).
+
+
+Ambient TypeScript wrappers (`declare`, including exported declarations) and
+function/class-method signatures are retained as observed syntax. Signatures
+have distinct kinds and no local runtime-call binding. Dotted extensionless
+basenames such as `widget.test` resolve only when exactly one supported JS/TS
+source candidate is captured; other-language sources are never selected by that
+resolver. The extraction profile is versioned when adapter/resolver semantics
+change so existing projections cannot retain the superseded behavior.

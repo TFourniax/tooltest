@@ -86,26 +86,35 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
 
     declarations = {
         'function_declaration': 'function', 'generator_function_declaration': 'generator-function',
+        'function_signature': 'function-signature',
         'class_declaration': 'class', 'abstract_class_declaration': 'class',
         'interface_declaration': 'interface', 'type_alias_declaration': 'type-alias',
         'enum_declaration': 'enum',
     }
     for statement in tree.root_node.named_children:
-        declaration = statement.child_by_field_name('declaration') if statement.type == 'export_statement' else statement
+        declaration = statement
+        while declaration is not None and declaration.type in {'export_statement', 'ambient_declaration'}:
+            if declaration.type == 'export_statement':
+                declaration = declaration.child_by_field_name('declaration')
+            else:
+                declaration = next((child for child in declaration.named_children if child.type != 'comment'), None)
         if declaration is not None:
             name = declaration.child_by_field_name('name')
             if declaration.type in declarations and name is not None:
                 kind = declarations[declaration.type]
                 if kind == 'function' and any(child.type == 'async' for child in declaration.children):
                     kind = 'async-function'
-                symbol(declaration, text(name), kind, callable_name='function' in kind)
+                symbol(declaration, text(name), kind,
+                       callable_name=kind in {'function', 'async-function', 'generator-function'})
                 if kind == 'class':
                     body = declaration.child_by_field_name('body')
                     for member in body.named_children if body is not None else ():
                         member_name = member.child_by_field_name('name')
-                        if (member.type == 'method_definition' and member_name is not None
+                        if (member.type in {'method_definition', 'method_signature', 'abstract_method_signature'} and member_name is not None
                                 and member_name.type in {'property_identifier', 'private_property_identifier'}):
                             member_kind = 'async-method' if any(child.type == 'async' for child in member.children) else 'method'
+                            if member.type != 'method_definition':
+                                member_kind += '-signature'
                             symbol(member, text(member_name), member_kind, parent=text(name))
             elif declaration.type in {'lexical_declaration', 'variable_declaration'}:
                 for variable in declaration.named_children:

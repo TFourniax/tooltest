@@ -83,6 +83,23 @@ export const settle = (value: number): number => value;
         self.assertEqual((value.symbols, value.imports, value.calls), ((), (), ()))
 
     @unittest.skipUnless(AVAILABLE, 'optional actual JS/TS parsers not installed')
+    def test_ambient_typescript_declarations_are_observed_syntax(self):
+        value = self.extract('api.d.ts', 'declare function load(): void;\nexport declare class Service { run(): void; }\n')
+        self.assertTrue(value.parsed)
+        self.assertEqual({symbol.qualified_name for symbol in value.symbols},
+                         {'api.d.ts::load', 'api.d.ts::Service', 'api.d.ts::Service.run'})
+        self.assertTrue(all(symbol.epistemic_status == 'OBSERVED' for symbol in value.symbols))
+        self.assertTrue(all(symbol.local_call_name is None for symbol in value.symbols))
+
+    def test_dotted_basename_import_resolves_only_one_supported_source(self):
+        from diffwitness.structure_provider import _syntax_import_component
+        self.assertEqual(_syntax_import_component('lib/main.ts', './widget.test',
+                                                 {'lib/widget.test.ts': 'target'}), 'target')
+        self.assertIsNone(_syntax_import_component('lib/main.ts', './widget.test',
+                                                  {'lib/widget.test.ts': 'ts', 'lib/widget.test.js': 'js'}))
+        self.assertIsNone(_syntax_import_component('lib/main.ts', './worker.py', {'lib/worker.py': 'python'}))
+
+    @unittest.skipUnless(AVAILABLE, 'optional actual JS/TS parsers not installed')
     def test_malformed_encoding_syntax_and_bounds_fail_empty(self):
         from diffwitness import structure_syntax
         for source in [b'\xff', b'function good() {}\nfunction broken(', b'const note = "unterminated;',
