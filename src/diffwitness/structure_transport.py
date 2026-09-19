@@ -3,15 +3,12 @@ from __future__ import annotations
 
 import base64
 import binascii
-import hashlib
 import json
 import sys
 from dataclasses import asdict
-from pathlib import PurePosixPath
 
 from .json_contract import strict_json_loads
-from .structure_contract import FileExtraction, validate_extraction
-from .structure_python import extract_python
+from .structure_registry import extract_structure
 from .structure_sources import MAX_SOURCE_FILE_BYTES
 
 REQUEST_SCHEMA = "structure-request-1"
@@ -54,14 +51,8 @@ def extract_request(request: object) -> dict:
     files = []
     coverage = {"files": len(sources), "parsed": 0, "unsupported": 0, "unparsed": 0}
     for path, content in sources:
-        if PurePosixPath(path).suffix == ".py":
-            result = extract_python(path, content)
-            validate_extraction(result, path, content)
-            coverage["parsed" if result.parsed else "unparsed"] += 1
-        else:
-            result = FileExtraction(path, "unknown", "file-only", hashlib.sha256(content).hexdigest(), "", False)
-            validate_extraction(result, path, content, language="unknown", provider="file-only")
-            coverage["unsupported"] += 1
+        result = extract_structure(path, content)
+        coverage['unsupported' if result.provider == 'file-only' else 'parsed' if result.parsed else 'unparsed'] += 1
         files.append(asdict(result))
     return {"schema_version": RESPONSE_SCHEMA, "files": files, "coverage": coverage}
 

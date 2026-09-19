@@ -1,0 +1,14 @@
+{
+  "schema": "pm004f-callback-diagnostic-1",
+  "classification": "MACHINE",
+  "python": "3.12.14",
+  "initial_runtime": "0.26.0",
+  "isolated_runtime": "0.25.2",
+  "returncode": -11,
+  "stdout": "runtime 0.25.2\n",
+  "stderr": "Fatal Python error: Segmentation fault\n\nCurrent thread 0x00007f5dd1001740 (most recent call first):\n  File \"<string>\", line 7 in <module>\n\nExtension modules: tree_sitter_javascript._binding (total: 1)\n",
+  "reproduction": "from tree_sitter import Language, Parser\nimport tree_sitter_javascript as js\nfrom importlib.metadata import version\nsource = b'const template = `function imaginary() {} ${helper(1)}`;\\nexport function actual(x) { return helper(x); }\\n'\nprint('runtime', version('tree-sitter'), flush=True)\nparser = Parser(Language(js.language()))\nparser.parse(lambda offset, point: source[offset:offset+4096], progress_callback=lambda offset, error: False)\n",
+  "native_conversion_diagnostic": "Py_BuildValue(\"Ip\", 0, 0) raises SystemError: bad format char passed to Py_BuildValue on Python 3.12.14",
+  "source_review": "https://github.com/tree-sitter/py-tree-sitter/blob/v0.26.0/tree_sitter/binding/parser.c",
+  "scope": "Progress callback path only. Production adapter uses 0.25.2 bytes parse with retained native timeout, never a Python progress callback."
+}

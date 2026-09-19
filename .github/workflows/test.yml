@@ -13,6 +13,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  syntax-providers:
+    name: installed optional syntax providers (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      DIFFWITNESS_REQUIRE_SYNTAX: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Build exact wheel and install optional pinned providers
+        run: |
+          python -m pip wheel . --no-deps --wheel-dir syntax-wheel
+          python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('syntax-wheel').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install',str(wheel)+'[structure]'])"
+          python -m pip check
+      - name: Test actual optional syntax and existing source boundaries
+        run: python -m unittest discover -s tests -p 'test_structure*.py' -v
+      - name: Verify installed transport outside source checkout
+        run: python scripts/structure_syntax_acceptance.py
+
   test:
     strategy:
       fail-fast: false

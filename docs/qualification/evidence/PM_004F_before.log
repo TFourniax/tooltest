@@ -1,0 +1,71 @@
+test_index_uses_immutable_tree_and_refreshes_provider_profile (test_structure_syntax.StructureSyntaxTests.test_index_uses_immutable_tree_and_refreshes_provider_profile) ... FAIL
+test_javascript_uses_syntax_not_strings_comments_or_template_text (test_structure_syntax.StructureSyntaxTests.test_javascript_uses_syntax_not_strings_comments_or_template_text) ... ERROR
+test_malformed_encoding_syntax_and_bounds_fail_empty (test_structure_syntax.StructureSyntaxTests.test_malformed_encoding_syntax_and_bounds_fail_empty) ... ERROR
+test_missing_optional_package_is_unparsed_not_heuristic_facts (test_structure_syntax.StructureSyntaxTests.test_missing_optional_package_is_unparsed_not_heuristic_facts) ... ERROR
+test_python_and_unknown_fallback_keep_existing_contract (test_structure_syntax.StructureSyntaxTests.test_python_and_unknown_fallback_keep_existing_contract) ... ERROR
+test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage (test_structure_syntax.StructureSyntaxTests.test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage) ... ERROR
+
+======================================================================
+ERROR: test_javascript_uses_syntax_not_strings_comments_or_template_text (test_structure_syntax.StructureSyntaxTests.test_javascript_uses_syntax_not_strings_comments_or_template_text)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 47, in test_javascript_uses_syntax_not_strings_comments_or_template_text
+    value = self.extract('src/main.js', source)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 23, in extract
+    from diffwitness.structure_registry import extract_structure
+ModuleNotFoundError: No module named 'diffwitness.structure_registry'
+
+======================================================================
+ERROR: test_malformed_encoding_syntax_and_bounds_fail_empty (test_structure_syntax.StructureSyntaxTests.test_malformed_encoding_syntax_and_bounds_fail_empty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 86, in test_malformed_encoding_syntax_and_bounds_fail_empty
+    from diffwitness import structure_syntax
+ImportError: cannot import name 'structure_syntax' from 'diffwitness' (/workspace/scratch/e9f3b6772074/work/core_syntax/src/diffwitness/__init__.py). Did you mean: 'structure_contract'?
+
+======================================================================
+ERROR: test_missing_optional_package_is_unparsed_not_heuristic_facts (test_structure_syntax.StructureSyntaxTests.test_missing_optional_package_is_unparsed_not_heuristic_facts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 79, in test_missing_optional_package_is_unparsed_not_heuristic_facts
+    value = self.extract('app.ts', 'export function real() {}')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 23, in extract
+    from diffwitness.structure_registry import extract_structure
+ModuleNotFoundError: No module named 'diffwitness.structure_registry'
+
+======================================================================
+ERROR: test_python_and_unknown_fallback_keep_existing_contract (test_structure_syntax.StructureSyntaxTests.test_python_and_unknown_fallback_keep_existing_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 29, in test_python_and_unknown_fallback_keep_existing_contract
+    self.assertEqual(self.extract('a.py', source), extract_python('a.py', source))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 23, in extract
+    from diffwitness.structure_registry import extract_structure
+ModuleNotFoundError: No module named 'diffwitness.structure_registry'
+
+======================================================================
+ERROR: test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage (test_structure_syntax.StructureSyntaxTests.test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 67, in test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage
+    value = self.extract('src/main.ts', source)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 23, in extract
+    from diffwitness.structure_registry import extract_structure
+ModuleNotFoundError: No module named 'diffwitness.structure_registry'
+
+======================================================================
+FAIL: test_index_uses_immutable_tree_and_refreshes_provider_profile (test_structure_syntax.StructureSyntaxTests.test_index_uses_immutable_tree_and_refreshes_provider_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 116, in test_index_uses_immutable_tree_and_refreshes_provider_profile
+    self.assertIn('main.ts::actual', names)
+AssertionError: 'main.ts::actual' not found in set()
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.049s
+
+FAILED (failures=1, errors=5)
