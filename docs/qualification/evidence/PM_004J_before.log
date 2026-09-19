@@ -1,0 +1,101 @@
+test_absolute_and_sequential_namespaces_and_unresolved_receivers (test_structure_dynamic.DynamicSyntaxTests.test_absolute_and_sequential_namespaces_and_unresolved_receivers) ... FAIL
+test_actual_transport_source_and_authority (test_structure_dynamic.DynamicSyntaxTests.test_actual_transport_source_and_authority) ... FAIL
+test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls (test_structure_dynamic.DynamicSyntaxTests.test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls) ... FAIL
+test_immutable_git_tree_index_ignores_dirty_sources (test_structure_dynamic.DynamicSyntaxTests.test_immutable_git_tree_index_ignores_dirty_sources) ... FAIL
+test_invalid_utf8_syntax_and_reopened_identity_fail_closed (test_structure_dynamic.DynamicSyntaxTests.test_invalid_utf8_syntax_and_reopened_identity_fail_closed) ... ok
+test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) ...
+  test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) (path='src/gateway.rb') ... FAIL
+  test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) (path='src/gateway.php') ... FAIL
+test_php_namespace_types_signatures_and_grouped_use (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_types_signatures_and_grouped_use) ... FAIL
+test_ruby_lexical_types_methods_and_literal_require (test_structure_dynamic.DynamicSyntaxTests.test_ruby_lexical_types_methods_and_literal_require) ... FAIL
+
+======================================================================
+FAIL: test_absolute_and_sequential_namespaces_and_unresolved_receivers (test_structure_dynamic.DynamicSyntaxTests.test_absolute_and_sequential_namespaces_and_unresolved_receivers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 76, in test_absolute_and_sequential_namespaces_and_unresolved_receivers
+    self.assertTrue(ruby.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_actual_transport_source_and_authority (test_structure_dynamic.DynamicSyntaxTests.test_actual_transport_source_and_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 102, in test_actual_transport_source_and_authority
+    self.assertEqual(response['coverage'],{'files':2,'parsed':2,'unparsed':0,'unsupported':0})
+AssertionError: {'files': 2, 'parsed': 0, 'unsupported': 2, 'unparsed': 0} != {'files': 2, 'parsed': 2, 'unparsed': 0, 'unsupported': 0}
+- {'files': 2, 'parsed': 0, 'unparsed': 0, 'unsupported': 2}
+?                        ^                                ^
+
++ {'files': 2, 'parsed': 2, 'unparsed': 0, 'unsupported': 0}
+?                        ^                                ^
+
+
+======================================================================
+FAIL: test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls (test_structure_dynamic.DynamicSyntaxTests.test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 88, in test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls
+    self.assertTrue(ruby.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_immutable_git_tree_index_ignores_dirty_sources (test_structure_dynamic.DynamicSyntaxTests.test_immutable_git_tree_index_ignores_dirty_sources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 139, in test_immutable_git_tree_index_ignores_dirty_sources
+    self.assertEqual({r[0]for r in conn.execute('select language from structure_components')},{'ruby','php'})
+AssertionError: Items in the second set but not the first:
+'php'
+'ruby'
+
+======================================================================
+FAIL: test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) (path='src/gateway.rb')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 113, in test_missing_grammars_are_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider))
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('ruby', 'tree-sitter-ruby')
+
+First differing element 0:
+'unknown'
+'ruby'
+
+- ('unknown', 'file-only')
++ ('ruby', 'tree-sitter-ruby')
+
+======================================================================
+FAIL: test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) (path='src/gateway.php')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 113, in test_missing_grammars_are_recognized_empty
+    self.assertEqual((v.language,v.provider),(language,provider))
+AssertionError: Tuples differ: ('unknown', 'file-only') != ('php', 'tree-sitter-php')
+
+First differing element 0:
+'unknown'
+'php'
+
+- ('unknown', 'file-only')
++ ('php', 'tree-sitter-php')
+
+======================================================================
+FAIL: test_php_namespace_types_signatures_and_grouped_use (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_types_signatures_and_grouped_use)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 66, in test_php_namespace_types_signatures_and_grouped_use
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_ruby_lexical_types_methods_and_literal_require (test_structure_dynamic.DynamicSyntaxTests.test_ruby_lexical_types_methods_and_literal_require)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 56, in test_ruby_lexical_types_methods_and_literal_require
+    self.assertTrue(v.parsed)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.066s
+
+FAILED (failures=8)

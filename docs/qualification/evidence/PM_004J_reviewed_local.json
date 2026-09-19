@@ -1,0 +1,66 @@
+{
+  "schema": "pm-004j-reviewed-local-1",
+  "classification": "MACHINE",
+  "initial_head": "524b138c17b3aa0084337c9a61bea9ef94c97f79",
+  "review": 4051931757,
+  "profile": "structure-providers-6a",
+  "qualified_parent": "a47c6d5b657aae993e6ab58eb66a4473386431f8",
+  "full": {
+    "run": 589,
+    "pass": 585,
+    "skips": 4,
+    "seconds": 56.434
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20119552,
+    "append_seconds": 0.860561,
+    "full_log_verify_seconds": 0.381102,
+    "rebuild_seconds": 0.795546,
+    "context": {
+      "cold_ms": 22.732,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 15.333,
+        "median": 16.322,
+        "p95": 22.175,
+        "max": 22.175
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_b4701dd2bb0fbd5f5361ec0e",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host; after full suite and installed producer. Not50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_dynamic.py": "5b7fe2604b53ff58df9f04c75cbcbbd159da11cf70ac5b9775b213338be64406",
+    "src/diffwitness/structure_syntax.py": "dcae2178864b30df33eb653b3753ca40bf10a550486efdf64938edf18b0e8d15",
+    "src/diffwitness/structure_registry.py": "31025ac61d363e632b003efd8e57ddc091a9f71dc849a5f3cd9415cf00cd2663",
+    "tests/test_structure_dynamic.py": "285ed577e18066ebba95f64adbf023d8c5a9969edd0849ae89d3e01f8d1bb79e",
+    "scripts/structure_syntax_acceptance.py": "d79507f757f7862c2a08997bd8586bbd32f391b3bcd68afec8d31f7fbcef99a3",
+    "pyproject.toml": "b477fa328c56b623f5a2dbf76e5acc91e2cdeaf93adeb50515235ae9dd033a73",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298"
+  },
+  "logs": {
+    "PM_004J_10k_reviewed.log": "41f11796e83ec859c31d94ad7a219ed3eec3dbe4b3a27a9a8772a36eb48b3ea0",
+    "PM_004J_consumer_reviewed.log": "ec45b71d3310ebe0b3a3fb5236877f80baa2a0d90113232a0a3af2ee5a612984",
+    "PM_004J_full_reviewed.log": "c9e783588fc8ed4c87b8e34d4f20d72c7c4b0bd38d1f3c6399ff5f2a1fc7d3f4",
+    "PM_004J_installed_reviewed.log": "64502ddf4a592186f10baf2390c4d1c91a9a0bb4db22ab3fe1c718ba5cbe7a30",
+    "PM_004J_namespace_review_before.log": "5bb9ccb49db87f136637859cf3f8b14dec1ce87ae20eee974a5015efccef558a",
+    "PM_004J_parentheses_review_before.log": "97d0753772f191fdee3f84518365c36c676987af2b0fb5a3d1b0cc45ac3de438",
+    "PM_004J_pip_check_reviewed.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004J_structure_reviewed.log": "2b3d890cd8b51c9f572b1e1678abc6708a5867d2f581b0ebebe49c7f4604b902",
+    "PM_004J_wheel_reviewed.log": "6deabe2e306a876778631e0dfd7b26646d050d428b99939de48e4b545e72e8b4"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY"
+}

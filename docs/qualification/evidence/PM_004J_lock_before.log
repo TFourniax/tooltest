@@ -1,0 +1,66 @@
+test_denial_followed_by_live_owner_does_not_authorize_entry (test_continuity_lock.EventLockTests.test_denial_followed_by_live_owner_does_not_authorize_entry) ... ERROR
+test_non_windows_permission_denial_is_not_retried (test_continuity_lock.EventLockTests.test_non_windows_permission_denial_is_not_retried) ... ok
+test_persistent_denial_cannot_enter_mutate_or_remove_foreign_lock (test_continuity_lock.EventLockTests.test_persistent_denial_cannot_enter_mutate_or_remove_foreign_lock) ... ERROR
+test_transient_windows_create_denial_retries_exclusively_before_append (test_continuity_lock.EventLockTests.test_transient_windows_create_denial_retries_exclusively_before_append) ... ERROR
+
+======================================================================
+ERROR: test_denial_followed_by_live_owner_does_not_authorize_entry (test_continuity_lock.EventLockTests.test_denial_followed_by_live_owner_does_not_authorize_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 69, in test_denial_followed_by_live_owner_does_not_authorize_entry
+    with journal._event_lock(self.paths, timeout=0.1):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/src/diffwitness/continuity_events.py", line 321, in _event_lock
+    fd = os.open(paths.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 64, in contended
+    raise next(calls)
+PermissionError: [Errno 13] delete pending
+
+======================================================================
+ERROR: test_persistent_denial_cannot_enter_mutate_or_remove_foreign_lock (test_continuity_lock.EventLockTests.test_persistent_denial_cannot_enter_mutate_or_remove_foreign_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 52, in test_persistent_denial_cannot_enter_mutate_or_remove_foreign_lock
+    with journal._event_lock(self.paths, timeout=0.1):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/src/diffwitness/continuity_events.py", line 321, in _event_lock
+    fd = os.open(paths.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 48, in <lambda>
+    with patch.object(journal, 'os', self.windows_os(lambda *a: (_ for _ in ()).throw(denied))), \
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 48, in <genexpr>
+    with patch.object(journal, 'os', self.windows_os(lambda *a: (_ for _ in ()).throw(denied))), \
+PermissionError: [Errno 13] access denied: '/tmp/tmpc0n25mb3/repo/.git/diffwitness/events.lock'
+
+======================================================================
+ERROR: test_transient_windows_create_denial_retries_exclusively_before_append (test_continuity_lock.EventLockTests.test_transient_windows_create_denial_retries_exclusively_before_append)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 37, in test_transient_windows_create_denial_retries_exclusively_before_append
+    result = journal.append_project_events(repo=self.repo, events=[objective('OBJ-ONE')])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/src/diffwitness/continuity_events.py", line 485, in append_project_events
+    with _event_lock(paths):
+         ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/src/diffwitness/continuity_events.py", line 321, in _event_lock
+    fd = os.open(paths.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_continuity_lock.py", line 34, in contended
+    raise PermissionError(errno.EACCES, 'delete pending', str(path))
+PermissionError: [Errno 13] delete pending: '/tmp/tmpbnwpou89/repo/.git/diffwitness/events.lock'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.069s
+
+FAILED (errors=3)

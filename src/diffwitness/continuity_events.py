@@ -319,6 +319,17 @@ def _event_lock(paths: ContinuityPaths, *, timeout: float = _LOCK_TIMEOUT_SECOND
     while True:
         try:
             fd = os.open(paths.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except PermissionError as exc:
+            # Windows can deny CREATE_NEW while the previous lock's deletion
+            # is pending. Retry only acquisition, never bypass exclusivity or
+            # remove a lock on this evidence. Persistent ACL failures still
+            # fail closed within the existing acquisition deadline.
+            if os.name != "nt":
+                raise
+            if time.monotonic() >= deadline:
+                raise ContinuityError(f"cannot acquire project event lock {paths.lock}: {exc}") from exc
+            time.sleep(0.05)
+            continue
         except FileExistsError:
             try:
                 age = time.time() - paths.lock.stat().st_mtime

@@ -1,0 +1,24 @@
+{
+  "schema_version": "continuity-bench-2",
+  "events": 10000,
+  "batch_size": 2000,
+  "event_log_bytes": 7208837,
+  "state_db_bytes": 20119552,
+  "append_seconds": 0.820174,
+  "full_log_verify_seconds": 0.374459,
+  "rebuild_seconds": 0.896854,
+  "context": {
+    "cold_ms": 18.21,
+    "hot_runs": 7,
+    "hot_ms": {
+      "min": 15.152,
+      "median": 15.791,
+      "p95": 16.199,
+      "max": 16.199
+    }
+  },
+  "context_chars": 647,
+  "context_id": "dwctx_dc94273954e8d4b34bd275ad",
+  "passed": true,
+  "failures": []
+}

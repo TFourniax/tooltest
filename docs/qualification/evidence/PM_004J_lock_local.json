@@ -1,0 +1,79 @@
+{
+  "schema": "pm-004j-lock-corrected-local-1",
+  "classification": "MACHINE",
+  "initial_head": "524b138c17b3aa0084337c9a61bea9ef94c97f79",
+  "review": 4051931757,
+  "profile": "structure-providers-6a",
+  "qualified_parent": "a47c6d5b657aae993e6ab58eb66a4473386431f8",
+  "full": {
+    "run": 593,
+    "pass": 589,
+    "skips": 4,
+    "seconds": 57.247
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_multilingual_protocol": "PASS",
+  "pip_check": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20119552,
+    "append_seconds": 0.820174,
+    "full_log_verify_seconds": 0.374459,
+    "rebuild_seconds": 0.896854,
+    "context": {
+      "cold_ms": 18.21,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 15.152,
+        "median": 15.791,
+        "p95": 16.199,
+        "max": 16.199
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_dc94273954e8d4b34bd275ad",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Shared host; after full suite and installed producer. Not50k/100k qualification.",
+  "files": {
+    "src/diffwitness/structure_dynamic.py": "5b7fe2604b53ff58df9f04c75cbcbbd159da11cf70ac5b9775b213338be64406",
+    "src/diffwitness/structure_syntax.py": "dcae2178864b30df33eb653b3753ca40bf10a550486efdf64938edf18b0e8d15",
+    "src/diffwitness/structure_registry.py": "31025ac61d363e632b003efd8e57ddc091a9f71dc849a5f3cd9415cf00cd2663",
+    "tests/test_structure_dynamic.py": "285ed577e18066ebba95f64adbf023d8c5a9969edd0849ae89d3e01f8d1bb79e",
+    "scripts/structure_syntax_acceptance.py": "d79507f757f7862c2a08997bd8586bbd32f391b3bcd68afec8d31f7fbcef99a3",
+    "pyproject.toml": "b477fa328c56b623f5a2dbf76e5acc91e2cdeaf93adeb50515235ae9dd033a73",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "a126a0363b745cf8a948e2e044b7a304cd98de4cb95ef1c48b18fcccbc9a0298",
+    "src/diffwitness/continuity_events.py": "a9c03c13407e38677561ff55a92536e5b1d6ba77533dab1770669efbb3729b9a",
+    "tests/test_continuity_lock.py": "5478d4f7bab152ccfe6bc53c31271fa5876c18e2fe5f8bcebc470053f354fcc9"
+  },
+  "logs": {
+    "PM_004J_10k_lock.json": "f5a2c2e83f10811a2c8f2fe991e01aa203b180afd8acfebbeb689f9fabc95076",
+    "PM_004J_lock_regressions.log": "c7b7719918035263ad090efeb50d3270ea1122180be21d7960e006720524a55e",
+    "PM_004J_lock_consumer.log": "8ce98cde375f8fafb41466d164345480b95b1c86b6805e7b3e54b55df990660a",
+    "PM_004J_lock_before.log": "8632d1a754b4aa2912d0d0fb0b59ae8f2fb78b2d6b3a79f0d9ecb4bb8f7e5ca8",
+    "PM_004J_windows313_failure.log": "7bb63e8bb9590fb9ea3c544813b06bc1fe7685522d43cbac893c3e90fafd3b5f",
+    "PM_004J_lock_installed.log": "aaf28e4693f179d28a4463fc1294487b6e207fa8104d10bf891427cbd8a1b93a",
+    "PM_004J_10k_lock.log": "f5a2c2e83f10811a2c8f2fe991e01aa203b180afd8acfebbeb689f9fabc95076",
+    "PM_004J_lock_wheel.log": "91e229673ec6ffc60b52012c0f47472cce8361b9326ec4fedf5c483b1327aa8d",
+    "PM_004J_lock_installed_retry.log": "64502ddf4a592186f10baf2390c4d1c91a9a0bb4db22ab3fe1c718ba5cbe7a30",
+    "PM_004J_lock_pipcheck.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004J_full_lock_corrected.log": "b779a33cd0789fa2949e886068ee56304d92c4ba74f13455766489d17fbf8694",
+    "PM_004J_full_lock_final.log": "426d537729dbbabcb6b752475e9eaf5b3ca26ff1c5408432263fb23cfe221e13"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY",
+  "supersedes": "PM_004J_reviewed_local.json",
+  "blocking_ci": 35415602574,
+  "continuity_regressions": {
+    "run": 160,
+    "pass": 160,
+    "seconds": 12.939
+  },
+  "limitation": "Windows delete-pending mechanism is an inference; actual errno13 recorded. Native CI pending. Historical intermittence remains open."
+}

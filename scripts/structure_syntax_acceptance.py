@@ -19,6 +19,8 @@ sources['service.rs'] = b'pub fn refund(value: i32) -> i32 { value }\n'
 sources['Gateway.java'] = b'class Gateway { void refund() {} }\n'
 sources['Gateway.cs'] = b'namespace Payments; public class Gateway { public void Refund() {} }\n'
 sources['Gateway.kt'] = b'class Gateway {\n fun refund() {}\n}\n'
+sources['gateway.rb'] = b'class Gateway; def refund(); end; end\n'
+sources['gateway.php'] = b"<?php namespace Payments; require('client.php'); class Gateway { function refund() {} }\n"
 request = {'schema_version': 'structure-request-1', 'files': [
     {'path': name, 'content_base64': base64.b64encode(content).decode()} for name, content in sources.items()]}
 env = {key: value for key, value in os.environ.items() if key != 'PYTHONPATH'}
@@ -32,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
         values.append(json.loads(result.stdout))
     assert values[0] == values[1] == values[2]
     response = values[0]
-    assert response['coverage'] == {'files': 10, 'parsed': 8, 'unparsed': 1, 'unsupported': 1}, response
+    assert response['coverage'] == {'files': 12, 'parsed': 10, 'unparsed': 1, 'unsupported': 1}, response
     for item, (name, content) in zip(response['files'], sources.items()):
         assert item['path'] == name and item['source_sha256'] == hashlib.sha256(content).hexdigest()
         assert all(symbol['epistemic_status'] == 'OBSERVED' for symbol in item['symbols'])
@@ -45,5 +47,8 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
     assert {s['qualified_name'] for s in by_path['Gateway.java']['symbols']} == {'Gateway.java::Gateway', 'Gateway.java::Gateway.refund'}
     assert {s['qualified_name'] for s in by_path['Gateway.cs']['symbols']} == {'Gateway.cs::Payments.Gateway', 'Gateway.cs::Payments.Gateway.Refund'}
     assert {s['qualified_name'] for s in by_path['Gateway.kt']['symbols']} == {'Gateway.kt::Gateway', 'Gateway.kt::Gateway.refund'}
+    assert {s['qualified_name'] for s in by_path['gateway.rb']['symbols']} == {'gateway.rb::Gateway', 'gateway.rb::Gateway.refund'}
+    assert {s['qualified_name'] for s in by_path['gateway.php']['symbols']} == {'gateway.php::Payments.Gateway', 'gateway.php::Payments.Gateway.refund'}
+    assert [i['target'] for i in by_path['gateway.php']['imports']] == ['client.php']
     assert not list(Path(td).iterdir()), 'source-byte extraction must not persist files'
-print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned JS/TS/Go/Rust/Java/Kotlin/C#, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')
+print('INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned JS/TS/Go/Rust/Java/Kotlin/C#/Ruby/PHP, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE')

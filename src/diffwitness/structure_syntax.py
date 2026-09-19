@@ -14,7 +14,7 @@ from .structure_sources import MAX_SOURCE_FILE_BYTES
 
 PINNED = {'tree-sitter': '0.25.2', 'tree-sitter-javascript': '0.25.0', 'tree-sitter-typescript': '0.23.2',
           'tree-sitter-go': '0.25.0', 'tree-sitter-rust': '0.24.2',
-          'tree-sitter-java': '0.23.5', 'tree-sitter-c-sharp': '0.23.5', 'tree-sitter-kotlin': '1.1.0'}
+          'tree-sitter-java': '0.23.5', 'tree-sitter-c-sharp': '0.23.5', 'tree-sitter-kotlin': '1.1.0', 'tree-sitter-ruby': '0.23.1', 'tree-sitter-php': '0.24.1'}
 SPECS = {
     **{suffix: ('javascript', 'tree-sitter-javascript', 'tree_sitter_javascript', 'language')
        for suffix in ('.js', '.jsx', '.mjs', '.cjs')},
@@ -23,6 +23,8 @@ SPECS = {
     '.tsx': ('typescript', 'tree-sitter-typescript', 'tree_sitter_typescript', 'language_tsx'),
     '.go': ('go', 'tree-sitter-go', 'tree_sitter_go', 'language'),
     '.rs': ('rust', 'tree-sitter-rust', 'tree_sitter_rust', 'language'),
+    '.rb': ('ruby', 'tree-sitter-ruby', 'tree_sitter_ruby', 'language'),
+    '.php': ('php', 'tree-sitter-php', 'tree_sitter_php', 'language_php'),
     '.java': ('java', 'tree-sitter-java', 'tree_sitter_java', 'language'),
     '.cs': ('csharp', 'tree-sitter-c-sharp', 'tree_sitter_c_sharp', 'language'),
     **{suffix: ('kotlin', 'tree-sitter-kotlin', 'tree_sitter_kotlin', 'language') for suffix in ('.kt', '.kts')},
@@ -94,6 +96,9 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
     if language in {'go', 'rust'}:
         from .structure_native import native_declarations
         imports.extend(native_declarations(language, tree.root_node, text, symbol))
+    elif language in {'ruby', 'php'}:
+        from .structure_dynamic import dynamic_declarations, dynamic_call_name
+        imports.extend(dynamic_declarations(language, tree.root_node, nodes, text, symbol))
     elif language in {'java', 'csharp', 'kotlin'}:
         from .structure_managed import managed_declarations, managed_call_name
         imports.extend(managed_declarations(language, tree.root_node, text, symbol))
@@ -148,6 +153,11 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
                 if target is not None and target.type == 'string' and len(raw) > 2 and '\\' not in raw:
                     imports.append(StructuralImport(raw[1:-1]))
     for node in nodes:
+        if language in {'ruby', 'php'}:
+            name = dynamic_call_name(language, node, text)
+            if name is not None:
+                calls.append(StructuralCall(name, line(node.start_byte)))
+            continue
         if language in {'java', 'csharp', 'kotlin'}:
             name = managed_call_name(language, node, text)
             if name is not None:

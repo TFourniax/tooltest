@@ -1,0 +1,22 @@
+test_absolute_and_sequential_namespaces_and_unresolved_receivers (test_structure_dynamic.DynamicSyntaxTests.test_absolute_and_sequential_namespaces_and_unresolved_receivers) ... ok
+test_actual_transport_source_and_authority (test_structure_dynamic.DynamicSyntaxTests.test_actual_transport_source_and_authority) ... ok
+test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls (test_structure_dynamic.DynamicSyntaxTests.test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls) ... ok
+test_immutable_git_tree_index_ignores_dirty_sources (test_structure_dynamic.DynamicSyntaxTests.test_immutable_git_tree_index_ignores_dirty_sources) ... ok
+test_invalid_utf8_syntax_and_reopened_identity_fail_closed (test_structure_dynamic.DynamicSyntaxTests.test_invalid_utf8_syntax_and_reopened_identity_fail_closed) ... ok
+test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) ... ok
+test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name) ... FAIL
+test_php_namespace_types_signatures_and_grouped_use (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_types_signatures_and_grouped_use) ... ok
+test_ruby_lexical_types_methods_and_literal_require (test_structure_dynamic.DynamicSyntaxTests.test_ruby_lexical_types_methods_and_literal_require) ... ok
+
+======================================================================
+FAIL: test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_dynamic/tests/test_structure_dynamic.py", line 114, in test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name
+    self.assertTrue(all(s.local_call_name is None for s in value.symbols),
+AssertionError: False is not true : the name-only call contract has no namespace and cannot select a target
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.060s
+
+FAILED (failures=1)

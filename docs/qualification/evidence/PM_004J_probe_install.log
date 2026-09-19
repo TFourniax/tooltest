@@ -1,0 +1,6 @@
+Collecting tree-sitter==0.25.2
+  Using cached tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10.0 kB)
+Collecting tree-sitter-ruby==0.23.1
+  Downloading tree_sitter_ruby-0.23.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.8 kB)
+ERROR: Could not find a version that satisfies the requirement tree-sitter-php==0.24.2 (from versions: 0.22.4, 0.22.5, 0.22.6, 0.22.7, 0.22.8, 0.23.0, 0.23.2, 0.23.3, 0.23.4, 0.23.5, 0.23.6, 0.23.7, 0.23.8, 0.23.9, 0.23.10, 0.23.11, 0.24.1)
+ERROR: No matching distribution found for tree-sitter-php==0.24.2
