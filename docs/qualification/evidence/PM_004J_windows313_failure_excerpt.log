@@ -1,0 +1,37 @@
+ERROR: test_concurrent_calls_have_one_chain_and_dedupe (test_continuity_append_cache.AppendCacheTests.test_concurrent_calls_have_one_chain_and_dedupe)
+2026-09-19T02:33:11.2492525Z ----------------------------------------------------------------------
+2026-09-19T02:33:11.2493076Z Traceback (most recent call last):
+2026-09-19T02:33:11.2503012Z   File "D:\a\tooltest\tooltest\tests\test_continuity_append_cache.py", line 122, in test_concurrent_calls_have_one_chain_and_dedupe
+2026-09-19T02:33:11.2504243Z     results = list(pool.map(lambda index: self.append(objective(f'OBJ-{index % 4}')), range(12)))
+2026-09-19T02:33:11.2505418Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\concurrent\futures\_base.py", line 625, in result_iterator
+2026-09-19T02:33:11.2506284Z     yield _result_or_cancel(fs.pop())
+2026-09-19T02:33:11.2506718Z           ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+2026-09-19T02:33:11.2507959Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\concurrent\futures\_base.py", line 318, in _result_or_cancel
+2026-09-19T02:33:11.2509189Z     return fut.result(timeout)
+2026-09-19T02:33:11.2509587Z            ~~~~~~~~~~^^^^^^^^^
+2026-09-19T02:33:11.2510407Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\concurrent\futures\_base.py", line 453, in result
+2026-09-19T02:33:11.2511217Z     return self.__get_result()
+2026-09-19T02:33:11.2511642Z            ~~~~~~~~~~~~~~~~~^^
+2026-09-19T02:33:11.2512414Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\concurrent\futures\_base.py", line 402, in __get_result
+2026-09-19T02:33:11.2513228Z     raise self._exception
+2026-09-19T02:33:11.2514001Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\concurrent\futures\thread.py", line 59, in run
+2026-09-19T02:33:11.2514790Z     result = self.fn(*self.args, **self.kwargs)
+2026-09-19T02:33:11.2515548Z   File "D:\a\tooltest\tooltest\tests\test_continuity_append_cache.py", line 122, in <lambda>
+2026-09-19T02:33:11.2516527Z     results = list(pool.map(lambda index: self.append(objective(f'OBJ-{index % 4}')), range(12)))
+2026-09-19T02:33:11.2517310Z                                           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-09-19T02:33:11.2518096Z   File "D:\a\tooltest\tooltest\tests\test_continuity_append_cache.py", line 25, in append
+2026-09-19T02:33:11.2518937Z     return journal.append_project_events(repo=self.repo, events=list(specs))
+2026-09-19T02:33:11.2519654Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-09-19T02:33:11.2520663Z   File "D:\a\tooltest\tooltest\src\diffwitness\continuity_events.py", line 485, in append_project_events
+2026-09-19T02:33:11.2521494Z     with _event_lock(paths):
+2026-09-19T02:33:11.2521876Z          ~~~~~~~~~~~^^^^^^^
+2026-09-19T02:33:11.2522552Z   File "C:\hostedtoolcache\windows\Python\3.13.15\x64\Lib\contextlib.py", line 141, in __enter__
+2026-09-19T02:33:11.2523280Z     return next(self.gen)
+2026-09-19T02:33:11.2523951Z   File "D:\a\tooltest\tooltest\src\diffwitness\continuity_events.py", line 321, in _event_lock
+2026-09-19T02:33:11.2524794Z     fd = os.open(paths.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+2026-09-19T02:33:11.2526261Z PermissionError: [Errno 13] Permission denied: 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmphls0mben\\repo\\.git\\diffwitness\\events.lock'
+2026-09-19T02:33:11.2527101Z
+2026-09-19T02:33:11.2527361Z ----------------------------------------------------------------------
+2026-09-19T02:33:11.2528177Z Ran 589 tests in 419.994s
+2026-09-19T02:33:11.2528401Z
+2026-09-19T02:33:11.2528590Z FAILED (errors=1, skipped=31)
