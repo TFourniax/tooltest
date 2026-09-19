@@ -1,0 +1,36 @@
+{
+  "schema": "pm-004f-reviewed-local-1",
+  "classification": "MACHINE",
+  "superseded_head": "7e8894f9fb2f3606305e48e1c0d545b98b0c2d74",
+  "reviews": [
+    4051556159,
+    4051556170
+  ],
+  "reproduction": "Two new tests FAIL before correction",
+  "profile": "structure-providers-2",
+  "full": {
+    "run": 561,
+    "pass": 557,
+    "skips": 4,
+    "seconds": 58.839
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_consumer_including_ambient_ts": "PASS",
+  "files": {
+    "src/diffwitness/structure_syntax.py": "f577ad810802dc3336d9b410fea1ad2239da906f7cf8bb87e1c4805d48106e57",
+    "src/diffwitness/structure_registry.py": "bcef3b2488b458d3d7760c84438a345cb6f460db6a2243967b4dcd21c4447802",
+    "src/diffwitness/structure_provider.py": "b6ef9ac24be8be111cf8f3f311f4c3e2c4e8d309f462f30bf2c68b4bd90edcb2",
+    "tests/test_structure_syntax.py": "1a2a7755209e3c093ee08e9a678a4fe191dbfcf078124c9913e9f0162e243b4e",
+    "scripts/structure_syntax_acceptance.py": "f347e2c420511f516b4cd476ccf9e7f2c17a08492c21f1e60773c21fcbb0c725"
+  },
+  "logs": {
+    "PM_004F_review_before.log": "11b62010ffd88435afcee6100d35682816d422645c1ae275aa4850c43173d89b",
+    "PM_004F_full_review.log": "27ae71184b12b22f9eb57e972b77d6c771d9173812b2e42acd0ee67a3686caf2",
+    "PM_004F_full_review_profile.log": "76fb76fd3fbd725af9018c2d4936c6182a3f71a5954e04243a3cfecb3686f32f",
+    "PM_004F_wheel_profile.log": "face9496419ae114b11a5530073a51104c59426a0d6e7251fbcff1f902f9bea7",
+    "PM_004F_installed_profile.log": "1dd30c9b8fe12a5995a6676507c5b0c11018250ed2187f2c6a1c5be26eea2598"
+  },
+  "initial_CI": "24/24 and three companion workflows PASS but superseded by review correction",
+  "human": "NOT RUN"
+}

@@ -74,7 +74,7 @@ class StructureContractTests(unittest.TestCase):
             with contextlib.closing(sqlite3.connect(state)) as conn:
                 before = conn.execute('select * from structure_symbols order by symbol_id').fetchall()
                 invalid = replace(extract_python('other.py', b'def bad(): pass'), source_sha256='0'*64)
-                with patch.object(coordinator, 'extract_python', return_value=invalid), self.assertRaises(ValueError):
+                with patch('diffwitness.structure_registry.extract_python', return_value=invalid), self.assertRaises(ValueError):
                     coordinator.refresh_structure_index(repo, conn=conn)
                 self.assertEqual(conn.execute('select * from structure_symbols order by symbol_id').fetchall(), before)
 

@@ -1,0 +1,98 @@
+{
+  "schema": "pm-004f-local-1",
+  "classification": "MACHINE",
+  "base": "26944bd363b51a61a018269a98b817e3c116e05e",
+  "base_tree": "24cc573e849c52438c68cf7987fe09e73a60459d",
+  "idleproof_pin": "30a2c5363d49b86d68574214b47c112c6bb75cee",
+  "optional_full": {
+    "run": 559,
+    "pass": 555,
+    "skips": 4,
+    "seconds": 58.941
+  },
+  "without_optional_full": {
+    "run": 559,
+    "pass": 550,
+    "skips": 9,
+    "seconds": 56.883,
+    "skip_explanation": "4 platform-only plus5 optional parser cases; enhanced CI requires those cases"
+  },
+  "final_structural": {
+    "run": 26,
+    "pass": 26,
+    "skips": 0,
+    "scope": "Final fixture cleanup and unique-name timeout control validated after full suites; production source unchanged."
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "clean_wheel_without_optional": "PASS",
+  "enhanced_installed_wheel": "PASS",
+  "pip_check": "PASS",
+  "python_consumer_perf": "IdleProof PERF PASS (Python/Core) \u00b7 hook p95 90.4ms \u00b7 max 107.0ms \u00b7 Stop 111.9ms \u00b7 state p95 0.2ms",
+  "benchmark10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20185088,
+    "append_seconds": 0.82704,
+    "full_log_verify_seconds": 0.368591,
+    "rebuild_seconds": 0.871846,
+    "context": {
+      "cold_ms": 17.082,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 13.829,
+        "median": 14.16,
+        "p95": 19.488,
+        "max": 19.488
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_54ed70d43fe5d8c35f76c0ba",
+    "passed": true,
+    "failures": []
+  },
+  "files": {
+    "src/diffwitness/structure_syntax.py": "42d8eb1476d4b18aafe904f1415fb7e767d1e167f5f5c31277fe8c5377457c1b",
+    "src/diffwitness/structure_registry.py": "d796f31c127ccf3a496fcb0e6a14cbc191ecfd5cf0b165e0e73cfb2499e9c4e2",
+    "src/diffwitness/structure_provider.py": "ccf71614b3f0549fd3fb9060774d49ed8815313c9658b89f755a6af70ba635e6",
+    "src/diffwitness/structure_transport.py": "ad76190d787056a20765493d81f7abc54e56021bf83655eb8f02713bcf7bc7f0",
+    "pyproject.toml": "12adba08e33d44b237dbc5665fa4f8d570ce0b0c3408a945daa664d201f72e53",
+    "tests/test_structure_syntax.py": "8d5fafdda62afdb4dcf68a9dc80fbef07385745189b7a1fe634592a29b13cb57",
+    "tests/test_structure_contract.py": "61b89586af6a76c74894e4855da23d3e7c3b13304002e671b79bf8bf0d9bc7c5",
+    "scripts/structure_syntax_acceptance.py": "4557642b7b726751a85d64630b46f34371638d04b8945f2b9426a98b231b635d",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    ".github/workflows/integrated-product.yml": "e836d00c83d61b51a5f1377078e968d470aacd08c22c709577e8ea059ed0ae27"
+  },
+  "logs": {
+    "PM_004F_10k.log": "824a514f20bb0c77b30b70a4ee7712e032230b8ab4a798910641123847df1236",
+    "PM_004F_python_consumer_perf.log": "a8622a282f44358250b9c9497bca6672ab3fc7cf03245e9e830c1ce92515996a",
+    "PM_004F_structure_final.log": "b74bd6b3584d0fc2a01b0da41052164edb3dd2dba6e8907170da2bf121626e67",
+    "PM_004F_optional_install.log": "a100f9b2301e201a9c45afb05a7d3ee010b684fba8c598d8ad11379d3d9aa2c2",
+    "PM_004F_editable.log": "8638b5eb1db31d2e822c0ef58cc39374dd6bedbc19c63e5f3fe682dbd125de6e",
+    "PM_004F_10k.json": "824a514f20bb0c77b30b70a4ee7712e032230b8ab4a798910641123847df1236",
+    "PM_004F_installed.log": "1dd30c9b8fe12a5995a6676507c5b0c11018250ed2187f2c6a1c5be26eea2598",
+    "PM_004F_base_editable.log": "1225b2d984611a11dfde3530d8ed2fb6871ffbcc66bd56201ad785351a8838f2",
+    "PM_004F_full_final.log": "402b278953cb82b876b60c336d612f6a800f8f18b872c52ec9138297f06c8afa",
+    "PM_004F_full.log": "0beac1150014da4e6b7c736987edf4c665a8e1b8f6e175e2bbf6a75091b5b456",
+    "PM_004F_structure_closed.log": "107bda01b69417f854c68b0f08673a92a0a59b342f867e43f4671f586f053d01",
+    "PM_004F_wheel.log": "c1459ef1c1a5067319b6c9031bd127a1a9db92615a55e467615bdead2aafb5d4",
+    "PM_004F_structure.log": "374f10020e0a45f71c5152c4aea78e622506ea7fc55c770e298e6651ed952a07",
+    "PM_004F_dependency_correction.log": "fd1230d0893f4641396280324f52e358a281d099e244c4cd465aa0bc42b8b265",
+    "PM_004F_full_base.log": "5fa8bcc6ab079ce769595e5fa3338f74b59aeb333e90020d7cd85ec88977581e",
+    "PM_004F_structure_corrected.log": "1a59e03fb9d68fb91b8aae87c571cce20f09f656ebc2b47e24e5c83241f5df7f",
+    "PM_004F_no_optional.log": "b93b5d39c1e689b6188622ca359c0da144117b410d9f655169615e48c53a1fe6",
+    "PM_004F_before.log": "e1ae18dbcc5789f1705850114f3c8ac1f79ee1c20b844d8b76fabcb8727ce403",
+    "PM_004F_clean_install.log": "e998cbd53ea5fa2e132eee7116804d0ef6552c3f1ceac652a6035c368848589f",
+    "PM_004F_structure_budget_review.log": "8d07c1cfbb678130a506e89f06ab0c9762f59b9d23da06c4906f1edf147f7ce9",
+    "PM_004F_dependencies.log": "da0e9c3fc48800cf3b33ad79c94861350e3ee1acbae002d0d6aa6e86d4aa4c8e"
+  },
+  "initial_failures": [
+    "six initial regressions1FAIL5ERROR",
+    "0.26.0 native progress-callback SIGSEGV;0.25.2 same callback also reproduces; unused production path"
+  ],
+  "full_PM004": "PARTIAL",
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY"
+}

@@ -1,0 +1,33 @@
+test_ambient_typescript_declarations_are_observed_syntax (test_structure_syntax.StructureSyntaxTests.test_ambient_typescript_declarations_are_observed_syntax) ... FAIL
+test_dotted_basename_import_resolves_only_one_supported_source (test_structure_syntax.StructureSyntaxTests.test_dotted_basename_import_resolves_only_one_supported_source) ... FAIL
+test_index_uses_immutable_tree_and_refreshes_provider_profile (test_structure_syntax.StructureSyntaxTests.test_index_uses_immutable_tree_and_refreshes_provider_profile) ... ok
+test_javascript_uses_syntax_not_strings_comments_or_template_text (test_structure_syntax.StructureSyntaxTests.test_javascript_uses_syntax_not_strings_comments_or_template_text) ... ok
+test_malformed_encoding_syntax_and_bounds_fail_empty (test_structure_syntax.StructureSyntaxTests.test_malformed_encoding_syntax_and_bounds_fail_empty) ... ok
+test_missing_optional_package_is_unparsed_not_heuristic_facts (test_structure_syntax.StructureSyntaxTests.test_missing_optional_package_is_unparsed_not_heuristic_facts) ... ok
+test_python_and_unknown_fallback_keep_existing_contract (test_structure_syntax.StructureSyntaxTests.test_python_and_unknown_fallback_keep_existing_contract) ... ok
+test_syntax_authority_admission_and_ambiguous_import_resolution (test_structure_syntax.StructureSyntaxTests.test_syntax_authority_admission_and_ambiguous_import_resolution) ... ok
+test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage (test_structure_syntax.StructureSyntaxTests.test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage) ... ok
+
+======================================================================
+FAIL: test_ambient_typescript_declarations_are_observed_syntax (test_structure_syntax.StructureSyntaxTests.test_ambient_typescript_declarations_are_observed_syntax)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 89, in test_ambient_typescript_declarations_are_observed_syntax
+    self.assertEqual({symbol.qualified_name for symbol in value.symbols},
+AssertionError: Items in the second set but not the first:
+'api.d.ts::Service'
+'api.d.ts::load'
+'api.d.ts::Service.run'
+
+======================================================================
+FAIL: test_dotted_basename_import_resolves_only_one_supported_source (test_structure_syntax.StructureSyntaxTests.test_dotted_basename_import_resolves_only_one_supported_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_syntax/tests/test_structure_syntax.py", line 96, in test_dotted_basename_import_resolves_only_one_supported_source
+    self.assertEqual(_syntax_import_component('lib/main.ts', './widget.test',
+AssertionError: None != 'target'
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.129s
+
+FAILED (failures=2)

@@ -30,3 +30,56 @@ Consumers must check the response schema, path order, source hashes, provider an
 fact types/authority against their own admitted bytes before using any result.
 Missing/older Core or a rejected batch must remain explicit unavailable coverage.
 Neither a response digest nor provider text independently authenticates a binary.
+
+## Optional JavaScript and TypeScript syntax
+
+Install `diffwitness[structure]` to add the pinned Tree-sitter runtime and JS/TS
+grammars. The engine retains an empty required-dependency list; no command
+installs packages or accesses the network at runtime. The supported optional
+suffixes are `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts` and `.cts`.
+Both the transport and immutable Git-tree index select these same providers.
+Recognized sources without the exact optional packages remain `parsed: false`
+with empty facts and `unparsed` coverage. They are distinct from unknown suffixes,
+which retain `file-only`/`unsupported` coverage.
+
+Provider names are `tree-sitter-javascript` and `tree-sitter-typescript`.
+Top-level named functions/classes, function-valued variables, class methods,
+TS interfaces/types/enums and literal static imports/re-exports are observed
+syntax. Qualified names use `relative/path.ts::Name`; module identity is the
+relative source path. Name-only calls are inferred. Resolving relative imports
+to one captured local source is also inferred; ambiguous candidates stay
+unresolved. No project code, package resolver, runtime or type checker is invoked.
+
+Nested declarations, computed methods, CommonJS assignment/require dependency
+analysis, namespace/type resolution, escaped module literals and runtime dispatch
+are not claimed. Grammar acceptance is not program correctness or type validity.
+Duplicate materialized name/kind keys remain unparsed instead of silently choosing
+a binding. Any syntax error, invalid UTF-8, native parse timeout or node limit
+returns empty unparsed results for that file. Limits: existing 1 MiB source bound,
+250 ms native parsing and 100k named syntax nodes. These are bounded extraction
+limits, not a universal latency guarantee for a whole multi-file request.
+
+The pinned runtime is 0.25.2: its retained native timeout avoids a reproduced
+Python progress-callback crash on Python 3.12. The deprecated timeout API is used
+deliberately and covered by a forced-expiration regression; no callback is used.
+Before changing the pin, requalify that boundary and all three OS provider jobs.
+The dependency-free standalone artifact currently reports optional languages as
+unparsed; distribution of enhanced standalone artifacts remains a release gate.
+
+Provider version/capability metadata is part of the index refresh key. Installing
+or removing a grammar therefore forces a rebuild on the same Git tree. Python
+results, identities and its AST provider remain unchanged. This unit covers the
+listed JS/TS syntax; it does not complete all requested languages or consumers.
+
+Primary parser references: [Python binding](https://github.com/tree-sitter/py-tree-sitter),
+[JavaScript grammar](https://github.com/tree-sitter/tree-sitter-javascript),
+[TypeScript grammar](https://github.com/tree-sitter/tree-sitter-typescript).
+
+
+Ambient TypeScript wrappers (`declare`, including exported declarations) and
+function/class-method signatures are retained as observed syntax. Signatures
+have distinct kinds and no local runtime-call binding. Dotted extensionless
+basenames such as `widget.test` resolve only when exactly one supported JS/TS
+source candidate is captured; other-language sources are never selected by that
+resolver. The extraction profile is versioned when adapter/resolver semantics
+change so existing projections cannot retain the superseded behavior.
