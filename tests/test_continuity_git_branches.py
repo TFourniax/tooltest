@@ -142,7 +142,9 @@ class GitBranchHistoryTests(unittest.TestCase):
             self.page()
         self.assertFalse(self.events.exists())
         obj.write_bytes(raw)
-        self.git('update-ref', '--stdin', input=''.join(f'update refs/heads/generated-{n} {self.tip}\n' for n in range(257)))
+        commands = ''.join(f'update refs/heads/generated-{n} {self.tip}\n' for n in range(257)).encode('ascii')
+        # This Git wire protocol requires LF; text-mode stdin adds CR on Windows.
+        subprocess.run(['git', 'update-ref', '--stdin'], cwd=self.repo, input=commands, check=True)
         with self.assertRaises(ContinuityError):
             self.page()
         self.assertFalse(self.events.exists())
