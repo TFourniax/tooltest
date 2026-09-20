@@ -8,7 +8,6 @@ import json
 import os
 from pathlib import Path
 
-from .gitops import git_metadata_path, repo_root
 
 LANGUAGES = ("en", "fr")
 _current: ContextVar[str] = ContextVar("diffwitness_language", default="en")
@@ -20,6 +19,8 @@ def tr(english: str, french: str) -> str:
 
 
 def saved_language(repo: Path) -> str:
+    from .gitops import git_metadata_path
+
     path = git_metadata_path(repo, "diffwitness/ui-preferences.json")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -40,6 +41,8 @@ def presentation(language: str):
 
 
 def language_cli(argv: list[str]) -> int:
+    from .gitops import git_metadata_path, repo_root
+
     parser = argparse.ArgumentParser(prog="dw language", description=tr(
         "Show or explicitly save this project's presentation language.",
         "Afficher ou enregistrer explicitement la langue de présentation du projet."))

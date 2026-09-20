@@ -4,7 +4,6 @@ from __future__ import annotations
 from bisect import bisect_right
 import hashlib
 import importlib
-from importlib import metadata
 import re
 import time
 import warnings
@@ -39,6 +38,8 @@ MAX_PARSE_MICROS = 250000
 
 
 def installed_version(distribution: str) -> str | None:
+    from importlib import metadata
+
     try:
         return metadata.version(distribution)
     except (metadata.PackageNotFoundError, OSError, ValueError):

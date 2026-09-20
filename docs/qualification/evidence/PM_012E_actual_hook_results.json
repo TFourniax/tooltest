@@ -1,0 +1,23 @@
+[
+  {
+    "family": "python",
+    "returncode": 0,
+    "summary": [
+      "IdleProof PERF PASS (Python/Core) \u00b7 hook p95 144.6ms \u00b7 max 204.7ms \u00b7 Stop 225.6ms \u00b7 state p95 0.3ms"
+    ]
+  },
+  {
+    "family": "typescript",
+    "returncode": 1,
+    "summary": [
+      "AssertionError [ERR_ASSERTION]: hook p95 183.8ms exceeds 150ms"
+    ]
+  },
+  {
+    "family": "json",
+    "returncode": 1,
+    "summary": [
+      "AssertionError [ERR_ASSERTION]: hook p95 191.2ms exceeds 150ms"
+    ]
+  }
+]

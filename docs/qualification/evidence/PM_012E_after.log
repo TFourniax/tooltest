@@ -1,0 +1,13 @@
+test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) ... ok
+test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically (test_structure_transport.StructureTransportTests.test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically) ... ok
+test_public_entry_never_discovers_repository_or_reads_language_preferences (test_structure_transport.StructureTransportTests.test_public_entry_never_discovers_repository_or_reads_language_preferences) ... ok
+test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) ... ok
+test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json) ... ok
+test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid) ... ok
+test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage) ... ok
+test_wire_bounds_reject_before_emitting_any_partial_response (test_structure_transport.StructureTransportTests.test_wire_bounds_reject_before_emitting_any_partial_response) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.018s
+
+OK

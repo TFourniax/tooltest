@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import difflib
 import hashlib
 import json
 import sys
@@ -112,6 +111,8 @@ def _friendly_unknown(args: list[str]) -> int | None:
         print("Run `dw --help` for the current command surface.", file=sys.stderr)
         return 2
     if token not in _PUBLIC_COMMANDS:
+        import difflib
+
         matches = difflib.get_close_matches(token, sorted(_PUBLIC_COMMANDS), n=1, cutoff=0.68)
         if matches:
             print(f"Unknown command: {token}", file=sys.stderr)
@@ -272,7 +273,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     from ..language import LANGUAGES, presentation, saved_language
-    from ..gitops import repo_root
 
     explicit = None
     if args and (args[0] == "--language" or args[0].startswith("--language=")):
@@ -285,6 +285,8 @@ def main(argv: list[str] | None = None) -> int:
     if (args and args[0] in {"ide-hook", "session-start", "session-stop"}) or args[:2] == ["state", "extract"]:
         language = "en"
     else:
+        from ..gitops import repo_root
+
         local_args = args[:args.index("--")] if "--" in args else args
         try:
             language = explicit or saved_language(repo_root(_option_value(local_args, "--repo", ".")))
