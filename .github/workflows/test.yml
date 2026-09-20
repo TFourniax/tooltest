@@ -36,6 +36,27 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_structure*.py' -v
       - name: Verify installed transport outside source checkout
         run: python scripts/structure_syntax_acceptance.py
+      - name: Checkout exact IdleProof consumer for extraction latency
+        if: runner.os == 'Linux'
+        uses: actions/checkout@v7
+        with:
+          repository: TFourniax/tooltest-2
+          ref: 242714f1ab4fac12956359e9fb2105b795f8e89d
+          path: idleproof-extraction-consumer
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        if: runner.os == 'Linux'
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Validate actual feature consumer and unchanged hook budgets
+        if: runner.os == 'Linux'
+        working-directory: idleproof-extraction-consumer
+        run: |
+          node scripts/feature-canonical-smoke.mjs
+          node scripts/perf-gate.mjs --python-core
+          node scripts/perf-gate.mjs --syntax-core
+          node scripts/perf-gate.mjs --data-core
 
   test:
     strategy:

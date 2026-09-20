@@ -369,6 +369,10 @@ def _main(argv: list[str] | None = None) -> int:
             "invariant": invariant_cli,
             "failed-approach": failed_approach_cli,
         }
+        # The same state parser and bounded transport own extraction errors;
+        # this read-only command does not need the journal exception service.
+        if args[:2] == ["state", "extract"]:
+            return state_cli(args[1:])
         from ..continuity_events import ContinuityError
         try:
             return handlers[args[0]](args[1:])

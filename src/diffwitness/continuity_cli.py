@@ -10,16 +10,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .continuity_bridge import record_change_envelope
 from .continuity_contract import (
     DECLARATION_PROFILE, OBJECTIVE_PRIORITIES, PROFILE_PROVENANCE_FIELD, project_memory_contract,
 )
-from .continuity_context import compile_context, render_context
-from .continuity_debt_bridge import sync_debt_history
-from .continuity_events import ContinuityError, append_project_event, continuity_paths, read_project_events
-from .continuity_state import ensure_state, rebuild_state, state_status
 from .gitops import repo_root
-from .structure_provider import component_id_for_path
 
 
 def _now() -> str:
@@ -48,6 +42,8 @@ def _normalize_component_path(raw: str) -> str:
 
 
 def _component_relations(paths: list[str], predicate: str = "affects") -> list[dict[str, Any]]:
+    from .structure_provider import component_id_for_path
+
     result: list[dict[str, Any]] = []
     for raw in paths:
         path = _normalize_component_path(raw)
@@ -125,6 +121,9 @@ def state_cli(argv: list[str]) -> int:
             print(tr("Use --json for the canonical vocabulary, provenance and compatibility rules.",
                      "Utiliser --json pour le vocabulaire canonique, la provenance et les règles de compatibilité."))
         return 0
+    from .continuity_events import ContinuityError, continuity_paths, read_project_events
+    from .continuity_state import ensure_state, rebuild_state, state_status
+
     repo = repo_root(args.repo)
 
     if args.command == "bootstrap-git":
@@ -169,6 +168,8 @@ def state_cli(argv: list[str]) -> int:
         return 0
 
     if args.command == "sync-debt":
+        from .continuity_debt_bridge import sync_debt_history
+
         result = sync_debt_history(repo, explicit_config=args.config)
         ensure_state(repo)
         if args.json:
@@ -178,6 +179,8 @@ def state_cli(argv: list[str]) -> int:
         return 0
 
     if args.command == "rebuild":
+        from .continuity_debt_bridge import sync_debt_history
+
         debt = sync_debt_history(repo, explicit_config=args.config)
         path = rebuild_state(repo, include_structure=bool(args.structure))
         print(tr(f"Rebuilt Project State: {path}", f'État du projet reconstruit : {path}'))
@@ -186,6 +189,9 @@ def state_cli(argv: list[str]) -> int:
         return 0
 
     if args.command == "ingest-envelope":
+        from .continuity_bridge import record_change_envelope
+        from .continuity_debt_bridge import sync_debt_history
+
         # A manually supplied envelope is a useful historical artifact, but it is not enough to
         # upgrade its embedded Proof summary to VERIFIED. Guard owns that authoritative bridge.
         try:
@@ -257,6 +263,9 @@ def state_cli(argv: list[str]) -> int:
 
 
 def context_cli(argv: list[str]) -> int:
+    from .continuity_context import compile_context, render_context
+    from .continuity_debt_bridge import sync_debt_history
+
     parser = argparse.ArgumentParser(
         prog="dw context",
         description=tr('Compile bounded project continuity context for a human or coding agent.', 'Compiler un contexte de continuité borné pour un humain ou un agent de code.'),
@@ -306,6 +315,9 @@ def _declare(
     payload: dict[str, Any],
     relations: list[dict[str, Any]],
 ) -> str:
+    from .continuity_events import append_project_event
+    from .continuity_state import ensure_state
+
     entity_id = _entity_id(prefix, label, explicit_id)
     event, _ = append_project_event(
         repo=repo,

@@ -1,0 +1,69 @@
+{
+  "schema": "diffwitness-local-qualification-1",
+  "unit": "PM-012d",
+  "classification": "MACHINE",
+  "base": "c6c0ee1aebd89c555a05b46ca0ef3542b52752cd",
+  "code_commit": "e705a6a7081a120eb7ca386a64a2af17f6bdd792",
+  "full": {
+    "run": 633,
+    "pass": 629,
+    "skip": 4,
+    "seconds": 113.38
+  },
+  "base_only": {
+    "run": 633,
+    "pass": 581,
+    "skip": 52,
+    "seconds": 111.871
+  },
+  "compile": "PASS",
+  "installed_syntax_FR_EN": "PASS",
+  "installed_Node_transport": "PASS",
+  "installed_all_branch_history": "PASS",
+  "integrated_exact_wheel_and_sidecar": "PASS",
+  "pip_check": "PASS",
+  "wheel": {
+    "file": "diffwitness-0.4.0a1-py3-none-any.whl",
+    "sha256": "ec1969351dfacc9aa7be35b49f067e99ba936b9229f906498ae98592953e36ee",
+    "source_equal_python_files": 96
+  },
+  "continuity_10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20029440,
+    "append_seconds": 1.282163,
+    "full_log_verify_seconds": 0.570643,
+    "rebuild_seconds": 2.239919,
+    "context": {
+      "cold_ms": 29.569,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 23.871,
+        "median": 26.273,
+        "p95": 34.545,
+        "max": 34.545
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_b9314bcbfaeb2cc7cd43a02c",
+    "passed": true,
+    "failures": []
+  },
+  "logs": {
+    "PM_012D_rebased_full.log": "b724a8fead383292a60b2db00ca57e3eceb48c0447ecb40d72b15c237aa356a6",
+    "PM_012D_rebased_base.log": "6168535909630a5de893516385d4bc70e17af68befcaf07e4f867c927087ec02",
+    "PM_012D_rebased_wheel.log": "e2d2c3074514c109354db8bb791ab4057969ee052177ad300db3c5ed8999d389",
+    "PM_012D_rebased_syntax.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_012D_rebased_transport.log": "e1b45963acf76c7ecc3a6d068c6be183f61a48f667e4d696d5a12b706fc360c3",
+    "PM_012D_rebased_history.json": "bae3d9e23c892b283cf596f13ef160cbf4d44a6c18fdf183dbf6ae10e9edc4f2",
+    "PM_012D_rebased_integrated.log": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136"
+  },
+  "limits": [
+    "earlier actual local TypeScript hook p95=224.0ms FAIL retained; no all-family local PASS",
+    "shared-host latency diagnostics are not universal guarantees",
+    "new exact PR 24+3/review/main required",
+    "full PM012/HUMAN/global release remain open"
+  ]
+}

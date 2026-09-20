@@ -45,6 +45,33 @@ class StructureTransportTests(unittest.TestCase):
         self.assertFalse(fallback['parsed'])
         self.assertEqual(fallback['symbols'], [])
 
+    def test_extraction_stays_independent_of_journal_proof_and_debt_services(self):
+        script = '''
+import sys
+class UnavailableServices:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname in {'diffwitness.continuity_bridge', 'diffwitness.continuity_context',
+                        'diffwitness.continuity_debt_bridge', 'diffwitness.continuity_events',
+                        'diffwitness.continuity_state', 'diffwitness.engine_protocol'}:
+            raise RuntimeError('unrelated service initialized: ' + fullname)
+sys.meta_path.insert(0, UnavailableServices())
+from diffwitness.entry import main
+raise SystemExit(main(sys.argv[1:]))
+'''
+        for version in (1, 2):
+            request = self.request([('worker.py', 'def café(): pass'.encode())])
+            request['schema_version'] = f'structure-request-{version}'
+            for language in ('en', 'fr'):
+                with self.subTest(version=version, language=language), tempfile.TemporaryDirectory() as td:
+                    result = subprocess.run([sys.executable, '-c', script, '--language', language,
+                                             'state', 'extract', '--json'], input=json.dumps(request),
+                                            capture_output=True, text=True, encoding='utf-8', cwd=td, timeout=10)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    value = json.loads(result.stdout)
+                    self.assertEqual(value['schema_version'], f'structure-response-{version}')
+                    self.assertEqual(value['files'][0]['symbols'][0]['qualified_name'], 'worker.café')
+                    self.assertEqual(list(Path(td).iterdir()), [])
+
     def test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically(self):
         good = self.request([('ok.py', b'def ok(): pass')])
         cases = ['{"schema_version":"x","schema_version":"structure-request-1","files":[]}']
