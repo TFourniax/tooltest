@@ -1,0 +1,103 @@
+{
+  "schema": "diffwitness-qualification-1",
+  "classification": "MACHINE",
+  "unit": "PM-004n",
+  "repository": "TFourniax/tooltest-2",
+  "sha": "242714f1ab4fac12956359e9fb2105b795f8e89d",
+  "tree": "0359cf53afa7c43492c44ceaef33b54820960f8e",
+  "runs": [
+    {
+      "id": 35515440410,
+      "name": "test",
+      "head_sha": "242714f1ab4fac12956359e9fb2105b795f8e89d",
+      "event": "push",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35515440410",
+      "jobs": [
+        {
+          "id": 106090481086,
+          "name": "ExplainBench + adversarial quality + performance budgets",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481197,
+          "name": "test (ubuntu-latest, 24)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481242,
+          "name": "installed package commercial-alpha journey (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481279,
+          "name": "installed package commercial-alpha journey (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481295,
+          "name": "test (macos-latest, 22)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481308,
+          "name": "real Core context consumer (macos-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481335,
+          "name": "installed package commercial-alpha journey (macos-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481375,
+          "name": "test (windows-latest, 24)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481378,
+          "name": "test (macos-latest, 20)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481381,
+          "name": "test (ubuntu-latest, 22)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481400,
+          "name": "test (macos-latest, 24)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481413,
+          "name": "test (windows-latest, 20)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481418,
+          "name": "test (ubuntu-latest, 20)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481434,
+          "name": "test (windows-latest, 22)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481581,
+          "name": "real Core context consumer (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 106090481857,
+          "name": "real Core context consumer (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "human": "NOT RUN",
+  "global": "NOT ALPHA READY"
+}
