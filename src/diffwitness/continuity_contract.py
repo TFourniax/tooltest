@@ -13,6 +13,7 @@ from typing import Any
 from .continuity_task_contract import TASK_PROFILE, task_profile_descriptor, validate_task_profile
 from .continuity_lifecycle_contract import MEMORY_LIFECYCLE_PROFILE, memory_lifecycle_descriptor, validate_memory_lifecycle
 from .continuity_git_contract import GIT_HISTORY_PROFILE, git_history_descriptor, validate_git_history
+from .continuity_lineage_contract import GIT_LINEAGE_PROFILE, git_lineage_descriptor, validate_git_lineage
 
 CONTRACT_VERSION = "project-memory-contract-1"
 EVENT_SCHEMA_VERSION = "project-event-1"
@@ -35,7 +36,7 @@ MAX_LABEL_CHARS = 500
 ENTITY_KINDS = (
     "task", "objective", "decision", "invariant", "failed-approach", "feature",
     "component", "symbol", "dependency", "change", "proof-certificate", "debt",
-    "understanding", "file", "external-module", "git-commit", "git-message",
+    "understanding", "file", "external-module", "git-commit", "git-message", "git-lineage",
 )
 HUMAN_DECLARABLE_RELATIONS = frozenset({
     "motivated_by", "affects", "introduced_in", "created", "protects", "constrains",
@@ -43,7 +44,7 @@ HUMAN_DECLARABLE_RELATIONS = frozenset({
 })
 KNOWN_RELATIONS = HUMAN_DECLARABLE_RELATIONS | frozenset({
     "served_by", "affected", "proves", "describes", "refreshed_in", "reopened_in",
-    "imports", "calls-name", "worked_on", "motivates",
+    "imports", "calls-name", "worked_on", "motivates", "relocation_from", "relocation_to",
 })
 PROJECTION_LIFECYCLES = frozenset({"active", "inactive"})
 INACTIVE_EVENT_SUFFIXES = (".superseded", ".retired", ".resolved")
@@ -160,6 +161,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == GIT_LINEAGE_PROFILE:
+        validate_git_lineage(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == GIT_HISTORY_PROFILE:
         validate_git_history(event)
@@ -410,6 +414,7 @@ def project_memory_contract() -> dict[str, Any]:
         "event_schema": EVENT_SCHEMA_VERSION,
         "admission_profiles": {
             GIT_HISTORY_PROFILE: git_history_descriptor(),
+            GIT_LINEAGE_PROFILE: git_lineage_descriptor(),
             MEMORY_LIFECYCLE_PROFILE: memory_lifecycle_descriptor(),
             TASK_PROFILE: task_profile_descriptor(),
             DEBT_LIFECYCLE_PROFILE: {

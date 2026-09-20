@@ -89,9 +89,15 @@ def state_cli(argv: list[str]) -> int:
     bootstrap.add_argument("--ref", default="HEAD")
     bootstrap.add_argument("--max-commits", type=int, default=25)
     bootstrap.add_argument("--include-messages", action="store_true")
+    bootstrap.add_argument("--include-lineage", action="store_true")
     bootstrap.add_argument("--all-branches", action="store_true")
     bootstrap.add_argument("--cursor")
     bootstrap.add_argument("--json", action="store_true")
+    lineage = sub.add_parser("lineage", help=tr("Inspect imported file relocation hypotheses", "Examiner les hypothèses importées de déplacement de fichiers"))
+    lineage.add_argument("--repo", default=".")
+    lineage.add_argument("--path", required=True)
+    lineage.add_argument("--limit", type=int, default=50)
+    lineage.add_argument("--json", action="store_true")
     ingest = sub.add_parser("ingest-envelope")
     ingest.add_argument("envelope", type=Path)
     ingest.add_argument("--repo", default=".")
@@ -125,12 +131,23 @@ def state_cli(argv: list[str]) -> int:
 
     repo = repo_root(args.repo)
 
+    if args.command == "lineage":
+        from .continuity_git_lineage import file_lineage, render_file_lineage
+        try:
+            result = file_lineage(repo, args.path, limit=args.limit)
+        except (ContinuityError, ValueError) as exc:
+            print(tr("Git lineage rejected: ", "Filiation Git refusée : ") + str(exc), file=sys.stderr)
+            return 2
+        _print(result if args.json else render_file_lineage(result), args.json)
+        return 0
+
     if args.command == "bootstrap-git":
         from .continuity_git_history import bootstrap_git_history
         try:
             result = bootstrap_git_history(repo, ref=args.ref, max_commits=args.max_commits,
                                            include_messages=args.include_messages,
-                                           all_branches=args.all_branches, cursor=args.cursor)
+                                           all_branches=args.all_branches, cursor=args.cursor,
+                                           include_lineage=args.include_lineage)
             ensure_state(repo)
         except (ContinuityError, ValueError) as exc:
             print(tr("Git history import rejected: ", "Import Git refusé : ") + str(exc), file=sys.stderr)
@@ -140,10 +157,11 @@ def state_cli(argv: list[str]) -> int:
         else:
             print(tr(f"Git history: {result['commits']} commits, {result['created']} new events.",
                      f"Historique Git : {result['commits']} commits, {result['created']} nouveaux événements."))
+            opt_ins = (' --include-messages' if result['include_messages'] else '') + (' --include-lineage' if result['include_lineage'] else '')
             if result['next_ref']:
-                print(tr("Resume with --ref ", "Reprendre avec --ref ") + result['next_ref'])
+                print(tr("Resume with --ref ", "Reprendre avec --ref ") + result['next_ref'] + opt_ins)
             if result.get('next_cursor'):
-                options = '--all-branches' + (' --include-messages' if result['include_messages'] else '') + ' --cursor '
+                options = '--all-branches' + opt_ins + ' --cursor '
                 print(tr("Resume with ", "Reprendre avec ") + options + result['next_cursor'])
             if result['boundary']:
                 print(result['boundary'])

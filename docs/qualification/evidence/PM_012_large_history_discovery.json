@@ -1,0 +1,14 @@
+{
+  "schema": "scale-discovery-plan-1",
+  "recorded_before_run": true,
+  "source_sha": "76f1fdd2d83675f5cc5082e8138dcdadc62cbf09",
+  "classification": "MACHINE_DIAGNOSTIC",
+  "events": [
+    50000,
+    100000
+  ],
+  "existing_harness": "scripts/continuity_bench.py",
+  "thresholds": "Use unchanged existing 10k defaults to expose gaps; these are not an approved new scale SLA.",
+  "scope": "Synthetic single-file history, one recall target; not monorepo/FR-EN/vision acceptance.",
+  "preserve_all_failures": true
+}
