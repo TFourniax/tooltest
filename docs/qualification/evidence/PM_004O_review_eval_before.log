@@ -1,0 +1,73 @@
+test_comments_parentheses_templates_and_import_options_have_exact_spans (test_structure_import_calls.ImportCallTests.test_comments_parentheses_templates_and_import_options_have_exact_spans) ... ok
+test_decoys_dynamic_and_loader_members_do_not_become_targets (test_structure_import_calls.ImportCallTests.test_decoys_dynamic_and_loader_members_do_not_become_targets) ... ok
+test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) ...
+  test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='\\u0065val') ... FAIL
+  test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='e\\u0076al') ... FAIL
+  test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='\\u{65}val') ... FAIL
+test_invalid_source_stays_completely_unparsed (test_structure_import_calls.ImportCallTests.test_invalid_source_stays_completely_unparsed) ... ok
+test_nested_literal_keyword_reference_and_transport_authority_are_preserved (test_structure_import_calls.ImportCallTests.test_nested_literal_keyword_reference_and_transport_authority_are_preserved) ... ok
+test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) ... ok
+test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) ... ok
+test_typescript_function_signatures_are_require_binding_barriers (test_structure_import_calls.ImportCallTests.test_typescript_function_signatures_are_require_binding_barriers) ... ok
+
+======================================================================
+FAIL: test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='\\u0065val')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 89, in test_escaped_direct_eval_is_an_ambiguity_barrier
+    self.assertEqual([i.target for i in value.imports],['./keyword.mjs'])
+AssertionError: Lists differ: ['./custom.cjs', './keyword.mjs'] != ['./keyword.mjs']
+
+First differing element 0:
+'./custom.cjs'
+'./keyword.mjs'
+
+First list contains 1 additional elements.
+First extra element 1:
+'./keyword.mjs'
+
+- ['./custom.cjs', './keyword.mjs']
++ ['./keyword.mjs']
+
+======================================================================
+FAIL: test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='e\\u0076al')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 89, in test_escaped_direct_eval_is_an_ambiguity_barrier
+    self.assertEqual([i.target for i in value.imports],['./keyword.mjs'])
+AssertionError: Lists differ: ['./custom.cjs', './keyword.mjs'] != ['./keyword.mjs']
+
+First differing element 0:
+'./custom.cjs'
+'./keyword.mjs'
+
+First list contains 1 additional elements.
+First extra element 1:
+'./keyword.mjs'
+
+- ['./custom.cjs', './keyword.mjs']
++ ['./keyword.mjs']
+
+======================================================================
+FAIL: test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) (spelling='\\u{65}val')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 89, in test_escaped_direct_eval_is_an_ambiguity_barrier
+    self.assertEqual([i.target for i in value.imports],['./keyword.mjs'])
+AssertionError: Lists differ: ['./custom.cjs', './keyword.mjs'] != ['./keyword.mjs']
+
+First differing element 0:
+'./custom.cjs'
+'./keyword.mjs'
+
+First list contains 1 additional elements.
+First extra element 1:
+'./keyword.mjs'
+
+- ['./custom.cjs', './keyword.mjs']
++ ['./keyword.mjs']
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.037s
+
+FAILED (failures=3)

@@ -1,0 +1,741 @@
+{
+  "schema": "pm-004o-import-discovery-1",
+  "classification": "MACHINE",
+  "cases": [
+    {
+      "case": "literal_calls",
+      "source": "const value = require('./local.cjs');\nconst later = import('./later.mjs');\n",
+      "current": {
+        "path": "literal_calls.js",
+        "language": "javascript",
+        "provider": "tree-sitter-javascript",
+        "source_sha256": "7ca28bfbeb514452e048fddef67b0f49a26f3ca2974f977047942b8810ece184",
+        "module": "literal_calls.js",
+        "parsed": true,
+        "symbols": [],
+        "imports": [],
+        "calls": [
+          {
+            "name": "require",
+            "line": 1,
+            "epistemic_status": "INFERRED"
+          }
+        ],
+        "schema_version": "structure-extraction-1"
+      },
+      "syntax": {
+        "type": "program",
+        "text": "const value = require('./local.cjs');\nconst later = import('./later.mjs');\n",
+        "children": [
+          {
+            "type": "lexical_declaration",
+            "text": "const value = require('./local.cjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "value = require('./local.cjs')",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "value",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require('./local.cjs')",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "require",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./local.cjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./local.cjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./local.cjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const later = import('./later.mjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "later = import('./later.mjs')",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "later",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "import('./later.mjs')",
+                    "children": [
+                      {
+                        "type": "import",
+                        "text": "import",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./later.mjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./later.mjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./later.mjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "decoys",
+      "source": "// require('./comment.cjs');\nconst text = \"import('./string.mjs')\";\nconst dynamic = require(name);\nconst concat = import('./' + name);\n",
+      "current": {
+        "path": "decoys.js",
+        "language": "javascript",
+        "provider": "tree-sitter-javascript",
+        "source_sha256": "55ca01460838b13a851471eb5e39b342254fbbf4e42b47ad29a2bace0622fe3f",
+        "module": "decoys.js",
+        "parsed": true,
+        "symbols": [],
+        "imports": [],
+        "calls": [
+          {
+            "name": "require",
+            "line": 3,
+            "epistemic_status": "INFERRED"
+          }
+        ],
+        "schema_version": "structure-extraction-1"
+      },
+      "syntax": {
+        "type": "program",
+        "text": "// require('./comment.cjs');\nconst text = \"import('./string.mjs')\";\nconst dynamic = require(name);\nconst concat = import('./' + name);\n",
+        "children": [
+          {
+            "type": "comment",
+            "text": "// require('./comment.cjs');",
+            "children": []
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const text = \"import('./string.mjs')\";",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "text = \"import('./string.mjs')\"",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "text",
+                    "children": []
+                  },
+                  {
+                    "type": "string",
+                    "text": "\"import('./string.mjs')\"",
+                    "children": [
+                      {
+                        "type": "string_fragment",
+                        "text": "import('./string.mjs')",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const dynamic = require(name);",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "dynamic = require(name)",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "dynamic",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require(name)",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "require",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "(name)",
+                        "children": [
+                          {
+                            "type": "identifier",
+                            "text": "name",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const concat = import('./' + name);",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "concat = import('./' + name)",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "concat",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "import('./' + name)",
+                    "children": [
+                      {
+                        "type": "import",
+                        "text": "import",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./' + name)",
+                        "children": [
+                          {
+                            "type": "binary_expression",
+                            "text": "'./' + name",
+                            "children": [
+                              {
+                                "type": "string",
+                                "text": "'./'",
+                                "children": [
+                                  {
+                                    "type": "string_fragment",
+                                    "text": "./",
+                                    "children": []
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "identifier",
+                                "text": "name",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "shadowed",
+      "source": "function require(value) { return value; }\nconst own = require('./not-a-module.cjs');\n",
+      "current": {
+        "path": "shadowed.js",
+        "language": "javascript",
+        "provider": "tree-sitter-javascript",
+        "source_sha256": "6738e35c6bc9196258892de4e76db8836a5109175d6082c150a05c2a5a0bc0c9",
+        "module": "shadowed.js",
+        "parsed": true,
+        "symbols": [
+          {
+            "qualified_name": "shadowed.js::require",
+            "kind": "function",
+            "line": 1,
+            "end_line": 1,
+            "epistemic_status": "OBSERVED",
+            "local_call_name": "require"
+          }
+        ],
+        "imports": [],
+        "calls": [
+          {
+            "name": "require",
+            "line": 2,
+            "epistemic_status": "INFERRED"
+          }
+        ],
+        "schema_version": "structure-extraction-1"
+      },
+      "syntax": {
+        "type": "program",
+        "text": "function require(value) { return value; }\nconst own = require('./not-a-module.cjs');\n",
+        "children": [
+          {
+            "type": "function_declaration",
+            "text": "function require(value) { return value; }",
+            "children": [
+              {
+                "type": "identifier",
+                "text": "require",
+                "children": []
+              },
+              {
+                "type": "formal_parameters",
+                "text": "(value)",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "value",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "type": "statement_block",
+                "text": "{ return value; }",
+                "children": [
+                  {
+                    "type": "return_statement",
+                    "text": "return value;",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "value",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const own = require('./not-a-module.cjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "own = require('./not-a-module.cjs')",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "own",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require('./not-a-module.cjs')",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "require",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./not-a-module.cjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./not-a-module.cjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./not-a-module.cjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "members",
+      "source": "const {run: local} = require('./worker.cjs');\nconst lazy = import(`./lazy.mjs`);\nconst resolved = require.resolve('./resolved.cjs');\n",
+      "current": {
+        "path": "members.js",
+        "language": "javascript",
+        "provider": "tree-sitter-javascript",
+        "source_sha256": "56f639abb8549c553cb0a7d576a8ba42f07633197474450e162792bef32b8718",
+        "module": "members.js",
+        "parsed": true,
+        "symbols": [],
+        "imports": [],
+        "calls": [
+          {
+            "name": "require",
+            "line": 1,
+            "epistemic_status": "INFERRED"
+          }
+        ],
+        "schema_version": "structure-extraction-1"
+      },
+      "syntax": {
+        "type": "program",
+        "text": "const {run: local} = require('./worker.cjs');\nconst lazy = import(`./lazy.mjs`);\nconst resolved = require.resolve('./resolved.cjs');\n",
+        "children": [
+          {
+            "type": "lexical_declaration",
+            "text": "const {run: local} = require('./worker.cjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "{run: local} = require('./worker.cjs')",
+                "children": [
+                  {
+                    "type": "object_pattern",
+                    "text": "{run: local}",
+                    "children": [
+                      {
+                        "type": "pair_pattern",
+                        "text": "run: local",
+                        "children": [
+                          {
+                            "type": "property_identifier",
+                            "text": "run",
+                            "children": []
+                          },
+                          {
+                            "type": "identifier",
+                            "text": "local",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require('./worker.cjs')",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "require",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./worker.cjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./worker.cjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./worker.cjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const lazy = import(`./lazy.mjs`);",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "lazy = import(`./lazy.mjs`)",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "lazy",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "import(`./lazy.mjs`)",
+                    "children": [
+                      {
+                        "type": "import",
+                        "text": "import",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "(`./lazy.mjs`)",
+                        "children": [
+                          {
+                            "type": "template_string",
+                            "text": "`./lazy.mjs`",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./lazy.mjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const resolved = require.resolve('./resolved.cjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "resolved = require.resolve('./resolved.cjs')",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "resolved",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require.resolve('./resolved.cjs')",
+                    "children": [
+                      {
+                        "type": "member_expression",
+                        "text": "require.resolve",
+                        "children": [
+                          {
+                            "type": "identifier",
+                            "text": "require",
+                            "children": []
+                          },
+                          {
+                            "type": "property_identifier",
+                            "text": "resolve",
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./resolved.cjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./resolved.cjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./resolved.cjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "nested_shadow",
+      "source": "function load(require) { return require('./shadow.cjs'); }\nconst global = require('./global.cjs');\n",
+      "current": {
+        "path": "nested_shadow.js",
+        "language": "javascript",
+        "provider": "tree-sitter-javascript",
+        "source_sha256": "3f59be795ece80c962692c36c02c17465ecd53d2b1f685b9fa25148b04c829b7",
+        "module": "nested_shadow.js",
+        "parsed": true,
+        "symbols": [
+          {
+            "qualified_name": "nested_shadow.js::load",
+            "kind": "function",
+            "line": 1,
+            "end_line": 1,
+            "epistemic_status": "OBSERVED",
+            "local_call_name": "load"
+          }
+        ],
+        "imports": [],
+        "calls": [
+          {
+            "name": "require",
+            "line": 1,
+            "epistemic_status": "INFERRED"
+          },
+          {
+            "name": "require",
+            "line": 2,
+            "epistemic_status": "INFERRED"
+          }
+        ],
+        "schema_version": "structure-extraction-1"
+      },
+      "syntax": {
+        "type": "program",
+        "text": "function load(require) { return require('./shadow.cjs'); }\nconst global = require('./global.cjs');\n",
+        "children": [
+          {
+            "type": "function_declaration",
+            "text": "function load(require) { return require('./shadow.cjs'); }",
+            "children": [
+              {
+                "type": "identifier",
+                "text": "load",
+                "children": []
+              },
+              {
+                "type": "formal_parameters",
+                "text": "(require)",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "require",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "type": "statement_block",
+                "text": "{ return require('./shadow.cjs'); }",
+                "children": [
+                  {
+                    "type": "return_statement",
+                    "text": "return require('./shadow.cjs');",
+                    "children": [
+                      {
+                        "type": "call_expression",
+                        "text": "require('./shadow.cjs')",
+                        "children": [
+                          {
+                            "type": "identifier",
+                            "text": "require",
+                            "children": []
+                          },
+                          {
+                            "type": "arguments",
+                            "text": "('./shadow.cjs')",
+                            "children": [
+                              {
+                                "type": "string",
+                                "text": "'./shadow.cjs'",
+                                "children": [
+                                  {
+                                    "type": "string_fragment",
+                                    "text": "./shadow.cjs",
+                                    "children": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "lexical_declaration",
+            "text": "const global = require('./global.cjs');",
+            "children": [
+              {
+                "type": "variable_declarator",
+                "text": "global = require('./global.cjs')",
+                "children": [
+                  {
+                    "type": "identifier",
+                    "text": "global",
+                    "children": []
+                  },
+                  {
+                    "type": "call_expression",
+                    "text": "require('./global.cjs')",
+                    "children": [
+                      {
+                        "type": "identifier",
+                        "text": "require",
+                        "children": []
+                      },
+                      {
+                        "type": "arguments",
+                        "text": "('./global.cjs')",
+                        "children": [
+                          {
+                            "type": "string",
+                            "text": "'./global.cjs'",
+                            "children": [
+                              {
+                                "type": "string_fragment",
+                                "text": "./global.cjs",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

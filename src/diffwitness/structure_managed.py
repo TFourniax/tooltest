@@ -1,7 +1,6 @@
 """Java/Kotlin/C# facts over the shared admitted syntax tree."""
 from __future__ import annotations
 
-from .structure_contract import StructuralImport
 
 
 def _qualified(node, text):
@@ -34,7 +33,7 @@ def _qualified(node, text):
     return ''.join(parts) if parts else None
 
 
-def managed_declarations(language, root, text, symbol):
+def managed_declarations(language, root, text, symbol, reference):
     imports, package = [], None
     for node in root.named_children:
         if node.type in {'package_declaration', 'package_header'}:
@@ -100,7 +99,7 @@ def managed_declarations(language, root, text, symbol):
             if target:
                 if any(child.type in {'asterisk', '*'} for child in node.children):
                     target += '.*'
-                imports.append(StructuralImport(target))
+                imports.append(reference(node, target))
         elif node.type == 'enum_body_declarations':
             pending.extend((child, prefix, in_type) for child in reversed(node.named_children))
     return imports

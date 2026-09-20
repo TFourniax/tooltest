@@ -79,7 +79,10 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     conn.execute("delete from structure_components")
 
     components = {item.path: component_id_for_path(item.path) for item in extracted}
-    modules = {(item.language, item.module): components[item.path] for item in extracted if item.module}
+    modules = {}
+    for item in extracted:
+        if item.module:
+            modules.setdefault((item.language, item.module), set()).add(components[item.path])
     local_symbols = {}
     for item in extracted:
         component = components[item.path]
@@ -103,11 +106,12 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     for item in extracted:
         source = components[item.path]
         for imported in item.imports:
-            target = (modules.get((item.language, imported.target)) if item.language == 'python' else
+            matches = modules.get((item.language, imported.target), set())
+            target = (next(iter(matches)) if item.language == 'python' and len(matches) == 1 else
                       _syntax_import_component(item.path, imported.target, components)
                       if item.language in {'javascript', 'typescript'} else None)
-            authority = 'INFERRED' if target and item.language != 'python' else imported.epistemic_status
-            kind = "component" if target else "external-module"
+            authority = 'INFERRED' if target else imported.epistemic_status
+            kind = "component" if target else "module-reference"
             target = target or f"module:{imported.target}"
             conn.execute(
                 "insert or ignore into structure_edges(edge_id,source_id,predicate,target_id,target_kind,epistemic_status,provider,tree_sha,indexed_at) values(?,?,?,?,?,?,?,?,?)",

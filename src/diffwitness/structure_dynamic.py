@@ -1,7 +1,6 @@
 """Ruby/PHP source facts over the shared admitted syntax tree."""
 from __future__ import annotations
 
-from .structure_contract import StructuralImport
 
 
 def _ruby_path(node, text):
@@ -57,7 +56,7 @@ def _literal(node, text):
     return raw[1:-1]
 
 
-def dynamic_declarations(language, root, nodes, text, symbol):
+def dynamic_declarations(language, root, nodes, text, symbol, reference):
     pending = []
 
     def enqueue(children, prefix=None, in_type=False):
@@ -116,7 +115,7 @@ def dynamic_declarations(language, root, nodes, text, symbol):
             if target:
                 if text(method) == 'require_relative' and not target.startswith(('./', '../', '/')):
                     target = './' + target
-                imports.append(StructuralImport(target))
+                imports.append(reference(node, target))
         elif language == 'php' and node.type == 'namespace_use_declaration':
             group = node.child_by_field_name('body')
             prefix_node = next((c for c in node.named_children if c.type == 'namespace_name'), None)
@@ -127,12 +126,12 @@ def dynamic_declarations(language, root, nodes, text, symbol):
                 target_node = next((c for c in clause.named_children if c.type in {'name', 'namespace_name', 'qualified_name', 'relative_name'}), None)
                 target = _php_path(target_node, text)
                 if target:
-                    imports.append(StructuralImport(prefix + '\\' + target if prefix else target))
+                    imports.append(reference(node, prefix + '\\' + target if prefix else target))
         elif language == 'php' and node.type in {'require_expression', 'require_once_expression', 'include_expression', 'include_once_expression'}:
             values = [child for child in node.named_children if 'comment' not in child.type]
             target = _literal(values[0], text) if len(values) == 1 else None
             if target:
-                imports.append(StructuralImport(target))
+                imports.append(reference(node, target))
     return imports
 
 
