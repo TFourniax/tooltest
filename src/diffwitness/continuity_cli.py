@@ -92,11 +92,13 @@ def state_cli(argv: list[str]) -> int:
     sync_debt.add_argument("--repo", default=".")
     sync_debt.add_argument("--config")
     sync_debt.add_argument("--json", action="store_true")
-    bootstrap = sub.add_parser("bootstrap-git", help=tr("Import a bounded page of first-parent Git history", "Importer une page bornée de l’historique Git du premier parent"))
+    bootstrap = sub.add_parser("bootstrap-git", help=tr("Import a bounded page of Git history", "Importer une page bornée de l’historique Git"))
     bootstrap.add_argument("--repo", default=".")
     bootstrap.add_argument("--ref", default="HEAD")
     bootstrap.add_argument("--max-commits", type=int, default=25)
     bootstrap.add_argument("--include-messages", action="store_true")
+    bootstrap.add_argument("--all-branches", action="store_true")
+    bootstrap.add_argument("--cursor")
     bootstrap.add_argument("--json", action="store_true")
     ingest = sub.add_parser("ingest-envelope")
     ingest.add_argument("envelope", type=Path)
@@ -129,7 +131,8 @@ def state_cli(argv: list[str]) -> int:
         from .continuity_git_history import bootstrap_git_history
         try:
             result = bootstrap_git_history(repo, ref=args.ref, max_commits=args.max_commits,
-                                           include_messages=args.include_messages)
+                                           include_messages=args.include_messages,
+                                           all_branches=args.all_branches, cursor=args.cursor)
             ensure_state(repo)
         except (ContinuityError, ValueError) as exc:
             print(tr("Git history import rejected: ", "Import Git refusé : ") + str(exc), file=sys.stderr)
@@ -141,6 +144,9 @@ def state_cli(argv: list[str]) -> int:
                      f"Historique Git : {result['commits']} commits, {result['created']} nouveaux événements."))
             if result['next_ref']:
                 print(tr("Resume with --ref ", "Reprendre avec --ref ") + result['next_ref'])
+            if result.get('next_cursor'):
+                options = '--all-branches' + (' --include-messages' if result['include_messages'] else '') + ' --cursor '
+                print(tr("Resume with ", "Reprendre avec ") + options + result['next_cursor'])
             if result['boundary']:
                 print(result['boundary'])
             print(tr("Commit messages are declarations. No executed Proof was created.",

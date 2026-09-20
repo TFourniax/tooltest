@@ -1,0 +1,153 @@
+test_all_branches_include_merge_parents_and_disconnected_roots_without_proof (test_continuity_git_branches.GitBranchHistoryTests.test_all_branches_include_merge_parents_and_disconnected_roots_without_proof) ... Switched to a new branch 'unrelated'
+ERROR
+test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy (test_continuity_git_branches.GitBranchHistoryTests.test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy) ... Switched to a new branch 'unrelated'
+ERROR
+test_interruption_and_concurrent_page_imports_retain_journal_integrity (test_continuity_git_branches.GitBranchHistoryTests.test_interruption_and_concurrent_page_imports_retain_journal_integrity) ... Switched to a new branch 'unrelated'
+ERROR
+test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) ... Switched to a new branch 'unrelated'
+
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'all_branches': 1}") ... ERROR
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': {}}") ... ERROR
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': True}") ... ERROR
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") ... ERROR
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': 'not-a-cursor'}") ... ERROR
+  test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'ref': 'side'}") ... ERROR
+test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) ... ERROR
+test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append (test_continuity_git_branches.GitBranchHistoryTests.test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append) ... Switched to a new branch 'unrelated'
+ERROR
+test_shallow_and_grafted_parent_lists_never_claim_complete_history (test_continuity_git_branches.GitBranchHistoryTests.test_shallow_and_grafted_parent_lists_never_claim_complete_history) ... Switched to a new branch 'unrelated'
+ERROR
+test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement (test_continuity_git_branches.GitBranchHistoryTests.test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement) ... Switched to a new branch 'unrelated'
+ERROR
+
+======================================================================
+ERROR: test_all_branches_include_merge_parents_and_disconnected_roots_without_proof (test_continuity_git_branches.GitBranchHistoryTests.test_all_branches_include_merge_parents_and_disconnected_roots_without_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 52, in test_all_branches_include_merge_parents_and_disconnected_roots_without_proof
+    page = self.page(max_commits=100)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy (test_continuity_git_branches.GitBranchHistoryTests.test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 77, in test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy
+    first = self.page(max_commits=2, include_messages=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_interruption_and_concurrent_page_imports_retain_journal_integrity (test_continuity_git_branches.GitBranchHistoryTests.test_interruption_and_concurrent_page_imports_retain_journal_integrity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 104, in test_interruption_and_concurrent_page_imports_retain_journal_integrity
+    self.page(max_commits=2)
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'all_branches': 1}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': {}}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': True}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'cursor': 'not-a-cursor'}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) (options="{'ref': 'side'}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 90, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    bootstrap_git_history(self.repo, **{'all_branches': True, **options})
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 92, in test_invalid_options_and_corrupted_cursor_fail_without_appending
+    first = self.page(max_commits=1)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append (test_continuity_git_branches.GitBranchHistoryTests.test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 134, in test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append
+    self.page()
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_shallow_and_grafted_parent_lists_never_claim_complete_history (test_continuity_git_branches.GitBranchHistoryTests.test_shallow_and_grafted_parent_lists_never_claim_complete_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 114, in test_shallow_and_grafted_parent_lists_never_claim_complete_history
+    result = bootstrap_git_history(shallow, all_branches=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+======================================================================
+ERROR: test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement (test_continuity_git_branches.GitBranchHistoryTests.test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 66, in test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement
+    first = self.page(max_commits=2)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 39, in page
+    return bootstrap_git_history(self.repo, all_branches=True, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bootstrap_git_history() got an unexpected keyword argument 'all_branches'
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.065s
+
+FAILED (errors=13)

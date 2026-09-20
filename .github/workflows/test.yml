@@ -215,6 +215,8 @@ jobs:
         run: python scripts/protect_release_acceptance.py
       - name: Qualify first native task before any user commit
         run: python scripts/unborn_release_acceptance.py
+      - name: Qualify installed all-branch history and journal-bound resumption
+        run: python scripts/git_history_acceptance.py
       - name: Qualify installed doctor exact-tree truthfulness
         run: python tests/test_doctor_proof_truthfulness.py -v
       - name: Qualify deterministic installed language selection

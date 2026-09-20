@@ -1,0 +1,19 @@
+2026-09-20T14:01:30.9327023Z ERROR: test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append (test_continuity_git_branches.GitBranchHistoryTests.test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append)
+2026-09-20T14:01:30.9327860Z ----------------------------------------------------------------------
+2026-09-20T14:01:30.9328155Z Traceback (most recent call last):
+2026-09-20T14:01:30.9335783Z   File "D:\a\tooltest\tooltest\tests\test_continuity_git_branches.py", line 137, in test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append
+2026-09-20T14:01:30.9336386Z     obj.unlink()
+2026-09-20T14:01:30.9336544Z     ~~~~~~~~~~^^
+2026-09-20T14:01:30.9336896Z   File "C:\hostedtoolcache\windows\Python\3.14.7\x64\Lib\pathlib\__init__.py", line 1042, in unlink
+2026-09-20T14:01:30.9337267Z     os.unlink(self)
+2026-09-20T14:01:30.9337423Z     ~~~~~~~~~^^^^^^
+2026-09-20T14:01:30.9337924Z PermissionError: [WinError 5] Access is denied: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpi0261bg_\\repo\\.git\\objects\\9d\\70a11d46e4d45bf052354b6441a601baf3aad4'
+2026-09-20T14:01:30.9338418Z
+2026-09-20T14:01:30.9338540Z ----------------------------------------------------------------------
+2026-09-20T14:01:30.9338829Z Ran 632 tests in 357.850s
+2026-09-20T14:01:30.9338939Z
+2026-09-20T14:01:30.9339018Z FAILED (errors=1, skipped=49)
+2026-09-20T14:01:30.9481034Z certificate: dwv1_bbea3921df3b0ed59df9
+2026-09-20T14:01:30.9481244Z integrity:   valid
+2026-09-20T14:01:30.9481372Z freshness:   fresh against WORKTREE
+2026-09-20T14:01:30.9481520Z candidate:   embedded-tree

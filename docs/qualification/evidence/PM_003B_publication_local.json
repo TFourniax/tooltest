@@ -1,0 +1,61 @@
+{
+  "schema": "diffwitness-local-qualification-1",
+  "classification": "MACHINE",
+  "unit": "PM-003b",
+  "base": "8c4f879688efbd3019c92a25349ff1426a8cc4f1",
+  "files": {
+    ".github/workflows/test.yml": "aa9d76c6584a39ae1b37e1544aa511e5e589656b8a96b19e3b15f73928766cf4",
+    "docs/GIT_HISTORY.md": "72587d1045b1ea8382748bb29fdb5340ee434a9a265eb3c23084f93611cdef75",
+    "docs/qualification/JOURNAL_2026_09_20.md": "9aac8d637f32c891bd18fab58104e20367c2f5bbc5a0be9f02cc9abebf318f62",
+    "docs/qualification/PM_003B.md": "756c726316d39e80d4944fa5007a9bb61d27c02fbbbb728e53e62bcece813967",
+    "docs/qualification/evidence/PM_003B_before.log": "c4ab68d22fac12d42abea3827f1f944c568236bd849246dce2e13e15f03c7add",
+    "docs/qualification/evidence/PM_003B_cli_policy_before.log": "c01e0134bda6eb81c259dfeaab4b8950df94c6cbf1268346feeae44713da779f",
+    "docs/qualification/evidence/PM_003B_cursor_review_before.log": "adae1a33935132ff924cee7cb74c2d90aa5b26ccda96f57dc7229a78c462a789",
+    "docs/qualification/evidence/PM_003B_first_parent_discovery.json": "b2823606d57d4f75301c57de26bbd5d2fad0f11c0b06e35b1dba90aece2a5eac",
+    "src/diffwitness/continuity_cli.py": "8a8c6bf27c3182e5b5a490899813731ab8f01c6691d11a17188669ed0915912c",
+    "src/diffwitness/continuity_git_contract.py": "fc23d090258c0efce71f6c3ea6aa217855fa59326f837a8a725012e004710126",
+    "src/diffwitness/continuity_git_history.py": "ed0527fcb6256b5a49463aa9d9f4fe9c84eb9f89253f38fbb294f2cf35498eec",
+    "tests/test_continuity_git_branches.py": "f222d58c3cc5b15e13139ae67728a5ee3576114eef17ea761a4addc2e51ed7d9",
+    "scripts/git_history_acceptance.py": "0bdf62ed9dbd062dbb0ea0c83dab4cf030ef77d0dfca4a69300462f9767a14cf"
+  },
+  "logs": {
+    "PM_003B_full_final.log": "fbf13241c387c322fd67f6a6aca52b593b8edff11996fe63df0b98d6d7281553",
+    "PM_003B_base_final.log": "e0ffa86374569381e7e4400bd1ce7d58aa7afd0f30de3ea1d739ac40a9dcd446",
+    "PM_003B_installed_first.log": "bae3d9e23c892b283cf596f13ef160cbf4d44a6c18fdf183dbf6ae10e9edc4f2",
+    "PM_003B_final_10k.json": "0564970cadfcef40e554e025d17fdfd499996b60d15b2341ba0a3212ff40317b"
+  },
+  "full_tests": {
+    "run": 632,
+    "pass": 628,
+    "skipped": 4
+  },
+  "base_tests": {
+    "run": 632,
+    "pass": 580,
+    "skipped": 52
+  },
+  "performance": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20119552,
+    "append_seconds": 1.185486,
+    "full_log_verify_seconds": 0.498136,
+    "rebuild_seconds": 1.194787,
+    "context": {
+      "cold_ms": 30.592,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 24.995,
+        "median": 26.124,
+        "p95": 43.239,
+        "max": 43.239
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_806a1131e9f3690e0150ce60",
+    "passed": true,
+    "failures": []
+  }
+}

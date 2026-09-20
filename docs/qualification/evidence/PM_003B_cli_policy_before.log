@@ -1,0 +1,41 @@
+test_all_branches_include_merge_parents_and_disconnected_roots_without_proof (test_continuity_git_branches.GitBranchHistoryTests.test_all_branches_include_merge_parents_and_disconnected_roots_without_proof) ... Switched to a new branch 'unrelated'
+ok
+test_cli_resumption_hint_keeps_explicit_message_policy (test_continuity_git_branches.GitBranchHistoryTests.test_cli_resumption_hint_keeps_explicit_message_policy) ... Switched to a new branch 'unrelated'
+FAIL
+test_consistent_cursor_cannot_claim_unimported_messages (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_claim_unimported_messages) ... Switched to a new branch 'unrelated'
+ok
+test_consistent_cursor_cannot_skip_unimported_commits (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_skip_unimported_commits) ... Switched to a new branch 'unrelated'
+ok
+test_cursor_prefix_rechecks_corrupt_journal_bytes_with_preserved_size_and_time (test_continuity_git_branches.GitBranchHistoryTests.test_cursor_prefix_rechecks_corrupt_journal_bytes_with_preserved_size_and_time) ... Switched to a new branch 'unrelated'
+ok
+test_cursor_rejects_invalid_typed_fields_even_with_recomputed_checksum (test_continuity_git_branches.GitBranchHistoryTests.test_cursor_rejects_invalid_typed_fields_even_with_recomputed_checksum) ... Switched to a new branch 'unrelated'
+ok
+test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy (test_continuity_git_branches.GitBranchHistoryTests.test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy) ... Switched to a new branch 'unrelated'
+ok
+test_empty_sha256_and_localized_cli_preserve_compatible_modes (test_continuity_git_branches.GitBranchHistoryTests.test_empty_sha256_and_localized_cli_preserve_compatible_modes) ... Switched to a new branch 'unrelated'
+ok
+test_interruption_and_concurrent_page_imports_retain_journal_integrity (test_continuity_git_branches.GitBranchHistoryTests.test_interruption_and_concurrent_page_imports_retain_journal_integrity) ... Switched to a new branch 'unrelated'
+ok
+test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) ... Switched to a new branch 'unrelated'
+ok
+test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append (test_continuity_git_branches.GitBranchHistoryTests.test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append) ... Switched to a new branch 'unrelated'
+ok
+test_remote_tracking_tips_are_included_but_tag_only_history_is_explicitly_outside_scope (test_continuity_git_branches.GitBranchHistoryTests.test_remote_tracking_tips_are_included_but_tag_only_history_is_explicitly_outside_scope) ... Switched to a new branch 'unrelated'
+ok
+test_shallow_and_grafted_parent_lists_never_claim_complete_history (test_continuity_git_branches.GitBranchHistoryTests.test_shallow_and_grafted_parent_lists_never_claim_complete_history) ... Switched to a new branch 'unrelated'
+ok
+test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement (test_continuity_git_branches.GitBranchHistoryTests.test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement) ... Switched to a new branch 'unrelated'
+ok
+
+======================================================================
+FAIL: test_cli_resumption_hint_keeps_explicit_message_policy (test_continuity_git_branches.GitBranchHistoryTests.test_cli_resumption_hint_keeps_explicit_message_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 241, in test_cli_resumption_hint_keeps_explicit_message_policy
+    self.assertIn('--all-branches --include-messages --cursor ', result.stdout)
+AssertionError: '--all-branches --include-messages --cursor ' not found in 'Git history: 1 commits, 2 new events.\nResume with --all-branches --cursor eyJjaGVja3N1bSI6Ijc5NGNmN2MxY2RiMWNmYTIwNzc1YWRjMzU5NzI1YzExN2IzMGI2ZWFjYTU1ZjMxN2Q5YjBlNTU0ODNmNjJjZDgiLCJpbmNsdWRlX21lc3NhZ2VzIjp0cnVlLCJvZmZzZXQiOjEsInByZWZpeF9zaGEyNTYiOiI0NjZiOTUzYmU1MmZmYjM2MGIwMjRiZDJlNzg0OTc2MjU4ODRlMTMyYTM5Y2M3NjViOTE1MDFhZGVmMGZlZTVkIiwic2NoZW1hX3ZlcnNpb24iOiJnaXQtaGlzdG9yeS1jdXJzb3ItMSIsInRpcHMiOlsiNGFjZDYyMWVkZDQyMjQxYzgzZjNiY2EzOGEwODJiY2FkYmIzYTJjNyIsIjUzNDljOTEzOTY5ZjYyYzYxY2FlZmMzMmQ2NzA1NDcwMzI1YWRlNGQiLCI5NmZmNTQ0YzVkNzVhMzM2M2U3ZTQ2Nzg5MDE5NTEyZDEzNzg2NmQzIl19\nCommit messages are declarations. No executed Proof was created.\n'
+
+----------------------------------------------------------------------
+Ran 14 tests in 4.188s
+
+FAILED (failures=1)
