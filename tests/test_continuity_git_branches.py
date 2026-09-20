@@ -134,6 +134,9 @@ class GitBranchHistoryTests(unittest.TestCase):
     def test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append(self):
         obj = self.repo / '.git/objects' / self.side[:2] / self.side[2:]
         raw = obj.read_bytes()
+        # Git marks loose objects read-only on Windows. This fixture owns the
+        # disposable object and must make it removable before simulating loss.
+        obj.chmod(0o600)
         obj.unlink()
         with self.assertRaises(ContinuityError):
             self.page()
