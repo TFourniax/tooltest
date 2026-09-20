@@ -1,50 +1,43 @@
-# Initialize memory from existing Git history
+# Import existing Git history
 
-Run `dw state bootstrap-git --json` in a repository to import up to 25 existing
-commits from the captured HEAD, following each commit's first parent. The command
-observes commit/tree/parent identities and changed paths, without reading dirty
-source, modifying the index or creating Proof. Re-running it is idempotent.
+`dw state bootstrap-git --max-commits 25 --json` retains the original first-parent
+mode. Resume that mode with its returned `next_ref` and `--ref`.
 
-The JSON result supplies `next_ref`. Continue with
-`dw state bootstrap-git --ref <next_ref> --json` until `next_ref` is null.
-Keep that returned immutable ref if HEAD changes between pages. Each page can
-contain 1–100 commits using `--max-commits`; previously imported commits count
-toward that page and do not create duplicate events.
+`dw state bootstrap-git --all-branches --max-commits 25 --json` captures the locally
+available HEAD, local branches and remote-tracking branches. It visits all parents
+of those exact tips, including merged side branches and disconnected roots. Tags,
+reflogs and unreachable objects are outside this scope. It does not fetch objects.
+Ref enumeration is not an atomic multi-ref transaction; the returned tip IDs state
+the captured scope and remain fixed for the continuation.
 
-Only commit-message digest/byte count is stored by default. If you explicitly
-want the message text in local Project Memory, add `--include-messages`. It adds
-separate DECLARED message entities, preserving existing OBSERVED commit metadata.
-This can be done later by replaying the same pages. No author email/header is
-copied. Imported message previews are at most 4,096 Unicode characters; truncation
-is recorded. Non-UTF-8 messages are omitted with `messages_unreadable` reported.
-Opted-in text becomes part of the local journal and any later explicit checkpoint
-export; review its suitability before enabling that option.
+When `complete` is false, pass `next_cursor` to the same command with `--cursor`.
+Keep `--include-messages` on every page if you explicitly opted in. Messages are
+DECLARED statements, never executed Proof. Commit IDs, tree IDs and parent links
+are observations of verified local Git objects, not authenticated authorship.
+Each commit's changed files still describe its first-parent diff. Merge ancestry
+does not itself establish runtime causality or rename identity.
 
-`dw state events --json` and `dw state graph --json` expose the imported records.
-They are historical artifacts, not native task participation or executed change
-envelopes. A commit message claiming a successful test does not create a Proof.
-No human acceptance, causal task link or inferred rationale is generated.
+Pages retain the existing default25/maximum100 commits,256KiB per commit,64 paths
+per commit,4096 message characters,60-second collection and15-second Git command
+limits. Capturing more than256 branch refs fails explicitly. Cursors are at most
+64KiB; traversal output is at most16MiB with a one-million-row continuation-count
+cap. Limit failures import no page. Neither source files nor author/email headers
+are copied into history events; message text requires explicit opt-in.
 
-The importer follows first-parent history, retaining all parent IDs of merges
-while comparing the merge to its first parent. It does not import every side
-branch. At an unavailable parent (for example a shallow clone), it returns a
-visible boundary and a ref to retry after deepening/repair. It does not reinterpret
-the boundary commit as a root. `complete` describes first-parent traversal, not
-complete path/message coverage or whole-project understanding.
+Continuation checks both the captured traversal prefix and the corresponding
+events in the byte-validated journal. A recalculated cursor checksum cannot skip
+unimported commits or claim unimported messages. The checksum is a consistency
+check, not authentication. Replaying a page is idempotent. Concurrent page imports
+use the existing journal lock, admission and dedupe path.
 
-Limits: 256 KiB per commit object, 64 paths per commit, bounded path names, 1 MiB
-per diff-path output, 15 seconds per Git child and 60 seconds for page collection.
-The omitted-path count is retained in each observation and the page result.
-An oversized/invalid object or command output rejects the collected page before
-append; it cannot silently produce a complete observation. Journal validation and
-state reconstruction then use the existing integrity path and their existing
-costs, outside the Git collection time budget. No source patches are imported.
+Shallow or graft-rewritten parent lists are compared with raw commit headers and
+reported as incomplete boundaries. After you deepen or repair the repository,
+resume if the prefix remains consistent; otherwise restart idempotently. Git
+version/order or topology changes can invalidate a cursor. Product commands do
+not alter grafts, refs, the real Git index or working files to resolve a boundary.
 
-Object replacements and lazy fetching are disabled. Diff extraction disables
-external helpers/text conversion and uses NUL-delimited names. These switches
-follow the [Git command documentation](https://git-scm.com/docs/git) and
-[`diff-tree` documentation](https://git-scm.com/docs/git-diff-tree).
-
-MACHINE qualification is recorded in the repository journal and registry #74.
-HUMAN remains NOT RUN for this candidate; rename lineage and product history UI
-have separate acceptance tasks.
+Prefix replay costs O(history) per page. This is bounded pagination, not an
+incremental graph store or a 50k/100k performance qualification. Exact supported
+artifact and cross-platform gates are recorded with PM-003b; full longitudinal
+identity, cited history retrieval and coordinated Alpha qualification remain in
+the canonical registry.

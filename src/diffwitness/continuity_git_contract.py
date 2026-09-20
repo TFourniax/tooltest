@@ -76,5 +76,7 @@ def git_history_descriptor() -> dict:
     return {'event_types':{'commit.observed':'OBSERVED', 'commit.message':'DECLARED'},
             'source':'git-object', 'source_binding':'commit object ID; not authenticated authorship',
             'traversal':'first-parent', 'messages':'explicit opt-in, bounded UTF-8 preview',
+            'traversal_modes':['first-parent', 'all-branches'],
+            'all_branches':'opt-in captured local HEAD/heads/remotes; journal-bound continuation; first-parent file diffs',
             'max_paths':MAX_HISTORY_PATHS, 'max_message_chars':MAX_MESSAGE_CHARS,
             'grants_proof_authority':False, 'unprofiled_history':'preserve'}

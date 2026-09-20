@@ -1,0 +1,41 @@
+test_all_branches_include_merge_parents_and_disconnected_roots_without_proof (test_continuity_git_branches.GitBranchHistoryTests.test_all_branches_include_merge_parents_and_disconnected_roots_without_proof) ... Switched to a new branch 'unrelated'
+ok
+test_consistent_cursor_cannot_claim_unimported_messages (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_claim_unimported_messages) ... Switched to a new branch 'unrelated'
+FAIL
+test_consistent_cursor_cannot_skip_unimported_commits (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_skip_unimported_commits) ... Switched to a new branch 'unrelated'
+FAIL
+test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy (test_continuity_git_branches.GitBranchHistoryTests.test_declared_messages_remain_opt_in_and_cannot_change_cursor_policy) ... Switched to a new branch 'unrelated'
+ok
+test_interruption_and_concurrent_page_imports_retain_journal_integrity (test_continuity_git_branches.GitBranchHistoryTests.test_interruption_and_concurrent_page_imports_retain_journal_integrity) ... Switched to a new branch 'unrelated'
+ok
+test_invalid_options_and_corrupted_cursor_fail_without_appending (test_continuity_git_branches.GitBranchHistoryTests.test_invalid_options_and_corrupted_cursor_fail_without_appending) ... Switched to a new branch 'unrelated'
+ok
+test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append (test_continuity_git_branches.GitBranchHistoryTests.test_missing_non_first_parent_and_excessive_branch_capture_fail_before_append) ... Switched to a new branch 'unrelated'
+ok
+test_shallow_and_grafted_parent_lists_never_claim_complete_history (test_continuity_git_branches.GitBranchHistoryTests.test_shallow_and_grafted_parent_lists_never_claim_complete_history) ... Switched to a new branch 'unrelated'
+ok
+test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement (test_continuity_git_branches.GitBranchHistoryTests.test_small_pages_retry_idempotently_and_keep_the_captured_tips_after_ref_movement) ... Switched to a new branch 'unrelated'
+ok
+
+======================================================================
+FAIL: test_consistent_cursor_cannot_claim_unimported_messages (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_claim_unimported_messages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 162, in test_consistent_cursor_cannot_claim_unimported_messages
+    with self.assertRaises(ContinuityError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContinuityError not raised
+
+======================================================================
+FAIL: test_consistent_cursor_cannot_skip_unimported_commits (test_continuity_git_branches.GitBranchHistoryTests.test_consistent_cursor_cannot_skip_unimported_commits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_history/tests/test_continuity_git_branches.py", line 153, in test_consistent_cursor_cannot_skip_unimported_commits
+    with self.assertRaises(ContinuityError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContinuityError not raised
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.444s
+
+FAILED (failures=2)

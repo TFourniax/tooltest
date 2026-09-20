@@ -1,0 +1,39 @@
+{
+  "schema": "pm-003b-first-parent-discovery-1",
+  "classification": "MACHINE",
+  "source": "e56a5a7884072ea51f29d9475235fd942f70c992",
+  "result": {
+    "schema_version": "git-history-bootstrap-1",
+    "tip": "2f281f2de16251c49ca5bcaa490745544bcf1825",
+    "next_ref": null,
+    "complete": true,
+    "scope": "first-parent",
+    "boundary": null,
+    "commits": 3,
+    "events": 3,
+    "created": 3,
+    "files_omitted": 0,
+    "messages_unreadable": 0,
+    "include_messages": false,
+    "limits": {
+      "commits": 25,
+      "commitBytes": 262144,
+      "pathsPerCommit": 64,
+      "collectionSeconds": 60,
+      "messageChars": 4096
+    }
+  },
+  "reachable_branch_commits": 5,
+  "observed_commits": 3,
+  "omitted_commits": [
+    "4ea7c3298b1a12d78896fd8483ca7dadd0422d09",
+    "a7cb38f314abd225d5b9b8acbf4b3f0e0d3f49ba"
+  ],
+  "side_commit_omitted": true,
+  "disconnected_root_omitted": true,
+  "git_commands": 13,
+  "seconds": 0.044916,
+  "index_unchanged": true,
+  "worktree_unchanged": true,
+  "fixture": "generated; no external repository content"
+}
