@@ -1,0 +1,269 @@
+F..FFFFFFFFFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_comments_parentheses_templates_and_import_options_have_exact_spans (test_structure_import_calls.ImportCallTests.test_comments_parentheses_templates_and_import_options_have_exact_spans)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 27, in test_comments_parentheses_templates_and_import_options_have_exact_spans
+    self.assertEqual([i.target for i in value.imports],['./café.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./café.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./café.cjs'
+
+- []
++ ['./café.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_nested_literal_keyword_reference_and_transport_authority_are_preserved (test_structure_import_calls.ImportCallTests.test_nested_literal_keyword_reference_and_transport_authority_are_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 72, in test_nested_literal_keyword_reference_and_transport_authority_are_preserved
+    imports=value['files'][0]['imports'];self.assertEqual(len(imports),1)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='function require(value) {return value;}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='function load(require) {return require("./shadow.cjs");}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='const require = custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='const {require} = custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='const {load: require} = custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='const load = require => require("./shadow.cjs");')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='try {} catch(require) {}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='require = custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='require ||= custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='require++;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='for(require of loaders) {}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='const requ\\u0069re = custom;')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='eval(code);')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='with(loader) {require("./shadow.cjs");}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in []
+
+======================================================================
+FAIL: test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) (prefix='import {load as require} from "./loader.mjs";')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 63, in test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import
+    self.assertIn('./keyword.mjs',targets)
+AssertionError: './keyword.mjs' not found in ['./loader.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.js')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.jsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.cjs')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.mjs')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.ts')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.cts')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.mts')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+======================================================================
+FAIL: test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) (path='a.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_imports/tests/test_structure_import_calls.py", line 20, in test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar
+    self.assertEqual([i.target for i in value.imports],['./worker.cjs','./later.mjs'])
+AssertionError: Lists differ: [] != ['./worker.cjs', './later.mjs']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'./worker.cjs'
+
+- []
++ ['./worker.cjs', './later.mjs']
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.023s
+
+FAILED (failures=25)

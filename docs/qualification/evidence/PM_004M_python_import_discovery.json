@@ -1,0 +1,53 @@
+[
+  {
+    "path": "pkg/__init__.py",
+    "language": "python",
+    "provider": "python-ast",
+    "source_sha256": "7c4ae70cf7996c0057805468632aefba4c9f2ead95e6ef04ee2a54b041bc4309",
+    "module": "pkg",
+    "parsed": true,
+    "symbols": [],
+    "imports": [
+      {
+        "target": "child",
+        "epistemic_status": "OBSERVED"
+      }
+    ],
+    "calls": [],
+    "schema_version": "structure-extraction-1"
+  },
+  {
+    "path": "pkg/worker.py",
+    "language": "python",
+    "provider": "python-ast",
+    "source_sha256": "e341bcde8591a9e2ffde82b2f6b885317f6bf944574f6616c9907d8bdc0445ef",
+    "module": "pkg.worker",
+    "parsed": true,
+    "symbols": [],
+    "imports": [
+      {
+        "target": "external",
+        "epistemic_status": "OBSERVED"
+      }
+    ],
+    "calls": [],
+    "schema_version": "structure-extraction-1"
+  },
+  {
+    "path": "worker.py",
+    "language": "python",
+    "provider": "python-ast",
+    "source_sha256": "8b070707807ddc77c1593b41dd170e41eef3217108a879def9bfe69b13c48eab",
+    "module": "worker",
+    "parsed": true,
+    "symbols": [],
+    "imports": [
+      {
+        "target": "outside",
+        "epistemic_status": "OBSERVED"
+      }
+    ],
+    "calls": [],
+    "schema_version": "structure-extraction-1"
+  }
+]

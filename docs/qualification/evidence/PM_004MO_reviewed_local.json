@@ -1,0 +1,110 @@
+{
+  "schema": "pm-004mo-reviewed-local-1",
+  "classification": "MACHINE",
+  "qualified_core_parent": "c8a64fb99ef051ddd35972dfe4866aa0691dee94",
+  "qualified_idleproof_integration": "6109ffec2b98fd2c76962382d5f63c2a7a7576e8",
+  "profile": "structure-providers-9",
+  "full": {
+    "run": 617,
+    "pass": 613,
+    "skips": 4,
+    "seconds": 107.631
+  },
+  "base_retry": {
+    "run": 617,
+    "skips": 51,
+    "failures": 0,
+    "errors": 0,
+    "passed": true,
+    "pass": 566,
+    "seconds": 105.191
+  },
+  "base_initial": "INCOMPLETE_LOG despite exit0; not a complete PASS",
+  "structure": {
+    "run": 80,
+    "pass": 80,
+    "seconds": 4.098
+  },
+  "compile": "PASS",
+  "wheel": "PASS",
+  "installed_v1_v2_fr_en": "PASS",
+  "pip_check": "PASS",
+  "legacy_actual_9_family_consumer": "PASS",
+  "10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20160512,
+    "append_seconds": 1.647872,
+    "full_log_verify_seconds": 0.705594,
+    "rebuild_seconds": 1.240121,
+    "context": {
+      "cold_ms": 25.599,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 23.292,
+        "median": 25.84,
+        "p95": 32.17,
+        "max": 32.17
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_5065753bfc83d358d63be62b",
+    "passed": true,
+    "failures": []
+  },
+  "measurement": "Sequential10k after full/base/consumer/quality/package checks, shared host, no controlled comparison, no50k/100k qualification.",
+  "review_failures": {
+    "typescript_function_signature_subcases": 2,
+    "initial_O_subcases": 25
+  },
+  "consumer_N": "Development235 suite/actual optional+base pass; local performance has failures also observed on L baseline, not qualified.",
+  "files": {
+    ".github/workflows/integrated-product.yml": "16008a1484b34f32ae121dc4142b0eaa9ceb8d297c5a3bc48d1c3da11b2cfc57",
+    ".github/workflows/test.yml": "65d4d63a1b3571a6f85398ffbecf60c58256ec75f8714f5c49a9ccd49b32ae65",
+    "pyproject.toml": "e976f36828c347f523a4d34faea78be72bf1387fec823288a5822821844b3c82",
+    "scripts/structure_syntax_acceptance.py": "9b4c8279036723850d3dd2f1d0d3f7e2c745b51d792651086d4d5235b4cd3614",
+    "src/diffwitness/structure_contract.py": "97d2eedfe83b886d7a33adf5777af4da84e1a019dd4a6794e594ffc7c38b91bd",
+    "src/diffwitness/structure_data.py": "ab97afc71b2cc0240852842f38701f25126c3f661f3b4cd6a43eb00563e78e6f",
+    "src/diffwitness/structure_dynamic.py": "e369681948efd2406ef2e1837f33c3161a1a7e28bd3db7332008ec065e538bf5",
+    "src/diffwitness/structure_javascript.py": "7ceaaac251f283644d5b5b2765fc9f6dd59211045fc1a4d531a2b6aa1d9f738f",
+    "src/diffwitness/structure_managed.py": "f4a074870d9a8402480ed2b86445579f546133c1be5ef8a663e8a7fa6adebb49",
+    "src/diffwitness/structure_native.py": "39e57b73308b351731f731262be467c825d54853e1dfef19257d95ebaa26ddf0",
+    "src/diffwitness/structure_provider.py": "97259784fce285d6ce55ba69e2ba7b304ee259e1fdcd104b211b5c4305e7603b",
+    "src/diffwitness/structure_python.py": "bcf62c7f4b2a79354a13fd6dfa56b3c5c7c38cb322b2bcb1aa0ce3efe2fabd37",
+    "src/diffwitness/structure_registry.py": "27178853335a716efa4beae0c461152a58de0004761a39eb15c32ee13cd0a78c",
+    "src/diffwitness/structure_syntax.py": "60a614198ffd3937f6c696e619445468af023c1990f867847208dbd6b5290bd7",
+    "src/diffwitness/structure_transport.py": "50bf2f07c08dc3b9e1dcaa797c37bf76683a205bb4f4b46bcec8c77aeb0b1f59",
+    "tests/test_structure_data.py": "bc8bc8fc17611bbe4839c3d7fbdbaa90d6065961af3a2627fa70592e4094f609",
+    "tests/test_structure_import_calls.py": "a28ed762be78004043dccd5b43cb58b4e32ecfda266070fc01ed9582fa0f01f7",
+    "tests/test_structure_import_references.py": "8b691401712b5d881bac24f3e1bbe4b2a407c8756dff306ca6abe6788882d1f5"
+  },
+  "logs": {
+    "PM_004O_10k.log": "295fbcbbd4cffb2ace4ff4869de2f793e70f434ec2461fcd50370b588defcb76",
+    "PM_004O_actual_feature.log": "e34bb673642db8cca0a225b39c328ee0a9ebdb95f5d5e4c299582e696b6494d2",
+    "PM_004O_actual_legacy.log": "b2a0c32a985ddf8d7908f210c3f37696b4e3806fac2ad1126006c6110103d8df",
+    "PM_004O_after_first.log": "ba7ccc824660f99f10c5378a4598ede6de9cccb44d4230bf847998033f779998",
+    "PM_004O_base.log": "31a4dba16b47802c646104f972ce1be9726f85001edfb0ffe438a65266e29b31",
+    "PM_004O_before.log": "05c2aada2c75941ae967868f59c4f66a7662702ff77bc150f1c780ab1263339e",
+    "PM_004O_consumer.log": "26e9fb82785b451e506d69d74113a0174849b5972471de61328d45677313f2be",
+    "PM_004O_full_first.log": "b25c999400cae650c64e2415d6e5b07062ed6ede1ea0d90115b33d7cf9d83472",
+    "PM_004O_installed.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_004O_pipcheck.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004O_review_10k.log": "30f4469ec3071a9e211ea0611977a51618143e906914315f278bfa805b4ec954",
+    "PM_004O_review_base.log": "e711fce530c7238b3bd0e43041a0b0fa28079a8b8048a35b260563540a910301",
+    "PM_004O_review_base_retry.log": "a2973b54a5170c3f1a948ced41500851910365df5d6f098e3df86a62320edce3",
+    "PM_004O_review_consumer.log": "b2a0c32a985ddf8d7908f210c3f37696b4e3806fac2ad1126006c6110103d8df",
+    "PM_004O_review_full.log": "2b16abc43c25708a861fa05551bc527a4b465b8ff8b7db380229d0fad8129443",
+    "PM_004O_review_install.log": "5a558a745e7967db073ef93160e96b77600a0e24532e82f55004e92e3855e1fb",
+    "PM_004O_review_installed.log": "a323c82b75af2c5d1da447f03977c87f3bfbf1d4b5994c6ff6ff47b41c4508d0",
+    "PM_004O_review_pipcheck.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "PM_004O_review_signature_before.log": "d3797f199952b56433842b4e8ed4606607cf638f8b51b817c0e5c8610f48d76f",
+    "PM_004O_review_structure.log": "07d9763a62ed6fc38a504c5aac5cd0b43669c4d2dbf90f829d25ed9180fbeb61",
+    "PM_004O_review_wheel.log": "e429109dfddb62444cfd36bd03757e14ff6c79b7ebe62bd489d30c22bd1130cd",
+    "PM_004O_structure_first.log": "8c4c5d9888fe68dcf485d575d866a7a7fcd58d1de6bc009b7507581e281a9709",
+    "PM_004O_wheel.log": "f3db6743f99a94f792c1d81a4b1d0b9e6d8a41e10943c8c4e4b76705f9dbfe65"
+  },
+  "human": "NOT RUN",
+  "global_status": "NOT ALPHA READY"
+}

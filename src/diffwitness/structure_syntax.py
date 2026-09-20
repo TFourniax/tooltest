@@ -97,9 +97,13 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
                                         line(max(node.start_byte, node.end_byte - 1)),
                                         local_call_name=name if callable_name else None))
 
+    def reference(node, target):
+        return StructuralImport(target, line=line(node.start_byte),
+                                end_line=line(max(node.start_byte, node.end_byte - 1)))
+
     if language in {'go', 'rust'}:
         from .structure_native import native_declarations
-        imports.extend(native_declarations(language, tree.root_node, text, symbol))
+        imports.extend(native_declarations(language, tree.root_node, text, symbol, reference))
     elif language in {'sql', 'json', 'toml', 'yaml'}:
         from .structure_data import data_declarations
         try:
@@ -108,10 +112,10 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
             return empty
     elif language in {'ruby', 'php'}:
         from .structure_dynamic import dynamic_declarations, dynamic_call_name
-        imports.extend(dynamic_declarations(language, tree.root_node, nodes, text, symbol))
+        imports.extend(dynamic_declarations(language, tree.root_node, nodes, text, symbol, reference))
     elif language in {'java', 'csharp', 'kotlin'}:
         from .structure_managed import managed_declarations, managed_call_name
-        imports.extend(managed_declarations(language, tree.root_node, text, symbol))
+        imports.extend(managed_declarations(language, tree.root_node, text, symbol, reference))
     else:
         declarations = {
             'function_declaration': 'function', 'generator_function_declaration': 'generator-function',
@@ -161,7 +165,10 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
                 # Escaped module specifiers need language-specific decoding. Leave
                 # them unresolved rather than inventing a normalized dependency.
                 if target is not None and target.type == 'string' and len(raw) > 2 and '\\' not in raw:
-                    imports.append(StructuralImport(raw[1:-1]))
+                    imports.append(reference(statement, raw[1:-1]))
+    if language in {'javascript', 'typescript'}:
+        from .structure_javascript import javascript_import_calls
+        imports.extend(javascript_import_calls(nodes, text, reference))
     for node in nodes:
         if language in {'sql', 'json', 'toml', 'yaml'}:
             continue

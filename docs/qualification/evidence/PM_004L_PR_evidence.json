@@ -1,0 +1,128 @@
+{
+  "schema": "diffwitness-qualification-1",
+  "classification": "MACHINE",
+  "unit": "PM-004l",
+  "repository": "TFourniax/tooltest-2",
+  "sha": "e8224d629ca2ae9f4537d0491f03cf581783268b",
+  "tree": "ba538072fa787b662ec7f264be116f33ee18d5c5",
+  "runs": [
+    {
+      "id": 35435813767,
+      "name": "test",
+      "head_sha": "e8224d629ca2ae9f4537d0491f03cf581783268b",
+      "event": "pull_request",
+      "attempt": 1,
+      "conclusion": "success",
+      "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767",
+      "jobs": [
+        {
+          "id": 105878146543,
+          "name": "real Core context consumer (ubuntu-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146543"
+        },
+        {
+          "id": 105878146552,
+          "name": "installed package commercial-alpha journey (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146552"
+        },
+        {
+          "id": 105878146569,
+          "name": "ExplainBench + adversarial quality + performance budgets",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146569"
+        },
+        {
+          "id": 105878146586,
+          "name": "test (macos-latest, 20)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146586"
+        },
+        {
+          "id": 105878146587,
+          "name": "installed package commercial-alpha journey (macos-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146587"
+        },
+        {
+          "id": 105878146598,
+          "name": "real Core context consumer (macos-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146598"
+        },
+        {
+          "id": 105878146601,
+          "name": "test (macos-latest, 22)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146601"
+        },
+        {
+          "id": 105878146602,
+          "name": "real Core context consumer (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146602"
+        },
+        {
+          "id": 105878146627,
+          "name": "test (ubuntu-latest, 20)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146627"
+        },
+        {
+          "id": 105878146631,
+          "name": "installed package commercial-alpha journey (ubuntu-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146631"
+        },
+        {
+          "id": 105878146660,
+          "name": "test (ubuntu-latest, 22)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146660"
+        },
+        {
+          "id": 105878146661,
+          "name": "test (macos-latest, 24)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146661"
+        },
+        {
+          "id": 105878146679,
+          "name": "test (windows-latest, 24)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146679"
+        },
+        {
+          "id": 105878146683,
+          "name": "test (windows-latest, 20)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146683"
+        },
+        {
+          "id": 105878146693,
+          "name": "test (ubuntu-latest, 24)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146693"
+        },
+        {
+          "id": 105878146699,
+          "name": "test (windows-latest, 22)",
+          "conclusion": "success",
+          "url": "https://github.com/TFourniax/tooltest-2/actions/runs/35435813767/job/105878146699"
+        }
+      ],
+      "artifacts": []
+    }
+  ],
+  "review": {
+    "initial_automated_review": 5255245872,
+    "initial_comment": 4052789918,
+    "correction": "Neutral current/related import presentation and delivery invalidation; two failing-before tests and installed PHP/Ruby journey.",
+    "final_agent_review": "MACHINE; source, regression evidence and CI reviewed; HUMAN NOT RUN",
+    "synthetic_merge": {
+      "sha": "19ceb33706a860c7c6c227f8fd462cc42cf73a39",
+      "tree": "ba538072fa787b662ec7f264be116f33ee18d5c5"
+    }
+  }
+}

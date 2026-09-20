@@ -1,7 +1,6 @@
 """Go/Rust declaration adapters over the shared admitted syntax tree."""
 from __future__ import annotations
 
-from .structure_contract import StructuralImport
 
 
 def _path_text(node, text):
@@ -80,7 +79,7 @@ def _rust_use_paths(argument, text):
     return result
 
 
-def native_declarations(language, root, text, symbol):
+def native_declarations(language, root, text, symbol, reference):
     imports = []
     if language == 'go':
         for node in root.named_children:
@@ -110,7 +109,7 @@ def native_declarations(language, root, text, symbol):
                         path = item.child_by_field_name('path')
                         raw = text(path)
                         if path is not None and len(raw) > 2 and '\\' not in raw:
-                            imports.append(StructuralImport(raw[1:-1]))
+                            imports.append(reference(item, raw[1:-1]))
                     else:
                         pending.extend(reversed(item.named_children))
         return imports
@@ -149,7 +148,7 @@ def native_declarations(language, root, text, symbol):
                 qualified = '.'.join(filter(None, (prefix, parent)))
                 pending.extend((child, qualified, True) for child in reversed(body.named_children))
         elif node.type == 'use_declaration':
-            imports.extend(StructuralImport(path) for path in _rust_use_paths(node.child_by_field_name('argument'), text))
+            imports.extend(reference(node, path) for path in _rust_use_paths(node.child_by_field_name('argument'), text))
         elif node.type == 'extern_crate_declaration' and name is not None:
-            imports.append(StructuralImport(text(name)))
+            imports.append(reference(node, text(name)))
     return imports

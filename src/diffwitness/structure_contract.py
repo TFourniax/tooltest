@@ -21,6 +21,10 @@ class StructuralSymbol:
 class StructuralImport:
     target: str
     epistemic_status: str = "OBSERVED"
+    source_target: str | None = None
+    members: tuple[str, ...] | None = None
+    line: int | None = None
+    end_line: int | None = None
 
 
 @dataclass(frozen=True)
@@ -74,6 +78,12 @@ def validate_extraction(result: FileExtraction, path: str, content: bytes,
     for item in result.imports:
         require(type(item) is StructuralImport and text(item.target), "import target")
         require(isinstance(item.epistemic_status, str) and item.epistemic_status in {"OBSERVED", "INFERRED"}, "import authority")
+        require(item.source_target is None or text(item.source_target), "import source target")
+        require(item.members is None or (type(item.members) is tuple and len(item.members) <= 100000
+                and all(text(member) for member in item.members)), "import members")
+        require((item.line is None and item.end_line is None)
+                or (type(item.line) is int and type(item.end_line) is int
+                    and 1 <= item.line <= item.end_line <= max_line), "import position")
     for call in result.calls:
         require(type(call) is StructuralCall and text(call.name), "call target")
         require(call.epistemic_status == "INFERRED", "name-call authority")

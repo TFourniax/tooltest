@@ -40,18 +40,28 @@ def extract_python(relative: str, content: bytes) -> FileExtraction:
                         symbols.append(StructuralSymbol(f"{qname}.{child.name}", kind,
                                                         child.lineno, child.end_lineno))
         if isinstance(node, ast.Import):
-            imports.extend(StructuralImport(alias.name) for alias in node.names)
+            imports.extend(StructuralImport(alias.name, source_target=alias.name, members=(),
+                                           line=node.lineno, end_line=node.end_lineno) for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
+            written = '.' * node.level + (node.module or '')
             if node.level:
-                parts = module.split(".")[:-1] if module else []
-                prefix = parts[:max(0, len(parts) - (node.level - 1))]
-                if node.module:
-                    prefix.extend(node.module.split("."))
-                target = ".".join(prefix)
+                # An initializer belongs to its own package; ordinary source
+                # modules belong to their parent. Never clamp a relative import
+                # past that lexical package into an unrelated absolute name.
+                parts = list(PurePosixPath(relative).parts[:-1])
+                if node.level <= len(parts):
+                    prefix = parts[:len(parts) - node.level + 1]
+                    if node.module:
+                        prefix.extend(node.module.split('.'))
+                    target = '.'.join(prefix)
+                else:
+                    target = written
             else:
                 target = node.module or ""
             if target:
-                imports.append(StructuralImport(target))
+                imports.append(StructuralImport(target, source_target=written,
+                                               members=tuple(alias.name for alias in node.names),
+                                               line=node.lineno, end_line=node.end_lineno))
 
     calls = tuple(StructuralCall(node.func.id, node.lineno) for node in ast.walk(tree)
                   if isinstance(node, ast.Call) and isinstance(node.func, ast.Name))

@@ -13,6 +13,8 @@ from .structure_sources import MAX_SOURCE_FILE_BYTES
 
 REQUEST_SCHEMA = "structure-request-1"
 RESPONSE_SCHEMA = "structure-response-1"
+DETAIL_REQUEST_SCHEMA = "structure-request-2"
+DETAIL_RESPONSE_SCHEMA = "structure-response-2"
 MAX_FILES = 64
 MAX_TOTAL_BYTES = 4 * 1024 * 1024
 MAX_WIRE_BYTES = 6 * 1024 * 1024
@@ -40,7 +42,7 @@ def _source(item: object) -> tuple[str, bytes]:
 
 def extract_request(request: object) -> dict:
     if (not isinstance(request, dict) or set(request) != {"schema_version", "files"}
-            or request["schema_version"] != REQUEST_SCHEMA
+            or request["schema_version"] not in (REQUEST_SCHEMA, DETAIL_REQUEST_SCHEMA)
             or not isinstance(request["files"], list) or len(request["files"]) > MAX_FILES):
         raise ValueError("unsupported or malformed bounded structure request")
     sources = [_source(item) for item in request["files"]]
@@ -53,8 +55,16 @@ def extract_request(request: object) -> dict:
     for path, content in sources:
         result = extract_structure(path, content)
         coverage['unsupported' if result.provider == 'file-only' else 'parsed' if result.parsed else 'unparsed'] += 1
-        files.append(asdict(result))
-    return {"schema_version": RESPONSE_SCHEMA, "files": files, "coverage": coverage}
+        value = asdict(result)
+        if request['schema_version'] == DETAIL_REQUEST_SCHEMA:
+            value['schema_version'] = 'structure-extraction-2'
+        else:
+            # Existing strict consumers receive exactly their original shape.
+            value['imports'] = tuple({key: item[key] for key in ('target', 'epistemic_status')}
+                                     for item in value['imports'])
+        files.append(value)
+    schema = DETAIL_RESPONSE_SCHEMA if request['schema_version'] == DETAIL_REQUEST_SCHEMA else RESPONSE_SCHEMA
+    return {"schema_version": schema, "files": files, "coverage": coverage}
 
 
 def extraction_cli() -> int:

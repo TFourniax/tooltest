@@ -241,3 +241,34 @@ wheel digests are recorded in qualification evidence; actual3OS tests are requir
 JSON overflow values (including nested1e999) are explicitly rejected after strict
 parsing; finite values/large integers remain valid. This does not redefine TOML
 inf/nan syntax. Review4052729869 and fail-before evidence are retained.
+
+
+## Detailed import references and literal loader syntax
+
+Provider profile9 adds source-aware import references through the same extractor.
+The default structure-request-1/structure-response-1 still returns exactly the
+original import fields target and epistemic_status. Explicit structure-request-2
+returns structure-response-2 with structure-extraction-2 files; each import adds
+source_target, members, line and end_line. Unavailable details are null. Positions
+are one-based inclusive source lines, admitted against the exact source bytes.
+
+Python import retains written targets and observed from-import members. Package
+initializers resolve relative lexical bases from their containing directory;
+out-of-root references retain leading dots. Imported members are not presumed to
+be modules. Only unique static local module candidates become INFERRED links;
+ambiguous/unresolved targets remain neutral module-reference facts. This does not
+resolve sys.path, namespace packages, runtime imports or external package owners.
+
+JS/TS references now include direct literal require() and keyword import() calls,
+using existing syntax nodes and position callbacks. Only nonempty unescaped
+strings or single-line interpolation-free templates are admitted, optionally
+parenthesized. import() allows its syntax options argument. Known require
+bindings, function signatures, writes or eval/with barriers conservatively omit
+CommonJS calls across the whole file. Aliased/member/optional loaders, computed,
+interpolated and escaped targets remain unresolved. This observes syntax, not
+execution, a proven Node binding or a package owner. Candidate local links remain
+INFERRED. Native250ms and source/node bounds are unchanged; no second parser.
+
+Other grammar adapters retain actual import positions; member/raw-target details
+remain null until implemented. Code route/SQL-string/technology canonicalization,
+full consumer citation coverage and longitudinal identity remain separate work.
