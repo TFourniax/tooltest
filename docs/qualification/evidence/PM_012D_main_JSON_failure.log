@@ -1,0 +1,29 @@
+2026-09-20T15:05:30.0298677Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T15:05:30.0298971Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T15:05:30.0299260Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T15:05:30.0299583Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-20T15:05:30.0299840Z ##[endgroup]
+2026-09-20T15:05:31.8286730Z {"schema":"idleproof-feature-canonical-smoke-1","passed":true,"actual_optional_grammars":true,"classification":"MACHINE"}
+2026-09-20T15:05:35.6791240Z IdleProof PERF PASS (Python/Core) · hook p95 78.4ms · max 143.2ms · Stop 194.6ms · state p95 0.2ms
+2026-09-20T15:05:40.5136374Z IdleProof PERF PASS (TypeScript/Core) · hook p95 107.5ms · max 289.7ms · Stop 357.9ms · state p95 0.2ms
+2026-09-20T15:05:46.3819497Z node:internal/modules/run_main:123
+2026-09-20T15:05:46.3820029Z     triggerUncaughtException(
+2026-09-20T15:05:46.3821599Z     ^
+2026-09-20T15:05:46.3821955Z 
+2026-09-20T15:05:46.3822399Z AssertionError [ERR_ASSERTION]: hook p95 164.9ms exceeds 150ms
+2026-09-20T15:05:46.3823250Z     at file:///home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/scripts/perf-gate.mjs:55:10
+2026-09-20T15:05:46.3824018Z     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+2026-09-20T15:05:46.3824692Z     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+2026-09-20T15:05:46.3825685Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+2026-09-20T15:05:46.3826264Z   generatedMessage: false,
+2026-09-20T15:05:46.3826535Z   code: 'ERR_ASSERTION',
+2026-09-20T15:05:46.3826797Z   actual: false,
+2026-09-20T15:05:46.3827044Z   expected: true,
+2026-09-20T15:05:46.3827290Z   operator: '==',
+2026-09-20T15:05:46.3827532Z   diff: 'simple'
+2026-09-20T15:05:46.3827819Z }
+2026-09-20T15:05:46.3827934Z 
+2026-09-20T15:05:46.3828030Z Node.js v22.23.2
+2026-09-20T15:05:46.3875512Z ##[error]Process completed with exit code 1.
+2026-09-20T15:05:46.4011327Z Post job cleanup.
+2026-09-20T15:05:46.4712602Z [command]/usr/bin/git version

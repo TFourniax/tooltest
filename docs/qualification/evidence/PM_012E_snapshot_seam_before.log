@@ -1,0 +1,18 @@
+ERROR: test_corrupt_blob_response_cannot_replace_existing_index (test_structure_snapshot.StructureSnapshotTests.test_corrupt_blob_response_cannot_replace_existing_index)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_snapshot.py", line 102, in test_corrupt_blob_response_cannot_replace_existing_index
+    original = sources.git_bytes
+               ^^^^^^^^^^^^^^^^^
+AttributeError: module 'diffwitness.structure_sources' has no attribute 'git_bytes'
+
+----------------------------------------------------------------------
+Ran 634 tests in 110.480s
+
+FAILED (errors=1, skipped=4)
+certificate: dwv1_d798c5f568ed782a28dc
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID

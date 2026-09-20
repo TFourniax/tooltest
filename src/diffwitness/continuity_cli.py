@@ -10,10 +10,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .continuity_contract import (
-    DECLARATION_PROFILE, OBJECTIVE_PRIORITIES, PROFILE_PROVENANCE_FIELD, project_memory_contract,
-)
-from .gitops import repo_root
 
 
 def _now() -> str:
@@ -113,6 +109,8 @@ def state_cli(argv: list[str]) -> int:
         from .structure_transport import extraction_cli
         return extraction_cli()
     if args.command == "contract":
+        from .continuity_contract import project_memory_contract
+
         value = project_memory_contract()
         if args.json:
             _print(value, True)
@@ -123,6 +121,7 @@ def state_cli(argv: list[str]) -> int:
         return 0
     from .continuity_events import ContinuityError, continuity_paths, read_project_events
     from .continuity_state import ensure_state, rebuild_state, state_status
+    from .gitops import repo_root
 
     repo = repo_root(args.repo)
 
@@ -263,6 +262,7 @@ def state_cli(argv: list[str]) -> int:
 
 
 def context_cli(argv: list[str]) -> int:
+    from .gitops import repo_root
     from .continuity_context import compile_context, render_context
     from .continuity_debt_bridge import sync_debt_history
 
@@ -315,6 +315,7 @@ def _declare(
     payload: dict[str, Any],
     relations: list[dict[str, Any]],
 ) -> str:
+    from .continuity_contract import DECLARATION_PROFILE, PROFILE_PROVENANCE_FIELD
     from .continuity_events import append_project_event
     from .continuity_state import ensure_state
 
@@ -335,6 +336,9 @@ def _declare(
 
 
 def objective_cli(argv: list[str]) -> int:
+    from .gitops import repo_root
+    from .continuity_contract import OBJECTIVE_PRIORITIES
+
     if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("objective", argv)
@@ -367,6 +371,8 @@ def objective_cli(argv: list[str]) -> int:
 
 
 def decision_cli(argv: list[str]) -> int:
+    from .gitops import repo_root
+
     if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("decision", argv)
@@ -406,6 +412,8 @@ def decision_cli(argv: list[str]) -> int:
 
 
 def invariant_cli(argv: list[str]) -> int:
+    from .gitops import repo_root
+
     if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("invariant", argv)
@@ -440,6 +448,8 @@ def invariant_cli(argv: list[str]) -> int:
 
 
 def failed_approach_cli(argv: list[str]) -> int:
+    from .gitops import repo_root
+
     if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("failed-approach", argv)

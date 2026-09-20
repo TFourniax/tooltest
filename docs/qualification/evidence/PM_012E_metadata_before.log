@@ -1,0 +1,153 @@
+test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) ... 
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='en') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='fr') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='en') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='fr') ... FAIL
+test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically (test_structure_transport.StructureTransportTests.test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically) ... ok
+test_public_entry_never_discovers_repository_or_reads_language_preferences (test_structure_transport.StructureTransportTests.test_public_entry_never_discovers_repository_or_reads_language_preferences) ... ok
+test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) ... 
+  test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=1) ... FAIL
+  test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=2) ... FAIL
+test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json) ... ok
+test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid) ... ok
+test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage) ... ok
+test_wire_bounds_reject_before_emitting_any_partial_response (test_structure_transport.StructureTransportTests.test_wire_bounds_reject_before_emitting_any_partial_response) ... ok
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='en')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 71, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 274, in main
+    from ..language import LANGUAGES, presentation, saved_language
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/language.py", line 11, in <module>
+    from .gitops import git_metadata_path, repo_root
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 10, in find_spec
+RuntimeError: unrelated service initialized: diffwitness.gitops
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='fr')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 71, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 274, in main
+    from ..language import LANGUAGES, presentation, saved_language
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/language.py", line 11, in <module>
+    from .gitops import git_metadata_path, repo_root
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 10, in find_spec
+RuntimeError: unrelated service initialized: diffwitness.gitops
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='en')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 71, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 274, in main
+    from ..language import LANGUAGES, presentation, saved_language
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/language.py", line 11, in <module>
+    from .gitops import git_metadata_path, repo_root
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 10, in find_spec
+RuntimeError: unrelated service initialized: diffwitness.gitops
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='fr')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 71, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 274, in main
+    from ..language import LANGUAGES, presentation, saved_language
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/language.py", line 11, in <module>
+    from .gitops import git_metadata_path, repo_root
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 10, in find_spec
+RuntimeError: unrelated service initialized: diffwitness.gitops
+
+
+======================================================================
+FAIL: test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 95, in test_python_only_extraction_does_not_initialize_optional_distribution_metadata
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 294, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 375, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/continuity_cli.py", line 113, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_registry.py", line 10, in <module>
+    from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_syntax.py", line 7, in <module>
+    from importlib import metadata
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: optional distribution metadata initialized for Python source
+
+
+======================================================================
+FAIL: test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/tests/test_structure_transport.py", line 95, in test_python_only_extraction_does_not_initialize_optional_distribution_metadata
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 294, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/entry/__init__.py", line 375, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/continuity_cli.py", line 113, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_registry.py", line 10, in <module>
+    from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
+  File "/workspace/scratch/e9f3b6772074/work/core_extract_gitfree/src/diffwitness/structure_syntax.py", line 7, in <module>
+    from importlib import metadata
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: optional distribution metadata initialized for Python source
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.580s
+
+FAILED (failures=6)

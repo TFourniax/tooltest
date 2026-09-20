@@ -6,12 +6,18 @@ import hashlib
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from .gitops import git_bytes
 
 MAX_SOURCE_FILE_BYTES = 1024 * 1024
 MAX_SOURCE_TOTAL_BYTES = 32 * 1024 * 1024
 SNAPSHOT_VERSION = "git-tree-blobs-1"
 _EXCLUDED_DIRS = {".git", ".venv", "venv", "node_modules", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache", "__pycache__"}
+
+
+def git_bytes(*args, **kwargs) -> bytes:
+    """Late-bound access to the existing shared Git byte reader."""
+    from .gitops import git_bytes as read_git_bytes
+
+    return read_git_bytes(*args, **kwargs)
 
 
 def tree_sources(repo: Path, tree: str, *, suffixes: tuple[str, ...], max_files: int = 2000) -> tuple[list[tuple[str, bytes]], dict[str, Any]]:

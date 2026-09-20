@@ -52,14 +52,16 @@ class UnavailableServices:
     def find_spec(self, fullname, path=None, target=None):
         if fullname in {'diffwitness.continuity_bridge', 'diffwitness.continuity_context',
                         'diffwitness.continuity_debt_bridge', 'diffwitness.continuity_events',
-                        'diffwitness.continuity_state', 'diffwitness.engine_protocol'}:
+                        'diffwitness.continuity_state', 'diffwitness.engine_protocol',
+                        'diffwitness.gitops', 'diffwitness.continuity_contract',
+                        'diffwitness.structure_provider'}:
             raise RuntimeError('unrelated service initialized: ' + fullname)
 sys.meta_path.insert(0, UnavailableServices())
 from diffwitness.entry import main
 raise SystemExit(main(sys.argv[1:]))
 '''
         for version in (1, 2):
-            request = self.request([('worker.py', 'def café(): pass'.encode())])
+            request = self.request([('worker.py', 'def café(): pass'.encode()), ('settings.json', b'{"active":true}')])
             request['schema_version'] = f'structure-request-{version}'
             for language in ('en', 'fr'):
                 with self.subTest(version=version, language=language), tempfile.TemporaryDirectory() as td:
@@ -70,7 +72,28 @@ raise SystemExit(main(sys.argv[1:]))
                     value = json.loads(result.stdout)
                     self.assertEqual(value['schema_version'], f'structure-response-{version}')
                     self.assertEqual(value['files'][0]['symbols'][0]['qualified_name'], 'worker.café')
+                    self.assertEqual(value['files'][1]['path'], 'settings.json')
                     self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_python_only_extraction_does_not_initialize_optional_distribution_metadata(self):
+        script = """
+import sys
+class NoOptionalMetadata:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == 'importlib.metadata':
+            raise RuntimeError('optional distribution metadata initialized for Python source')
+sys.meta_path.insert(0, NoOptionalMetadata())
+from diffwitness.entry import main
+raise SystemExit(main(['state', 'extract', '--json']))
+"""
+        for version in (1, 2):
+            request = self.request([('worker.py', b'def actual(): pass')])
+            request['schema_version'] = f'structure-request-{version}'
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as td:
+                result = subprocess.run([sys.executable, '-c', script], input=json.dumps(request),
+                                        capture_output=True, text=True, encoding='utf-8', cwd=td, timeout=10)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(json.loads(result.stdout)['files'][0]['parsed'])
 
     def test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically(self):
         good = self.request([('ok.py', b'def ok(): pass')])
