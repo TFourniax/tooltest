@@ -1,0 +1,33 @@
+2026-09-20T16:00:11.3051005Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T16:00:11.3051358Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-20T16:00:11.3051706Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T16:00:11.3052003Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T16:00:11.3052301Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-20T16:00:11.3052669Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-20T16:00:11.3053044Z ##[endgroup]
+2026-09-20T16:00:12.9315424Z {"schema":"idleproof-feature-canonical-smoke-1","passed":true,"actual_optional_grammars":true,"classification":"MACHINE"}
+2026-09-20T16:00:17.8557209Z node:internal/modules/run_main:123
+2026-09-20T16:00:17.8557687Z     triggerUncaughtException(
+2026-09-20T16:00:17.8557999Z     ^
+2026-09-20T16:00:17.8558118Z
+2026-09-20T16:00:17.8558421Z AssertionError [ERR_ASSERTION]: hook p95 188.8ms exceeds 150ms
+2026-09-20T16:00:17.8559220Z     at file:///home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/scripts/perf-gate.mjs:55:10
+2026-09-20T16:00:17.8559969Z     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+2026-09-20T16:00:17.8560668Z     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+2026-09-20T16:00:17.8561400Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+2026-09-20T16:00:17.8561916Z   generatedMessage: false,
+2026-09-20T16:00:17.8562216Z   code: 'ERR_ASSERTION',
+2026-09-20T16:00:17.8562474Z   actual: false,
+2026-09-20T16:00:17.8562714Z   expected: true,
+2026-09-20T16:00:17.8562966Z   operator: '==',
+2026-09-20T16:00:17.8563193Z   diff: 'simple'
+2026-09-20T16:00:17.8563414Z }
+2026-09-20T16:00:17.8563526Z
+2026-09-20T16:00:17.8563639Z Node.js v22.23.2
+2026-09-20T16:00:17.8608731Z ##[error]Process completed with exit code 1.
+2026-09-20T16:00:17.8698752Z Post job cleanup.
+2026-09-20T16:00:17.9385183Z [command]/usr/bin/git version
+2026-09-20T16:00:17.9428657Z git version 2.55.0
+2026-09-20T16:00:17.9458671Z Temporarily overriding HOME='/home/runner/work/_temp/06c6593d-96db-4f6e-b399-eceaf971c6ce' before making global git config changes
+2026-09-20T16:00:17.9459703Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-20T16:00:17.9463117Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest/idleproof-extraction-consumer

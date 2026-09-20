@@ -1,0 +1,271 @@
+test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) ...
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='en') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='fr') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='en') ... FAIL
+  test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='fr') ... FAIL
+test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically (test_structure_transport.StructureTransportTests.test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically) ... ok
+test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) ...
+  test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='settings.json', version=1) ... FAIL
+  test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='settings.json', version=2) ... FAIL
+  test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='notes.unknown', version=1) ... FAIL
+  test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='notes.unknown', version=2) ... FAIL
+test_public_entry_never_discovers_repository_or_reads_language_preferences (test_structure_transport.StructureTransportTests.test_public_entry_never_discovers_repository_or_reads_language_preferences) ... ok
+test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) ...
+  test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=1) ... FAIL
+  test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=2) ... FAIL
+test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json) ... ok
+test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid) ... ok
+test_selected_extraction_parser_preserves_argument_rejections_and_help (test_structure_transport.StructureTransportTests.test_selected_extraction_parser_preserves_argument_rejections_and_help) ... ok
+test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage) ... ok
+test_wire_bounds_reject_before_emitting_any_partial_response (test_structure_transport.StructureTransportTests.test_wire_bounds_reject_before_emitting_any_partial_response) ... ok
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='en')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 77, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 19, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 72, in state_cli
+    contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 6, in only_selected_parser
+RuntimeError: unrelated command parser initialized: contract
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=1, language='fr')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 77, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 19, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 72, in state_cli
+    contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 6, in only_selected_parser
+RuntimeError: unrelated command parser initialized: contract
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='en')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 77, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 19, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 72, in state_cli
+    contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 6, in only_selected_parser
+RuntimeError: unrelated command parser initialized: contract
+
+
+======================================================================
+FAIL: test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) (version=2, language='fr')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 77, in test_extraction_stays_independent_of_journal_proof_and_debt_services
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 19, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 72, in state_cli
+    contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 6, in only_selected_parser
+RuntimeError: unrelated command parser initialized: contract
+
+
+======================================================================
+FAIL: test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='settings.json', version=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 124, in test_nonpython_extraction_loads_only_selected_provider_implementation
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 9, in <module>
+    from .structure_python import extract_python
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: unselected provider initialized: diffwitness.structure_python
+
+
+======================================================================
+FAIL: test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='settings.json', version=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 124, in test_nonpython_extraction_loads_only_selected_provider_implementation
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 9, in <module>
+    from .structure_python import extract_python
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: unselected provider initialized: diffwitness.structure_python
+
+
+======================================================================
+FAIL: test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='notes.unknown', version=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 124, in test_nonpython_extraction_loads_only_selected_provider_implementation
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 9, in <module>
+    from .structure_python import extract_python
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: unselected provider initialized: diffwitness.structure_python
+
+
+======================================================================
+FAIL: test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) (path='notes.unknown', version=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 124, in test_nonpython_extraction_loads_only_selected_provider_implementation
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 9, in <module>
+    from .structure_python import extract_python
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: unselected provider initialized: diffwitness.structure_python
+
+
+======================================================================
+FAIL: test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 101, in test_python_only_extraction_does_not_initialize_optional_distribution_metadata
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 10, in <module>
+    from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: optional syntax initialized for Python source: diffwitness.structure_syntax
+
+
+======================================================================
+FAIL: test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) (version=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/tests/test_structure_transport.py", line 101, in test_python_only_extraction_does_not_initialize_optional_distribution_metadata
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 296, in main
+    return _main(args)
+           ^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/entry/__init__.py", line 377, in _main
+    return state_cli(args[1:])
+           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/continuity_cli.py", line 115, in state_cli
+    from .structure_transport import extraction_cli
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_transport.py", line 11, in <module>
+    from .structure_registry import extract_structure
+  File "/workspace/scratch/e9f3b6772074/work/core_lineage/src/diffwitness/structure_registry.py", line 10, in <module>
+    from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<string>", line 6, in find_spec
+RuntimeError: optional syntax initialized for Python source: diffwitness.structure_syntax
+
+
+----------------------------------------------------------------------
+Ran 10 tests in 2.945s
+
+FAILED (failures=10)

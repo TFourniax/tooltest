@@ -6,12 +6,27 @@ import json
 from pathlib import PurePosixPath
 
 from .structure_contract import FileExtraction, validate_extraction
-from .structure_python import extract_python
-from .structure_syntax import PINNED, SPECS, extract_syntax, installed_version
+from .structure_catalog import PINNED, SPECS
 
 SUPPORTED_SUFFIXES = ('.py', *SPECS)
 # Bump when extraction/resolution semantics change even with identical grammars.
 PROVIDER_PROFILE = 'structure-providers-9a'
+
+
+
+def extract_python(relative: str, content: bytes) -> FileExtraction:
+    from .structure_python import extract_python as selected
+    return selected(relative, content)
+
+
+def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str]) -> FileExtraction:
+    from .structure_syntax import extract_syntax as selected
+    return selected(relative, content, spec)
+
+
+def installed_version(distribution: str) -> str | None:
+    from .structure_syntax import installed_version as selected
+    return selected(distribution)
 
 
 def provider_profile() -> str:

@@ -1,0 +1,17 @@
+[
+  {
+    "family": "python",
+    "exit": 0,
+    "seconds": 3.6386382109994884
+  },
+  {
+    "family": "typescript",
+    "exit": 0,
+    "seconds": 4.693596563000028
+  },
+  {
+    "family": "json",
+    "exit": 0,
+    "seconds": 6.17800331500257
+  }
+]
