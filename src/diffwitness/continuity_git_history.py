@@ -122,7 +122,7 @@ def _spec(commit: dict, *, message: bool = False) -> dict:
         event_type, kind, label, status = 'commit.message', 'git-message', 'Git message ', 'DECLARED'
         relations = [{'predicate':'describes', 'target':{'id':'git-commit:' + oid, 'kind':'git-commit'}, 'epistemic_status':'DECLARED'}]
     else:
-        payload = {key:value for key, value in commit.items() if key != '_message'}
+        payload = {key:value for key, value in commit.items() if not key.startswith('_')}
         event_type, kind, label, status = 'commit.observed', 'git-commit', 'Git commit ', 'OBSERVED'
         relations = [{'predicate':'affects', 'target':{'id':file_identity(name), 'kind':'file', 'label':name},
                       'epistemic_status':'OBSERVED', 'metadata':{'basis':'git-first-parent-diff'}} for name in payload['changed_files']]
@@ -137,25 +137,32 @@ def _cursor_json(value: dict) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('ascii')
 
 
-def _encode_cursor(tips: list[str], offset: int, prefix: bytes, include_messages: bool) -> str:
+def _encode_cursor(tips: list[str], offset: int, prefix: bytes, include_messages: bool, include_lineage: bool = False) -> str:
     if offset > MAX_CURSOR_OFFSET:
         raise ContinuityError('Git history cursor exceeds its traversal-count bound')
     body = {'schema_version':'git-history-cursor-1', 'tips':tips, 'offset':offset,
             'prefix_sha256':hashlib.sha256(prefix).hexdigest(), 'include_messages':include_messages}
+    if include_lineage:
+        body.update(schema_version='git-history-cursor-2', include_lineage=True)
     value = {**body, 'checksum':hashlib.sha256(_cursor_json(body)).hexdigest()}
     return base64.urlsafe_b64encode(_cursor_json(value)).decode('ascii')
 
 
-def _decode_cursor(cursor: str, include_messages: bool) -> dict:
+def _decode_cursor(cursor: str, include_messages: bool, include_lineage: bool = False) -> dict:
     try:
         if not isinstance(cursor, str) or not 0 < len(cursor) <= MAX_CURSOR_BYTES:
             raise ValueError('cursor size/type')
         raw = base64.b64decode(cursor, altchars=b'-_', validate=True)
         value = strict_json_loads(raw.decode('ascii'))
         keys = {'schema_version', 'tips', 'offset', 'prefix_sha256', 'include_messages', 'checksum'}
+        if include_lineage:
+            keys.add('include_lineage')
         if not isinstance(value, dict) or set(value) != keys or _cursor_json(value) != raw:
             raise ValueError('cursor shape/encoding')
-        if value['schema_version'] != 'git-history-cursor-1' or type(value['offset']) is not int or not 0 <= value['offset'] <= MAX_CURSOR_OFFSET:
+        version = 'git-history-cursor-2' if include_lineage else 'git-history-cursor-1'
+        if include_lineage and value['include_lineage'] is not True:
+            raise ValueError('cursor lineage policy')
+        if value['schema_version'] != version or type(value['offset']) is not int or not 0 <= value['offset'] <= MAX_CURSOR_OFFSET:
             raise ValueError('cursor version/count')
         tips = value['tips']
         if not isinstance(tips, list) or not 1 <= len(tips) <= MAX_BRANCH_REFS:
@@ -197,14 +204,21 @@ def _capture_tips(root: Path, deadline: float) -> list[str]:
 
 
 def _validate_imported_prefix(root: Path, rows: list[list[str]], include_messages: bool,
-                              deadline: float) -> None:
+                              deadline: float, include_lineage: bool = False) -> None:
     if not rows:
         return
     wanted = {row[0] for row in rows}
-    observed = {}
+    observed, lineage = {}, {}
+    from .continuity_lineage_contract import GIT_LINEAGE_PROFILE
     # A cursor checksum is not authority that earlier pages were imported.
     # Validate actual journal bytes, then require matching admitted history.
     for event in read_project_events(continuity_paths(root).events):
+        if include_lineage and event['provenance'].get('diffwitness_profile') == GIT_LINEAGE_PROFILE:
+            payload = event['payload']
+            if payload['commit'] in wanted:
+                if payload['commit'] in lineage and lineage[payload['commit']] != payload:
+                    raise ContinuityError('conflicting Git lineage cursor prefix')
+                lineage[payload['commit']] = payload
         if event['provenance'].get('diffwitness_profile') != GIT_HISTORY_PROFILE:
             continue
         payload = event['payload']
@@ -218,6 +232,16 @@ def _validate_imported_prefix(root: Path, rows: list[list[str]], include_message
         commit = observed.get(('commit.observed', oid))
         if commit is None or commit['parents'] != parents:
             raise ContinuityError('Git cursor prefix has unimported or inconsistent commits; restart')
+        if include_lineage:
+            assessment = lineage.get(oid)
+            parent = parents[0] if parents else None
+            if assessment is None or assessment['tree'] != commit['tree'] or assessment['parent'] != parent:
+                raise ContinuityError('Git cursor prefix has unimported or inconsistent lineage; restart')
+            if parent is not None:
+                parent_commit = observed.get(('commit.observed', parent))
+                parent_tree = parent_commit['tree'] if parent_commit else _commit(root, parent, deadline)['tree']
+                if assessment['parent_tree'] != parent_tree:
+                    raise ContinuityError('Git cursor lineage parent tree is inconsistent')
         if include_messages:
             message = observed.get(('commit.message', oid))
             if message is None:
@@ -232,8 +256,8 @@ def _validate_imported_prefix(root: Path, rows: list[list[str]], include_message
 
 
 def _all_branch_page(root: Path, max_commits: int, include_messages: bool,
-                     cursor: str | None, deadline: float) -> dict:
-    previous = _decode_cursor(cursor, include_messages) if cursor is not None else None
+                     cursor: str | None, deadline: float, include_lineage: bool = False) -> dict:
+    previous = _decode_cursor(cursor, include_messages, include_lineage) if cursor is not None else None
     tips = previous['tips'] if previous else _capture_tips(root, deadline)
     offset = previous['offset'] if previous else 0
     raw = _git(root, 'rev-list', '--topo-order', '--parents',
@@ -255,7 +279,7 @@ def _all_branch_page(root: Path, max_commits: int, include_messages: bool,
     prefix = b''.join(lines[:offset])
     if offset > len(rows) or (previous and hashlib.sha256(prefix).hexdigest() != previous['prefix_sha256']):
         raise ContinuityError('Git history continuation order/topology changed; restart idempotently')
-    _validate_imported_prefix(root, rows[:offset], include_messages, deadline)
+    _validate_imported_prefix(root, rows[:offset], include_messages, deadline, include_lineage)
     commits, boundary = [], None
     for row in rows[offset:offset + max_commits]:
         commit = _commit(root, row[0], deadline)
@@ -272,28 +296,43 @@ def _all_branch_page(root: Path, max_commits: int, include_messages: bool,
     complete = boundary is None and end == len(rows)
     if complete and not set(tips).issubset(seen):
         raise ContinuityError('Git traversal omitted a captured tip')
-    following = None if complete else _encode_cursor(tips, end, b''.join(lines[:end]), include_messages)
+    following = None if complete else _encode_cursor(tips, end, b''.join(lines[:end]), include_messages, include_lineage)
+    _collect_lineage(root, commits, include_lineage, deadline)
     if time.monotonic() >= deadline:
         raise ContinuityError('Git history page exceeded its collection time budget; no page imported')
-    result = _append_page(root, commits, include_messages)
+    result = _append_page(root, commits, include_messages, include_lineage)
     return {**result, 'schema_version':'git-history-bootstrap-2', 'tip':None,
             'tips':tips, 'next_ref':None, 'next_cursor':following, 'complete':complete,
             'scope':'all-branches', 'refs':'HEAD + refs/heads + refs/remotes; locally available only',
             'ref_snapshot_atomic':False, 'boundary':boundary,
-            'limits':{**_limits(max_commits), 'branchRefs':MAX_BRANCH_REFS,
+            'limits':{**_limits(max_commits, include_lineage), 'branchRefs':MAX_BRANCH_REFS,
                       'cursorBytes':MAX_CURSOR_BYTES, 'traversalBytes':MAX_TRAVERSAL_BYTES,
                       'cursorOffset':MAX_CURSOR_OFFSET}}
 
 
-def _limits(max_commits: int) -> dict:
-    return {'commits':max_commits, 'commitBytes':MAX_COMMIT_BYTES, 'pathsPerCommit':MAX_HISTORY_PATHS,
+def _limits(max_commits: int, include_lineage: bool = False) -> dict:
+    result = {'commits':max_commits, 'commitBytes':MAX_COMMIT_BYTES, 'pathsPerCommit':MAX_HISTORY_PATHS,
             'collectionSeconds':PAGE_SECONDS, 'messageChars':MAX_MESSAGE_CHARS}
+    if include_lineage:
+        from .continuity_git_lineage import lineage_limits
+        result['lineage'] = lineage_limits()
+    return result
 
 
-def _append_page(root: Path, commits: list[dict], include_messages: bool) -> dict:
+def _collect_lineage(root: Path, commits: list[dict], include_lineage: bool, deadline: float) -> None:
+    if include_lineage:
+        from .continuity_git_lineage import LineageReader
+        reader = LineageReader(root, deadline)
+        for commit in commits:
+            commit['_lineage'] = reader.assessment(commit)
+
+
+def _append_page(root: Path, commits: list[dict], include_messages: bool, include_lineage: bool = False) -> dict:
     specs, messages_unreadable = [], 0
     for commit in reversed(commits):
         specs.append(_spec(commit))
+        if include_lineage:
+            specs.append(commit['_lineage'])
         if include_messages:
             try:
                 specs.append(_spec(commit, message=True))
@@ -302,15 +341,18 @@ def _append_page(root: Path, commits: list[dict], include_messages: bool) -> dic
     result = append_project_events(repo=root, events=specs)
     return {'commits':len(commits), 'events':len(result), 'created':sum(created for _, created in result),
             'files_omitted':sum(commit['files_omitted'] for commit in commits),
-            'messages_unreadable':messages_unreadable, 'include_messages':include_messages}
+            'messages_unreadable':messages_unreadable, 'include_messages':include_messages,
+            'include_lineage':include_lineage,
+            'lineage_pairs':sum(len(commit['_lineage']['payload']['pairs']) for commit in commits) if include_lineage else 0,
+            'lineage_limited_commits':sum(not commit['_lineage']['payload']['coverage']['complete'] for commit in commits) if include_lineage else 0}
 
 
 def bootstrap_git_history(repo: str | Path, *, ref: str = 'HEAD', max_commits: int = 25,
                           include_messages: bool = False, all_branches: bool = False,
-                          cursor: str | None = None) -> dict:
+                          cursor: str | None = None, include_lineage: bool = False) -> dict:
     if type(max_commits) is not int or not 1 <= max_commits <= 100:
         raise ValueError('max_commits must be an integer between 1 and 100')
-    if type(include_messages) is not bool or not isinstance(ref, str) or not ref or len(ref) > 512:
+    if type(include_lineage) is not bool or type(include_messages) is not bool or not isinstance(ref, str) or not ref or len(ref) > 512:
         raise ValueError('invalid Git history options')
     if type(all_branches) is not bool or (all_branches and ref != 'HEAD') or (cursor is not None and not all_branches):
         raise ValueError('all-branches/cursor and first-parent ref options are incompatible')
@@ -318,7 +360,7 @@ def bootstrap_git_history(repo: str | Path, *, ref: str = 'HEAD', max_commits: i
     root = Path(_git(Path(repo).resolve(), 'rev-parse', '--show-toplevel', limit=8192,
                      deadline=deadline).decode('utf-8').strip()).resolve()
     if all_branches:
-        return _all_branch_page(root, max_commits, include_messages, cursor, deadline)
+        return _all_branch_page(root, max_commits, include_messages, cursor, deadline, include_lineage)
     raw_tip = _git(root, 'rev-parse', '--verify', '--end-of-options', ref + '^{commit}',
                    limit=128, deadline=deadline, missing_ok=(128,))
     if raw_tip is None:
@@ -339,7 +381,10 @@ def bootstrap_git_history(repo: str | Path, *, ref: str = 'HEAD', max_commits: i
         commit.update(changed_files=paths[0], files_omitted=paths[1], diff_basis='first-parent')
         commits.append(commit)
         current = commit['parents'][0] if commit['parents'] else None
-    return {**_append_page(root, commits, include_messages),
+    _collect_lineage(root, commits, include_lineage, deadline)
+    if time.monotonic() >= deadline:
+        raise ContinuityError('Git history page exceeded its collection time budget; no page imported')
+    return {**_append_page(root, commits, include_messages, include_lineage),
             'schema_version':'git-history-bootstrap-1', 'tip':tip, 'next_ref':current,
             'complete':current is None, 'scope':'first-parent', 'boundary':boundary,
-            'limits':_limits(max_commits)}
+            'limits':_limits(max_commits, include_lineage)}

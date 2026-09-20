@@ -47,7 +47,13 @@ class StructureTransportTests(unittest.TestCase):
 
     def test_extraction_stays_independent_of_journal_proof_and_debt_services(self):
         script = '''
-import sys
+import sys, argparse
+original_add_parser = argparse._SubParsersAction.add_parser
+def only_selected_parser(self, name, **kwargs):
+    if name != 'extract':
+        raise RuntimeError('unrelated command parser initialized: ' + name)
+    return original_add_parser(self, name, **kwargs)
+argparse._SubParsersAction.add_parser = only_selected_parser
 class UnavailableServices:
     def find_spec(self, fullname, path=None, target=None):
         if fullname in {'diffwitness.continuity_bridge', 'diffwitness.continuity_context',
@@ -80,8 +86,8 @@ raise SystemExit(main(sys.argv[1:]))
 import sys
 class NoOptionalMetadata:
     def find_spec(self, fullname, path=None, target=None):
-        if fullname == 'importlib.metadata':
-            raise RuntimeError('optional distribution metadata initialized for Python source')
+        if fullname in {'importlib.metadata', 'diffwitness.structure_syntax'}:
+            raise RuntimeError('optional syntax initialized for Python source: ' + fullname)
 sys.meta_path.insert(0, NoOptionalMetadata())
 from diffwitness.entry import main
 raise SystemExit(main(['state', 'extract', '--json']))
@@ -94,6 +100,44 @@ raise SystemExit(main(['state', 'extract', '--json']))
                                         capture_output=True, text=True, encoding='utf-8', cwd=td, timeout=10)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue(json.loads(result.stdout)['files'][0]['parsed'])
+
+    def test_nonpython_extraction_loads_only_selected_provider_implementation(self):
+        for path, content, forbidden, provider in (
+                ('settings.json', b'{"active":true}', ['diffwitness.structure_python'], 'tree-sitter-json'),
+                ('notes.unknown', b'opaque', ['diffwitness.structure_python', 'diffwitness.structure_syntax'], 'file-only')):
+            script = f'''
+import sys
+class OnlySelectedProvider:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname in {forbidden!r}:
+            raise RuntimeError('unselected provider initialized: ' + fullname)
+sys.meta_path.insert(0, OnlySelectedProvider())
+from diffwitness.entry import main
+raise SystemExit(main(['state', 'extract', '--json']))
+'''
+            for version in (1, 2):
+                request = self.request([(path, content)])
+                request['schema_version'] = f'structure-request-{version}'
+                with self.subTest(path=path, version=version), tempfile.TemporaryDirectory() as td:
+                    result = subprocess.run([sys.executable, '-c', script], input=json.dumps(request),
+                                            capture_output=True, text=True, encoding='utf-8', cwd=td, timeout=10)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads(result.stdout)['files'][0]['provider'], provider)
+                    self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_selected_extraction_parser_preserves_argument_rejections_and_help(self):
+        for options, status in (([], 2), (['--json', '--repo', '.'], 2),
+                                (['--json', '--unknown'], 2), (['--help'], 0)):
+            with self.subTest(options=options), tempfile.TemporaryDirectory() as td:
+                result = subprocess.run([sys.executable, '-m', 'diffwitness.entry', 'state', 'extract', *options],
+                                        input='{}', capture_output=True, text=True, encoding='utf-8', cwd=td, timeout=10)
+                self.assertEqual(result.returncode, status, result.stderr)
+                self.assertEqual(list(Path(td).iterdir()), [])
+                if status:
+                    self.assertEqual(result.stdout, '')
+                else:
+                    self.assertIn('dw state extract', result.stdout)
+                    self.assertIn('--json', result.stdout)
 
     def test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically(self):
         good = self.request([('ok.py', b'def ok(): pass')])

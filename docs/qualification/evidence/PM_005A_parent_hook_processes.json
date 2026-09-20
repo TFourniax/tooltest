@@ -1,0 +1,767 @@
+{
+  "classification": "MACHINE_DIAGNOSTIC",
+  "code": 0,
+  "rows": [
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "init",
+        "-q"
+      ],
+      "ms": 7.892630999999994,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "config",
+        "user.email",
+        "perf@idleproof.local"
+      ],
+      "ms": 3.529269999999997,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "config",
+        "user.name",
+        "IdleProof Perf"
+      ],
+      "ms": 3.639528999999982,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "add",
+        "."
+      ],
+      "ms": 3.4821760000000097,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "commit",
+        "-qm",
+        "baseline"
+      ],
+      "ms": 9.56607200000002,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "ms": 3.4338599999999815,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "ms": 2.9392990000000054,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-list",
+        "--max-parents=0",
+        "HEAD"
+      ],
+      "ms": 4.991158000000013,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel",
+        "HEAD"
+      ],
+      "ms": 3.2837829999999997,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "825cf857ba94cbeb0ceeda5c6e7b41a687584c96^{tree}"
+      ],
+      "ms": 3.4312339999999892,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "read-tree",
+        "825cf857ba94cbeb0ceeda5c6e7b41a687584c96"
+      ],
+      "ms": 3.165555999999981,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "ls-files",
+        "-t",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "ms": 3.1185640000000205,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "--literal-pathspecs",
+        "add",
+        "-A",
+        "--pathspec-from-file=-",
+        "--pathspec-file-nul"
+      ],
+      "ms": 4.3040160000000185,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "write-tree"
+      ],
+      "ms": 3.777343000000002,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "dw",
+      "args": [
+        "context",
+        "dwtask_dab626dd8a8253d3d1e64108\nUpdate processThing safely",
+        "--json",
+        "--max-items",
+        "8",
+        "--no-refresh-structure"
+      ],
+      "ms": 2.6959699999999884,
+      "status": "exception"
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 83.902683,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 85.52535899999998,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 65.80968999999999,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 100.49568899999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 73.99817600000006,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 64.15198599999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 65.51315,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 67.17014699999993,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 73.89397300000007,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 72.44911499999989,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 67.99069600000007,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 62.119102999999996,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 76.69277799999986,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.11762199999998,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 76.15442899999994,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 78.79157400000008,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 81.77000700000008,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.68273700000009,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 63.046580000000176,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 101.51014600000008,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.366847,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 70.19471799999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 184.7260879999999,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 82.22584999999981,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.10841100000016,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 84.50524300000006,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.18779099999983,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 72.77734899999996,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 73.20871500000021,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.79415400000016,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 69.1743419999998,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 64.23380399999996,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 64.99480999999969,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 70.43042700000024,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 67.19181800000024,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 103.02023800000006,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 80.89554500000031,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 77.67672599999969,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 82.59517300000016,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 76.06706899999972,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 183.35048099999995,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "status",
+        "--porcelain=v2",
+        "--branch",
+        "--untracked-files=all",
+        "-z"
+      ],
+      "ms": 9.536033999999745,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "diff",
+        "--numstat",
+        "-z",
+        "--patch",
+        "--unified=0",
+        "--no-ext-diff"
+      ],
+      "ms": 7.6733720000001995,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--numstat",
+        "-z",
+        "--patch",
+        "--unified=0",
+        "--no-ext-diff"
+      ],
+      "ms": 6.313000999999986,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel",
+        "HEAD"
+      ],
+      "ms": 9.668071999999938,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "825cf857ba94cbeb0ceeda5c6e7b41a687584c96^{tree}"
+      ],
+      "ms": 12.060844999999972,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "read-tree",
+        "825cf857ba94cbeb0ceeda5c6e7b41a687584c96"
+      ],
+      "ms": 5.263206000000082,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "ls-files",
+        "-t",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "ms": 3.450966999999764,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "--literal-pathspecs",
+        "add",
+        "-A",
+        "--pathspec-from-file=-",
+        "--pathspec-file-nul"
+      ],
+      "ms": 3.742106000000149,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "write-tree"
+      ],
+      "ms": 12.444128999999975,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 72.1909569999998,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_pm012e/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 88.23157199999969,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "config",
+        "--null",
+        "--get-regexp",
+        "^user\\.(name|email)$"
+      ],
+      "ms": 4.690843000000314,
+      "status": 0
+    }
+  ]
+}

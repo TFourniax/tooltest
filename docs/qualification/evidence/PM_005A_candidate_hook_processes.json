@@ -1,0 +1,612 @@
+{
+  "classification": "MACHINE_DIAGNOSTIC",
+  "code": 1,
+  "rows": [
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "init",
+        "-q"
+      ],
+      "ms": 9.378374000000008,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "config",
+        "user.email",
+        "perf@idleproof.local"
+      ],
+      "ms": 18.809492000000006,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "config",
+        "user.name",
+        "IdleProof Perf"
+      ],
+      "ms": 15.378302000000005,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "add",
+        "."
+      ],
+      "ms": 8.499566999999985,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "commit",
+        "-qm",
+        "baseline"
+      ],
+      "ms": 18.94905399999999,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "ms": 11.814604000000003,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "ms": 19.175072999999998,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-list",
+        "--max-parents=0",
+        "HEAD"
+      ],
+      "ms": 28.678218000000015,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--show-toplevel",
+        "HEAD"
+      ],
+      "ms": 5.498054000000025,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "744d24ac30dfef047e68ebdfa1ce3d322eb975d2^{tree}"
+      ],
+      "ms": 15.212986999999998,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "read-tree",
+        "744d24ac30dfef047e68ebdfa1ce3d322eb975d2"
+      ],
+      "ms": 4.061950000000024,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "ls-files",
+        "-t",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "ms": 4.570813999999984,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "--literal-pathspecs",
+        "add",
+        "-A",
+        "--pathspec-from-file=-",
+        "--pathspec-file-nul"
+      ],
+      "ms": 4.956667999999979,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "git",
+      "args": [
+        "write-tree"
+      ],
+      "ms": 3.874809999999968,
+      "status": 0
+    },
+    {
+      "api": "execFileSync",
+      "command": "dw",
+      "args": [
+        "context",
+        "dwtask_dab626dd8a8253d3d1e64108\nUpdate processThing safely",
+        "--json",
+        "--max-items",
+        "8",
+        "--no-refresh-structure"
+      ],
+      "ms": 2.3255490000000236,
+      "status": "exception"
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 103.339047,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 105.45376900000002,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 316.9872680000001,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 97.99682599999994,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.80091500000003,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 60.08105300000011,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.48958900000002,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 85.66621699999996,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 71.43096000000014,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 195.44066399999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 59.91025400000012,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.92972200000008,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 79.16808400000014,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 71.47447199999988,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 106.50249700000018,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 76.62220100000013,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 58.51170499999989,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 72.592897,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 82.87674500000003,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 74.76635899999974,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 76.46201599999995,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 71.42933900000025,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 74.90362099999993,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 66.6752190000002,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 174.6103089999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 93.55651799999987,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 78.19021799999973,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 251.00896899999998,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 148.05955300000005,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 69.27279799999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 92.06423199999972,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 67.86891000000014,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.23062200000004,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 113.0413569999996,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 71.23789099999976,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 68.97542599999997,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 63.02130399999987,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 75.18477299999995,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 92.50497300000006,
+      "status": 0
+    },
+    {
+      "api": "spawnSync",
+      "command": "/workspace/scratch/e9f3b6772074/work/consumer_lineage/bin/dw",
+      "args": [
+        "state",
+        "extract",
+        "--json"
+      ],
+      "ms": 85.19215799999984,
+      "status": 0
+    }
+  ]
+}

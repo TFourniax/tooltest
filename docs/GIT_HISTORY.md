@@ -41,3 +41,48 @@ incremental graph store or a 50k/100k performance qualification. Exact supported
 artifact and cross-platform gates are recorded with PM-003b; full longitudinal
 identity, cited history retrieval and coordinated Alpha qualification remain in
 the canonical registry.
+
+## File relocation hypotheses
+
+Add `--include-lineage` to import bounded file relocation assessments alongside
+the existing commit observations. Only a unique removed/added pair of regular
+files with exactly equal content and file mode produces a link. Both trees and
+matched blob bytes are verified against their immutable object IDs. The link is
+**INFERRED**: identical content cannot establish move intent. Existing file and
+component IDs remain distinct; prior assertions and Proof never transfer.
+
+```sh
+dw state bootstrap-git --all-branches --include-lineage --max-commits 5 --json
+dw state lineage --path src/old_name.py --limit 50 --json
+```
+
+The default view labels hypotheses in the selected language. `--json` returns direct old/new observations with their commit, source event ID
+and event hash, in reverse journal order. It does not collapse branch histories
+or infer a transitive identity. A missing link does not prove a file was never
+moved. Copies, edited moves, mode changes and duplicate-content candidate groups
+produce no inferred pair; unmatched and ambiguous counts remain explicit.
+Unsupported names, symlinks and submodules are counted as excluded inventory.
+`coverage.complete` concerns only the bounded regular-file inventory for this
+assessment, not complete longitudinal identity or complete repository history.
+
+Keep both requested opt-ins (`--include-lineage`, `--include-messages`) when
+resuming. A lineage cursor uses version2 and requires corresponding assessments
+in the byte-validated imported prefix; original no-lineage cursors remain version1.
+Changing policy requires an idempotent restart. Importing lineage later adds
+separate events, without replacing prior commit observations.
+
+Each page permits at most32 pairs per commit,32768 expanded tree entries,512
+unique trees,16MiB raw trees,64 tree levels,2MiB per matched blob and8MiB matched
+blob bytes total. These are rejection limits, not measured monorepo capacity.
+A limit failure appends no page; use a smaller page or leave lineage disabled.
+No source content is persisted. The existing15-second command/60-second
+collection limits apply. Read-only lineage queries strictly read the journal;
+`--limit` bounds returned matches, not the cost of validating historical bytes.
+Symbol/feature identity, edited moves and downstream applicability revalidation
+remain separate canonical PM005/PM007 work.
+
+The optional `project-memory-git-lineage-1` profile requires a Core build that
+supports it. Older builds that do not recognize this profile reject the enriched
+journal explicitly. Leaving lineage disabled preserves the existing history
+event profiles; cursor version1 remains unchanged. Qualify exact tool artifacts
+for consumers and rollback before enabling the new profile in a shared journal.
