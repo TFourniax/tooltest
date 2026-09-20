@@ -27,6 +27,7 @@ sources['config.toml'] = b'[service]\nsecret = "private-value"\n'
 sources['config.yaml'] = b'service:\n  secret: private-value\n'
 sources['loader.cjs'] = b"const local = require('./local.cjs');\nconst later = import('./later.mjs');\n"
 sources['ambiguous.cjs'] = b"function require(value) { return value; }\nrequire('./ignored.cjs'); import('./keyword.mjs');\n"
+sources['escaped-eval.cjs'] = br'\u0065val("var require = custom"); require("./ignored.cjs"); import("./keyword.mjs");'
 request = {'schema_version': 'structure-request-1', 'files': [
     {'path': name, 'content_base64': base64.b64encode(content).decode()} for name, content in sources.items()]}
 env = {key: value for key, value in os.environ.items() if key != 'PYTHONPATH'}
@@ -40,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
         values.append(json.loads(result.stdout))
     assert values[0] == values[1] == values[2]
     response = values[0]
-    assert response['coverage'] == {'files': 18, 'parsed': 16, 'unparsed': 1, 'unsupported': 1}, response
+    assert response['coverage'] == {'files': 19, 'parsed': 17, 'unparsed': 1, 'unsupported': 1}, response
     for item, (name, content) in zip(response['files'], sources.items()):
         assert item['path'] == name and item['source_sha256'] == hashlib.sha256(content).hexdigest()
         assert all(symbol['epistemic_status'] == 'OBSERVED' for symbol in item['symbols'])
@@ -58,6 +59,7 @@ with tempfile.TemporaryDirectory(prefix='dw-syntax-installed-') as td:
     assert [i['target'] for i in by_path['gateway.php']['imports']] == ['client.php']
     assert [i['target'] for i in by_path['loader.cjs']['imports']] == ['./local.cjs', './later.mjs']
     assert [i['target'] for i in by_path['ambiguous.cjs']['imports']] == ['./keyword.mjs']
+    assert [i['target'] for i in by_path['escaped-eval.cjs']['imports']] == ['./keyword.mjs']
     assert {s['qualified_name'] for s in by_path['schema.sql']['symbols']} == {'schema.sql::accounts'}
     for source, prefix in [('config.json', ''), ('config.toml', ''), ('config.yaml', '/@0')]:
         assert {s['qualified_name'] for s in by_path[source]['symbols']} == {source + '::' + prefix + p for p in ['/service', '/service/secret']}

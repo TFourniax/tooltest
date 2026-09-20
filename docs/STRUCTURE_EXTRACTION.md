@@ -245,7 +245,7 @@ inf/nan syntax. Review4052729869 and fail-before evidence are retained.
 
 ## Detailed import references and literal loader syntax
 
-Provider profile9 adds source-aware import references through the same extractor.
+Provider profile9a adds source-aware import references through the same extractor.
 The default structure-request-1/structure-response-1 still returns exactly the
 original import fields target and epistemic_status. Explicit structure-request-2
 returns structure-response-2 with structure-extraction-2 files; each import adds
@@ -263,7 +263,7 @@ JS/TS references now include direct literal require() and keyword import() calls
 using existing syntax nodes and position callbacks. Only nonempty unescaped
 strings or single-line interpolation-free templates are admitted, optionally
 parenthesized. import() allows its syntax options argument. Known require
-bindings, function signatures, writes or eval/with barriers conservatively omit
+bindings, function signatures, writes, escaped identifiers or eval/with barriers conservatively omit
 CommonJS calls across the whole file. Aliased/member/optional loaders, computed,
 interpolated and escaped targets remain unresolved. This observes syntax, not
 execution, a proven Node binding or a package owner. Candidate local links remain

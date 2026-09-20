@@ -21,7 +21,10 @@ def _require_ambiguous(nodes, text):
     }
     spans = []
     for node in nodes:
-        if node.type == 'with_statement' or (node.type == 'identifier' and text(node) == 'eval'):
+        # Escapes can spell direct eval too. Until identifier decoding is part
+        # of this adapter, any escaped identifier is a conservative barrier.
+        if node.type == 'with_statement' or (node.type == 'identifier'
+                and (text(node) == 'eval' or '\\' in text(node))):
             return True
         roots = [node] if node.type in {'formal_parameters', 'import_statement'} else [
             node.child_by_field_name(field) for field in fields.get(node.type, ())]

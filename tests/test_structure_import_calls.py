@@ -81,6 +81,13 @@ loader.require('./member.cjs'); require.resolve('./resolve.cjs');
                 value=self.extract(declaration+'\nrequire("./custom.cjs");\nimport("./keyword.mjs");','a.ts')
                 self.assertEqual([i.target for i in value.imports],['./keyword.mjs'])
 
+    def test_escaped_direct_eval_is_an_ambiguity_barrier(self):
+        for spelling in (r'\u0065val',r'e\u0076al',r'\u{65}val'):
+            with self.subTest(spelling=spelling):
+                source=spelling+'("var require = custom"); require("./custom.cjs"); import("./keyword.mjs");'
+                value=self.extract(source)
+                self.assertEqual([i.target for i in value.imports],['./keyword.mjs'])
+
     def test_invalid_source_stays_completely_unparsed(self):
         value=extract_structure('a.js',b'import("./worker.mjs";')
         self.assertFalse(value.parsed);self.assertEqual((value.symbols,value.imports,value.calls),((),(),()))
