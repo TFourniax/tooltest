@@ -568,8 +568,10 @@ def append_project_events(
             validator.admit(event)
         written = _durable_append(paths, appended)
         _remember_append(paths.events, raw + written, validator, by_dedupe)
-        result_memo = {}
-        return [(_detach_json(event, result_memo), created) for event, created in results]
+        # Public tuples include creation flags in the same copy memo as events.
+        # Custom nested deepcopy implementations can affect either: preserve the
+        # complete runtime operation, including tuple/flag alias semantics.
+        return copy.deepcopy(results)
 
 
 def append_project_event(

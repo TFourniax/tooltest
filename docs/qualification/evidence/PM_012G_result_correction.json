@@ -1,0 +1,125 @@
+{
+  "classification": "MACHINE",
+  "parent": "9595ad984e994fb451d919f20dd7866449fcd78e",
+  "review_corrected": 4076558908,
+  "change": "Restore full runtime deepcopy of public result list, including tuples and creation flags; optimize incoming candidates only.",
+  "focused_tests": {
+    "total": 6,
+    "passed": 6,
+    "before": "one meaningful flags regression failed"
+  },
+  "full_local_suites": "NOT QUALIFIED: first run interrupted by tool cancellation; second interrupted by exec transport loss; optional suite NOT RUN. Prior667-source results do not transfer. Fresh CI required.",
+  "bytes": {
+    "classification": "MACHINE",
+    "passed": true,
+    "files": 101,
+    "wheel_sha256": "bf06fc84637bc479ee4c7d424abe7bb48a600b6df26fd32b6dd6872d470e1fce"
+  },
+  "installed_journey": "PASS FR/EN",
+  "paired_10k": {
+    "parent": {
+      "schema_version": "continuity-bench-2",
+      "events": 10000,
+      "batch_size": 2000,
+      "event_log_bytes": 7208837,
+      "state_db_bytes": 20094976,
+      "append_seconds": 0.866665,
+      "full_log_verify_seconds": 0.364088,
+      "rebuild_seconds": 0.821285,
+      "context": {
+        "cold_ms": 16.293,
+        "hot_runs": 7,
+        "hot_ms": {
+          "min": 14.261,
+          "median": 15.553,
+          "p95": 16.829,
+          "max": 16.829
+        }
+      },
+      "context_chars": 647,
+      "context_id": "dwctx_a0baa0cb3267d003123a065a",
+      "passed": true,
+      "failures": []
+    },
+    "candidate": {
+      "schema_version": "continuity-bench-2",
+      "events": 10000,
+      "batch_size": 2000,
+      "event_log_bytes": 7208837,
+      "state_db_bytes": 20082688,
+      "append_seconds": 0.820449,
+      "full_log_verify_seconds": 0.3695,
+      "rebuild_seconds": 0.831677,
+      "context": {
+        "cold_ms": 19.483,
+        "hot_runs": 7,
+        "hot_ms": {
+          "min": 14.603,
+          "median": 15.975,
+          "p95": 17.865,
+          "max": 17.865
+        }
+      },
+      "context_chars": 647,
+      "context_id": "dwctx_fceed5afc89de45eac3e8ddd",
+      "passed": true,
+      "failures": []
+    },
+    "interpretation": "One sequential pair, about5.3% lower append cost; not a universal improvement. Both unchanged gates PASS."
+  },
+  "human": "NOT RUN",
+  "raw_files": [
+    {
+      "path": "PM012G_result_after.log",
+      "sha256": "7ade81056482a0e7f00becc4580365fdadaf7d04bbceed5bdfb9f841dfb3ac23"
+    },
+    {
+      "path": "PM012G_result_base.log",
+      "sha256": "daf269975caa85ca6e6ceb447a48f1288cd9f484c6130c9c1f2647fbf838327d"
+    },
+    {
+      "path": "PM012G_result_base_interrupted.log",
+      "sha256": "2872872e8b731f45acd18d6c4f3f990d3c72bf81d9b90848255b757c63978e6c"
+    },
+    {
+      "path": "PM012G_result_base_transport_interrupted.log",
+      "sha256": "daf269975caa85ca6e6ceb447a48f1288cd9f484c6130c9c1f2647fbf838327d"
+    },
+    {
+      "path": "PM012G_result_before.log",
+      "sha256": "44ce808067cbd747ce79f8c126ae682e15b7c56c237ef6e5a30e27acc53790fe"
+    },
+    {
+      "path": "PM012G_result_bytes.json",
+      "sha256": "c855cca3cb9caa7c4dc14170f075f2adea26a2a930b7dc4a11d85f94feef4a16"
+    },
+    {
+      "path": "PM012G_result_candidate_10k.json",
+      "sha256": "251f8356112f4a68364987e7a04334c4d86d9fc0a5997e34aa11826fdd16fb7b"
+    },
+    {
+      "path": "PM012G_result_candidate_10k.log",
+      "sha256": "251f8356112f4a68364987e7a04334c4d86d9fc0a5997e34aa11826fdd16fb7b"
+    },
+    {
+      "path": "PM012G_result_install.log",
+      "sha256": "e4071de45fcbc48063357c295a1c1461f6a64cd830a58c8cfb6224e857b51669"
+    },
+    {
+      "path": "PM012G_result_installed_journey.log",
+      "sha256": "1cf75c57202b0008151e8a241c291d7ee4bcbb4b95c8452cd4ec1fca98d9208c"
+    },
+    {
+      "path": "PM012G_result_parent_10k.json",
+      "sha256": "ab8fc9bb999c8cefc1d2a0cce764e179b6cca6f2917c9c9a5962a210fe7a9325"
+    },
+    {
+      "path": "PM012G_result_parent_10k.log",
+      "sha256": "ab8fc9bb999c8cefc1d2a0cce764e179b6cca6f2917c9c9a5962a210fe7a9325"
+    },
+    {
+      "path": "PM012G_result_wheel_build.log",
+      "sha256": "ea210ab3c39d0a2f2981914d14c51c424f57f4a249d3a3c65aeeb4d6386d4922"
+    }
+  ]
+}

@@ -2,12 +2,38 @@ from __future__ import annotations
 
 import copy
 import math
+import tempfile
 import unittest
+from pathlib import Path
+
+import test_continuity_kernel as kernel_fixtures
 
 import diffwitness.continuity_events as events
 
 
 class DetachmentTests(unittest.TestCase):
+    def test_public_result_flags_share_the_runtime_deepcopy_memo(self):
+        class MemoWriter(dict):
+            def __deepcopy__(self, memo):
+                memo[id(True)] = ['created override']
+                memo[id(False)] = ['duplicate override']
+                result = MemoWriter()
+                memo[id(self)] = result
+                return result
+
+        expected = copy.deepcopy([({'custom': MemoWriter()}, True),
+                                  ({'custom': MemoWriter()}, False)])
+        with tempfile.TemporaryDirectory() as td:
+            repo = kernel_fixtures.ContinuityKernelTests().repo(Path(td))
+            spec = {'event_type': 'objective.declared',
+                    'subject': {'id': 'OBJ-MEMO', 'kind': 'objective'},
+                    'epistemic_status': 'DECLARED',
+                    'payload': {'custom': MemoWriter()}, 'dedupe_key': 'memo-flags'}
+            result = events.append_project_events(repo=repo, events=[spec, spec])
+            self.assertIs(result[0][0], result[1][0])
+            self.assertEqual([flag for _, flag in result], [flag for _, flag in expected])
+            self.assertEqual(len(events.read_project_events(events.continuity_paths(repo).events)), 1)
+
     def test_json_values_preserve_types_and_detach_nested_mutability(self):
         value = {'none': None, 'bool': True, 'integer': 1, 'float': -0.0,
                  'unicode': 'Mémoire 🧪', 'nested': [{'keys': [1, 2]}]}
