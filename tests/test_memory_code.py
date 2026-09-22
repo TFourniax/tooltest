@@ -62,6 +62,25 @@ class MemoryCodeTests(unittest.TestCase):
         self.assertEqual(result['status'], 'unchanged')
         self.assertEqual(result['items'][1]['role'], 'dependency')
 
+    def test_deleted_role_can_be_explicitly_cleared_but_not_both_roles(self):
+        self.bind()
+        (self.repo / 'payments/rules.py').unlink()
+        self.commit()
+        frozen = self.path.read_bytes()
+        self.cli('decision', 'revalidate-code', 'DEC-CODE', '--clear-dependencies',
+                 '--dependency', 'payments/refund.py', '--reason', 'Conflicting selection', expected=2)
+        self.cli('decision', 'revalidate-code', 'DEC-CODE', '--clear-code', '--clear-dependencies',
+                 '--reason', 'No reference remains', expected=2)
+        self.assertEqual(self.path.read_bytes(), frozen)
+        result = self.cli('decision', 'revalidate-code', 'DEC-CODE', '--clear-dependencies',
+                          '--reason', 'Dependency removed and policy reviewed')
+        self.assertEqual([f['role'] for f in result['binding']['payload']['files']], ['code'])
+        self.assertEqual(self.cli('decision', 'drift', 'DEC-CODE')['status'], 'unchanged')
+        # Clearing code independently preserves the new explicit dependency.
+        result = self.cli('decision', 'revalidate-code', 'DEC-CODE', '--clear-code',
+                          '--dependency', 'payments/refund.py', '--reason', 'Dependency-only review')
+        self.assertEqual([f['role'] for f in result['binding']['payload']['files']], ['dependency'])
+
     def test_stale_binding_and_memory_revision_fail_atomically(self):
         from diffwitness.continuity_memory_code import binding_spec
         self.bind()

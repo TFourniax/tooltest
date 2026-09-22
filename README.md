@@ -571,6 +571,8 @@ Attach an explicit committed-code reference with
 including dependency, deletion and file-type changes. `dw decision revalidate-code DEC-ID --reason "Reviewed changes"`
 appends a new declared reference. An explicit `--path` or `--dependency` replaces that role's selection;
 unspecified roles retain their paths. These commands also support objectives, invariants and failed approaches.
+During revalidation, `--clear-code` or `--clear-dependencies` explicitly removes a role's selection;
+each conflicts with that role's path option, and at least one selected reference must remain.
 `show` retains the binding history. The comparison covers committed files only: it does not validate local edits,
 transitive dependencies or behavior, and revalidation does not change assertion or lifecycle authority.
 See [code drift and revalidation](docs/qualification/PM_007.md) for bounds and compatibility.

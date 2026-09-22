@@ -70,6 +70,17 @@ with tempfile.TemporaryDirectory(prefix='dw-code-installed-') as td:
     assert len(shown['code_references']) == 2
     assert (repo / '.git/index').read_bytes() == real_index
     assert (repo / 'règles.py').read_bytes() == dirty_source
+    (repo / 'dependencies.lock').unlink()
+    git('add', 'dependencies.lock')
+    git('commit', '-qm', 'Dependency removed')
+    real_index = (repo / '.git/index').read_bytes()
+    assert data('invariant', 'drift', 'INV-REFUND')['status'] == 'changed'
+    cleared = data('invariant', 'revalidate-code', 'INV-REFUND', '--clear-dependencies',
+                   '--reason', 'Explicit dependency removal reviewed')['binding']
+    assert [item['role'] for item in cleared['payload']['files']] == ['code']
+    assert data('invariant', 'drift', 'INV-REFUND')['status'] == 'unchanged'
+    assert (repo / '.git/index').read_bytes() == real_index
+    assert (repo / 'règles.py').read_bytes() == dirty_source
     stable = journal.read_bytes()
     assert all(private not in stable for private in (b'PRIVATE_SOURCE', b'PRIVATE_MESSAGE', b'PRIVATE_DIRTY_SOURCE'))
     journal.write_bytes(stable.replace(b'Reviewed dependency change', b'Forged dependency change'))
@@ -79,5 +90,6 @@ with tempfile.TemporaryDirectory(prefix='dw-code-installed-') as td:
                       'passed': True, 'languages': ['fr', 'en'], 'views': ['guided', 'technical'],
                       'binding_event_id': bound['event_id'], 'binding_event_hash': bound['event_hash'],
                       'revalidation_event_id': updated['event_id'], 'real_index_preserved': True,
+                      'explicit_role_removal_event_id': cleared['event_id'],
                       'dirty_worktree_preserved': True, 'assertion_and_lifecycle_preserved': True,
                       'corrupt_journal_rejected': True, 'worktree_checked': False}))

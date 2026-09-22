@@ -76,8 +76,13 @@ def add_lifecycle_parsers(sub) -> None:
         command.add_argument('--view', choices=VIEW_MODES)
         command.add_argument('--commit', default='HEAD')
         if name != 'drift':
-            command.add_argument('--path', action='append')
-            command.add_argument('--dependency', action='append')
+            code_selection = command.add_mutually_exclusive_group()
+            code_selection.add_argument('--path', action='append')
+            dependency_selection = command.add_mutually_exclusive_group()
+            dependency_selection.add_argument('--dependency', action='append')
+            if name == 'revalidate-code':
+                code_selection.add_argument('--clear-code', dest='path', action='store_const', const=[])
+                dependency_selection.add_argument('--clear-dependencies', dest='dependency', action='store_const', const=[])
             command.add_argument('--reason', required=True)
 
 
