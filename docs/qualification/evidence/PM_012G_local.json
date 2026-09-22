@@ -1,0 +1,248 @@
+{
+  "classification": "MACHINE",
+  "base_main": "8c0481f5107c500b125cdfa368670c60c2ec8e9e",
+  "base_tree": "c82908377a5f74a594c5d456debb42ad7e308fd6",
+  "base_qualification": "24+3 fresh main SUCCESS attempt1",
+  "base_tests": {
+    "total": 666,
+    "passed": 614,
+    "skipped": 52,
+    "seconds": 68.752
+  },
+  "optional_tests": {
+    "total": 666,
+    "passed": 662,
+    "skipped": 4,
+    "seconds": 68.908
+  },
+  "wheel_sha256": "175ed30196fc1306e20b52a92b033435795442a60583ea47536913fbf5248e56",
+  "source_wheel_installed_python_files_equal": 101,
+  "installed_memory_code_journey": "PASS:FR/EN,guided/technical,corruption rejected,index/worktree preserved",
+  "integrated_exact_artifacts": "PASS with IdleProof a37cb4fe7a9e1a2f51522e7e81529f83de6a107c",
+  "final_installed_10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20045824,
+    "append_seconds": 0.837949,
+    "full_log_verify_seconds": 0.379842,
+    "rebuild_seconds": 0.880623,
+    "context": {
+      "cold_ms": 18.63,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 16.915,
+        "median": 17.226,
+        "p95": 17.803,
+        "max": 17.803
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_933b08c66c559f8692dba5ab",
+    "passed": true,
+    "failures": []
+  },
+  "copy_cost_diagnostic": {
+    "classification": "MACHINE",
+    "diagnostic": "alternating exact-copy cost, not end-to-end latency",
+    "events": 2000,
+    "pairs": [
+      {
+        "generic": 0.018372634999650472,
+        "candidate": 0.012327025000558933
+      },
+      {
+        "candidate": 0.011512650999975449,
+        "generic": 0.022094511999966926
+      },
+      {
+        "generic": 0.018381519000286062,
+        "candidate": 0.010876724999434373
+      },
+      {
+        "candidate": 0.010611585999868112,
+        "generic": 0.019910988999981782
+      },
+      {
+        "generic": 0.018303271000149834,
+        "candidate": 0.01121689600040554
+      },
+      {
+        "candidate": 0.010901140999521886,
+        "generic": 0.02230623099967488
+      },
+      {
+        "generic": 0.018773788999169483,
+        "candidate": 0.010739228000602452
+      },
+      {
+        "candidate": 0.011485891000120318,
+        "generic": 0.02531172900035017
+      },
+      {
+        "generic": 0.019290965999971377,
+        "candidate": 0.011368874999789114
+      },
+      {
+        "candidate": 0.015372634999948787,
+        "generic": 0.021475620999808598
+      },
+      {
+        "generic": 0.017516738999802328,
+        "candidate": 0.010785147000206052
+      },
+      {
+        "candidate": 0.011157887999615923,
+        "generic": 0.016951218000031076
+      }
+    ],
+    "median_seconds": {
+      "generic": 0.01903237749957043,
+      "candidate": 0.011187392000010732
+    },
+    "candidate_over_generic": 0.5878084333007391
+  },
+  "larger_history": "50k/100k FAILED existing10k thresholds; unchanged discovery scope, not accepted new SLA",
+  "historical_failures": [
+    "Missing detachment implementation before development",
+    "50k/100k gates on both parent and candidate",
+    "Initial build invocation missing build module; explicit existing setuptools backend succeeded",
+    "Installed acceptance invoked without dw on PATH; explicit installed executable passed"
+  ],
+  "human": "NOT RUN",
+  "full_PM012": "OPEN",
+  "global_readiness": "NOT READY",
+  "evidence": [
+    {
+      "file": "PM012G_build.log",
+      "sha256": "fdc0b5fe13b370c815eb710d44acdb16a6327c514d4751351f4ffbf5c9d6e25a",
+      "bytes": 96
+    },
+    {
+      "file": "PM012G_build_backend.log",
+      "sha256": "b779ccefb4e741a7ee855c6f5738a94f2756cbcb94b31b4ead44a8f5bc1a8184",
+      "bytes": 639
+    },
+    {
+      "file": "PM012G_candidate_100k.json",
+      "sha256": "5332a8a2e6033791b34eee00f6c80e1912a80cc79c5d0bbff3507d4599ed0084",
+      "bytes": 631
+    },
+    {
+      "file": "PM012G_candidate_100k.log",
+      "sha256": "5332a8a2e6033791b34eee00f6c80e1912a80cc79c5d0bbff3507d4599ed0084",
+      "bytes": 631
+    },
+    {
+      "file": "PM012G_candidate_10k.json",
+      "sha256": "73800f60379e3e6a1105afa53b9f4c85a669d6c37854dfffa5bcf3bf0ac7de77",
+      "bytes": 525
+    },
+    {
+      "file": "PM012G_candidate_10k.log",
+      "sha256": "73800f60379e3e6a1105afa53b9f4c85a669d6c37854dfffa5bcf3bf0ac7de77",
+      "bytes": 525
+    },
+    {
+      "file": "PM012G_candidate_50k.json",
+      "sha256": "e5ed6769b674ca33533157cddab9811b5b5427696dc9c3d5c5b588fea2281123",
+      "bytes": 594
+    },
+    {
+      "file": "PM012G_candidate_50k.log",
+      "sha256": "e5ed6769b674ca33533157cddab9811b5b5427696dc9c3d5c5b588fea2281123",
+      "bytes": 594
+    },
+    {
+      "file": "PM012G_continuity_tests.log",
+      "sha256": "538ca910f735c1d9720da79b525a5ff29dda28ee522be989ed9bf5e1b38d9930",
+      "bytes": 37334
+    },
+    {
+      "file": "PM012G_copy_pairs.log",
+      "sha256": "696519b2d6e15f2bc55808095b059402dde6471ab0f5d298cfbe9399ad3e1a73",
+      "bytes": 908
+    },
+    {
+      "file": "PM012G_detachment_after.log",
+      "sha256": "c912360cdf1e236df8ad77ccc2e4de742bcb37b44053bcc0dedae6044237d0d6",
+      "bytes": 734
+    },
+    {
+      "file": "PM012G_detachment_before.log",
+      "sha256": "c9dcca6aa3f7d4ea749801ebcb9bbfd5b72f282f9dd6022aebc50da41d6882dc",
+      "bytes": 3367
+    },
+    {
+      "file": "PM012G_final_copy_pairs.json",
+      "sha256": "a24399694971639f6eec4aaec7da07ebc34167180e17ea0d19eb7ea675969b16",
+      "bytes": 1390
+    },
+    {
+      "file": "PM012G_final_installed_10k.json",
+      "sha256": "825d29d5133b6a335a67b157a5cc7254938f03e83f37770fb16bee960d9362e6",
+      "bytes": 525
+    },
+    {
+      "file": "PM012G_final_installed_10k.log",
+      "sha256": "825d29d5133b6a335a67b157a5cc7254938f03e83f37770fb16bee960d9362e6",
+      "bytes": 525
+    },
+    {
+      "file": "PM012G_full_base.log",
+      "sha256": "23811ce1b9176e66d768a619da6607b4bcc87a6b60ddcd51f33198f299f1c036",
+      "bytes": 137921
+    },
+    {
+      "file": "PM012G_full_optional.log",
+      "sha256": "fa75eac3139763e8aecbfd4befa983e2b49d700e21d5e04ebe5d46fa47ac34a1",
+      "bytes": 135415
+    },
+    {
+      "file": "PM012G_installed_code.log",
+      "sha256": "fc0119e79e563b11da52837505e411185786a9bf0044bfe4039dc7236ae107e3",
+      "bytes": 234
+    },
+    {
+      "file": "PM012G_installed_code_explicit.log",
+      "sha256": "ff9ffa55bd0cea1e4798bea0ab423ead51ae29361643a4e713c57bdb07e48318",
+      "bytes": 580
+    },
+    {
+      "file": "PM012G_integrated.log",
+      "sha256": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136",
+      "bytes": 210
+    },
+    {
+      "file": "PM012G_optional_install.log",
+      "sha256": "efc1cd324b98df8d91e375b720508c46617fafac22332558a7917805c71d5bdd",
+      "bytes": 6431
+    },
+    {
+      "file": "PM012G_parent_100k.json",
+      "sha256": "184cfa355e95301810ec44749d621b66605b3310c88dbe7c3e507a1f950e13b5",
+      "bytes": 631
+    },
+    {
+      "file": "PM012G_parent_100k.log",
+      "sha256": "184cfa355e95301810ec44749d621b66605b3310c88dbe7c3e507a1f950e13b5",
+      "bytes": 631
+    },
+    {
+      "file": "PM012G_parent_50k.json",
+      "sha256": "50d151fc4378ee8c76212741f801bb0068baa4b09915a626fccb3c7cff5f61ed",
+      "bytes": 594
+    },
+    {
+      "file": "PM012G_parent_50k.log",
+      "sha256": "50d151fc4378ee8c76212741f801bb0068baa4b09915a626fccb3c7cff5f61ed",
+      "bytes": 594
+    },
+    {
+      "file": "PM012G_wheel_install.log",
+      "sha256": "5e8a6a34dcd275f675a97127e67d01fa40741f2bd7114c16aae7d58f8f662777",
+      "bytes": 5778
+    }
+  ]
+}

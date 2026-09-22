@@ -1,0 +1,9 @@
+test_json_values_preserve_types_and_detach_nested_mutability (test_continuity_detachment.DetachmentTests.test_json_values_preserve_types_and_detach_nested_mutability) ... ok
+test_shared_aliases_and_cycles_match_deepcopy (test_continuity_detachment.DetachmentTests.test_shared_aliases_and_cycles_match_deepcopy) ... ok
+test_subclasses_retain_existing_deepcopy_behavior (test_continuity_detachment.DetachmentTests.test_subclasses_retain_existing_deepcopy_behavior) ... ok
+test_tuple_fallback_shares_one_memo_with_json_containers (test_continuity_detachment.DetachmentTests.test_tuple_fallback_shares_one_memo_with_json_containers) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

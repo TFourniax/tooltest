@@ -1,0 +1,45 @@
+test_json_values_preserve_types_and_detach_nested_mutability (test_continuity_detachment.DetachmentTests.test_json_values_preserve_types_and_detach_nested_mutability) ... ERROR
+test_shared_aliases_and_cycles_match_deepcopy (test_continuity_detachment.DetachmentTests.test_shared_aliases_and_cycles_match_deepcopy) ... ERROR
+test_subclasses_retain_existing_deepcopy_behavior (test_continuity_detachment.DetachmentTests.test_subclasses_retain_existing_deepcopy_behavior) ... ERROR
+test_tuple_fallback_shares_one_memo_with_json_containers (test_continuity_detachment.DetachmentTests.test_tuple_fallback_shares_one_memo_with_json_containers) ... ERROR
+
+======================================================================
+ERROR: test_json_values_preserve_types_and_detach_nested_mutability (test_continuity_detachment.DetachmentTests.test_json_values_preserve_types_and_detach_nested_mutability)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 14, in test_json_values_preserve_types_and_detach_nested_mutability
+    result = events._detach_json(value)
+             ^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'diffwitness.continuity_events' has no attribute '_detach_json'
+
+======================================================================
+ERROR: test_shared_aliases_and_cycles_match_deepcopy (test_continuity_detachment.DetachmentTests.test_shared_aliases_and_cycles_match_deepcopy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 26, in test_shared_aliases_and_cycles_match_deepcopy
+    result = events._detach_json(value)
+             ^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'diffwitness.continuity_events' has no attribute '_detach_json'
+
+======================================================================
+ERROR: test_subclasses_retain_existing_deepcopy_behavior (test_continuity_detachment.DetachmentTests.test_subclasses_retain_existing_deepcopy_behavior)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 56, in test_subclasses_retain_existing_deepcopy_behavior
+    result = events._detach_json(value)
+             ^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'diffwitness.continuity_events' has no attribute '_detach_json'
+
+======================================================================
+ERROR: test_tuple_fallback_shares_one_memo_with_json_containers (test_continuity_detachment.DetachmentTests.test_tuple_fallback_shares_one_memo_with_json_containers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 37, in test_tuple_fallback_shares_one_memo_with_json_containers
+    result = events._detach_json(value)
+             ^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'diffwitness.continuity_events' has no attribute '_detach_json'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+FAILED (errors=4)

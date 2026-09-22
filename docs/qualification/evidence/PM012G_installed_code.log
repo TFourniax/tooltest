@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/scripts/memory_code_acceptance.py", line 16, in <module>
+    assert dw, 'installed dw required'
+           ^^
+AssertionError: installed dw required

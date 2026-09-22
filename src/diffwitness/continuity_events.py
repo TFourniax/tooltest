@@ -34,6 +34,7 @@ _EVENT_TYPE = re.compile(EVENT_TYPE_PATTERN)
 _ENTITY_ID = re.compile(ENTITY_ID_PATTERN)
 _LOCK_TIMEOUT_SECONDS = 10.0
 _STALE_LOCK_SECONDS = 120.0
+_JSON_ATOMIC_TYPES = frozenset((str, int, float, bool, type(None)))
 
 
 def _now() -> str:
@@ -49,6 +50,36 @@ def _canonical(value: Any) -> str:
 
 def _sha(value: Any) -> str:
     return hashlib.sha256(_canonical(value).encode("utf-8")).hexdigest()
+
+
+def _detach_json(value: Any, memo: dict | None = None) -> Any:
+    """Deep-copy JSON containers without generic dispatch for every scalar.
+
+    One private memo preserves aliases, cycles and deepcopy fallback behavior.
+    This is an ownership boundary, never a parser or a validation shortcut.
+    """
+    kind = type(value)
+    if kind in _JSON_ATOMIC_TYPES:
+        return value
+    if memo is None:
+        memo = {}
+    identity = id(value)
+    if identity in memo:
+        return memo[identity]
+    if kind is dict:
+        result = {}
+        memo[identity] = result
+        for key, item in value.items():
+            result[_detach_json(key, memo)] = _detach_json(item, memo)
+    elif kind is list:
+        result = []
+        memo[identity] = result
+        result.extend(_detach_json(item, memo) for item in value)
+    else:
+        return copy.deepcopy(value, memo)
+    # Match deepcopy's lifetime protection if a custom fallback mutates inputs.
+    memo.setdefault(id(memo), []).append(value)
+    return result
 
 
 def _git_common_dir(repo: Path) -> Path:
@@ -491,7 +522,7 @@ def append_project_events(
     paths = continuity_paths(root_repo)
     # Detach nested caller data before a candidate can enter private validator
     # state. Returned objects are detached again at the public boundary below.
-    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+    candidates = [_detach_json(_candidate_from_spec(spec)) for spec in events]
 
     with _event_lock(paths):
         raw, validator, by_dedupe = _append_history(paths.events)
@@ -533,7 +564,8 @@ def append_project_events(
             validator.admit(event)
         written = _durable_append(paths, appended)
         _remember_append(paths.events, raw + written, validator, by_dedupe)
-        return copy.deepcopy(results)
+        result_memo = {}
+        return [(_detach_json(event, result_memo), created) for event, created in results]
 
 
 def append_project_event(
