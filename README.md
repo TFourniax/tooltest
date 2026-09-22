@@ -565,6 +565,16 @@ Selected memory in `dw context --json` includes a `source` reference with the
 assertion's ProjectEvent ID and hash, anchored to `state.eventHead`. Applicability
 reviews remain separate declarations. See [context source references](docs/CONTEXT_SOURCES.md).
 
+Attach an explicit committed-code reference with
+`dw decision bind-code DEC-ID --path src/refund.py --dependency requirements.txt --reason "Reviewed scope"`.
+`dw decision drift DEC-ID --json` compares the selected files with HEAD (or `--commit REF`),
+including dependency, deletion and file-type changes. `dw decision revalidate-code DEC-ID --reason "Reviewed changes"`
+appends a new declared reference. An explicit `--path` or `--dependency` replaces that role's selection;
+unspecified roles retain their paths. These commands also support objectives, invariants and failed approaches.
+`show` retains the binding history. The comparison covers committed files only: it does not validate local edits,
+transitive dependencies or behavior, and revalidation does not change assertion or lifecycle authority.
+See [code drift and revalidation](docs/qualification/PM_007.md) for bounds and compatibility.
+
 New objective, decision, invariant and failed-approach declarations use the explicit
 [`project-memory-declaration-1` admission profile](docs/qualification/PM_001B1.md).
 It checks their types and keeps their authority `DECLARED`. Unprofiled historical

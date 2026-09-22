@@ -1,0 +1,11 @@
+test_explicit_french_and_precedence_preserve_view_and_never_leak (test_language.LanguageTests.test_explicit_french_and_precedence_preserve_view_and_never_leak) ... ok
+test_french_environment_defaults_to_english_without_persisting_language (test_language.LanguageTests.test_french_environment_defaults_to_english_without_persisting_language) ... ok
+test_french_human_surfaces_and_json_are_language_and_view_invariant (test_language.LanguageTests.test_french_human_surfaces_and_json_are_language_and_view_invariant) ... ok
+test_invalid_choice_and_missing_repo_do_not_save_or_leak (test_language.LanguageTests.test_invalid_choice_and_missing_repo_do_not_save_or_leak) ... ok
+test_native_protocol_and_agent_arguments_do_not_inherit_ui_language (test_language.LanguageTests.test_native_protocol_and_agent_arguments_do_not_inherit_ui_language) ... ok
+test_same_executed_evidence_produces_identical_certificates_in_both_languages (test_language.LanguageTests.test_same_executed_evidence_produces_identical_certificates_in_both_languages) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.315s
+
+OK

@@ -1,0 +1,542 @@
+
+======================================================================
+ERROR: test_setup_install_prepares_local_excludes_before_sidecar_runs (test_local_git_state.LocalGitStateTests.test_setup_install_prepares_local_excludes_before_sidecar_runs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 70, in _dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_local_git_state.py", line 125, in test_setup_install_prepares_local_excludes_before_sidecar_runs
+    result = setup_install(cwd=self.repo.resolve(), agent="all")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 191, in setup_install
+    dw_command = _dw_command()
+                 ^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 72, in _dw_command
+    raise SetupError(str(exc)) from exc
+diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes (test_native_patch_bytes.NativePatchBytesTests.test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes) (eol="b'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 70, in _dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_native_patch_bytes.py", line 45, in test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes
+    setup_install(cwd=repo, agent='codex')
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 191, in setup_install
+    dw_command = _dw_command()
+                 ^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 72, in _dw_command
+    raise SetupError(str(exc)) from exc
+diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes (test_native_patch_bytes.NativePatchBytesTests.test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes) (eol="b'\\r\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 70, in _dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_native_patch_bytes.py", line 45, in test_native_staged_unborn_counterfactual_uses_exact_lf_and_crlf_bytes
+    setup_install(cwd=repo, agent='codex')
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 191, in setup_install
+    dw_command = _dw_command()
+                 ^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 72, in _dw_command
+    raise SetupError(str(exc)) from exc
+diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_codex_requires_live_activation_then_becomes_ready_after_observed_hook (test_protect.ProtectTests.test_codex_requires_live_activation_then_becomes_ready_after_observed_hook)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 112, in test_codex_requires_live_activation_then_becomes_ready_after_observed_hook
+    enabled = set_protect_mode(repo, "builtin", force=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding (test_protect.ProtectTests.test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 350, in test_codex_safe_live_hook_promotes_readiness_without_a_risk_finding
+    enabled = set_protect_mode(repo, "builtin", force=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_force_builtin_merges_and_disable_preserves_foreign_hooks (test_protect.ProtectTests.test_force_builtin_merges_and_disable_preserves_foreign_hooks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 81, in test_force_builtin_merges_and_disable_preserves_foreign_hooks
+    enabled = set_protect_mode(repo, "builtin", force=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_no_detected_adapter_does_not_create_provider_scaffolds (test_protect.ProtectTests.test_no_detected_adapter_does_not_create_provider_scaffolds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 101, in test_no_detected_adapter_does_not_create_provider_scaffolds
+    status = set_protect_mode(repo, "builtin", force=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_observe_policy_records_but_does_not_block (test_protect.ProtectTests.test_observe_policy_records_but_does_not_block)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 203, in test_observe_policy_records_but_does_not_block
+    set_protect_mode(repo, "builtin", policy="observe", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_parallel_first_codex_hooks_record_one_durable_activation (test_protect.ProtectTests.test_parallel_first_codex_hooks_record_one_durable_activation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 388, in test_parallel_first_codex_hooks_record_one_durable_activation
+    enabled = set_protect_mode(repo, "builtin", force=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_post_tool_reports_invalid_json_as_observed (test_protect.ProtectTests.test_post_tool_reports_invalid_json_as_observed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 258, in test_post_tool_reports_invalid_json_as_observed
+    set_protect_mode(repo, "builtin", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_receipt_integrity_detects_tampering (test_protect.ProtectTests.test_receipt_integrity_detects_tampering)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 277, in test_receipt_integrity_detects_tampering
+    set_protect_mode(repo, "builtin", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_secret_is_blocked_but_secret_value_is_not_persisted (test_protect.ProtectTests.test_secret_is_blocked_but_secret_value_is_not_persisted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 166, in test_secret_is_blocked_but_secret_value_is_not_persisted
+    set_protect_mode(repo, "builtin", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_standard_blocks_destructive_git_without_recording_raw_command (test_protect.ProtectTests.test_standard_blocks_destructive_git_without_recording_raw_command)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 145, in test_standard_blocks_destructive_git_without_recording_raw_command
+    set_protect_mode(repo, "builtin", policy="standard", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_strict_dependency_install_blocks_on_current_codex_adapter (test_protect.ProtectTests.test_strict_dependency_install_blocks_on_current_codex_adapter)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 239, in test_strict_dependency_install_blocks_on_current_codex_adapter
+    set_protect_mode(repo, "builtin", policy="strict", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_strict_dependency_install_requests_confirmation_for_claude (test_protect.ProtectTests.test_strict_dependency_install_requests_confirmation_for_claude)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 221, in test_strict_dependency_install_requests_confirmation_for_claude
+    set_protect_mode(repo, "builtin", policy="strict", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_write_outside_repository_is_blocked (test_protect.ProtectTests.test_write_outside_repository_is_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect.py", line 187, in test_write_outside_repository_is_blocked
+    set_protect_mode(repo, "builtin", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_dry_run_clean_is_not_misclassified_as_forced (test_protect_command_normalization.ProtectCommandNormalizationTests.test_dry_run_clean_is_not_misclassified_as_forced)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 69, in test_dry_run_clean_is_not_misclassified_as_forced
+    repo = self._repo(Path(td))
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 20, in _repo
+    set_protect_mode(repo, "builtin", policy="standard", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_git_global_options_cannot_bypass_forced_clean (test_protect_command_normalization.ProtectCommandNormalizationTests.test_git_global_options_cannot_bypass_forced_clean)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 36, in test_git_global_options_cannot_bypass_forced_clean
+    repo = self._repo(Path(td))
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 20, in _repo
+    set_protect_mode(repo, "builtin", policy="standard", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_global_options_are_normalized_for_other_destructive_git_subcommands (test_protect_command_normalization.ProtectCommandNormalizationTests.test_global_options_are_normalized_for_other_destructive_git_subcommands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 54, in test_global_options_are_normalized_for_other_destructive_git_subcommands
+    repo = self._repo(Path(td))
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 20, in _repo
+    set_protect_mode(repo, "builtin", policy="standard", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_protect_honors_explicit_setup_adapter_scope (test_protect_command_normalization.ProtectCommandNormalizationTests.test_protect_honors_explicit_setup_adapter_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect_command_normalization.py", line 84, in test_protect_honors_explicit_setup_adapter_scope
+    status = set_protect_mode(repo, "builtin", policy="standard", force=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_forced_git_clean_is_denied_before_execution_and_never_mints_proof (test_protect_destructive_end_to_end.ProtectDestructiveEndToEndTests.test_forced_git_clean_is_denied_before_execution_and_never_mints_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_protect_destructive_end_to_end.py", line 36, in test_forced_git_clean_is_denied_before_execution_and_never_mints_proof
+    status = set_protect_mode(repo, "builtin", policy="standard")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_codex_reenable_waits_for_observation_without_inventing_trust_state (test_provider_trust_readiness.ProviderTrustReadinessTests.test_codex_reenable_waits_for_observation_without_inventing_trust_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_provider_trust_readiness.py", line 33, in test_codex_reenable_waits_for_observation_without_inventing_trust_state
+    enabled = set_protect_mode(repo, "builtin", force=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_current_proof_staleness_is_independent_of_native_readiness (test_readiness.ReadinessTests.test_current_proof_staleness_is_independent_of_native_readiness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 139, in test_current_proof_staleness_is_independent_of_native_readiness
+    self.install()
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 44, in install
+    integration_install(self.repo, agent=agent, dw_command=owner or resolve_dw_command())
+                                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_ht005_missing_hooks_preserves_configured_but_repairs_in_every_view (test_readiness.ReadinessTests.test_ht005_missing_hooks_preserves_configured_but_repairs_in_every_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 54, in test_ht005_missing_hooks_preserves_configured_but_repairs_in_every_view
+    self.install()
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 44, in install
+    integration_install(self.repo, agent=agent, dw_command=owner or resolve_dw_command())
+                                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_ht012_unobserved_then_observed_is_independent_of_provider_trust_and_proof (test_readiness.ReadinessTests.test_ht012_unobserved_then_observed_is_independent_of_provider_trust_and_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 74, in test_ht012_unobserved_then_observed_is_independent_of_provider_trust_and_proof
+    self.install()
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 44, in install
+    integration_install(self.repo, agent=agent, dw_command=owner or resolve_dw_command())
+                                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_mixed_adapters_do_not_hide_the_unobserved_one (test_readiness.ReadinessTests.test_mixed_adapters_do_not_hide_the_unobserved_one)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 114, in test_mixed_adapters_do_not_hide_the_unobserved_one
+    self.install('claude,codex')
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 44, in install
+    integration_install(self.repo, agent=agent, dw_command=owner or resolve_dw_command())
+                                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_protect_optional_delegated_and_pending_are_separate_from_proof (test_readiness.ReadinessTests.test_protect_optional_delegated_and_pending_are_separate_from_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 157, in test_protect_optional_delegated_and_pending_are_separate_from_proof
+    self.install()
+  File "<current-workspace>/core_drift/tests/test_readiness.py", line 44, in install
+    integration_install(self.repo, agent=agent, dw_command=owner or resolve_dw_command())
+                                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_missing_override_does_not_remove_existing_hooks (test_runtime_executable.RuntimeExecutableTests.test_missing_override_does_not_remove_existing_hooks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_runtime_executable.py", line 83, in test_missing_override_does_not_remove_existing_hooks
+    set_protect_mode(repo, "builtin", force=True)
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 440, in set_protect_mode
+    dw_command = _resolve_dw_command() if mode == "builtin" else str(previous.get("diffwitnessCommand") or "")
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/protect.py", line 262, in _resolve_dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+ERROR: test_setup_and_status_are_useful_without_commits_or_evidence (test_unborn_repository.UnbornRepositoryTests.test_setup_and_status_are_useful_without_commits_or_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 70, in _dw_command
+    return resolve_dw_command()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/runtime_executable.py", line 95, in resolve_dw_command
+    raise ExecutableResolutionError(
+diffwitness.runtime_executable.ExecutableResolutionError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_unborn_repository.py", line 111, in test_setup_and_status_are_useful_without_commits_or_evidence
+    installed = setup_install(cwd=self.repo, agent='codex')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 191, in setup_install
+    dw_command = _dw_command()
+                 ^^^^^^^^^^^^^
+  File "<current-workspace>/consumer_drift_wheel/lib/python3.12/site-packages/diffwitness/setup.py", line 72, in _dw_command
+    raise SetupError(str(exc)) from exc
+diffwitness.setup.SetupError: Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly.
+
+======================================================================
+FAIL: test_claude_hooks_use_exec_form_and_complete_native_change (test_human_blocker_regressions.HumanBlockerRegressionTests.test_claude_hooks_use_exec_form_and_complete_native_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_human_blocker_regressions.py", line 89, in test_claude_hooks_use_exec_form_and_complete_native_change
+    self.assertEqual(setup.returncode, 0, setup.stderr)
+AssertionError: 2 != 0 : DiffWitness setup failed: This DiffWitness installation is missing its bundled IdleProof integration. Install the matching bundle or provide --idleproof-command / DIFFWITNESS_IDLEPROOF_BIN.
+
+
+======================================================================
+FAIL: test_french_environment_defaults_to_english_without_persisting_language (test_language.LanguageTests.test_french_environment_defaults_to_english_without_persisting_language) (args=['setup', 'status'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_language.py", line 47, in test_french_environment_defaults_to_english_without_persisting_language
+    self.assertIn(rc,(0,1),err)
+AssertionError: 2 not found in (0, 1) : DiffWitness setup failed: This DiffWitness installation is missing its bundled IdleProof integration. Install the matching bundle or provide --idleproof-command / DIFFWITNESS_IDLEPROOF_BIN.
+
+
+======================================================================
+FAIL: test_french_human_surfaces_and_json_are_language_and_view_invariant (test_language.LanguageTests.test_french_human_surfaces_and_json_are_language_and_view_invariant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_language.py", line 78, in test_french_human_surfaces_and_json_are_language_and_view_invariant
+    self.assertEqual(a[0],b[0]);self.assertIn(en,a[1]);self.assertIn(fr,b[1])
+                                ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Verification still' not found in ''
+
+======================================================================
+FAIL: test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared (test_local_git_state.LocalGitStateTests.test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_local_git_state.py", line 139, in test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared
+    self.assertIn("non-invasive local Git state", str(raised.exception))
+AssertionError: 'non-invasive local Git state' not found in "Cannot identify this DiffWitness installation's dw executable. Reinstall its entry points or set DIFFWITNESS_BIN explicitly."
+
+----------------------------------------------------------------------
+Ran 661 tests in 66.817s
+
+FAILED (failures=4, errors=29, skipped=52)
+certificate: dwv1_3559be8285a75ba84c23
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID

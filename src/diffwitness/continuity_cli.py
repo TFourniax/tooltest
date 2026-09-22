@@ -360,7 +360,7 @@ def objective_cli(argv: list[str]) -> int:
     from .gitops import repo_root
     from .continuity_contract import OBJECTIVE_PRIORITIES
 
-    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show", "bind-code", "revalidate-code", "drift"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("objective", argv)
     parser = argparse.ArgumentParser(prog="dw objective")
@@ -394,7 +394,7 @@ def objective_cli(argv: list[str]) -> int:
 def decision_cli(argv: list[str]) -> int:
     from .gitops import repo_root
 
-    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show", "bind-code", "revalidate-code", "drift"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("decision", argv)
     parser = argparse.ArgumentParser(prog="dw decision")
@@ -435,7 +435,7 @@ def decision_cli(argv: list[str]) -> int:
 def invariant_cli(argv: list[str]) -> int:
     from .gitops import repo_root
 
-    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show", "bind-code", "revalidate-code", "drift"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("invariant", argv)
     parser = argparse.ArgumentParser(prog="dw invariant")
@@ -471,7 +471,7 @@ def invariant_cli(argv: list[str]) -> int:
 def failed_approach_cli(argv: list[str]) -> int:
     from .gitops import repo_root
 
-    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show"}:
+    if argv and argv[0] in {"confirm", "reject", "retire", "supersede", "show", "bind-code", "revalidate-code", "drift"}:
         from .continuity_lifecycle import memory_lifecycle_cli
         return memory_lifecycle_cli("failed-approach", argv)
     parser = argparse.ArgumentParser(prog="dw failed-approach")

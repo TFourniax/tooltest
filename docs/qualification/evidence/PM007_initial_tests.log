@@ -1,0 +1,84 @@
+test_all_four_kinds_confirm_retire_and_reconsider_preserve_assertion (test_memory_code.MemoryCodeTests.test_all_four_kinds_confirm_retire_and_reconsider_preserve_assertion) ... ok
+test_code_drift_revalidation_keeps_authorities_and_index (test_memory_code.MemoryCodeTests.test_code_drift_revalidation_keeps_authorities_and_index) ... FAIL
+test_confirmation_does_not_promote_or_replace_original_assertion_authority (test_memory_code.MemoryCodeTests.test_confirmation_does_not_promote_or_replace_original_assertion_authority) ... ok
+test_deleted_and_explicitly_moved_reference (test_memory_code.MemoryCodeTests.test_deleted_and_explicitly_moved_reference) ... FAIL
+test_forged_source_reference_rejected_on_all_readers (test_memory_code.MemoryCodeTests.test_forged_source_reference_rejected_on_all_readers) ... FAIL
+test_hash_valid_invalid_revision_is_rejected_by_checkpoint_and_old_cache (test_memory_code.MemoryCodeTests.test_hash_valid_invalid_revision_is_rejected_by_checkpoint_and_old_cache) ... ok
+test_installed_presentations_retain_failed_approaches_and_distinct_review_authority (test_memory_code.MemoryCodeTests.test_installed_presentations_retain_failed_approaches_and_distinct_review_authority) ... ok
+test_invalid_replacements_and_unknown_kind_fail_without_partial_history (test_memory_code.MemoryCodeTests.test_invalid_replacements_and_unknown_kind_fail_without_partial_history) ... ok
+test_invalid_selections_and_inactive_memory_do_not_append (test_memory_code.MemoryCodeTests.test_invalid_selections_and_inactive_memory_do_not_append) ... ok
+test_profile_cannot_promote_judgment_or_smuggle_replacement_relations (test_memory_code.MemoryCodeTests.test_profile_cannot_promote_judgment_or_smuggle_replacement_relations) ... ok
+test_public_redeclaration_of_managed_identity_is_a_controlled_rejection (test_memory_code.MemoryCodeTests.test_public_redeclaration_of_managed_identity_is_a_controlled_rejection) ... ok
+test_rejected_memory_and_edges_do_not_seed_context_but_history_remains (test_memory_code.MemoryCodeTests.test_rejected_memory_and_edges_do_not_seed_context_but_history_remains) ... ok
+test_stale_binding_and_memory_revision_fail_atomically (test_memory_code.MemoryCodeTests.test_stale_binding_and_memory_revision_fail_atomically) ... ERROR
+test_stale_revision_is_rejected_atomically_and_source_cannot_be_overwritten (test_memory_code.MemoryCodeTests.test_stale_revision_is_rejected_atomically_and_source_cannot_be_overwritten) ... ok
+test_supersession_is_immutable_and_bidirectional_with_exact_replacement_reference (test_memory_code.MemoryCodeTests.test_supersession_is_immutable_and_bidirectional_with_exact_replacement_reference) ... ok
+test_all_four_kinds_confirm_retire_and_reconsider_preserve_assertion (test_memory_lifecycle.MemoryLifecycleTests.test_all_four_kinds_confirm_retire_and_reconsider_preserve_assertion) ... ok
+test_confirmation_does_not_promote_or_replace_original_assertion_authority (test_memory_lifecycle.MemoryLifecycleTests.test_confirmation_does_not_promote_or_replace_original_assertion_authority) ... ok
+test_hash_valid_invalid_revision_is_rejected_by_checkpoint_and_old_cache (test_memory_lifecycle.MemoryLifecycleTests.test_hash_valid_invalid_revision_is_rejected_by_checkpoint_and_old_cache) ... ok
+test_installed_presentations_retain_failed_approaches_and_distinct_review_authority (test_memory_lifecycle.MemoryLifecycleTests.test_installed_presentations_retain_failed_approaches_and_distinct_review_authority) ... ok
+test_invalid_replacements_and_unknown_kind_fail_without_partial_history (test_memory_lifecycle.MemoryLifecycleTests.test_invalid_replacements_and_unknown_kind_fail_without_partial_history) ... ok
+test_profile_cannot_promote_judgment_or_smuggle_replacement_relations (test_memory_lifecycle.MemoryLifecycleTests.test_profile_cannot_promote_judgment_or_smuggle_replacement_relations) ... ok
+test_public_redeclaration_of_managed_identity_is_a_controlled_rejection (test_memory_lifecycle.MemoryLifecycleTests.test_public_redeclaration_of_managed_identity_is_a_controlled_rejection) ... ok
+test_rejected_memory_and_edges_do_not_seed_context_but_history_remains (test_memory_lifecycle.MemoryLifecycleTests.test_rejected_memory_and_edges_do_not_seed_context_but_history_remains) ... ok
+test_stale_revision_is_rejected_atomically_and_source_cannot_be_overwritten (test_memory_lifecycle.MemoryLifecycleTests.test_stale_revision_is_rejected_atomically_and_source_cannot_be_overwritten) ... ok
+test_supersession_is_immutable_and_bidirectional_with_exact_replacement_reference (test_memory_lifecycle.MemoryLifecycleTests.test_supersession_is_immutable_and_bidirectional_with_exact_replacement_reference) ... ok
+
+======================================================================
+ERROR: test_stale_binding_and_memory_revision_fail_atomically (test_memory_code.MemoryCodeTests.test_stale_binding_and_memory_revision_fail_atomically)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 60, in test_stale_binding_and_memory_revision_fail_atomically
+    from diffwitness.continuity_memory_code import binding_spec
+ModuleNotFoundError: No module named 'diffwitness.continuity_memory_code'
+
+======================================================================
+FAIL: test_code_drift_revalidation_keeps_authorities_and_index (test_memory_code.MemoryCodeTests.test_code_drift_revalidation_keeps_authorities_and_index)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 25, in test_code_drift_revalidation_keeps_authorities_and_index
+    result = self.bind()
+             ^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 21, in bind
+    return self.cli('decision', 'bind-code', identity, '--path', 'payments/refund.py',
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_memory_lifecycle.py", line 39, in cli
+    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+AssertionError: 2 != 0 : usage: dw decision [-h] {confirm,reject,retire,supersede,show,record} ...
+dw decision: error: argument command: invalid choice: 'bind-code' (choose from confirm, reject, retire, supersede, show, record)
+
+
+======================================================================
+FAIL: test_deleted_and_explicitly_moved_reference (test_memory_code.MemoryCodeTests.test_deleted_and_explicitly_moved_reference)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 48, in test_deleted_and_explicitly_moved_reference
+    self.bind()
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 21, in bind
+    return self.cli('decision', 'bind-code', identity, '--path', 'payments/refund.py',
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_memory_lifecycle.py", line 39, in cli
+    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+AssertionError: 2 != 0 : usage: dw decision [-h] {confirm,reject,retire,supersede,show,record} ...
+dw decision: error: argument command: invalid choice: 'bind-code' (choose from confirm, reject, retire, supersede, show, record)
+
+
+======================================================================
+FAIL: test_forged_source_reference_rejected_on_all_readers (test_memory_code.MemoryCodeTests.test_forged_source_reference_rejected_on_all_readers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 89, in test_forged_source_reference_rejected_on_all_readers
+    self.bind()
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 21, in bind
+    return self.cli('decision', 'bind-code', identity, '--path', 'payments/refund.py',
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_memory_lifecycle.py", line 39, in cli
+    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+AssertionError: 2 != 0 : usage: dw decision [-h] {confirm,reject,retire,supersede,show,record} ...
+dw decision: error: argument command: invalid choice: 'bind-code' (choose from confirm, reject, retire, supersede, show, record)
+
+
+----------------------------------------------------------------------
+Ran 25 tests in 9.282s
+
+FAILED (failures=3, errors=1)

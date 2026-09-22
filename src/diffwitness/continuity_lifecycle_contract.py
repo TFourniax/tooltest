@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from .continuity_task_contract import is_task_edge_event
+from .continuity_memory_code_contract import is_memory_code
 
 MEMORY_LIFECYCLE_PROFILE = "project-memory-lifecycle-1"
 MEMORY_KINDS = {"objective": "objective", "decision": "decision", "invariant": "invariant", "failed-approach": "approach"}
@@ -56,10 +57,27 @@ def lifecycle_view(event: dict[str, Any]) -> dict[str, Any]:
 class MemoryHistoryValidator:
     def __init__(self):
         self.current: dict[str, dict[str, Any]] = {}
+        self.code_bindings: dict[str, dict[str, Any]] = {}
 
     def admit(self, event: dict[str, Any]) -> None:
         identity = event["subject"]["id"]
         current = self.current.get(identity)
+        if is_memory_code(event):
+            payload = event['payload']
+            memory = self.current.get(payload['memory_id'])
+            _check(memory is not None and memory['active']
+                   and memory['assertion']['subject']['kind'] == payload['memory_kind'],
+                   'code binding requires an active compatible memory')
+            _check(memory['assertion']['event_id'] == payload['source_event_id']
+                   and memory['revision']['event_id'] == payload['revision_event_id'],
+                   'code binding refers to a stale assertion or revision')
+            previous = self.code_bindings.get(identity)
+            _check(current is None, 'code binding subject collides with an existing entity')
+            _check(payload['previous_binding_event_id'] == (previous['event_id'] if previous else None),
+                   'code binding predecessor is stale')
+            self.code_bindings[identity] = event
+            return
+        _check(identity not in self.code_bindings, 'code binding subject cannot be overwritten')
         if is_memory_lifecycle(event):
             payload = event["payload"]
             _check(current is not None and current["assertion"]["subject"]["kind"] == event["subject"]["kind"], "requires an earlier compatible assertion")

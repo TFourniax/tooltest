@@ -14,6 +14,7 @@ from .continuity_events import (ContinuityPaths, _event_lock, continuity_paths,
                                 read_project_event_snapshot, read_project_events)
 from .continuity_task_contract import is_task_edge_event
 from .continuity_lifecycle_contract import is_memory_lifecycle, lifecycle_view
+from .continuity_memory_code_contract import is_memory_code
 from .continuity_search import SEARCHABLE_KINDS, memory_text, tokens
 from .gitops import git, repo_root
 
@@ -22,7 +23,7 @@ from .gitops import git, repo_root
 STATE_SCHEMA = "continuity-state-6"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
-VALIDATED_EVENT_DIGEST_META = "memory_lifecycle_event_file_sha256"
+VALIDATED_EVENT_DIGEST_META = "memory_code_event_file_sha256"
 
 
 def _canonical(value: Any) -> str:
@@ -232,7 +233,7 @@ def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
         conn.execute("insert into memory_lifecycle(entity_id,lifecycle_json) values(?,?) on conflict(entity_id) do update set lifecycle_json=excluded.lifecycle_json",
                      (event["subject"]["id"], _canonical(value)))
         return
-    if event["event_type"] == "relation.declared" or is_task_edge_event(event):
+    if event["event_type"] == "relation.declared" or is_task_edge_event(event) or is_memory_code(event):
         return
     subject = event["subject"]
     entity_id = str(subject["id"])

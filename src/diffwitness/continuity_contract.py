@@ -12,6 +12,7 @@ from typing import Any
 
 from .continuity_task_contract import TASK_PROFILE, task_profile_descriptor, validate_task_profile
 from .continuity_lifecycle_contract import MEMORY_LIFECYCLE_PROFILE, memory_lifecycle_descriptor, validate_memory_lifecycle
+from .continuity_memory_code_contract import MEMORY_CODE_PROFILE, code_descriptor, validate_memory_code
 from .continuity_git_contract import GIT_HISTORY_PROFILE, git_history_descriptor, validate_git_history
 from .continuity_lineage_contract import GIT_LINEAGE_PROFILE, git_lineage_descriptor, validate_git_lineage
 
@@ -36,7 +37,7 @@ MAX_LABEL_CHARS = 500
 ENTITY_KINDS = (
     "task", "objective", "decision", "invariant", "failed-approach", "feature",
     "component", "symbol", "dependency", "change", "proof-certificate", "debt",
-    "understanding", "file", "external-module", "git-commit", "git-message", "git-lineage",
+    "understanding", "file", "external-module", "git-commit", "git-message", "git-lineage", "memory-code",
 )
 HUMAN_DECLARABLE_RELATIONS = frozenset({
     "motivated_by", "affects", "introduced_in", "created", "protects", "constrains",
@@ -161,6 +162,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == MEMORY_CODE_PROFILE:
+        validate_memory_code(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == GIT_LINEAGE_PROFILE:
         validate_git_lineage(event)
@@ -416,6 +420,7 @@ def project_memory_contract() -> dict[str, Any]:
             GIT_HISTORY_PROFILE: git_history_descriptor(),
             GIT_LINEAGE_PROFILE: git_lineage_descriptor(),
             MEMORY_LIFECYCLE_PROFILE: memory_lifecycle_descriptor(),
+            MEMORY_CODE_PROFILE: code_descriptor(),
             TASK_PROFILE: task_profile_descriptor(),
             DEBT_LIFECYCLE_PROFILE: {
                 "provenance_field": PROFILE_PROVENANCE_FIELD,

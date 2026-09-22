@@ -1,0 +1,380 @@
+.....DiffWitness Gate rejected: changed tests do not discriminate the production change from base
+.DiffWitness Gate: non-discriminating-change under balanced policy (dwa1_8a8ea9973c7c10b48ad7)
+DiffWitness Gate: preservation-evidence under balanced policy (dwa1_171976c581fdad266aba)
+DiffWitness Gate accepted: balanced policy accepts stable preservation assurance
+Project continuity: 2 new change event(s) · dwchg_d034f5c96692abf96941e1ef
+certificate: dwa1_171976c581fdad266aba
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
+certificate: dwa1_171976c581fdad266aba
+integrity:   valid
+freshness:   stale against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     INVALID
+DiffWitness Gate rejected: candidate is not stably green
+.DiffWitness Gate: candidate-not-stable-green under strict policy (dwa1_6976afe0d19132fd9c87)
+DiffWitness: proof not required (dw0_4998170c8e978f6790ea); no executable causal mutation detected.
+certificate: dw0_4998170c8e978f6790ea
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+artifacts:   ignored proof.json
+verdict:     VALID
+.certificate: dw0_4998170c8e978f6790ea
+integrity:   valid
+freshness:   stale against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+artifacts:   ignored proof.json
+verdict:     INVALID
+DiffWitness: validation-only stable-pass (dwv1_8eb3c2c5efaa431ae232)
+Project continuity: 2 new change event(s) · dwchg_cd7a5ba4655ec9dd059aa178
+.certificate: dwv1_8eb3c2c5efaa431ae232
+integrity:   valid
+freshness:   fresh against HEAD
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
+DiffWitness: proof not required (dw0_4d5802fd7f150a3eeed8); no executable causal mutation detected.
+.......................................................................................Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.....................................................................................................................................................................DiffWitness Gate rejected: candidate is not stably green
+
+DiffWitness Guard: PROOF REJECTED
+......................DiffWitness proof dw0_4d5802fd7f150a3eeed8 attached to d8e4411c79fb via refs/notes/diffwitness.
+Publish it with: git push origin refs/notes/diffwitness
+Objective OBJ-REFUNDS: Support partial refunds safely
+Decision DEC-IDEMPOTENCY: Keep refund operations idempotent
+Invariant INV-CAPTURE-LIMIT: Refund total must never exceed captured payment
+Failed approach FAIL-DIRECT-CHARGE: Mutating charge rows directly
+DiffWitness: No evidence command could be detected. Run `dw doctor`, pass --test, or create .diffwitness.toml.
+...DiffWitness: proof not required (dw0_049e7ea888953e37b058); no executable causal mutation detected.
+DiffWitness: this change contains tests but DiffWitness cannot determine how to execute evidence. Failing closed: pass --test or configure [diffwitness].test.
+.DiffWitness Gate rejected: Adaptive Core found 1 mutation(s) removable while preserving the selected stable evidence
+.DiffWitness Gate: causal contrast proven; adaptive strategy for 2 production mutation(s) under balanced policy (899.9s proof budget remaining)
+DiffWitness Adaptive Core
+contrast:    PROVEN
+mutations:   2 original
+core:        1 retained
+removable:   1 observed removable
+experiments: 3/10
+1-minimal:   yes
+certificate: dwac1_86f0e2bcb3182bf4bb5c
+
+Causal core:
+  KEEP    calc.py hunk 1/2
+
+Evidence-removable surface:
+  REVIEW  calc.py hunk 2/2 — def add(a, b):
+.DiffWitness: proof not required (dw0_87f8b956123b0b7d24ec); no executable causal mutation detected.
+Project continuity: 2 new change event(s) · dwchg_642ea95ba321685ce59d25a1
+DiffWitness Gate: causal contrast proven; exhaustive strategy for 1 production mutation(s) under strict policy (899.9s proof budget remaining)
+.DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmp_9zbg5kl/repo
+base:      57028f4dc7c60991b16675f878a3b5378e1ae9cd (57028f4dc7c6)
+candidate: d85087c3b388ab01abdd42663f5851ca417eef41 (d85087c3b388)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    899.882s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  calc.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_863be49b97b9d22e47a4
+DiffWitness Gate accepted (dw2_863be49b97b9d22e47a4)
+Project continuity: 2 new change event(s) · dwchg_9078288990e1af1edf74aa82
+DiffWitness Gate: causal contrast proven; exhaustive strategy for 1 production mutation(s) under strict policy (899.9s proof budget remaining)
+........DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmpm0qpp5fh
+base:      52d9bfa03ae0a8eb8963e70a00e13155da346409 (52d9bfa03ae0)
+candidate: d81fd93301f34d8d6e8f402330e27f79e4ba519a (d81fd93301f3)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    899.877s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  calc.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_6a6c0cc6df3124dbc6dc
+DiffWitness Gate accepted (dw2_6a6c0cc6df3124dbc6dc)
+Project continuity: 2 new change event(s) · dwchg_095476d32f311c55b7325a68
+DiffWitness Guard armed at e8b4c91aefad
+Agent:    <current-workspace>/consumer_drift/bin/python -c from pathlib import Path; Path('calc.py').write_text('def add(a, b):\n    return a + b\n', encoding='utf-8'); Path('tests').mkdir(exist_ok=True); Path('tests/test_calc.py').write_text("import unittest\nfrom calc import add\n\nclass T(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n", encoding='utf-8')
+Policy:   strict
+Strategy: auto
+Proof budget: 900s after agent exit
+
+DiffWitness Gate: causal contrast proven; exhaustive strategy for 1 production mutation(s) under strict policy (899.9s proof budget remaining)
+.DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmp8p2gonwr
+base:      e8b4c91aefad9913e8a173d341aff7cb627983a1 (e8b4c91aefad)
+candidate: 74b1563e31da1e2734cfddaa98b02d9bd1c1375d (74b1563e31da)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    899.876s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  calc.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_7725301eb829a99f20f5
+DiffWitness Gate accepted (dw2_7725301eb829a99f20f5)
+
+DiffWitness Guard: PROOF ACCEPTED
+
+CHANGE DEBT
++0 point(s) / 0 obligation(s)
+Debt budget: PASS — projected total 0; new 0
+Debt Ledger: +0 introduced, 0 reopened, 0 refreshed
+IdleProof explanation: /tmp/tmp8p2gonwr/.git/diffwitness/idleproof-explanation.json
+Change envelope: /tmp/tmp8p2gonwr/.git/diffwitness/change-envelope.json
+Project continuity: 3 new change event(s) · dwchg_60f752980c5786dd54e64230
+DiffWitness Guard: agent exited with code 7; proof was not attempted.
+.DiffWitness Guard armed at 026dfdf4afd8
+Agent:    <current-workspace>/consumer_drift/bin/python -c raise SystemExit(7)
+Policy:   config/default
+Strategy: config/default
+Proof budget: 900s after agent exit
+
+DiffWitness Guard armed at e11f4b04d2a1
+Agent:    <current-workspace>/consumer_drift/bin/python -c from pathlib import Path; p=Path('auth/session.py'); p.write_text('def add(a, b):\n    return a + b\n', encoding='utf-8'); t=Path('tests/test_session.py'); t.parent.mkdir(exist_ok=True); t.write_text("import unittest\nfrom auth.session import add\n\nclass T(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n", encoding='utf-8')
+Policy:   strict
+Strategy: config/default
+Proof budget: 900s after agent exit
+
+DiffWitness Gate: causal contrast proven; exhaustive strategy for 1 production mutation(s) under strict policy (899.9s proof budget remaining)
+.DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmp1mneowh2
+base:      e11f4b04d2a1fe2162b7cbe9d8b6fd1c16bc5da0 (e11f4b04d2a1)
+candidate: 542a0049731e01015d78c9310b001180a23733fe (542a0049731e)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    899.876s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  auth/session.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_bb8e9b4bd3e17de8b41b
+DiffWitness Gate accepted (dw2_bb8e9b4bd3e17de8b41b)
+
+DiffWitness Guard: PROOF ACCEPTED
+
+CHANGE DEBT
++1 point(s) / 1 obligation(s)
+  security           +1
+  DW-F90AD233C569 +1 security/heuristic — Security-sensitive surface changed
+Debt budget: PASS — projected total 1; new 1
+Debt Ledger: +1 introduced, 0 reopened, 0 refreshed
+IdleProof explanation: /tmp/tmp1mneowh2/.git/diffwitness/idleproof-explanation.json
+Change envelope: /tmp/tmp1mneowh2/.git/diffwitness/change-envelope.json
+Project continuity: 4 new change event(s) · dwchg_d69515e724f40cc4a9ed4cbc
+Project continuity: 1 Debt Ledger lifecycle event(s) projected
+DiffWitness Guard armed at 5fb2792b329c
+Agent:    <current-workspace>/consumer_drift/bin/python -c from pathlib import Path; p=Path('auth/session.py'); p.write_text('def add(a, b):\n    return a + b\n', encoding='utf-8'); t=Path('tests/test_session.py'); t.parent.mkdir(exist_ok=True); t.write_text("import unittest\nfrom auth.session import add\n\nclass T(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n", encoding='utf-8')
+Policy:   strict
+Strategy: config/default
+Proof budget: 900s after agent exit
+
+DiffWitness Gate: causal contrast proven; exhaustive strategy for 1 production mutation(s) under strict policy (899.9s proof budget remaining)
+DiffWitness Guard: DEBT BUDGET REJECTED
+......................................................................................DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmp3wri2ufq
+base:      5fb2792b329cd2e7fc30ea145d43ebca8277943d (5fb2792b329c)
+candidate: d72011d08cdf53f508e73f97f0a9b7fde0b88db7 (d72011d08cdf)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    899.871s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  auth/session.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_f1d28dc28c8c5f73312f
+DiffWitness Gate accepted (dw2_f1d28dc28c8c5f73312f)
+
+DiffWitness Guard: PROOF ACCEPTED
+
+CHANGE DEBT
++1 point(s) / 1 obligation(s)
+  security           +1
+  DW-F90AD233C569 +1 security/heuristic — Security-sensitive surface changed
+Debt budget: EXCEEDED — projected total 1; new 1
+  ! new debt 1 exceeds per-change budget 0
+Debt Ledger: rejected change was not admitted to the durable ledger.
+IdleProof explanation: /tmp/tmp3wri2ufq/.git/diffwitness/idleproof-explanation.json
+Change envelope: /tmp/tmp3wri2ufq/.git/diffwitness/change-envelope.json
+Project continuity: 4 new change event(s) · dwchg_15dd2b17e0343cf18436bd27
+......................................................Preparing worktree (detached HEAD fe6518c)
+...........................
+DiffWitness Guard: PROOF REJECTED - Adaptive Core found 1 mutation(s) removable while preserving the selected stable evidence
+.DiffWitness Guard armed at e7aa996f1e0a
+Evidence: "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+Policy:   strict
+Strategy: adaptive
+Budget:   900s proof wall clock
+
+DiffWitness Guard selected adaptive proof for 1 production mutation(s).
+DiffWitness Adaptive Core
+contrast:    PROVEN
+mutations:   1 original
+core:        1 retained
+removable:   0 observed removable
+experiments: 1/40
+1-minimal:   yes
+certificate: dwac1_69498fb6d426202f8739
+
+Causal core:
+  KEEP    calc.py hunk 1/1
+
+DiffWitness Guard: PROOF ACCEPTED (dwac1_69498fb6d426202f8739)
+DiffWitness Guard armed at 0a435c77b3ef
+Evidence: "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+Policy:   balanced
+Strategy: auto
+Budget:   900s proof wall clock
+
+DiffWitness Guard selected adaptive proof for 2 production mutation(s).
+DiffWitness Adaptive Core
+contrast:    PROVEN
+mutations:   2 original
+core:        1 retained
+removable:   1 observed removable
+experiments: 3/10
+1-minimal:   yes
+certificate: dwac1_e94766f1ca677cd569f7
+
+Causal core:
+  KEEP    calc.py hunk 1/2
+
+Evidence-removable surface:
+  REVIEW  calc.py hunk 2/2 — def add(a, b):
+DiffWitness Guard armed at 15f60bf0dfad
+Evidence: "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+Policy:   strict
+Strategy: auto
+Budget:   900s proof wall clock
+
+DiffWitness Guard selected exhaustive proof for 1 production mutation(s).
+.DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmpspgjavvm
+base:      15f60bf0dfad19177aefbdc8905e8d3d569cc9d9 (15f60bf0dfad)
+candidate: 2ed78797705eb6fb9f6e71ab324515fdc6ac572c (2ed78797705e)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    900s total; 300s per command
+changes:   1 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  calc.py hunk 1/1  [stable-fail]
+
+summary: 1 witnessed, 0 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+cert:    dw2_812312533a6910b73d03
+
+DiffWitness Guard: PROOF ACCEPTED (dw2_812312533a6910b73d03)
+DiffWitness Guard armed at 0a435c77b3ef
+Evidence: "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+Policy:   strict
+Strategy: auto
+Budget:   900s proof wall clock
+
+DiffWitness Guard selected exhaustive proof for 2 production mutation(s).
+
+DiffWitness Guard: PROOF REJECTED - 1 strong surplus candidate hunk(s) were found
+..................................DiffWitness 0.4.0a1 - counterfactual patch evidence
+repo:      /tmp/tmp608koi2b
+base:      0a435c77b3ef0576795b4414eb81239075bdd644 (0a435c77b3ef)
+candidate: 410d1f8798397abfa9a02472f00cad52e9e71cd2 (410d1f879839)
+evidence:  "<current-workspace>/consumer_drift/bin/python" -m unittest discover -s tests -q
+stability: 1 run(s) per variant
+budget:    900s total; 300s per command
+changes:   2 analyzed mutation(s); 1 changed test file(s)
+
+contrast:  BASE STABLE-FAIL -> CANDIDATE STABLE-PASS
+
+WITNESSED         +1/-1  calc.py hunk 1/2  [stable-fail]
+UNWITNESSED       +1/-1  calc.py hunk 2/2 — def add(a, b):  [stable-pass]
+
+summary: 1 witnessed, 1 unwitnessed, 0 inconclusive
+core:    1 minimal sufficient set(s) of 1 hunk(s)
+surplus: 1 strong surplus candidate hunk(s)
+cert:    dw2_87305f4248a615a4ab10
+DiffWitness Gate: preservation-evidence under balanced policy (dwa1_5844ddf686daff8495cf)
+DiffWitness Gate accepted: balanced policy accepts stable preservation assurance
+Project continuity: 2 new change event(s) · dwchg_1041f25b48a6f4623b400a15
+.............certificate: dwa1_5844ddf686daff8495cf
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
+Debt impact: +8 point(s) across 2 obligation(s)
+  unverified_change  +5
+  test               +3
+
+DW-F4200DDE2EAC  + 5  unverified_change/deterministic — Executable change lacks accepted DiffWitness behavioral evidence
+DW-FB8E9124A789  + 3  test/deterministic — Production change has no changed test surface
+
+Budget: PASS — projected total 8; new 8
+Ledger: +2 introduced, 0 reopened, 0 refreshed
+DiffWitness Repay: 1 obligation(s), 3 point(s)
+Agent: <current-workspace>/consumer_drift/bin/python -c from pathlib import Path; t=Path('tests/test_app.py'); t.parent.mkdir(exist_ok=True); t.write_text("import unittest\nfrom app import add\n\nclass T(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(add(2, 3), 5)\n", encoding='utf-8')
+............DiffWitness: validation-only stable-pass (dwv1_d4594f048a01be72d837)
+Project continuity: 2 new change event(s) · dwchg_15ca261e1e420fdf799dd3d3
+
+Repayment verification: 1/1 selected obligation(s) resolved
+  DW-FB8E9124A789: resolved — current tests now discriminate the introducing candidate from its historical base
+DiffWitness Repay: ACCEPTED
+Project continuity: 3 Debt Ledger lifecycle event(s) projected
+RESOLUTION_DIAGNOSTIC dw <current-workspace>/consumer_drift/lib/python3.12/site-packages/diffwitness/runtime_executable.py <current-workspace>/consumer_drift/lib/python3.12/site-packages/diffwitness-0.4.0a1.dist-info {"archive_info": {"hash": "sha256=65fddcb98e7dc43af04c5f17cf79432899783390e145398720d8c3f4300f0288", "hashes": {"sha256": "65fddcb98e7dc43af04c5f17cf79432899783390e145398720d8c3f4300f0288"}}, "url": "file://<current-workspace>/wheels_drift/diffwitness-0.4.0a1-py3-none-any.whl"}
+.....DiffWitness Gate rejected: candidate is not stably green
+........................................................................................................DiffWitness: validation-only stable-fail (dwv1_90c15e9abeda576eb1b7)
+DiffWitness: validation-only stable-pass (dwv1_7661ea76935b7a5efb8c)
+Project continuity: 2 new change event(s) · dwchg_a619f873366735b8f1f59125
+......ssss
+----------------------------------------------------------------------
+Ran 661 tests in 69.751s
+
+OK (skipped=4)
+certificate: dwv1_7661ea76935b7a5efb8c
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
