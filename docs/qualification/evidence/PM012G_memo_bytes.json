@@ -1,0 +1,7 @@
+{
+  "classification": "MACHINE",
+  "passed": true,
+  "files": 101,
+  "wheel_sha256": "cc5fa647cf9a6d60f6d155b62d848bff7e66e9f84512e96ef25090ec2b2d2f53",
+  "installed_path": "/workspace/scratch/6732e14eb939/consumer_scale_memo/lib/python3.12/site-packages/diffwitness"
+}

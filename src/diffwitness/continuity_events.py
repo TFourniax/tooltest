@@ -60,6 +60,10 @@ def _detach_json(value: Any, memo: dict | None = None) -> Any:
     """
     kind = type(value)
     if kind in _JSON_ATOMIC_TYPES:
+        if memo is not None and id(value) in memo:
+            # Custom fallbacks may memoize a scalar. CPython versions differ
+            # on whether deepcopy honors that entry; preserve this runtime's rule.
+            return copy.deepcopy(value, memo)
         return value
     if memo is None:
         memo = {}

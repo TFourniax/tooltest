@@ -1,0 +1,106 @@
+test_json_values_preserve_types_and_detach_nested_mutability (test_continuity_detachment.DetachmentTests.test_json_values_preserve_types_and_detach_nested_mutability) ... ok
+test_shared_aliases_and_cycles_match_deepcopy (test_continuity_detachment.DetachmentTests.test_shared_aliases_and_cycles_match_deepcopy) ... ok
+test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) ... 
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=None) ... FAIL
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=False) ... FAIL
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=True) ... FAIL
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=173) ... FAIL
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=1.75) ... FAIL
+  test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom='memo-bound scalar') ... FAIL
+test_subclasses_retain_existing_deepcopy_behavior (test_continuity_detachment.DetachmentTests.test_subclasses_retain_existing_deepcopy_behavior) ... ok
+test_tuple_fallback_shares_one_memo_with_json_containers (test_continuity_detachment.DetachmentTests.test_tuple_fallback_shares_one_memo_with_json_containers) ... ok
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, None] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+None
+['memo replacement']
+
+- [{'copied': True}, None]
++ [{'copied': True}, ['memo replacement']]
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, False] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+False
+['memo replacement']
+
+- [{'copied': True}, False]
++ [{'copied': True}, ['memo replacement']]
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, True] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+True
+['memo replacement']
+
+- [{'copied': True}, True]
++ [{'copied': True}, ['memo replacement']]
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=173)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, 173] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+173
+['memo replacement']
+
+- [{'copied': True}, 173]
++ [{'copied': True}, ['memo replacement']]
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom=1.75)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, 1.75] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+1.75
+['memo replacement']
+
+- [{'copied': True}, 1.75]
++ [{'copied': True}, ['memo replacement']]
+
+======================================================================
+FAIL: test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy (test_continuity_detachment.DetachmentTests.test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy) (atom='memo-bound scalar')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/6732e14eb939/core_scale/tests/test_continuity_detachment.py", line 77, in test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy
+    self.assertEqual(actual, expected)
+AssertionError: Lists differ: [{'copied': True}, 'memo-bound scalar'] != [{'copied': True}, ['memo replacement']]
+
+First differing element 1:
+'memo-bound scalar'
+['memo replacement']
+
+- [{'copied': True}, 'memo-bound scalar']
++ [{'copied': True}, ['memo replacement']]
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+
+FAILED (failures=6)

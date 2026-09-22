@@ -1,0 +1,159 @@
+{
+  "classification": "MACHINE",
+  "corrects_review": 4076378602,
+  "parent_head": "a4083427ba6f5e117c136bcc9543a1abca8e12ba",
+  "initial_ci": "24+3 SUCCESS attempt1; superseded source",
+  "base_tests": {
+    "total": 667,
+    "passed": 615,
+    "skipped": 52
+  },
+  "optional_tests": {
+    "total": 667,
+    "passed": 663,
+    "skipped": 4
+  },
+  "integrated_exact_artifacts": "PASS, IdleProof a37cb4fe7a9e1a2f51522e7e81529f83de6a107c",
+  "bytes": {
+    "classification": "MACHINE",
+    "passed": true,
+    "files": 101,
+    "wheel_sha256": "cc5fa647cf9a6d60f6d155b62d848bff7e66e9f84512e96ef25090ec2b2d2f53",
+    "installed_path": "/workspace/scratch/6732e14eb939/consumer_scale_memo/lib/python3.12/site-packages/diffwitness"
+  },
+  "installed_10k": {
+    "schema_version": "continuity-bench-2",
+    "events": 10000,
+    "batch_size": 2000,
+    "event_log_bytes": 7208837,
+    "state_db_bytes": 20127744,
+    "append_seconds": 0.865067,
+    "full_log_verify_seconds": 0.42449,
+    "rebuild_seconds": 0.905858,
+    "context": {
+      "cold_ms": 22.087,
+      "hot_runs": 7,
+      "hot_ms": {
+        "min": 17.437,
+        "median": 18.317,
+        "p95": 25.595,
+        "max": 25.595
+      }
+    },
+    "context_chars": 647,
+    "context_id": "dwctx_c6506861f41a21fd77470dc6",
+    "passed": true,
+    "failures": []
+  },
+  "copy_diagnostic": {
+    "classification": "MACHINE",
+    "diagnostic": "corrected copy-only cost, not end-to-end performance",
+    "pairs": [
+      {
+        "generic": 0.01865546900080517,
+        "candidate": 0.014810574999501114
+      },
+      {
+        "candidate": 0.013947056999313645,
+        "generic": 0.01728922400070587
+      },
+      {
+        "generic": 0.017849886999101727,
+        "candidate": 0.01782081300007121
+      },
+      {
+        "candidate": 0.015694615998654626,
+        "generic": 0.018738544000370894
+      },
+      {
+        "generic": 0.01734360599948559,
+        "candidate": 0.012842815998737933
+      },
+      {
+        "candidate": 0.013075785998807987,
+        "generic": 0.01781159900019702
+      },
+      {
+        "generic": 0.01806392900107312,
+        "candidate": 0.016829793001306825
+      },
+      {
+        "candidate": 0.013097539000227698,
+        "generic": 0.017367501999615342
+      },
+      {
+        "generic": 0.017503475000921753,
+        "candidate": 0.013787717998638982
+      },
+      {
+        "candidate": 0.013670289999936358,
+        "generic": 0.017135963000328047
+      },
+      {
+        "generic": 0.01748571899952367,
+        "candidate": 0.01697801599948434
+      },
+      {
+        "candidate": 0.012602575001437799,
+        "generic": 0.01731207800003176
+      }
+    ],
+    "median_seconds": {
+      "generic": 0.01749459700022271,
+      "candidate": 0.013867387498976314
+    },
+    "candidate_over_generic": 0.7926668730236985
+  },
+  "larger_scale": "Prior 50k/100k failures retained, not rerun or qualified",
+  "human": "NOT RUN",
+  "raw_files": [
+    {
+      "path": "PM012G_memo_after.log",
+      "sha256": "932b8fccae87f0e31259711495a7c66985489f8cdc7c9af38707f5d7361a6bb2"
+    },
+    {
+      "path": "PM012G_memo_base.log",
+      "sha256": "5e6cfe3decb7d589a6b3776f8b208f2820bbdebc50b83cdfa65cceec1521332f"
+    },
+    {
+      "path": "PM012G_memo_before.log",
+      "sha256": "48a6ae04bfa31e7c93c959da81750a52686af6582dbac753d90b347ca8baed90"
+    },
+    {
+      "path": "PM012G_memo_bytes.json",
+      "sha256": "d683bd59ebeeea481993bce9f29d95533fc06f1bb1fc9d046af17fe05dfada73"
+    },
+    {
+      "path": "PM012G_memo_copy_pairs.json",
+      "sha256": "a367ae0308669c19725b3c9b391bb42436db678de397a61cdb40a217345f80b3"
+    },
+    {
+      "path": "PM012G_memo_install.log",
+      "sha256": "c11096993fb9a33e7a5e8c3e19b73a656110223704da22a866d22bc0085b753f"
+    },
+    {
+      "path": "PM012G_memo_installed_10k.json",
+      "sha256": "625d0e2d56e9e91e48a132f514e42631a5276e9c202fea743ff7063d0beeff06"
+    },
+    {
+      "path": "PM012G_memo_installed_10k.log",
+      "sha256": "625d0e2d56e9e91e48a132f514e42631a5276e9c202fea743ff7063d0beeff06"
+    },
+    {
+      "path": "PM012G_memo_installed_journey.log",
+      "sha256": "6af0f4c1d2618aff7d79dfea029908e5a64ae3a8ba3f1287ff0ba01b8ebe7050"
+    },
+    {
+      "path": "PM012G_memo_integrated.log",
+      "sha256": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136"
+    },
+    {
+      "path": "PM012G_memo_optional.log",
+      "sha256": "fbc6dc5beab3c4dcdd0585b51c9921596e91093261df1458af3ace224c5803e4"
+    },
+    {
+      "path": "PM012G_memo_wheel_build.log",
+      "sha256": "cbbd286e254237dc0494bb60f7ccc4a853bc3aa0ef4091b15548cfdaee66e6a6"
+    }
+  ]
+}

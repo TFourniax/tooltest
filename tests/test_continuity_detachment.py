@@ -59,6 +59,24 @@ class DetachmentTests(unittest.TestCase):
         self.assertIs(result[1], result[2])
         self.assertEqual(CustomDict.calls, 1)
 
+    def test_subclass_memo_overrides_for_atomic_values_follow_runtime_deepcopy(self):
+        # CPython 3.11-3.13 consult memo before atom dispatch; 3.14 does not.
+        # Delegate the uncommon override case rather than assuming a version.
+        for atom in (None, False, True, 173, 1.75, 'memo-bound scalar'):
+            with self.subTest(atom=atom):
+                replacement = ['memo replacement']
+                class MemoWriter(dict):
+                    def __deepcopy__(self, memo):
+                        memo[id(atom)] = replacement
+                        result = {'copied': True}
+                        memo[id(self)] = result
+                        return result
+                value = [MemoWriter(), atom]
+                expected = copy.deepcopy(value)
+                actual = events._detach_json(value)
+                self.assertEqual(actual, expected)
+                self.assertIs(type(actual[1]), type(expected[1]))
+
 
 if __name__ == '__main__':
     unittest.main()
