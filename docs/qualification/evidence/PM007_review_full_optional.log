@@ -1,0 +1,26 @@
+
+======================================================================
+FAIL: test_deleted_role_can_be_explicitly_cleared_but_not_both_roles (test_memory_code.MemoryCodeTests.test_deleted_role_can_be_explicitly_cleared_but_not_both_roles)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<current-workspace>/core_drift/tests/test_memory_code.py", line 75, in test_deleted_role_can_be_explicitly_cleared_but_not_both_roles
+    result = self.cli('decision', 'revalidate-code', 'DEC-CODE', '--clear-dependencies',
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<current-workspace>/core_drift/tests/test_memory_lifecycle.py", line 39, in cli
+    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+AssertionError: 2 != 0 : usage: dw decision [-h]
+                   {confirm,reject,retire,supersede,show,bind-code,revalidate-code,drift}
+                   ...
+dw decision: error: unrecognized arguments: --clear-dependencies
+
+
+----------------------------------------------------------------------
+Ran 662 tests in 72.991s
+
+FAILED (failures=1, skipped=4)
+certificate: dwv1_4d2fc44665e0ba418935
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID

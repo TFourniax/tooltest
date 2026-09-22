@@ -43,6 +43,7 @@ def lifecycle_spec(repo: Path, kind: str, identity: str, action: str, reason: st
 
 
 def show_memory(repo: Path, kind: str, identity: str) -> dict[str, Any]:
+    from .continuity_memory_code_contract import is_memory_code
     events, current = _history(repo, kind, identity)
     lifecycle = lifecycle_view(current["revision"]) if current["action"] else {
         "action": "unreviewed", "active": current["active"], "reason": None,
@@ -50,6 +51,8 @@ def show_memory(repo: Path, kind: str, identity: str) -> dict[str, Any]:
     return {"schema_version": "memory-history-1", "identity": identity, "kind": kind,
             "assertion": current["assertion"], "lifecycle": lifecycle,
             "history": [e for e in events if e["subject"]["id"] == identity],
+            "code_references": [e for e in events if is_memory_code(e)
+                                and e['payload']['memory_id'] == identity and e['payload']['memory_kind'] == kind],
             "supersedes": [e["subject"]["id"] for e in events if is_memory_lifecycle(e)
                            and e["payload"]["replacement_id"] == identity]}
 
@@ -65,6 +68,22 @@ def add_lifecycle_parsers(sub) -> None:
             command.add_argument("--reason", required=True)
         if name == "supersede":
             command.add_argument("--with", dest="replacement", required=True)
+    for name in ('bind-code', 'revalidate-code', 'drift'):
+        command = sub.add_parser(name)
+        command.add_argument('identity')
+        command.add_argument('--repo', default='.')
+        command.add_argument('--json', action='store_true')
+        command.add_argument('--view', choices=VIEW_MODES)
+        command.add_argument('--commit', default='HEAD')
+        if name != 'drift':
+            code_selection = command.add_mutually_exclusive_group()
+            code_selection.add_argument('--path', action='append')
+            dependency_selection = command.add_mutually_exclusive_group()
+            dependency_selection.add_argument('--dependency', action='append')
+            if name == 'revalidate-code':
+                code_selection.add_argument('--clear-code', dest='path', action='store_const', const=[])
+                dependency_selection.add_argument('--clear-dependencies', dest='dependency', action='store_const', const=[])
+            command.add_argument('--reason', required=True)
 
 
 def memory_lifecycle_cli(kind: str, argv: list[str]) -> int:
@@ -75,6 +94,17 @@ def memory_lifecycle_cli(kind: str, argv: list[str]) -> int:
     args = parser.parse_args(argv)
     try:
         repo = repo_root(args.repo)
+        if args.command in ('bind-code', 'revalidate-code', 'drift'):
+            from .continuity_memory_code import binding_spec, binding_result, memory_drift, render_memory_code
+            if args.command == 'drift':
+                result = memory_drift(repo, kind, args.identity, ref=args.commit)
+            else:
+                spec = binding_spec(repo, kind, args.identity, args.command, args.reason,
+                                    paths=args.path, dependencies=args.dependency, ref=args.commit)
+                appended = append_project_events(repo=repo, events=[spec])
+                result = binding_result(kind, args.identity, appended[0][0])
+            print(json.dumps(result, indent=2, ensure_ascii=False) if args.json else render_memory_code(result))
+            return 0
         if args.command != "show":
             spec = lifecycle_spec(repo, kind, args.identity, args.command, args.reason, getattr(args, "replacement", None))
             append_project_events(repo=repo, events=[spec])
@@ -93,6 +123,11 @@ def memory_lifecycle_cli(kind: str, argv: list[str]) -> int:
                 print(tr("Replacement: ", "Remplacement : ") + state["replacementId"])
             if result["supersedes"]:
                 print(tr("Replaces: ", "Remplace : ") + ", ".join(result["supersedes"]))
+            if result['code_references']:
+                from .continuity_memory_code import binding_result, render_memory_code
+                print(render_memory_code(binding_result(kind, args.identity, result['code_references'][-1])))
+                print(tr('Use drift to compare the selected committed files.',
+                         'Utiliser drift pour comparer les fichiers commités sélectionnés.'))
             if (args.view or get_view_mode(repo)) == "technical":
                 for event in result["history"]:
                     print(f"  {event['event_type']} [{event['epistemic_status']}] {event['event_id']}")

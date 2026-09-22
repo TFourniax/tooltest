@@ -1,0 +1,355 @@
+{
+  "schema": "pm007-local-evidence-1",
+  "base": "6ea6fbbec251fe06b55b7852ca7822b4b40705c4",
+  "recorded_at": "2026-09-22T19:46:02.476229+00:00",
+  "status": "FUNCTIONAL_AND_INSTALLED_JOURNEYS_PASS_WITH_PRESERVED_LOCAL_SUITE_FAILURES",
+  "source": {
+    "schema": "pm007-source-checkpoint-1",
+    "base": "6ea6fbbec251fe06b55b7852ca7822b4b40705c4",
+    "sources": {
+      "src/diffwitness/__init__.py": "2fa24cbb773210bd4b8dbecf78971e6e6e7f5d3984dc9c545657dc357166e204",
+      "src/diffwitness/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/diffwitness/adaptive.py": "07b001b3328dba1387aea76f16d7ab4a0ebc7ecbe3f673ce3c6d427ccbc65782",
+      "src/diffwitness/analysis.py": "7cb33395d8d11428ba3076a3f5e79ff8c0d2cb875433b353d29b2401d70f1553",
+      "src/diffwitness/assurance.py": "16c0118bc474ef8b02ed920d490acee489231e4cf251d8c9688b1b63b8671fcd",
+      "src/diffwitness/attest.py": "781f40a57b31d63c5fd656139263f9066a6b48840833da2a377cb77c3abe787c",
+      "src/diffwitness/attestation.py": "420ead9b2f296edb52d1b06e15ee132d7527de18492a2c385c89ecfd7b21ff87",
+      "src/diffwitness/autodetect.py": "30d95acef91dcd929ed6675a8f3cd0b4053e3af8adebbfb648a0af48a29037cd",
+      "src/diffwitness/change_envelope.py": "66bc1c482ba906cb2fd761996938ce2483934903e896aa17301c6c75d7c01ec4",
+      "src/diffwitness/cli.py": "51d780b741fb8d8af13d486d05b93f105ef8e84de423b274e68b3d0fb001891f",
+      "src/diffwitness/config.py": "9a5c985d3ac34b6caad0a67f1fca2fcf0546ae6659cdbaa62d7b6232a1fab1d5",
+      "src/diffwitness/continuity_bridge.py": "6ac97bb91e40f66cdc53f96870db68573f024d782473400ea9f6184152c874f3",
+      "src/diffwitness/continuity_cli.py": "8314f918ce02959b478e166a0f4c9fa1fa1a5a44fadb1da32c1732fb146358b4",
+      "src/diffwitness/continuity_context.py": "b8e2867e90b606a901b1fbb06d66f5bb5f5f4f3617cd7ef4b7811ec69ba952ab",
+      "src/diffwitness/continuity_context_command.py": "316a18023590518ffaf76759b619a53d1f2fdfccdb6b3f215e08d8e9af8702c4",
+      "src/diffwitness/continuity_context_enriched.py": "3b3e3bce928b48f12fcf0f151f58f26c8274803b0cc548386514c043024a98e6",
+      "src/diffwitness/continuity_contract.py": "0f86f8de3457b7728de1e186f61e92a07e425d6cc01bd701048327a6454d7429",
+      "src/diffwitness/continuity_debt_bridge.py": "0e7256b63480d84b4e5ed26fc2c05825149eadbd7a0db7fcf0f550f8c22ae60a",
+      "src/diffwitness/continuity_events.py": "a9c03c13407e38677561ff55a92536e5b1d6ba77533dab1770669efbb3729b9a",
+      "src/diffwitness/continuity_git_contract.py": "fc23d090258c0efce71f6c3ea6aa217855fa59326f837a8a725012e004710126",
+      "src/diffwitness/continuity_git_history.py": "23f929d3bbbdc038a8cb3cf248698073cbd8f46525ab3dedb7d8f5c55e1265c6",
+      "src/diffwitness/continuity_git_lineage.py": "21c56e80a095a82af9f05f8712d8259748993966c5e892d5b64f019878a94b9a",
+      "src/diffwitness/continuity_lifecycle.py": "577d7a3aa2566e9c8181421ef48c73010936adcf80cb2e9746cc10fc5bfddb47",
+      "src/diffwitness/continuity_lifecycle_contract.py": "9636c7967b94cb321de9e5d3b827d495088255e118543b525d1cc927c07c0610",
+      "src/diffwitness/continuity_lineage_contract.py": "1d6043893fdf9ca76d7d0ec995777eeaade5bd73e44c9145a5b98f61cfc96647",
+      "src/diffwitness/continuity_memory_code.py": "764f3101b7e01cc202c4f904ba38f224954da9306e213f3d199bd07bef7bddb4",
+      "src/diffwitness/continuity_memory_code_contract.py": "069bea0f71171ab569c4e6d0e2d4056cdb01bad02a3a7688eff6bb46866d2b2c",
+      "src/diffwitness/continuity_relation_cli.py": "bf30b023f40ae1c0bbc2ffe8874eb03849a341ce6dc20b94acd1680ae671483e",
+      "src/diffwitness/continuity_search.py": "0639220ca495bc568795a7ad8d3fcc10b9106b0b3a344dd455c61cdbc8412033",
+      "src/diffwitness/continuity_state.py": "559f71464395b1000d9dbaa092b57a869d1d4a6d1362a9087f7489b41bf407b7",
+      "src/diffwitness/continuity_task_contract.py": "91c5fae617cf4bb0557fd2f229ec1e0c897633b48e8edb6ac5254b48f3b6f2b3",
+      "src/diffwitness/continuity_task_session.py": "0433d5caa70920b03c7c93c5577d222d8d0beffdeaba6be5527dbe1ddc0fd78c",
+      "src/diffwitness/continuity_tasks.py": "62ea92091ac24e92fc4299d6192753c713c6112cb40e0212134e64a2f1c579a1",
+      "src/diffwitness/continuity_transport.py": "01d200d08c15e0223475cb4e3c4219f02082bbfd0838a639477e10fd9891a3f4",
+      "src/diffwitness/continuity_transport_cli.py": "77107c14a8742da7501989fb8e11606368d2aa835c6d342f72d66e09943eab7b",
+      "src/diffwitness/debt_budget.py": "153123fedeebf36a1cf5e936bc34a4b18d3a6a04617c056795118b137e48348c",
+      "src/diffwitness/debt_certificate.py": "877750bf8f1bc4fccd51761f3f1ca2f9648baa1b092e5b0b26f35fcfbc8da790",
+      "src/diffwitness/debt_cli.py": "a7d3a82adef98defcb7ae44d026a446fc39500b4b664f37c81d178de23aab974",
+      "src/diffwitness/debt_entry.py": "2d41fbcca4c063b6561d1681b6af7a54a39a1152cdbd639869b2ca4fbf4a8890",
+      "src/diffwitness/debt_history.py": "1f109a4af8b265c694376aa46aecc66b1677c3e7fee3adbc88e7178450eb7e32",
+      "src/diffwitness/debt_models.py": "d959a8b87e616d9b190ad45592176a89c6bb967c18223faa30023af63943f053",
+      "src/diffwitness/debt_scan.py": "ff9d9443d0d667a3f9e3ebf1615992de68bfa40cf688be743e1995eba2ddeeab",
+      "src/diffwitness/debt_sensor.py": "e91cdb0f44d53443e22b8437c327996d003007a953ad431c49a5cbbb5d4a1aaa",
+      "src/diffwitness/debt_verify.py": "15ca40a33a821748ed65381078ce22156e842742b277a06c1883344f2f1fef9e",
+      "src/diffwitness/diffing.py": "ed2bf3adc421cffc264cc94de6b059a59f172a956ed686558b7bf7690fb5efa1",
+      "src/diffwitness/doctor.py": "c683f74d532f6f5d97536459dc8b52bee538673ce50d42c2c2dc579c86c3805e",
+      "src/diffwitness/engine_capabilities.py": "3448675b4329c6a644178ecc55364c0e8ea26d3a3e1edb35eae1ef24538c969b",
+      "src/diffwitness/engine_cli.py": "94f5325729cd6052f84d9081d1b6b359f1199a72c5511ce8a2654f20d896b6d8",
+      "src/diffwitness/engine_protocol.py": "f19ac7dd8a4574927ead7a423d625942a54238e7db5dcc155ec4e880ed7a8cd1",
+      "src/diffwitness/entry/__init__.py": "602e8c6afda4d4b8d80acb87cf4f9e508da467c3cdc69494e72b003439492675",
+      "src/diffwitness/entry/__main__.py": "0472e2ffee01c7582c667fb3eb1ef01023e7d584f175cef8cb475e45e6bd1736",
+      "src/diffwitness/explain_ui.py": "dac0419fb2afc6d903d6aa922068e4a606abd9eb95c4ab30b6577a4a0a781b1d",
+      "src/diffwitness/frontend.py": "338a087156d44a7437a23919132cc683df6678d016b565f9335384d87f6ce78f",
+      "src/diffwitness/gate.py": "34f6b79164155dddf784d83fa11f905e80602ab810553bd28789fae7f4f8eebc",
+      "src/diffwitness/github_actions.py": "cdaf5fbc7d7bac021c620227394f0c636373dc7d12f4769a9aff6d0034849a51",
+      "src/diffwitness/gitops.py": "6efa767c9c329afa07fc7b344d0686c09e3f2605c2a14cfa52eee9f26ee7780c",
+      "src/diffwitness/guard.py": "e8b0f7e26d113cf892f2f29ec3b6f2e01dffd3a90e74ab28562f2cc4c8fce40b",
+      "src/diffwitness/ide_handoff.py": "111162991002d3d9a8533a2737ba167bf74e293a4b2ba1e35ae0d440e6f34298",
+      "src/diffwitness/ide_plugin.py": "8c9e795483e091b92814e0b0d4a4e562cf5c69eb58b63c7514eb0a0e19d55663",
+      "src/diffwitness/idleproof_entry.py": "1b80da53bc1e199fc5b2c2883e7a855ea3c624bd78361b0e5c9271a4d9becd99",
+      "src/diffwitness/idleproof_explanation.py": "ccbca203560f873c24daf592f3f14ed9749a0ec03449bf8b5d96ba7d171c171c",
+      "src/diffwitness/idleproof_sidecar.py": "a16fd59425bb857764816553ec627fb7bf828873f3509eaa90a2c15048ca5ba2",
+      "src/diffwitness/idleproof_user_inference.py": "821da122fc6192c0b49a64bc347be839f8aeac11a48fb30956ba5a24704dfbc1",
+      "src/diffwitness/json_contract.py": "1e567c8cd6036981dddc87d5dd11b65ad7d2bbc549582563bc31889145203fa7",
+      "src/diffwitness/language.py": "b0780ff97a42a14705a1e8d9a8b2c6a625f65255a2c236a3ab23448d4150a727",
+      "src/diffwitness/ledger.py": "2706774ae6ad266400651ba72e71ccc55b11f9b86c97f2fd9f825d1b8a97bce8",
+      "src/diffwitness/ledger_cli.py": "50638d51b4bc5e4f6c4811ea1b3d6637c5a9480abc2f69524698b31a61be5558",
+      "src/diffwitness/ledger_transport.py": "dfcc7613c76541827ebacc45797b7e44e929dc04480eb52f88e6ba25ab0add34",
+      "src/diffwitness/local_git_state.py": "02cf01a184923deb24cab7d815d9749b2e3e0ae982a7591fd2414b33e0879f88",
+      "src/diffwitness/models.py": "531fbf2a9774e88e5aaf1f312bffa26576c7edfe9b924c2b4e274873fd19439e",
+      "src/diffwitness/native_activation.py": "9a2d1a74b86b2a629a63643c2a26b45d7469f0d53741818f4311cf366fb7a9f1",
+      "src/diffwitness/portal_proxy.py": "6bf8582a64fc63f0aef2bd6b1432d566f01927b05b68dbdffbf00162ce981dae",
+      "src/diffwitness/project_scan.py": "8347bf592ce114d32f7e3d81726caa51be6a89512873c26d369de245501572ec",
+      "src/diffwitness/proof_cli.py": "5415ee382ebc5140b72bd54791f178f9c3bf5096fe392e9a64bf379e1f7a5efc",
+      "src/diffwitness/protect.py": "cc146d5a27567bd593cff90224163ad309982aac1f63c631460802189f323e55",
+      "src/diffwitness/protect_ui.py": "e898b018c17acd68ec4bb8cc0ba34a2413ac725fbbdb9ed96b56119e0362c59e",
+      "src/diffwitness/public_help.py": "5331b16a0bbbf789b4ee03ad23b3883b05128485ffadade19e20ea1f9194d952",
+      "src/diffwitness/public_help_fr.py": "8e4de5edf8b127a68214795e62e019f608e38b54e7be7b5285993083bf7d8504",
+      "src/diffwitness/readiness.py": "c969ffc28bbdaee50290083bc35191955ab74e7a02afb28cc7f5a9dee23df34b",
+      "src/diffwitness/reporting.py": "a542e33655784b0116a58aad4bbb80726dceba772d1fcb764658b893ce32ae37",
+      "src/diffwitness/runner.py": "0ce718bc75615c9ae11ca0653c700e99438e0f0ab34367baf867c78353d3d675",
+      "src/diffwitness/runtime_executable.py": "8b023e55a2c8b6f1341b2ac87e34c28b7c36a9494a0822a87d6deb68c1cf277e",
+      "src/diffwitness/security_scan.py": "14e1ff0cf6f4557e18192f9214d3785e85198d6dd0179d6c2cd46d47b4accf3a",
+      "src/diffwitness/semantic_redundancy.py": "f5fd272697c2a3ca01b84ad4f4ae6e5842b8a5782f86ff16ad23b371a65f1edf",
+      "src/diffwitness/setup.py": "3a4b800965ba13ecab5f4f36bddddf8ce740cddecaa6336b371322c739e40db4",
+      "src/diffwitness/status_cli.py": "09e92d7cdcfa334db34c20a61225016dacd01c2fab5ebc656c8dc6fcdb381f8c",
+      "src/diffwitness/structure_catalog.py": "d5e6f1222597738cb2a30ee738610c6bbf989dc2eb086d0b8a93688a023fbe02",
+      "src/diffwitness/structure_contract.py": "97d2eedfe83b886d7a33adf5777af4da84e1a019dd4a6794e594ffc7c38b91bd",
+      "src/diffwitness/structure_data.py": "ab97afc71b2cc0240852842f38701f25126c3f661f3b4cd6a43eb00563e78e6f",
+      "src/diffwitness/structure_dynamic.py": "e369681948efd2406ef2e1837f33c3161a1a7e28bd3db7332008ec065e538bf5",
+      "src/diffwitness/structure_javascript.py": "8323d7f7315d2b5ac75a085718d90677b55a538bb82fcecbc741446e4b55fbd3",
+      "src/diffwitness/structure_managed.py": "f4a074870d9a8402480ed2b86445579f546133c1be5ef8a663e8a7fa6adebb49",
+      "src/diffwitness/structure_native.py": "39e57b73308b351731f731262be467c825d54853e1dfef19257d95ebaa26ddf0",
+      "src/diffwitness/structure_provider.py": "97259784fce285d6ce55ba69e2ba7b304ee259e1fdcd104b211b5c4305e7603b",
+      "src/diffwitness/structure_python.py": "bcf62c7f4b2a79354a13fd6dfa56b3c5c7c38cb322b2bcb1aa0ce3efe2fabd37",
+      "src/diffwitness/structure_registry.py": "77ef0585f18f116656e9953c632531c76f065bf7c23d347f16fa675847cd995a",
+      "src/diffwitness/structure_sources.py": "89ee9e0709719375bbe9d21bdac1618c76b8b37be3be24a404a9cd54cf5b947a",
+      "src/diffwitness/structure_syntax.py": "4ccc1d1f5faa3e831ee1ff32ffef7aaeb74c2313378f22e6f8f873a9e4cc38af",
+      "src/diffwitness/structure_transport.py": "50bf2f07c08dc3b9e1dcaa797c37bf76683a205bb4f4b46bcec8c77aeb0b1f59",
+      "src/diffwitness/validation.py": "7e0e758f2f343b3bcde5850bafb99a3ec945bdd3f7b2fc7044b7f64fc42457a9",
+      "src/diffwitness/view_mode.py": "1ae9bce22648be186380ed2f9112bbbdecab4ba541e987b0a4647af7fb338a2c"
+    },
+    "wheel_sha256": "65fddcb98e7dc43af04c5f17cf79432899783390e145398720d8c3f4300f0288",
+    "byte_equal_python_files": 101
+  },
+  "results": {
+    "optional_editable": {
+      "total": 661,
+      "passed": 657,
+      "skipped": 4,
+      "seconds": 72.949
+    },
+    "base_editable": {
+      "total": 661,
+      "passed": 609,
+      "skipped": 52,
+      "seconds": 70.272
+    },
+    "wheel_memory_journey": "PASS",
+    "integrated_product": "PASS",
+    "hook_p95_ms": {
+      "python": 57.8,
+      "typescript": 84.4,
+      "json": 87.2
+    },
+    "continuity_10k": {
+      "schema_version": "continuity-bench-2",
+      "events": 10000,
+      "batch_size": 2000,
+      "event_log_bytes": 7208837,
+      "state_db_bytes": 20099072,
+      "append_seconds": 0.990232,
+      "full_log_verify_seconds": 0.428546,
+      "rebuild_seconds": 1.042295,
+      "context": {
+        "cold_ms": 22.806,
+        "hot_runs": 7,
+        "hot_ms": {
+          "min": 17.397,
+          "median": 20.284,
+          "p95": 22.915,
+          "max": 22.915
+        }
+      },
+      "context_chars": 647,
+      "context_id": "dwctx_5d68e3c9ace629a97d400de2",
+      "passed": true,
+      "failures": []
+    }
+  },
+  "preserved_failures": [
+    {
+      "log": "PM007_initial_tests.log",
+      "status": "EXPECTED_MISSING_IMPLEMENTATION",
+      "detail": "3 failures and 1 import error; initial harness also discovered inherited lifecycle tests, corrected to fixture-only reuse."
+    },
+    {
+      "log": "PM007_full_optional_1.log",
+      "status": "FAILED",
+      "detail": "4 failures,29 errors,4 skips; relative PYTHONPATH mixed current source and prior editable installation; runtime executable/source association rejected."
+    },
+    {
+      "log": "PM007_build_1.log",
+      "status": "FAILED",
+      "detail": "prior environment lacked setuptools.build_meta for no-build-isolation; built with available runtime backend instead."
+    },
+    {
+      "log": "PM007_full_base_wheel.log",
+      "status": "FAILED",
+      "detail": "4 failures,29 errors,52 skips; executable resolution failed in combined suite. A clean base wheel focused resolution suite passes; an instrumented optional-wheel full suite passes. Full failure cause not completely isolated and no pass is substituted for it."
+    }
+  ],
+  "diagnostics": {
+    "optional_wheel_instrumented_full": "661 total,657 pass,4 skips; does not replace prior failures",
+    "clean_base_resolution": "4/4 PASS; bounded diagnosis, not full-suite requalification"
+  },
+  "scope": [
+    "selected committed files only",
+    "explicit code/dependency selection; no transitive dependency coverage",
+    "no worktree applicability or executed Proof",
+    "no full PM007/global/HUMAN closure"
+  ],
+  "logs": [
+    {
+      "file": "docs/qualification/evidence/PM007_10k.log",
+      "selection": "whole log",
+      "raw_bytes": 526,
+      "raw_sha256": "d416536867c506dd4b19163c499ecda4e5c0d13cb58155050397e99248dd2d87",
+      "archived_sha256": "d416536867c506dd4b19163c499ecda4e5c0d13cb58155050397e99248dd2d87"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_acceptance_editable.log",
+      "selection": "whole log",
+      "raw_bytes": 513,
+      "raw_sha256": "97517f87d267e4569fd75fe18ca62a0db705b5ecf2573d1a9eebee9e9931e248",
+      "archived_sha256": "97517f87d267e4569fd75fe18ca62a0db705b5ecf2573d1a9eebee9e9931e248"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_acceptance_wheel.log",
+      "selection": "whole log",
+      "raw_bytes": 513,
+      "raw_sha256": "f54d26ccfb0236c0d3254de3e6623d46f0b54f670e10c0dcf7f5b72fed327f25",
+      "archived_sha256": "f54d26ccfb0236c0d3254de3e6623d46f0b54f670e10c0dcf7f5b72fed327f25"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_build_1.log",
+      "selection": "whole log",
+      "raw_bytes": 5475,
+      "raw_sha256": "2dc401ab2c4257c13bab0ef31d2d96d709a61afa19edb3bdd4d6e970ed85c86c",
+      "archived_sha256": "2d6d633ea0e6d1d8bc05ae6d35bea0a0d03970d09d9df52c60591ee373e9dd55"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_build_2.log",
+      "selection": "whole log",
+      "raw_bytes": 639,
+      "raw_sha256": "e86f60880a8ffbe5c841e1390467c9e425d196f3a0083bb15496d18610741cb5",
+      "archived_sha256": "e86f60880a8ffbe5c841e1390467c9e425d196f3a0083bb15496d18610741cb5"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_clean_base_install.log",
+      "selection": "whole log",
+      "raw_bytes": 179,
+      "raw_sha256": "f6057924eab6f85da6963d7fe0e5ca9d870afb536f88af210beaae25c02c04b9",
+      "archived_sha256": "838ef37f3c5264ee83e47559b0ac37816ff12d03fa316300ca3805c1eb0cba5d"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_clean_base_language.log",
+      "selection": "whole log",
+      "raw_bytes": 1136,
+      "raw_sha256": "8cfd478346e61b627d416a14341571e0be528c345070a8c5aa1af6e0351cd2ec",
+      "archived_sha256": "8cfd478346e61b627d416a14341571e0be528c345070a8c5aa1af6e0351cd2ec"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_clean_base_resolution.log",
+      "selection": "whole log",
+      "raw_bytes": 904,
+      "raw_sha256": "eadfea7f820207292733e6336094c131592f7765ea8dd05d93ce045241af7954",
+      "archived_sha256": "eadfea7f820207292733e6336094c131592f7765ea8dd05d93ce045241af7954"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_consumer_feature.log",
+      "selection": "whole log",
+      "raw_bytes": 122,
+      "raw_sha256": "e34bb673642db8cca0a225b39c328ee0a9ebdb95f5d5e4c299582e696b6494d2",
+      "archived_sha256": "e34bb673642db8cca0a225b39c328ee0a9ebdb95f5d5e4c299582e696b6494d2"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_consumer_json.log",
+      "selection": "whole log",
+      "raw_bytes": 100,
+      "raw_sha256": "086ab7dbbc7379256994c46b54e827510fd3b03b1a098157a172c2f1aa970fa8",
+      "archived_sha256": "086ab7dbbc7379256994c46b54e827510fd3b03b1a098157a172c2f1aa970fa8"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_consumer_python.log",
+      "selection": "whole log",
+      "raw_bytes": 102,
+      "raw_sha256": "fec6811ffbb80bbaf4a48c8d92b8d2d91439318913066089597aa60c74441877",
+      "archived_sha256": "fec6811ffbb80bbaf4a48c8d92b8d2d91439318913066089597aa60c74441877"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_consumer_typescript.log",
+      "selection": "whole log",
+      "raw_bytes": 106,
+      "raw_sha256": "64f2f671699c5cd7f652a51681d0508d26fe6ed2ecfa1e5f30f86f95f7bf911c",
+      "archived_sha256": "64f2f671699c5cd7f652a51681d0508d26fe6ed2ecfa1e5f30f86f95f7bf911c"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_environment_install.log",
+      "selection": "whole log",
+      "raw_bytes": 6563,
+      "raw_sha256": "d61c4b82f254f7508915dec7427c029c32a0643a6a1f2d71b6af174a95d2f2a5",
+      "archived_sha256": "2404b6d95f92f3554d4ffb967286ac46c1e1585714824ff6bbe6944ed4d8ed0b"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_full_base_editable.log",
+      "selection": "suite summary",
+      "raw_bytes": 137277,
+      "raw_sha256": "b0e55247bd4737ae988e234053e5a7949cb9fb190180f09eacb0609ede53f071",
+      "archived_sha256": "223b27e2382cda3105519ab596c3020578d2c80625ae3c9a4e6e8a8cd785b186"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_full_base_wheel.log",
+      "selection": "failure tracebacks and summary",
+      "raw_bytes": 184282,
+      "raw_sha256": "7f28ed530843a2ba9b8097467798376d9dd73535d2f51b086c41fcc701bd3692",
+      "archived_sha256": "834c7671f09203420d647847afb0e69450da1670f9823d979093ed78db399d82"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_full_optional_1.log",
+      "selection": "failure tracebacks and summary",
+      "raw_bytes": 178833,
+      "raw_sha256": "aa0c61c434052f10b67175942f0c58332b024c09aa63432ae0e61150d7c06395",
+      "archived_sha256": "419296942c8d664897a77ab29ee8c0ce51bf9040e19ef5c8f5c785093a8ac4b3"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_full_optional_2.log",
+      "selection": "suite summary",
+      "raw_bytes": 134529,
+      "raw_sha256": "99e9e91c26df1543692a8d5ec733e0761dbd196efcf33668ba503a2a1eebc5cf",
+      "archived_sha256": "7573021d76ebc41da3a7826854f6716402dce13f4b6ac923a324775b72239481"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_initial_tests.log",
+      "selection": "whole log",
+      "raw_bytes": 8923,
+      "raw_sha256": "c1baeb1969ec5739fcb5a5068a6a851ba8416aa19dca243a4c685ba7b12e96cf",
+      "archived_sha256": "315b01fcfa2c8b074fdeef4233475fbb82002d0f516005ce53213eb3cb6b9d61"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_integrated.log",
+      "selection": "whole log",
+      "raw_bytes": 210,
+      "raw_sha256": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136",
+      "archived_sha256": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_targeted_1.log",
+      "selection": "whole log",
+      "raw_bytes": 741,
+      "raw_sha256": "7c57a50697f8ef50c68eb8759b9bc21b8a6dee585c1c7659f36efe647c868a8b",
+      "archived_sha256": "7c57a50697f8ef50c68eb8759b9bc21b8a6dee585c1c7659f36efe647c868a8b"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_targeted_2.log",
+      "selection": "whole log",
+      "raw_bytes": 1599,
+      "raw_sha256": "e855a90a497e4a5f3171b485cccb141c066361a44ad3f00389bb1e9fb08a2112",
+      "archived_sha256": "e855a90a497e4a5f3171b485cccb141c066361a44ad3f00389bb1e9fb08a2112"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_wheel_diagnostic.log",
+      "selection": "whole log",
+      "raw_bytes": 904,
+      "raw_sha256": "9b21b3e270b4958dd4e3879816c772ec6e6ee5d0c6f7400f2b60b4d4754ff8c9",
+      "archived_sha256": "9b21b3e270b4958dd4e3879816c772ec6e6ee5d0c6f7400f2b60b4d4754ff8c9"
+    },
+    {
+      "file": "docs/qualification/evidence/PM007_wheel_resolution_diagnostic.log",
+      "selection": "whole log",
+      "raw_bytes": 19073,
+      "raw_sha256": "991cc78df93c731a46043efb2ba17b8bc0b6412be70e8348436533a170800dd1",
+      "archived_sha256": "9aa9488cb0f86b72be6182183408ab588e29eaa3364bd68c0c5304e00dd23f43"
+    }
+  ]
+}

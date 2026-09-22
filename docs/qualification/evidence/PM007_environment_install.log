@@ -1,0 +1,60 @@
+Obtaining file://<current-workspace>/core_drift
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Collecting tree-sitter==0.25.2 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10.0 kB)
+Collecting tree-sitter-javascript==0.25.0 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_javascript-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.2 kB)
+Collecting tree-sitter-typescript==0.23.2 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.3 kB)
+Collecting tree-sitter-go==0.25.0 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_go-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (1.7 kB)
+Collecting tree-sitter-rust==0.24.2 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.8 kB)
+Collecting tree-sitter-java==0.23.5 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_java-0.23.5-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+Collecting tree-sitter-c-sharp==0.23.5 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_c_sharp-0.23.5-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.7 kB)
+Collecting tree-sitter-kotlin==1.1.0 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_kotlin-1.1.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.9 kB)
+Collecting tree-sitter-ruby==0.23.1 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_ruby-0.23.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.8 kB)
+Collecting tree-sitter-php==0.24.1 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_php-0.24.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.7 kB)
+Collecting tree-sitter-sql==0.3.11 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_sql-0.3.11-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.0 kB)
+Collecting tree-sitter-json==0.24.8 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_json-0.24.8-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+Collecting tree-sitter-toml==0.7.0 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_toml-0.7.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+Collecting tree-sitter-yaml==0.7.2 (from diffwitness==0.4.0a1)
+  Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (635 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 635.4/635.4 kB 7.5 MB/s eta 0:00:00
+Downloading tree_sitter_c_sharp-0.23.5-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (358 kB)
+Downloading tree_sitter_go-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (66 kB)
+Downloading tree_sitter_java-0.23.5-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (84 kB)
+Downloading tree_sitter_javascript-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (99 kB)
+Downloading tree_sitter_json-0.24.8-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17 kB)
+Downloading tree_sitter_kotlin-1.1.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (339 kB)
+Downloading tree_sitter_php-0.24.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (313 kB)
+Downloading tree_sitter_ruby-0.23.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (214 kB)
+Downloading tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (164 kB)
+Downloading tree_sitter_sql-0.3.11-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (380 kB)
+Downloading tree_sitter_toml-0.7.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (29 kB)
+Downloading tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (344 kB)
+Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (91 kB)
+Building wheels for collected packages: diffwitness
+  Building editable for diffwitness (pyproject.toml): started
+  Building editable for diffwitness (pyproject.toml): finished with status 'done'
+  Created wheel for diffwitness: filename=diffwitness-0.4.0a1-0.editable-py3-none-any.whl size=12330 sha256=41ce35cc431d61c0cded1b175cb7e9b9ed4b71b60e2dcba625e76128493be8c7
+  Stored in directory: /tmp/pip-ephem-wheel-cache-khrxvt44/wheels/27/9e/d7/0ef7126db93fd5f2a4a0dbdca2b9dd6164891927bdd0a3c2e0
+Successfully built diffwitness
+Installing collected packages: tree-sitter-yaml, tree-sitter-typescript, tree-sitter-toml, tree-sitter-sql, tree-sitter-rust, tree-sitter-ruby, tree-sitter-php, tree-sitter-kotlin, tree-sitter-json, tree-sitter-javascript, tree-sitter-java, tree-sitter-go, tree-sitter-c-sharp, tree-sitter, diffwitness
+Successfully installed diffwitness-0.4.0a1 tree-sitter-0.25.2 tree-sitter-c-sharp-0.23.5 tree-sitter-go-0.25.0 tree-sitter-java-0.23.5 tree-sitter-javascript-0.25.0 tree-sitter-json-0.24.8 tree-sitter-kotlin-1.1.0 tree-sitter-php-0.24.1 tree-sitter-ruby-0.23.1 tree-sitter-rust-0.24.2 tree-sitter-sql-0.3.11 tree-sitter-toml-0.7.0 tree-sitter-typescript-0.23.2 tree-sitter-yaml-0.7.2

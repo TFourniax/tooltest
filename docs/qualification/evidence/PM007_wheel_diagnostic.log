@@ -1,0 +1,9 @@
+test_damaged_or_duplicate_marker_blocks_fail_closed_without_rewriting_user_rules (test_local_git_state.LocalGitStateTests.test_damaged_or_duplicate_marker_blocks_fail_closed_without_rewriting_user_rules) ... ok
+test_local_excludes_are_idempotent_preserve_user_rules_and_keep_tracked_files_visible (test_local_git_state.LocalGitStateTests.test_local_excludes_are_idempotent_preserve_user_rules_and_keep_tracked_files_visible) ... ok
+test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared (test_local_git_state.LocalGitStateTests.test_setup_install_fails_before_sidecar_if_git_metadata_cannot_be_prepared) ... ok
+test_setup_install_prepares_local_excludes_before_sidecar_runs (test_local_git_state.LocalGitStateTests.test_setup_install_prepares_local_excludes_before_sidecar_runs) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.183s
+
+OK
