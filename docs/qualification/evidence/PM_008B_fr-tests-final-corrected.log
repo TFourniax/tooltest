@@ -1,0 +1,14 @@
+test_accented_query_matches_plain_label_and_french_ligatures (test_continuity_language_retrieval.LanguageRetrievalTests.test_accented_query_matches_plain_label_and_french_ligatures) ... ok
+test_ascii_token_behavior_is_preserved (test_continuity_language_retrieval.LanguageRetrievalTests.test_ascii_token_behavior_is_preserved) ... ok
+test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) ... ok
+test_legacy_index_rebuilds_without_changing_the_journal (test_continuity_language_retrieval.LanguageRetrievalTests.test_legacy_index_rebuilds_without_changing_the_journal) ... ok
+test_normalized_terms_do_not_merge_distinct_identities_or_authorities (test_continuity_language_retrieval.LanguageRetrievalTests.test_normalized_terms_do_not_merge_distinct_identities_or_authorities) ... ok
+test_query_is_not_persisted_and_unrelated_query_has_no_match (test_continuity_language_retrieval.LanguageRetrievalTests.test_query_is_not_persisted_and_unrelated_query_has_no_match) ... ok
+test_replacement_removes_old_normalized_payload_terms (test_continuity_language_retrieval.LanguageRetrievalTests.test_replacement_removes_old_normalized_payload_terms) ... ok
+test_retired_memory_is_not_revived_by_normalization (test_continuity_language_retrieval.LanguageRetrievalTests.test_retired_memory_is_not_revived_by_normalization) ... ok
+test_short_exact_id_keeps_literal_matching (test_continuity_language_retrieval.LanguageRetrievalTests.test_short_exact_id_keeps_literal_matching) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.526s
+
+OK

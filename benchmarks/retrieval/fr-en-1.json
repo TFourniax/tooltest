@@ -1,0 +1,561 @@
+{
+  "schema_version": "continuity-retrieval-corpus-1",
+  "scope": "Synthetic FR/EN lexical, identity and two-hop scenarios; not a semantic translation benchmark",
+  "memories": [
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "FR-RESET",
+        "kind": "decision",
+        "label": "Réinitialisation sécurisée"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Récupérer un accès perdu"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "invariant.declared",
+      "subject": {
+        "id": "FR-CRYPT",
+        "kind": "invariant",
+        "label": "Chiffrement des sauvegardes"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Confidentialité des archives",
+        "critical": false
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "approach.failed",
+      "subject": {
+        "id": "FR-LOCK",
+        "kind": "failed-approach",
+        "label": "Verrouillage pessimiste"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "reason": "Interblocages récurrents"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "task.declared",
+      "subject": {
+        "id": "FR-SYNC",
+        "kind": "task",
+        "label": "Synchronisation incrémentale"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Éviter les doublons"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "objective.declared",
+      "subject": {
+        "id": "FR-ACCESS",
+        "kind": "objective",
+        "label": "Accessibilité du formulaire"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Navigation clavier"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "objective.declared",
+      "subject": {
+        "id": "FR-ART",
+        "kind": "objective",
+        "label": "Catalogue des œuvres"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Cœur du musée"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "objective.declared",
+      "subject": {
+        "id": "FR-AUTH",
+        "kind": "objective",
+        "label": "Authentification"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {},
+      "relations": [
+        {
+          "predicate": "related_to",
+          "target": {
+            "id": "FR-SESSION",
+            "kind": "decision"
+          }
+        }
+      ],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "FR-SESSION",
+        "kind": "decision",
+        "label": "Expiration des sessions"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {},
+      "relations": [
+        {
+          "predicate": "related_to",
+          "target": {
+            "id": "FR-SECRET",
+            "kind": "invariant"
+          }
+        }
+      ],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "invariant.declared",
+      "subject": {
+        "id": "FR-SECRET",
+        "kind": "invariant",
+        "label": "Rotation des secrets"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "critical": false
+      },
+      "relations": [
+        {
+          "predicate": "related_to",
+          "target": {
+            "id": "FR-THIRD",
+            "kind": "decision"
+          }
+        }
+      ],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "FR-THIRD",
+        "kind": "decision",
+        "label": "Archivage des journaux"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {},
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "FR-RETIRED",
+        "kind": "decision",
+        "label": "Désérialisation héritée"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {},
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "EN-REFUND",
+        "kind": "decision",
+        "label": "Refund idempotency"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Avoid duplicate reimbursements"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "invariant.declared",
+      "subject": {
+        "id": "EN-PRIVACY",
+        "kind": "invariant",
+        "label": "Tenant isolation"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Prevent cross-workspace access",
+        "critical": false
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "approach.failed",
+      "subject": {
+        "id": "EN-FAILED",
+        "kind": "failed-approach",
+        "label": "Unbounded retries"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "reason": "Amplified gateway overload"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "task.declared",
+      "subject": {
+        "id": "EN-TASK",
+        "kind": "task",
+        "label": "Rotate signing keys"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Planned maintenance"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "objective.declared",
+      "subject": {
+        "id": "EN-OBJECTIVE",
+        "kind": "objective",
+        "label": "Offline export"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {
+        "why": "Customer portability"
+      },
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    },
+    {
+      "event_type": "decision.recorded",
+      "subject": {
+        "id": "X",
+        "kind": "decision",
+        "label": "Opaque handle"
+      },
+      "epistemic_status": "DECLARED",
+      "payload": {},
+      "relations": [],
+      "provenance": {
+        "producer": "retrieval-bench",
+        "source": "synthetic-fixture"
+      },
+      "timestamp": "2026-09-23T00:00:00Z"
+    }
+  ],
+  "retire": [
+    {
+      "kind": "decision",
+      "id": "FR-RETIRED"
+    }
+  ],
+  "distractors": 1200,
+  "cases": [
+    {
+      "id": "fr-01",
+      "language": "fr",
+      "query": "réinitialisation",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-02",
+      "language": "fr",
+      "query": "reinitialisation",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-03",
+      "language": "fr",
+      "query": "RÉINITIALISATION",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-04",
+      "language": "fr",
+      "query": "réinitialisation",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-05",
+      "language": "fr",
+      "query": "securisee",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-06",
+      "language": "fr",
+      "query": "Quel choix pour la reinitialisation ?",
+      "expected": [
+        "FR-RESET"
+      ]
+    },
+    {
+      "id": "fr-07",
+      "language": "fr",
+      "query": "confidentialite",
+      "expected": [
+        "FR-CRYPT"
+      ]
+    },
+    {
+      "id": "fr-08",
+      "language": "fr",
+      "query": "interblocages",
+      "expected": [
+        "FR-LOCK"
+      ]
+    },
+    {
+      "id": "fr-09",
+      "language": "fr",
+      "query": "synchronisation incrementale",
+      "expected": [
+        "FR-SYNC"
+      ]
+    },
+    {
+      "id": "fr-10",
+      "language": "fr",
+      "query": "accessibilite",
+      "expected": [
+        "FR-ACCESS"
+      ]
+    },
+    {
+      "id": "fr-11",
+      "language": "fr",
+      "query": "oeuvres",
+      "expected": [
+        "FR-ART"
+      ]
+    },
+    {
+      "id": "fr-12",
+      "language": "fr",
+      "query": "cœur",
+      "expected": [
+        "FR-ART"
+      ]
+    },
+    {
+      "id": "fr-13",
+      "language": "fr",
+      "query": "coeur",
+      "expected": [
+        "FR-ART"
+      ]
+    },
+    {
+      "id": "fr-14",
+      "language": "fr",
+      "query": "Pourquoi utiliser l’authentification ?",
+      "expected": [
+        "FR-AUTH",
+        "FR-SESSION",
+        "FR-SECRET"
+      ]
+    },
+    {
+      "id": "fr-15",
+      "language": "fr",
+      "query": "deserialisation",
+      "expected": []
+    },
+    {
+      "id": "fr-16",
+      "language": "fr",
+      "query": "désérialisation",
+      "expected": []
+    },
+    {
+      "id": "fr-17",
+      "language": "fr",
+      "query": "géolocalisation inconnue",
+      "expected": []
+    },
+    {
+      "id": "en-01",
+      "language": "en",
+      "query": "refund idempotency",
+      "expected": [
+        "EN-REFUND"
+      ]
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "query": "duplicate reimbursements",
+      "expected": [
+        "EN-REFUND"
+      ]
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "query": "tenant isolation",
+      "expected": [
+        "EN-PRIVACY"
+      ]
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "query": "cross-workspace",
+      "expected": [
+        "EN-PRIVACY"
+      ]
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "query": "unbounded retries",
+      "expected": [
+        "EN-FAILED"
+      ]
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "query": "gateway overload",
+      "expected": [
+        "EN-FAILED"
+      ]
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "query": "rotate signing keys",
+      "expected": [
+        "EN-TASK"
+      ]
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "query": "offline export",
+      "expected": [
+        "EN-OBJECTIVE"
+      ]
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "query": "customer portability",
+      "expected": [
+        "EN-OBJECTIVE"
+      ]
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "query": "unknown geolocation",
+      "expected": []
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "query": "X",
+      "expected": [
+        "X"
+      ]
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "query": "x",
+      "expected": []
+    }
+  ]
+}

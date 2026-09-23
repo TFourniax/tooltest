@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 import sqlite3
-import unicodedata
 from pathlib import Path
 from typing import Any
 
 from .continuity_context import compile_context as _compile_base_context
 from .continuity_context import render_context
 from .continuity_events import continuity_paths
+from .continuity_search import tokens
 from .gitops import git_metadata_path, repo_root
 
 
@@ -65,9 +64,9 @@ def _debt_rows(repo: Path, identities: set[str]) -> list[dict[str, Any]]:
 
 
 def _search_tokens(value: str) -> set[str]:
-    normalized = unicodedata.normalize("NFKD", str(value or ""))
-    asciiish = "".join(char for char in normalized if not unicodedata.combining(char)).lower()
-    return {token for token in re.findall(r"[a-z0-9]+", asciiish) if len(token) >= 4}
+    # Share all Unicode folding with indexed retrieval, retaining this fallback's
+    # stricter four-letter floor and its separate prefix-ranking heuristic.
+    return {token for token in tokens(str(value or "")) if len(token) >= 4}
 
 
 def _token_overlap(left: set[str], right: set[str]) -> int:

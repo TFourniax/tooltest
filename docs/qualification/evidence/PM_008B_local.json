@@ -1,0 +1,84 @@
+{
+  "baseline": {
+    "core": "8c0481f5107c500b125cdfa368670c60c2ec8e9e",
+    "idle": "2b919f7dddeaf3488091017a46f079d8c9718056",
+    "portal_tree": "23cd5ad2a1a831189573e8413fff80bfd20a5faf"
+  },
+  "notes": [
+    "Final import moved into non-ASCII branch and one authority-preservation test added after full 670-test suites; targeted final 9 pass. Exact final CI required.",
+    "First installed language command omitted --dw and failed executable resolution; corrected explicit path run retained separately.",
+    "First final targeted command ran from Portal working directory and failed discovery; corrected from Core, failure retained.",
+    "10k process overlapped unrelated Private packaging; diagnostic local result, exact canonical CI still required.",
+    "Review 4080126271 reproduced six ligature fallback assertion failures; shared tokenizer fixes them while retaining NFKD compatibility and four-letter floor. Final optional suite 673 tests, four skips PASS; corpus now invokes public enriched compiler."
+  ],
+  "logs": {
+    "core-baseline-tests.log": {
+      "sha256": "c2f5bf0a29572c650eaf5367f61a52f9a895c941f1db631a36aacbcc023e264e",
+      "bytes": 137268
+    },
+    "idle-baseline-tests.log": {
+      "sha256": "adca9dc282ae8b3e612d77fa0ee422954b114467ae36d757c84eb45250b2206f",
+      "bytes": 23608
+    },
+    "portal-baseline-check.log": {
+      "sha256": "74fc5a3b5bf8bf9e412bfe11e04884d2cef80de5643d1ad7b73ce0ad47dafaf1",
+      "bytes": 20485
+    },
+    "core-after-base-tests.log": {
+      "sha256": "90394371478ea46e22a33b5ff426a3107428f8a60c35de5a79387704d198197a",
+      "bytes": 138679
+    },
+    "core-after-optional-tests.log": {
+      "sha256": "bb51cbc8cbe366575858109b62db8329938277e1732aff7c8947d722d489a674",
+      "bytes": 136093
+    },
+    "integrated-current-pair.log": {
+      "sha256": "5ca81d9112c95d76a74eff07d089a46202586d1056099d5a92c8bfbcb88b5136",
+      "bytes": 210
+    },
+    "retrieval-installed.json": {
+      "sha256": "7af41d551911b7378905c3856234398f1c07f4d057e14e447ec055de79211602",
+      "bytes": 9598
+    },
+    "language-installed.log": {
+      "sha256": "edf049d7624b3a7534b6460f12a58c83bfac8b570e739fa7b4fdc4875fdc66ef",
+      "bytes": 360
+    },
+    "language-installed-corrected.log": {
+      "sha256": "5ab0688865bf2121f2ae35b7522f888c60d188bbfb9f2a34b6feea2c217b6b11",
+      "bytes": 161
+    },
+    "fr-tests-final.log": {
+      "sha256": "d12d263fb053a9542cc45bda9e6fc53fbbaac67035c19c90c75c7e3797e29cd4",
+      "bytes": 1314
+    },
+    "fr-tests-final-corrected.log": {
+      "sha256": "13498fbe543063d3919ad5131d659683c216d499f56354aebe34e06fadc20052",
+      "bytes": 1715
+    },
+    "core-10k.json": {
+      "sha256": "72349eb9aebc10648e56ee0282dc124687f87e48d931827c3be265a19ffeede2",
+      "bytes": 525
+    },
+    "portal-current-producers.log": {
+      "sha256": "1159ce7b237ccb51d3d716c36dc573923b842429c33f508c4a5d4650c92d5d84",
+      "bytes": 772
+    },
+    "fr-fallback-before.log": {
+      "sha256": "24ff1b414404f7911141fb84fb384e402e572176c146e748bbe416ff7d09cfab",
+      "bytes": 7611
+    },
+    "fr-fallback-after.log": {
+      "sha256": "4fea9e3a2d5fe42e4908f96b046c651c79dd5b0a4873343a0c62c0fc92a22ed5",
+      "bytes": 874
+    },
+    "fr-en-enriched-final.json": {
+      "sha256": "7af41d551911b7378905c3856234398f1c07f4d057e14e447ec055de79211602",
+      "bytes": 9598
+    },
+    "core-optional-final.log": {
+      "sha256": "651d91ea5f9b90351c282bf91a843ca98eed426663d193316d2641c9dfec4cb1",
+      "bytes": 18537
+    }
+  }
+}
