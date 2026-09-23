@@ -334,6 +334,17 @@ def main(argv: list[str] | None = None) -> int:
 
             return guard_cli(_inject_explicit_config_test(args[1:]))
         if args[0] in {"prove", "gate"}:
+            # Parse with the command's own grammar before config discovery,
+            # snapshots, preparation, or evidence execution. A help token in
+            # an evidence-command value remains a value, not a CLI request.
+            if args[0] == "gate":
+                from .gate import gate_parser
+
+                gate_parser().parse_args(args[1:])
+            else:
+                from .cli import _parser
+
+                _parser().parse_args(args)
             prepared = (
                 _inject_explicit_config_test(args[1:]) if args[0] == "gate" else args[1:]
             )

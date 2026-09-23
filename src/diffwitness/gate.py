@@ -254,7 +254,7 @@ def _run_exhaustive_gate(
     return (0 if ok else 1), report, reason
 
 
-def gate_cli(argv: list[str]) -> int:
+def gate_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dw gate",
         description=tr('Validate an existing Git diff with semantic evidence routing and causal proof when applicable.', 'Vérifier un diff Git existant avec la voie de preuve appropriée et une preuve causale si applicable.'),
@@ -296,7 +296,11 @@ def gate_cli(argv: list[str]) -> int:
         default=None,
         help="Emit GitHub annotations, outputs and job summary",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def gate_cli(argv: list[str]) -> int:
+    args = gate_parser().parse_args(argv)
 
     repo = repo_root(args.repo)
     config = load_config(repo, args.config)
