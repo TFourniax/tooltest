@@ -1,0 +1,223 @@
+test_byte_budget_counts_utf8_bytes_instead_of_characters (test_continuity_change_paths.ChangePathAdmissionTests.test_byte_budget_counts_utf8_bytes_instead_of_characters) ... ERROR
+test_exact_unicode_whitespace_control_and_backslash_paths (test_continuity_change_paths.ChangePathAdmissionTests.test_exact_unicode_whitespace_control_and_backslash_paths) ... FAIL
+test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints (test_continuity_change_paths.ChangePathAdmissionTests.test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints) ... FAIL
+test_forged_coverage_is_rejected_atomically (test_continuity_change_paths.ChangePathAdmissionTests.test_forged_coverage_is_rejected_atomically) ... ERROR
+test_human_context_quotes_paths_without_terminal_control_execution (test_continuity_change_paths.ChangePathAdmissionTests.test_human_context_quotes_paths_without_terminal_control_execution) ... FAIL
+test_large_changes_keep_bounded_whole_paths_and_explicit_coverage (test_continuity_change_paths.ChangePathAdmissionTests.test_large_changes_keep_bounded_whole_paths_and_explicit_coverage) ... ERROR
+test_unavailable_tree_is_not_presented_as_observed_empty_change (test_continuity_change_paths.ChangePathAdmissionTests.test_unavailable_tree_is_not_presented_as_observed_empty_change) ... FAIL
+test_unrepresentable_names_are_omitted_whole_without_relabeling (test_continuity_change_paths.ChangePathAdmissionTests.test_unrepresentable_names_are_omitted_whole_without_relabeling) ... FAIL
+test_untrusted_commit_hint_cannot_be_a_git_option (test_continuity_change_paths.ChangePathAdmissionTests.test_untrusted_commit_hint_cannot_be_a_git_option) ... FAIL
+test_whole_path_byte_budget_keeps_the_original_event_limit (test_continuity_change_paths.ChangePathAdmissionTests.test_whole_path_byte_budget_keeps_the_original_event_limit) ... ERROR
+
+======================================================================
+ERROR: test_byte_budget_counts_utf8_bytes_instead_of_characters (test_continuity_change_paths.ChangePathAdmissionTests.test_byte_budget_counts_utf8_bytes_instead_of_characters)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 128, in test_byte_budget_counts_utf8_bytes_instead_of_characters
+    result, event = self.recorded(self.envelope(names))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 47, in recorded
+    result = record_change_envelope(repo=self.repo, envelope=envelope)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_bridge.py", line 334, in record_change_envelope
+    results = append_project_events(repo=root, events=event_specs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 525, in append_project_events
+    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 454, in _candidate_from_spec
+    _validate_event_shape(candidate)
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 196, in _validate_event_shape
+    raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
+diffwitness.continuity_events.ContinuityError: project event exceeds 262144 bytes
+
+======================================================================
+ERROR: test_forged_coverage_is_rejected_atomically (test_continuity_change_paths.ChangePathAdmissionTests.test_forged_coverage_is_rejected_atomically)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 134, in test_forged_coverage_is_rejected_atomically
+    _, event = self.recorded(self.envelope([f'f{i:03}'.encode() for i in range(300)]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 47, in recorded
+    result = record_change_envelope(repo=self.repo, envelope=envelope)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_bridge.py", line 334, in record_change_envelope
+    results = append_project_events(repo=root, events=event_specs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 525, in append_project_events
+    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 454, in _candidate_from_spec
+    _validate_event_shape(candidate)
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 181, in _validate_event_shape
+    _validate_relations(event.get("relations", []))
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 148, in _validate_relations
+    raise ContinuityError(f"project event relations must be a list with at most {MAX_RELATIONS} items")
+diffwitness.continuity_events.ContinuityError: project event relations must be a list with at most 256 items
+
+======================================================================
+ERROR: test_large_changes_keep_bounded_whole_paths_and_explicit_coverage (test_continuity_change_paths.ChangePathAdmissionTests.test_large_changes_keep_bounded_whole_paths_and_explicit_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 90, in test_large_changes_keep_bounded_whole_paths_and_explicit_coverage
+    result, event = self.recorded(self.envelope([f'file-{i:04}.py'.encode() for i in range(300)]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 47, in recorded
+    result = record_change_envelope(repo=self.repo, envelope=envelope)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_bridge.py", line 334, in record_change_envelope
+    results = append_project_events(repo=root, events=event_specs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 525, in append_project_events
+    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 454, in _candidate_from_spec
+    _validate_event_shape(candidate)
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 181, in _validate_event_shape
+    _validate_relations(event.get("relations", []))
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 148, in _validate_relations
+    raise ContinuityError(f"project event relations must be a list with at most {MAX_RELATIONS} items")
+diffwitness.continuity_events.ContinuityError: project event relations must be a list with at most 256 items
+
+======================================================================
+ERROR: test_whole_path_byte_budget_keeps_the_original_event_limit (test_continuity_change_paths.ChangePathAdmissionTests.test_whole_path_byte_budget_keeps_the_original_event_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 120, in test_whole_path_byte_budget_keeps_the_original_event_limit
+    result, event = self.recorded(self.envelope(names))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 47, in recorded
+    result = record_change_envelope(repo=self.repo, envelope=envelope)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_bridge.py", line 334, in record_change_envelope
+    results = append_project_events(repo=root, events=event_specs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 525, in append_project_events
+    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 454, in _candidate_from_spec
+    _validate_event_shape(candidate)
+  File "/workspace/scratch/fa8b5862d36a/history-consumer/lib/python3.12/site-packages/diffwitness/continuity_events.py", line 196, in _validate_event_shape
+    raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
+diffwitness.continuity_events.ContinuityError: project event exceeds 262144 bytes
+
+======================================================================
+FAIL: test_exact_unicode_whitespace_control_and_backslash_paths (test_continuity_change_paths.ChangePathAdmissionTests.test_exact_unicode_whitespace_control_and_backslash_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 54, in test_exact_unicode_whitespace_control_and_backslash_paths
+    self.assertEqual(result['changed_files'], sorted(names))
+AssertionError: Lists differ: ['"carriage/rname.py"', '"cr/303/251er fact[72 chars]ced'] != [' spaced ', 'carriage\rname.py', 'créer fa[57 chars].py']
+
+First differing element 0:
+'"carriage/rname.py"'
+' spaced '
+
++ [' spaced ',
+- ['"carriage/rname.py"',
+? ^ -        ^        -
+
++  'carriage\rname.py',
+? ^         ^
+
+-  '"cr/303/251er facture.py"',
+?   -  ^^^^^^^^             -
+
++  'créer facture.py',
+?     ^
+
+-  '"line/nbreak.py"',
+?   -    ^         -
+
++  'line\nbreak.py',
+?       ^
+
+-  '"slash//name.py"',
+?   -     ^^       -
+
++  'slash\\name.py',
+?        ^^
+
+-  '"tab/tname.py"',
+?   -   ^        - ^
+
++  'tab\tname.py']
+?      ^         ^
+
+-  'spaced']
+
+======================================================================
+FAIL: test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints (test_continuity_change_paths.ChangePathAdmissionTests.test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 65, in test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints
+    self.assertEqual(result['changed_files'], ['actual.py'])
+AssertionError: Lists differ: [] != ['actual.py']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'actual.py'
+
+- []
++ ['actual.py']
+
+======================================================================
+FAIL: test_human_context_quotes_paths_without_terminal_control_execution (test_continuity_change_paths.ChangePathAdmissionTests.test_human_context_quotes_paths_without_terminal_control_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 82, in test_human_context_quotes_paths_without_terminal_control_execution
+    self.assertEqual(context['recentRelatedChanges'][0]['files'], names)
+AssertionError: Lists differ: ['"a/033[2J.py"', '"b/nFORGED.py"', '"c/342/200/256file.py"'] != ['a\x1b[2J.py', 'b\nFORGED.py', 'c\u202efile.py']
+
+First differing element 0:
+'"a/033[2J.py"'
+'a\x1b[2J.py'
+
+- ['"a/033[2J.py"', '"b/nFORGED.py"', '"c/342/200/256file.py"']
++ ['a\x1b[2J.py', 'b\nFORGED.py', 'c\u202efile.py']
+
+======================================================================
+FAIL: test_unavailable_tree_is_not_presented_as_observed_empty_change (test_continuity_change_paths.ChangePathAdmissionTests.test_unavailable_tree_is_not_presented_as_observed_empty_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 115, in test_unavailable_tree_is_not_presented_as_observed_empty_change
+    self.assertEqual(result['changed_files'], [])
+AssertionError: Lists differ: ['actual.py'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'actual.py'
+
+- ['actual.py']
++ []
+
+======================================================================
+FAIL: test_unrepresentable_names_are_omitted_whole_without_relabeling (test_continuity_change_paths.ChangePathAdmissionTests.test_unrepresentable_names_are_omitted_whole_without_relabeling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 103, in test_unrepresentable_names_are_omitted_whole_without_relabeling
+    self.assertEqual(result['changed_files'], ['valid.py'])
+AssertionError: Lists differ: ['"/303/251/303/251/303/251/303/251/303/251[993 chars]xxx'] != ['valid.py']
+
+First differing element 0:
+'"/303/251/303/251/303/251/303/251/303/251[455 chars]1/30'
+'valid.py'
+
+First list contains 3 additional elements.
+First extra element 1:
+'"invalid-/377.py"'
+
+Diff is 1100 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_untrusted_commit_hint_cannot_be_a_git_option (test_continuity_change_paths.ChangePathAdmissionTests.test_untrusted_commit_hint_cannot_be_a_git_option)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 75, in test_untrusted_commit_hint_cannot_be_a_git_option
+    self.assertFalse((self.repo / 'unexpected-write.txt').exists())
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.334s
+
+FAILED (failures=6, errors=4)

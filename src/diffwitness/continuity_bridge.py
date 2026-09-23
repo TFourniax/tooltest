@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import re
+import time
 from pathlib import Path
 from typing import Any
 
 from .continuity_contract import ARTIFACT_PROFILE, PROFILE_PROVENANCE_FIELD
 from .continuity_events import ContinuityError, _canonical, append_project_events
 from .engine_protocol import change_id, repository_fingerprint
-from .gitops import git, repo_root
+from .gitops import repo_root
 from .json_contract import strict_json_loads
 
 
@@ -104,25 +107,70 @@ def _validate_envelope(repo: Path, envelope: dict[str, Any]) -> tuple[str, str, 
     return cid, base_tree, candidate_tree
 
 
-def _changed_files(repo: Path, envelope: dict[str, Any]) -> list[str]:
-    base_sha = (envelope.get("base") or {}).get("sha")
-    candidate_sha = (envelope.get("candidate") or {}).get("sha")
-    if not isinstance(base_sha, str) or not isinstance(candidate_sha, str) or not base_sha or not candidate_sha:
-        return []
-    try:
-        raw = git(repo, "diff", "--name-only", "--no-renames", base_sha, candidate_sha)
-    except Exception:
-        return []
-    files: list[str] = []
-    for line in raw.splitlines():
-        path = line.strip().replace("\\", "/")
-        if path and not path.startswith("../") and not path.startswith("/"):
-            files.append(path[:500])
-    return sorted(set(files))[:500]
+def _changed_files(repo: Path, envelope: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+    """Read exact tree-derived names; never normalize or truncate an identity.
+
+    The tree pair defines change_id. Commit hints may be ephemeral, missing or
+    unrelated and therefore cannot define its file observations. Reuse the bounded
+    read-only Git runner: no replacement objects, lazy fetch, prompts or filters.
+    """
+    from .continuity_git_history import _git
+
+    trees = [envelope[side]["tree"] for side in ("base", "candidate")]
+    unavailable = {"status": "unavailable", "reason": "tree-identity-unavailable"}
+    if any(not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", tree) for tree in trees):
+        return [], unavailable
+    deadline = time.monotonic() + 30
+    for tree in trees:
+        kind = _git(repo, 'cat-file', '-t', tree, limit=16, deadline=deadline, missing_ok=(1, 128))
+        if kind is None:
+            return [], unavailable
+        if kind != b'tree\n':
+            raise ContinuityError("change envelope tree identity does not identify a Git tree")
+    raw = _git(repo, 'diff-tree', '--no-ext-diff', '--no-textconv', '--no-commit-id',
+               '--name-only', '--no-renames', '--ignore-submodules=none', '-r', '-z',
+               *trees, '--', limit=1024 * 1024, deadline=deadline)
+    if raw and not raw.endswith(b'\0'):
+        raise ContinuityError("truncated changed-path output")
+    names = raw.split(b'\0')[:-1]
+    if len(set(names)) != len(names):
+        raise ContinuityError("duplicate changed-path output")
+    files, reasons, used = [], {}, 0
+    for name in sorted(names):
+        reason = None
+        try:
+            path = name.decode('utf-8', errors='strict')
+        except UnicodeDecodeError:
+            reason = 'non_utf8'
+        else:
+            if not path or len(path) > 500 or len(json.dumps(path, ensure_ascii=False).encode('utf-8')) > 512:
+                reason = 'label_limit'
+            elif len(files) >= 256:
+                reason = 'path_limit'
+            else:
+                cost = len(_canonical([path, _file_relation(path)]).encode('utf-8')) + 2
+                if used + cost > 128 * 1024:
+                    reason = 'byte_limit'
+                else:
+                    files.append(path)
+                    used += cost
+        if reason:
+            reasons[reason] = reasons.get(reason, 0) + 1
+    coverage = {"status": "partial" if reasons else "complete", "total": len(names),
+                "omitted": len(names) - len(files)}
+    if reasons:
+        coverage["reasons"] = reasons
+    return files, coverage
 
 
 def _file_entity_id(path: str) -> str:
     return "file:" + hashlib.sha256(path.encode("utf-8")).hexdigest()[:24]
+
+
+def _file_relation(path: str) -> dict[str, Any]:
+    return {"predicate": "affects",
+            "target": {"id": _file_entity_id(path), "kind": "file", "label": path},
+            "epistemic_status": "OBSERVED", "metadata": {"basis": "git-diff-name-only"}}
 
 
 def _change_actor(envelope: dict[str, Any]) -> dict[str, str]:
@@ -168,7 +216,7 @@ def record_change_envelope(
         raise ContinuityError("record_change_envelope requires envelope or path")
     cid, base_tree, candidate_tree = _validate_envelope(root, envelope)
     repository = str((envelope.get("repository") or {}).get("fingerprint"))
-    changed_files = _changed_files(root, envelope)
+    changed_files, path_coverage = _changed_files(root, envelope)
     provenance = {
         "producer": "diffwitness",
         "source": "change-envelope",
@@ -199,16 +247,9 @@ def record_change_envelope(
                 "base_sha": (envelope.get("base") or {}).get("sha"),
                 "candidate_sha": (envelope.get("candidate") or {}).get("sha"),
                 "changed_files": changed_files,
+                **({"changed_files_coverage": path_coverage} if path_coverage["status"] != "complete" else {}),
             },
-            "relations": [
-                {
-                    "predicate": "affects",
-                    "target": {"id": _file_entity_id(file), "kind": "file", "label": file},
-                    "epistemic_status": "OBSERVED",
-                    "metadata": {"basis": "git-diff-name-only"},
-                }
-                for file in changed_files
-            ],
+            "relations": [_file_relation(file) for file in changed_files],
             "provenance": provenance,
             "actor": event_actor,
             "dedupe_key": "change:" + cid,
@@ -338,4 +379,5 @@ def record_change_envelope(
     for spec, (_, created) in zip(specs, results, strict=True):
         if created:
             counts[str(spec["bucket"])] += 1
-    return {"change_id": cid, "created": counts, "changed_files": changed_files}
+    return {"change_id": cid, "created": counts, "changed_files": changed_files,
+            "changed_files_coverage": path_coverage}

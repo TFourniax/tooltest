@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .continuity_context_enriched import compile_context, render_context
-from .continuity_context import render_memory_item
+from .continuity_context import render_memory_item, render_change_paths
 from .gitops import repo_root
 from .view_mode import VIEW_MODES, get_view_mode
 
@@ -73,7 +73,7 @@ def _guided_context(context: Mapping[str, Any], *, max_chars: int) -> str:
                 continue
             proof = item.get("proof") if isinstance(item.get("proof"), Mapping) else {}
             status = tr('verified', "vérifiée") if proof.get("accepted") and proof.get("epistemicStatus") == "VERIFIED" else tr('historical', "historique")
-            files = ", ".join(str(value) for value in list(item.get("files") or [])[:3]) or tr('files not recorded', "fichiers non enregistrés")
+            files = render_change_paths(list(item.get("files") or []), limit=3) or tr('files not recorded', "fichiers non enregistrés")
             lines.append(f"- {files} · {status}")
     else:
         lines += ["", tr('No sufficiently related previous change was found.', "Aucune modification précédente suffisamment liée n’a été retrouvée.")]

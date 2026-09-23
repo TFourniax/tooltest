@@ -261,6 +261,8 @@ def _validate_artifact_profile(event: dict[str, Any]) -> None:
         if subject_id != expected:
             raise ValueError("artifact profile change identity mismatch")
         files = payload["changed_files"]
+        if "changed_files_coverage" in payload:
+            _validate_change_path_coverage(payload["changed_files_coverage"], len(files))
         if len(files) != len(set(files)) or len(relations) != len(files):
             raise ValueError("artifact profile changed files and relations do not match")
         for file, relation in zip(files, relations, strict=True):
@@ -287,6 +289,25 @@ def _validate_artifact_profile(event: dict[str, Any]) -> None:
             raise ValueError("artifact profile relation authority mismatch")
         if kind == "proof.completed" and relation.get("metadata", {}).get("authoritative_validation") is not payload["authoritative_validation"]:
             raise ValueError("artifact profile Proof relation authority mismatch")
+
+
+def _validate_change_path_coverage(value: Any, admitted: int) -> None:
+    """Validate additive incompleteness metadata without rewriting old events."""
+    if not isinstance(value, dict):
+        raise ValueError("artifact profile changed-path coverage must be an object")
+    if value.get("status") == "unavailable":
+        if value != {"status": "unavailable", "reason": "tree-identity-unavailable"} or admitted:
+            raise ValueError("artifact profile unavailable paths cannot include observations")
+        return
+    reasons = value.get("reasons")
+    if (set(value) != {"status", "total", "omitted", "reasons"} or value["status"] != "partial"
+            or type(value["total"]) is not int or type(value["omitted"]) is not int
+            or value["omitted"] <= 0 or value["total"] != admitted + value["omitted"]
+            or not isinstance(reasons, dict) or not reasons
+            or not set(reasons) <= {"non_utf8", "label_limit", "path_limit", "byte_limit"}
+            or any(type(count) is not int or count <= 0 for count in reasons.values())
+            or sum(reasons.values()) != value["omitted"]):
+        raise ValueError("artifact profile partial changed-path coverage is inconsistent")
 
 
 def _validate_verification_summary(value: Any) -> None:
