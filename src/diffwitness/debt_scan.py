@@ -7,6 +7,7 @@ from collections import defaultdict
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
+from .debt_certificate import validate_debt_certificate
 from .debt_models import DebtReport, DebtSignal, dedupe_signals
 from .diffing import (
     FilePatch,
@@ -498,6 +499,8 @@ def scan_change(
     ignore_globs: list[str] | None = None,
 ) -> DebtReport:
     certificate = _load_certificate(certificate_path)
+    if certificate is not None:
+        validate_debt_certificate(certificate, repo=repo, base_sha=base_sha, candidate_sha=candidate_sha)
     files = parse_file_patches(diff_text(repo, base_sha, candidate_sha), test_globs=test_globs or [])
     mutations = make_mutations(files, ignore_globs=ignore_globs or [])
     candidate_tree = _candidate_tree(repo, candidate_sha)

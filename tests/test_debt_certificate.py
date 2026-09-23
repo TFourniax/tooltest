@@ -45,19 +45,19 @@ class DebtCertificateTests(unittest.TestCase):
                 "execution": {"prepare": None, "timeout": 300.0, "stability_runs": 2, "share": [], "test_overlay": True},
             }
             report["certificate_id"] = expected_id({**report, "certificate_id": "dwa1_00000000000000000000"})
-            validate_debt_certificate(report, repo=repo, candidate_sha=sha)
+            validate_debt_certificate(report, repo=repo, base_sha=sha, candidate_sha=sha)
 
             forged = json.loads(json.dumps(report))
             forged["classification"] = "causal-contrast"
             with self.assertRaises(DebtCertificateError):
-                validate_debt_certificate(forged, repo=repo, candidate_sha=sha)
+                validate_debt_certificate(forged, repo=repo, base_sha=sha, candidate_sha=sha)
 
             (repo / "app.py").write_text("VALUE = 2\n", encoding="utf-8")
             git("add", "app.py", cwd=repo)
             git("commit", "-q", "-m", "change", cwd=repo)
             other_sha = git("rev-parse", "HEAD", cwd=repo)
             with self.assertRaises(DebtCertificateError):
-                validate_debt_certificate(report, repo=repo, candidate_sha=other_sha)
+                validate_debt_certificate(report, repo=repo, base_sha=sha, candidate_sha=other_sha)
 
     def test_noop_certificate_is_rehashed_and_requires_candidate_binding(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -71,12 +71,12 @@ class DebtCertificateTests(unittest.TestCase):
                 "ignored": [],
             }
             report["certificate_id"] = expected_id({**report, "certificate_id": "dw0_00000000000000000000"})
-            validate_debt_certificate(report, repo=repo, candidate_sha=sha)
+            validate_debt_certificate(report, repo=repo, base_sha=sha, candidate_sha=sha)
 
             forged = json.loads(json.dumps(report))
             forged["changed_files"] = ["src/forged.py"]
             with self.assertRaisesRegex(DebtCertificateError, "integrity mismatch"):
-                validate_debt_certificate(forged, repo=repo, candidate_sha=sha)
+                validate_debt_certificate(forged, repo=repo, base_sha=sha, candidate_sha=sha)
 
             unbound = {
                 "certificate_id": "dw0_pending",
@@ -89,7 +89,7 @@ class DebtCertificateTests(unittest.TestCase):
                 {**unbound, "certificate_id": "dw0_00000000000000000000"}
             )
             with self.assertRaisesRegex(DebtCertificateError, "neither candidate tree nor candidate SHA"):
-                validate_debt_certificate(unbound, repo=repo, candidate_sha=sha)
+                validate_debt_certificate(unbound, repo=repo, base_sha=sha, candidate_sha=sha)
 
 
 if __name__ == "__main__":
