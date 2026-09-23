@@ -8,7 +8,8 @@
     "Final import moved into non-ASCII branch and one authority-preservation test added after full 670-test suites; targeted final 9 pass. Exact final CI required.",
     "First installed language command omitted --dw and failed executable resolution; corrected explicit path run retained separately.",
     "First final targeted command ran from Portal working directory and failed discovery; corrected from Core, failure retained.",
-    "10k process overlapped unrelated Private packaging; diagnostic local result, exact canonical CI still required."
+    "10k process overlapped unrelated Private packaging; diagnostic local result, exact canonical CI still required.",
+    "Review 4080126271 reproduced six ligature fallback assertion failures; shared tokenizer fixes them while retaining NFKD compatibility and four-letter floor. Final optional suite 673 tests, four skips PASS; corpus now invokes public enriched compiler."
   ],
   "logs": {
     "core-baseline-tests.log": {
@@ -62,6 +63,22 @@
     "portal-current-producers.log": {
       "sha256": "1159ce7b237ccb51d3d716c36dc573923b842429c33f508c4a5d4650c92d5d84",
       "bytes": 772
+    },
+    "fr-fallback-before.log": {
+      "sha256": "24ff1b414404f7911141fb84fb384e402e572176c146e748bbe416ff7d09cfab",
+      "bytes": 7611
+    },
+    "fr-fallback-after.log": {
+      "sha256": "4fea9e3a2d5fe42e4908f96b046c651c79dd5b0a4873343a0c62c0fc92a22ed5",
+      "bytes": 874
+    },
+    "fr-en-enriched-final.json": {
+      "sha256": "7af41d551911b7378905c3856234398f1c07f4d057e14e447ec055de79211602",
+      "bytes": 9598
+    },
+    "core-optional-final.log": {
+      "sha256": "651d91ea5f9b90351c282bf91a843ca98eed426663d193316d2641c9dfec4cb1",
+      "bytes": 18537
     }
   }
 }

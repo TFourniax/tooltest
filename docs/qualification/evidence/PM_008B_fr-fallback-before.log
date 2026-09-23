@@ -1,0 +1,105 @@
+test_fallback_keeps_its_minimum_term_length (test_continuity_related_changes.ContinuityRelatedChangeTests.test_fallback_keeps_its_minimum_term_length) ... ok
+test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) ... 
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='œuvres', filename='oeuvres.py') ... FAIL
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='cœur', filename='coeur.py') ... FAIL
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='oeuvres', filename='œuvres.py') ... FAIL
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='coeur', filename='cœur.py') ... FAIL
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='CŒUR', filename='coeur.py') ... FAIL
+  test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='archæologie', filename='archaeologie.py') ... FAIL
+test_human_calcul_query_recovers_verified_calculator_change (test_continuity_related_changes.ContinuityRelatedChangeTests.test_human_calcul_query_recovers_verified_calculator_change) ... ok
+test_unrelated_query_does_not_return_recent_change_just_because_it_is_recent (test_continuity_related_changes.ContinuityRelatedChangeTests.test_unrelated_query_does_not_return_recent_change_just_because_it_is_recent) ... ok
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='œuvres', filename='oeuvres.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='cœur', filename='coeur.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='oeuvres', filename='œuvres.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='coeur', filename='cœur.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='CŒUR', filename='coeur.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+======================================================================
+FAIL: test_french_ligatures_match_recorded_file_names_in_both_directions (test_continuity_related_changes.ContinuityRelatedChangeTests.test_french_ligatures_match_recorded_file_names_in_both_directions) (query='archæologie', filename='archaeologie.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_related_changes.py", line 115, in test_french_ligatures_match_recorded_file_names_in_both_directions
+    self.assertEqual([change["changeId"] for change in changes],
+AssertionError: Lists differ: [] != ['dwchg_related1234567890abcdef']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'dwchg_related1234567890abcdef'
+
+- []
++ ['dwchg_related1234567890abcdef']
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.355s
+
+FAILED (failures=6)

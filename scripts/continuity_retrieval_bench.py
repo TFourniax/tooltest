@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from diffwitness.continuity_context import compile_context
+from diffwitness.continuity_context_enriched import compile_context
 from diffwitness.continuity_events import append_project_events, continuity_paths, read_project_events
 from diffwitness.continuity_lifecycle import lifecycle_spec
 from diffwitness.continuity_state import rebuild_state

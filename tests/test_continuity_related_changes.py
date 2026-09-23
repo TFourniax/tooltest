@@ -99,6 +99,34 @@ class ContinuityRelatedChangeTests(unittest.TestCase):
             )
             self.assertEqual(context.get("recentRelatedChanges") or [], [])
 
+    def test_french_ligatures_match_recorded_file_names_in_both_directions(self):
+        cases = (("œuvres", "oeuvres.py"), ("cœur", "coeur.py"),
+                 ("oeuvres", "œuvres.py"), ("coeur", "cœur.py"),
+                 ("CŒUR", "coeur.py"), ("archæologie", "archaeologie.py"),
+                 ("ＲＥＰＯＲＴ", "report.py"))
+        for query, filename in cases:
+            with self.subTest(query=query, filename=filename), tempfile.TemporaryDirectory() as td:
+                repo = self._repo(Path(td))
+                event = self._events()[0]
+                event["payload"]["changed_files"] = [filename]
+                append_project_events(repo=repo, events=[event])
+                context = compile_context(repo, query, refresh_structure=False)
+                changes = context.get("recentRelatedChanges") or []
+                self.assertEqual([change["changeId"] for change in changes],
+                                 [event["subject"]["id"]])
+                self.assertEqual(changes[0]["files"], [filename])
+                self.assertEqual(changes[0]["relevanceBasis"], "bounded-file-name-overlap")
+                self.assertFalse((changes[0].get("proof") or {}).get("accepted"))
+
+    def test_fallback_keeps_its_minimum_term_length(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._repo(Path(td))
+            event = self._events()[0]
+            event["payload"]["changed_files"] = ["cle.py"]
+            append_project_events(repo=repo, events=[event])
+            context = compile_context(repo, "clé", refresh_structure=False)
+            self.assertEqual(context.get("recentRelatedChanges") or [], [])
+
 
 if __name__ == "__main__":
     unittest.main()
