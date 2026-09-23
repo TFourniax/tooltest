@@ -1,0 +1,24 @@
+{
+  "base": "e2e3f578d04d58f55901963e645c4bd14efbc6f3",
+  "baseline_module_sha256": "03639d94030b04a4501a761fac0b217554e9766d8f016dd7b4483af4d30981c9",
+  "events": 2055,
+  "all_tables_equal": true,
+  "rows_by_table": {
+    "changes": 0,
+    "debt_snapshots": 0,
+    "debts": 0,
+    "entities": 29,
+    "entity_terms": 204,
+    "events": 2055,
+    "memory_lifecycle": 1,
+    "meta": 0,
+    "proofs": 0,
+    "relations": 29,
+    "structure_components": 0,
+    "structure_edges": 0,
+    "structure_symbols": 0,
+    "understanding": 0
+  },
+  "journal_unchanged": true,
+  "classification": "MACHINE"
+}
