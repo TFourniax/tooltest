@@ -10,8 +10,8 @@ from typing import Iterable
 
 from .debt_models import DebtSignal
 from .debt_sensor import DebtSensorResult
-from .diffing import is_documentation_path, is_test_path, parse_file_patches
-from .gitops import diff_text, git, git_result
+from .diffing import is_documentation_path, is_test_path
+from .gitops import git_bytes, git_result
 
 
 SENSOR_ID = "semantic-redundancy-v1"
@@ -68,17 +68,32 @@ def _language(path: str) -> str:
     }.get(suffix, suffix.lstrip("."))
 
 
-def _source_paths(repo: Path, candidate_sha: str, *, max_files: int) -> list[str]:
-    raw = git(repo, "ls-tree", "-r", "--name-only", candidate_sha)
+def _source_paths(repo: Path, candidate_sha: str, *, max_files: int, coverage: dict | None = None) -> list[str]:
+    # Git's display quoting is not a filename protocol. Use the same native
+    # byte reader as the source-tree boundary and NUL record framing.
+    raw = git_bytes(repo, "ls-tree", "-r", "--name-only", "-z", "--full-tree", candidate_sha)
+    counts = {"eligible_files": 0, "unsupported_paths": 0, "omitted_by_limit": 0}
     result: list[str] = []
-    for path in raw.splitlines():
+    for record in raw.split(b"\0"):
+        if not record:
+            continue
+        try:
+            path = record.decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            counts["unsupported_paths"] += 1
+            continue
         if PurePosixPath(path).suffix.lower() not in SOURCE_SUFFIXES:
             continue
         if is_test_path(path) or is_documentation_path(path):
             continue
-        result.append(path)
+        counts["eligible_files"] += 1
         if len(result) >= max_files:
-            break
+            counts["omitted_by_limit"] += 1
+            continue
+        result.append(path)
+    if coverage is not None:
+        coverage.update(counts, max_files=max_files,
+                        complete=not (counts["unsupported_paths"] or counts["omitted_by_limit"]))
     return result
 
 
@@ -372,35 +387,60 @@ def _signal(left: CodeUnit, right: CodeUnit, *, score: float, components: dict[s
     )
 
 
-def _load_units(repo: Path, candidate_sha: str, *, max_files: int, min_tokens: int) -> tuple[list[CodeUnit], int]:
+def _load_units(repo: Path, candidate_sha: str, *, max_files: int, min_tokens: int) -> tuple[list[CodeUnit], int, dict]:
     units: list[CodeUnit] = []
-    paths = _source_paths(repo, candidate_sha, max_files=max_files)
+    coverage: dict = {"unreadable_files": 0}
+    paths = _source_paths(repo, candidate_sha, max_files=max_files, coverage=coverage)
     for path in paths:
         text = _blob_text(repo, candidate_sha, path)
         if text is None:
+            coverage["unreadable_files"] += 1
+            coverage["complete"] = False
             continue
         units.extend(_extract_units(path, text, min_tokens=min_tokens))
-    return units, len(paths)
+    return units, len(paths), coverage
 
 
 def _changed_added_lines(repo: Path, base_sha: str, candidate_sha: str) -> dict[str, set[int]]:
-    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
+    # One native record per patch, in Git's emitted order. Rename records
+    # carry source and destination paths. Never parse display headers as IDs.
+    raw = git_bytes(repo, "diff", "--raw", "-z", "--patch", "--no-renames", "--find-renames",
+                    "--no-ext-diff", "--no-textconv", "--no-color", "--submodule=short",
+                    "--unified=0", "--inter-hunk-context=0", base_sha, candidate_sha, "--")
+    if not raw:
+        return {}
+    metadata, separator, patch = raw.partition(b"\0\0")
+    records = metadata.split(b"\0")
+    paths: list[bytes] = []
+    index = 0
+    while index < len(records):
+        match = re.fullmatch(br":[0-7]{6} [0-7]{6} [0-9a-f]+ [0-9a-f]+ ([ACDMRTUXB])(?:[0-9]+)?", records[index])
+        if match is None:
+            raise ValueError("Unsupported native Git diff record; sensor coverage is unknown")
+        width = 3 if match.group(1) in {b"R", b"C"} else 2
+        if index + width > len(records):
+            raise ValueError("Truncated native Git diff record; sensor coverage is unknown")
+        paths.append(records[index + width - 1])
+        index += width
+    blocks = re.split(br"(?m)^diff --git ", patch)[1:]
+    if not separator or len(blocks) != len(paths):
+        raise ValueError("Unsupported native Git diff framing; sensor coverage is unknown")
     result: dict[str, set[int]] = defaultdict(set)
-    for file in files:
-        if file.is_test or is_documentation_path(file.path):
+    for raw_path, block in zip(paths, blocks):
+        try:
+            path = raw_path.decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            # The source-tree reader reports this omission in source_coverage.
             continue
-        for hunk in file.hunks:
-            line = hunk.new_start
-            for raw in hunk.text.splitlines()[1:]:
-                if raw.startswith("+") and not raw.startswith("+++"):
-                    if isinstance(line, int):
-                        result[file.path].add(line)
-                    if isinstance(line, int):
-                        line += 1
-                elif raw.startswith("-") and not raw.startswith("---"):
-                    continue
-                elif isinstance(line, int):
-                    line += 1
+        if is_test_path(path) or is_documentation_path(path):
+            continue
+        # With zero context, the new-side hunk range contains only added lines.
+        # Read bytes so source encodings and C-quoted headers cannot rename it.
+        for match in re.finditer(br"(?m)^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", block):
+            start = int(match.group(1))
+            count = int(match.group(2)) if match.group(2) is not None else 1
+            if count:
+                result[path].update(range(start, start + count))
     return result
 
 
@@ -463,13 +503,13 @@ class SemanticRedundancySensor:
         self.min_tokens = min_tokens
 
     def scan_change(self, *, repo: Path, base_sha: str, candidate_sha: str) -> DebtSensorResult:
-        units, scanned_files = _load_units(repo, candidate_sha, max_files=self.max_files, min_tokens=self.min_tokens)
+        units, scanned_files, coverage = _load_units(repo, candidate_sha, max_files=self.max_files, min_tokens=self.min_tokens)
         added = _changed_added_lines(repo, base_sha, candidate_sha)
         changed = {index for index, unit in enumerate(units) if _touches(unit, added)}
         if not changed:
             return DebtSensorResult(
                 sensor_id=self.sensor_id,
-                metadata={"mode": "change", "scanned_files": scanned_files, "units": len(units), "changed_units": 0, "threshold": self.threshold},
+                metadata={"mode": "change", "scanned_files": scanned_files, "source_coverage": coverage, "units": len(units), "changed_units": 0, "threshold": self.threshold},
             )
         pairs = {
             (min(index, other), max(index, other))
@@ -494,6 +534,7 @@ class SemanticRedundancySensor:
             metadata={
                 "mode": "change",
                 "scanned_files": scanned_files,
+                "source_coverage": coverage,
                 "units": len(units),
                 "changed_units": len(changed),
                 "candidate_pairs": len(pairs),
@@ -503,7 +544,7 @@ class SemanticRedundancySensor:
         )
 
     def scan_project(self, *, repo: Path, candidate_sha: str) -> DebtSensorResult:
-        units, scanned_files = _load_units(repo, candidate_sha, max_files=self.max_files, min_tokens=self.min_tokens)
+        units, scanned_files, coverage = _load_units(repo, candidate_sha, max_files=self.max_files, min_tokens=self.min_tokens)
         pairs = _candidate_pairs(units)
         signals = _rank_pairs(
             units,
@@ -519,6 +560,7 @@ class SemanticRedundancySensor:
             metadata={
                 "mode": "project",
                 "scanned_files": scanned_files,
+                "source_coverage": coverage,
                 "units": len(units),
                 "candidate_pairs": len(pairs),
                 "threshold": self.threshold,
