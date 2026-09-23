@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .attestation import AttestationError, expected_certificate_id
+from .attestation import AttestationError, certificate_binding, expected_certificate_id
 from .gitops import git, repo_root, resolve_ref, snapshot_worktree
 
 
@@ -26,14 +26,16 @@ def validate_debt_certificate(report: dict[str, Any], *, repo: Path, candidate_s
     expected = expected_id(report)
     if cid != expected:
         raise DebtCertificateError(f"certificate integrity mismatch: expected {expected}, got {cid}")
-    candidate = report.get("candidate") or {}
-    embedded_tree = candidate.get("tree") if isinstance(candidate, dict) else None
+    try:
+        embedded_sha, embedded_tree = certificate_binding(report, "candidate")
+        certificate_binding(report, "base")
+    except AttestationError as exc:
+        raise DebtCertificateError(str(exc)) from exc
     current_tree = git(repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}").strip()
     if embedded_tree:
         if embedded_tree != current_tree:
             raise DebtCertificateError("certificate candidate tree does not match the debt measurement candidate")
     else:
-        embedded_sha = candidate.get("sha") if isinstance(candidate, dict) else report.get("candidate_sha")
         if not isinstance(embedded_sha, str) or not embedded_sha:
             raise DebtCertificateError("certificate has neither candidate tree nor candidate SHA binding")
         if embedded_sha != candidate_sha:
@@ -70,10 +72,11 @@ def assurance_verify_cli(argv: list[str]) -> int:
     cid = str(report.get("certificate_id") or "")
     expected = expected_id(report)
     integrity = cid == expected
-    candidate = report.get("candidate") or {}
-    expected_tree = candidate.get("tree") if isinstance(candidate, dict) else None
+    try:
+        candidate_sha, expected_tree = certificate_binding(report, "candidate")
+    except AttestationError as exc:
+        raise DebtCertificateError(str(exc)) from exc
     if not isinstance(expected_tree, str) or not expected_tree:
-        candidate_sha = candidate.get("sha") if isinstance(candidate, dict) else None
         if not isinstance(candidate_sha, str) or not candidate_sha:
             raise DebtCertificateError("assurance certificate has neither candidate tree nor candidate SHA")
         expected_tree = git(repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}").strip()
