@@ -10,8 +10,8 @@ from typing import Iterable
 
 from .debt_models import DebtSignal
 from .debt_sensor import DebtSensorResult
-from .diffing import is_documentation_path, is_test_path, parse_file_patches
-from .gitops import diff_text, git_bytes, git_result
+from .diffing import is_documentation_path, is_test_path
+from .gitops import git_bytes, git_result
 
 
 SENSOR_ID = "semantic-redundancy-v1"
@@ -402,23 +402,34 @@ def _load_units(repo: Path, candidate_sha: str, *, max_files: int, min_tokens: i
 
 
 def _changed_added_lines(repo: Path, base_sha: str, candidate_sha: str) -> dict[str, set[int]]:
-    files = parse_file_patches(diff_text(repo, base_sha, candidate_sha))
+    # One native record per patch, in Git's emitted order. Disable renames so
+    # each raw record has exactly one path. Never parse display headers as IDs.
+    raw = git_bytes(repo, "diff", "--raw", "-z", "--patch", "--no-renames",
+                    "--no-ext-diff", "--no-textconv", "--no-color", "--submodule=short",
+                    "--unified=0", "--inter-hunk-context=0", base_sha, candidate_sha, "--")
+    if not raw:
+        return {}
+    metadata, separator, patch = raw.partition(b"\0\0")
+    records = metadata.split(b"\0")
+    blocks = re.split(br"(?m)^diff --git ", patch)[1:]
+    if not separator or len(records) % 2 or len(blocks) != len(records) // 2:
+        raise ValueError("Unsupported native Git diff framing; sensor coverage is unknown")
     result: dict[str, set[int]] = defaultdict(set)
-    for file in files:
-        if file.is_test or is_documentation_path(file.path):
+    for index, block in enumerate(blocks):
+        try:
+            path = records[index * 2 + 1].decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            # The source-tree reader reports this omission in source_coverage.
             continue
-        for hunk in file.hunks:
-            line = hunk.new_start
-            for raw in hunk.text.splitlines()[1:]:
-                if raw.startswith("+") and not raw.startswith("+++"):
-                    if isinstance(line, int):
-                        result[file.path].add(line)
-                    if isinstance(line, int):
-                        line += 1
-                elif raw.startswith("-") and not raw.startswith("---"):
-                    continue
-                elif isinstance(line, int):
-                    line += 1
+        if is_test_path(path) or is_documentation_path(path):
+            continue
+        # With zero context, the new-side hunk range contains only added lines.
+        # Read bytes so source encodings and C-quoted headers cannot rename it.
+        for match in re.finditer(br"(?m)^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", block):
+            start = int(match.group(1))
+            count = int(match.group(2)) if match.group(2) is not None else 1
+            if count:
+                result[path].update(range(start, start + count))
     return result
 
 

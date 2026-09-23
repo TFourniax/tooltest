@@ -1,0 +1,8 @@
+{
+  "sensor-review-before.log": "9921a29bf74a246eb319b0284f9082b37b6402da0b2c6eb63f4a68e11521674c",
+  "sensor-review-after.log": "c3333802f1ad7bd637deb493892501518e364a643a9d1ead1d333254718891ab",
+  "sensor-review-full.log": "69131f97867353a52c49e0decde86aff8d3aa7ca2166802c7df95db2872e760a",
+  "sensor-review-build.log": "89f3666e9be5b2acc5f6ddc2478cd2f2b6a4c85ecd0a69c6bc3acad2140bf18a",
+  "sensor-review-install.log": "7eda6aa00084ce86d5d492608532b4ac81e0fee66acbea66350b0748c2b54e11",
+  "wheel_sha256": "82c765b21a2eb0e76e3a1133627f4b05731222a4d3c6c9a15b3344eab2e7b8d9"
+}

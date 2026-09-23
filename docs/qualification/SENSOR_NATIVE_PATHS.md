@@ -23,3 +23,14 @@ Raw logs are preserved losslessly beside this document.
 
 MACHINE only. Last-head independent review, hosted OS matrix and fresh main remain
 required. This bounded correction does not complete PM-012/018 or qualify Alpha.
+
+## Final-review correction
+
+Review 4087810620 found that changed-line selection still parsed display headers.
+The added real-Git regression fails in 12 subcases on 60fc133. A single
+NUL-framed raw+patch Git stream now binds each zero-context patch to its native
+path; external diff/text conversion and rename display heuristics are disabled.
+Exact changed lines, unrelated additions, seven POSIX names and quotePath variants
+are exercised. Invalid framing fails explicitly rather than guessing an identity.
+The original findings/logs remain. Updated installed wheel: all 724 tests PASS,
+52 explicit platform/dependency skips, 71.387 seconds. Wheel SHA-256: `82c765b21a2eb0e76e3a1133627f4b05731222a4d3c6c9a15b3344eab2e7b8d9`. Review and remote qualification of the new commit remain required.

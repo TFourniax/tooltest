@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import subprocess
 
-from diffwitness.semantic_redundancy import _source_paths, SemanticRedundancySensor
+from diffwitness.semantic_redundancy import _source_paths, _changed_added_lines, SemanticRedundancySensor
 from test_debt_sensors import git, init_repo, LEGACY, REIMPLEMENTED
 
 
@@ -50,6 +50,41 @@ class SensorNativePathTests(unittest.TestCase):
                     self.assertEqual(signal.measurement, "heuristic")
                     self.assertEqual(signal.introduced_by["candidate_sha"], candidate)
                     self.assertFalse(signal.evidence["source_code_exported"])
+
+    def test_changed_lines_and_detection_keep_native_paths(self):
+        names = ["with space.py", "café.py", "a b/new implementation.py"]
+        if os.name != "nt":
+            names += ["with\ttab.py", "with\nline.py", "literal\\name.py", 'with"quote.py']
+        for name in names:
+            with tempfile.TemporaryDirectory() as td:
+                repo = Path(td)
+                base = init_repo(repo, {"legacy.py": LEGACY, "unchanged.py": "def answer():\n    return 42\n"})
+                destination = repo / name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(REIMPLEMENTED, encoding="utf-8")
+                git("add", ".", cwd=repo)
+                git("commit", "-qm", "native addition", cwd=repo)
+                candidate = git("rev-parse", "HEAD", cwd=repo)
+                for quoting in ("true", "false"):
+                    git("config", "core.quotePath", quoting, cwd=repo)
+                    with self.subTest(path=repr(name), quotePath=quoting, phase="added"):
+                        added = _changed_added_lines(repo, base, candidate)
+                        self.assertEqual(set(added), {name})
+                        self.assertEqual(added[name], set(range(1, len(REIMPLEMENTED.splitlines()) + 1)))
+                        result = SemanticRedundancySensor().scan_change(repo=repo, base_sha=base, candidate_sha=candidate)
+                        self.assertEqual(result.metadata["changed_units"], 1)
+                        self.assertEqual(len(result.signals), 1)
+                        self.assertEqual({x["path"] for x in result.signals[0].evidence["locations"]}, {"legacy.py", name})
+                # Only the edited function's line is changed, not the whole file.
+                destination.write_text(REIMPLEMENTED + "\ndef unrelated():\n    return 99\n", encoding="utf-8")
+                git("add", ".", cwd=repo)
+                git("commit", "-qm", "unrelated addition", cwd=repo)
+                current = git("rev-parse", "HEAD", cwd=repo)
+                with self.subTest(path=repr(name), phase="modified"):
+                    added = _changed_added_lines(repo, candidate, current)
+                    self.assertEqual(set(added), {name})
+                    self.assertEqual(added[name], set(range(len(REIMPLEMENTED.splitlines()) + 1, len(destination.read_text().splitlines()) + 1)))
+                    self.assertEqual(SemanticRedundancySensor().scan_change(repo=repo, base_sha=candidate, candidate_sha=current).signals, [])
 
     def test_limit_is_visible_in_actual_sensor_coverage(self):
         with tempfile.TemporaryDirectory() as td:
