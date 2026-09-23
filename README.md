@@ -565,6 +565,13 @@ Selected memory in `dw context --json` includes a `source` reference with the
 assertion's ProjectEvent ID and hash, anchored to `state.eventHead`. Applicability
 reviews remain separate declarations. See [context source references](docs/CONTEXT_SOURCES.md).
 
+Use `dw state why ID` to follow recorded reasons and relationships in both directions,
+with each assertion and edge's original authority and exact event ID/hash.
+`dw state history ID --json` pages the original events, including earlier revisions.
+History cursors keep a stable prefix across later appends; inactive memory and unknown
+referenced entities remain explicit. These read-only commands do not reverify today's code.
+See [memory history and navigation](docs/MEMORY_NAVIGATION.md) for limits and examples.
+
 Attach an explicit committed-code reference with
 `dw decision bind-code DEC-ID --path src/refund.py --dependency requirements.txt --reason "Reviewed scope"`.
 `dw decision drift DEC-ID --json` compares the selected files with HEAD (or `--commit REF`),

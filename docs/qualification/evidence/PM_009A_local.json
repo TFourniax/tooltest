@@ -1,0 +1,39 @@
+{
+  "classification": "MACHINE",
+  "qualification": false,
+  "baseline": "fbebc797968014600c1b89aed603984e15f78d5c",
+  "integratedBase": "bace80db2463f0039aaeaee880ed10e8ef7f3c78",
+  "productSourceLocalCommit": "0e0e5c080d72d5f1b0677208ba75fd5565487008",
+  "sourceWheelInstalledEqual": true,
+  "sourceSha256": {
+    "continuity_history.py": "c53dec1a65a932c7f9a51592283523f4a7d889f995ebdb57b9b1b471d9a0eb4b",
+    "continuity_cli.py": "41803eade3659f64bd79ccc7e587da0791fc1845d863bf079e47fb7d0a370a0a",
+    "public_help.py": "8b7f3816c9bff67ec04312ee9b1d9156cc02085796689eebe612d5add8eb9b5c",
+    "public_help_fr.py": "f6d740fd3e69c690507db940da5167439fa46b079a313464e7b7ba58cd6e4c48",
+    "continuity_events.py": "44b4c3690d940722dc7829554639d4e2b46e867133e12757eb9189fc3414cdc4"
+  },
+  "wheelSha256": "b34a6280dd642b1dff26440b8a086f17e376ef56d5ef35c080141df286238584",
+  "fullInstalledSuite": {
+    "run": 694,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 52,
+    "seconds": 76.1,
+    "fullLogSha256": "147f9e8cdc89ff2a2cf434c09ec626446a44b93b9578f61158d05c4cd2deba0a"
+  },
+  "logs": {
+    "pm009-history-before.log": {
+      "sha256": "e0c2986c4a9fa662759d2f951fa73f60ffb89469cf8a6b84b7a9013bd4e02e7f",
+      "evidence": "PM_009A_history-before.log"
+    },
+    "pm009-targeted-citations.log": {
+      "sha256": "68e0dbbc266d5251af39262e476c10195de4eb410631d3e2138084e9ea1fb237",
+      "evidence": "PM_009A_targeted-citations.log"
+    },
+    "pm009-integrated-journey.log": {
+      "sha256": "f1e2103e38a9d2f99b4e2891ccd5e0b8bac216f240a8213bfa29159111f07601",
+      "evidence": "PM_009A_integrated-journey.log"
+    }
+  },
+  "pending": "Exact PR review/checks and fresh main checks; final HUMAN and full vision are not qualified."
+}

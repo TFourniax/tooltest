@@ -1,0 +1,1 @@
+{"schema": "memory-navigation-acceptance-1", "classification": "MACHINE", "passed": true, "actual_cli": true, "explicit_executable": true, "nodes": 3, "relationships": 2, "history_cursor_survives_append": true, "assertion_and_review_sources_distinct": true, "fr_en_json_equal": true, "journal_and_index_unchanged_by_queries": true}

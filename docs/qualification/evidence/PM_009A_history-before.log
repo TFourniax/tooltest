@@ -1,0 +1,4 @@
+usage: dw state [-h]
+                {contract,extract,status,rebuild,sync-debt,bootstrap-git,lineage,ingest-envelope,events,graph}
+                ...
+dw state: error: argument command: invalid choice: 'history' (choose from contract, extract, status, rebuild, sync-debt, bootstrap-git, lineage, ingest-envelope, events, graph)
