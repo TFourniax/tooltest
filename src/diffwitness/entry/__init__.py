@@ -183,6 +183,12 @@ def _gate_with_product_state(argv: list[str]) -> int:
     bounded change envelope after a successful invocation, so `dw status` cannot loop forever on a
     change that the user has already verified manually.
     """
+    from ..gate import gate_parser
+
+    # Informational/syntax exits must precede even removal of an old
+    # certificate. The same parser also guards direct frontend callers.
+    gate_parser().parse_args(argv)
+
     from ..change_envelope import build_change_envelope
     from ..gitops import git_metadata_path, repo_root
 
