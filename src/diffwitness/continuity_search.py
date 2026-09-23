@@ -12,7 +12,16 @@ _ACTIVE = "e.lifecycle='active' and e.kind in ('objective','task','decision','in
 
 
 def tokens(value: str) -> set[str]:
-    return {word.lower() for word in _WORD.findall(value or "") if len(word) >= 3}
+    text = value or ""
+    if not text.isascii():
+        import unicodedata
+
+        # Lexical recall only: stored assertions and literal entity identities
+        # remain untouched. NFD handles both composed and decomposed accents;
+        # French ligatures need explicit expansion (NFD does not split them).
+        text = unicodedata.normalize("NFD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
+        text = "".join(char for char in text if not unicodedata.combining(char))
+    return {word.lower() for word in _WORD.findall(text) if len(word) >= 3}
 
 
 def memory_text(kind: str, identity: str, label: str | None, payload: dict[str, Any]) -> str:

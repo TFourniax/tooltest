@@ -1,0 +1,88 @@
+test_accented_query_matches_plain_label_and_french_ligatures (test_continuity_language_retrieval.LanguageRetrievalTests.test_accented_query_matches_plain_label_and_french_ligatures) ... FAIL
+test_ascii_token_behavior_is_preserved (test_continuity_language_retrieval.LanguageRetrievalTests.test_ascii_token_behavior_is_preserved) ... ok
+test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) ... 
+  test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='reinitialisation') ... FAIL
+  test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='securisee') ... FAIL
+  test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='reinitialisation') ... FAIL
+  test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='securisee') ... FAIL
+test_legacy_index_rebuilds_without_changing_the_journal (test_continuity_language_retrieval.LanguageRetrievalTests.test_legacy_index_rebuilds_without_changing_the_journal) ... FAIL
+test_query_is_not_persisted_and_unrelated_query_has_no_match (test_continuity_language_retrieval.LanguageRetrievalTests.test_query_is_not_persisted_and_unrelated_query_has_no_match) ... ok
+test_replacement_removes_old_normalized_payload_terms (test_continuity_language_retrieval.LanguageRetrievalTests.test_replacement_removes_old_normalized_payload_terms) ... FAIL
+test_retired_memory_is_not_revived_by_normalization (test_continuity_language_retrieval.LanguageRetrievalTests.test_retired_memory_is_not_revived_by_normalization) ... FAIL
+test_short_exact_id_keeps_literal_matching (test_continuity_language_retrieval.LanguageRetrievalTests.test_short_exact_id_keeps_literal_matching) ... ok
+
+======================================================================
+FAIL: test_accented_query_matches_plain_label_and_french_ligatures (test_continuity_language_retrieval.LanguageRetrievalTests.test_accented_query_matches_plain_label_and_french_ligatures)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 52, in test_accented_query_matches_plain_label_and_french_ligatures
+    self.assertEqual(len(self.decisions("contrôle")), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='reinitialisation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 44, in test_french_accents_and_canonical_unicode_forms_recall_exact_assertion
+    self.assertEqual(len(items), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='securisee')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 44, in test_french_accents_and_canonical_unicode_forms_recall_exact_assertion
+    self.assertEqual(len(items), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='reinitialisation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 44, in test_french_accents_and_canonical_unicode_forms_recall_exact_assertion
+    self.assertEqual(len(items), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_french_accents_and_canonical_unicode_forms_recall_exact_assertion (test_continuity_language_retrieval.LanguageRetrievalTests.test_french_accents_and_canonical_unicode_forms_recall_exact_assertion) (label='Réinitialisation sécurisée', query='securisee')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 44, in test_french_accents_and_canonical_unicode_forms_recall_exact_assertion
+    self.assertEqual(len(items), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_legacy_index_rebuilds_without_changing_the_journal (test_continuity_language_retrieval.LanguageRetrievalTests.test_legacy_index_rebuilds_without_changing_the_journal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 68, in test_legacy_index_rebuilds_without_changing_the_journal
+    self.assertEqual([item["id"] for item in items], ["DEC-LANGUAGE"])
+AssertionError: Lists differ: [] != ['DEC-LANGUAGE']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'DEC-LANGUAGE'
+
+- []
++ ['DEC-LANGUAGE']
+
+======================================================================
+FAIL: test_replacement_removes_old_normalized_payload_terms (test_continuity_language_retrieval.LanguageRetrievalTests.test_replacement_removes_old_normalized_payload_terms)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 76, in test_replacement_removes_old_normalized_payload_terms
+    self.assertEqual(len(self.decisions("reinitialisation")), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_retired_memory_is_not_revived_by_normalization (test_continuity_language_retrieval.LanguageRetrievalTests.test_retired_memory_is_not_revived_by_normalization)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_language_retrieval.py", line 83, in test_retired_memory_is_not_revived_by_normalization
+    self.assertEqual(len(self.decisions("securisee")), 1)
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.297s
+
+FAILED (failures=8)

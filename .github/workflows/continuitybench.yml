@@ -43,3 +43,14 @@ jobs:
           path: continuitybench.json
           if-no-files-found: error
           retention-days: 30
+      - name: Qualify fixed FR/EN cited retrieval corpus
+        if: ${{ !cancelled() }}
+        run: python scripts/continuity_retrieval_bench.py --json continuity-retrieval.json
+      - name: Preserve retrieval acceptance including failures
+        if: ${{ always() && hashFiles('continuity-retrieval.json') != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: continuity-retrieval-fr-en
+          path: continuity-retrieval.json
+          if-no-files-found: error
+          retention-days: 30

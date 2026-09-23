@@ -20,7 +20,9 @@ from .gitops import git, repo_root
 
 # Rebuild existing derived databases: v2 could attach an earlier assertion's authority
 # to replacement content. The append-only event schema and historical Proof stay intact.
-STATE_SCHEMA = "continuity-state-6"
+# v7 rebuilds lexical terms with accent folding. Journal identities and bytes do
+# not change; v6 indexes must not be reused with the new query normalization.
+STATE_SCHEMA = "continuity-state-7"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
 VALIDATED_EVENT_DIGEST_META = "memory_code_event_file_sha256"

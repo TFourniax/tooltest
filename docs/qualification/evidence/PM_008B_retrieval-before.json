@@ -1,0 +1,458 @@
+{
+  "schema_version": "continuity-retrieval-bench-1",
+  "corpus_sha256": "73a16f6110337f3eccc2fd43555bb14c9a9d11253bb790e80630eb669c5e1dd9",
+  "scope": "Synthetic FR/EN lexical, identity and two-hop scenarios; not a semantic translation benchmark",
+  "distractors": 1200,
+  "metrics": {
+    "fr": {
+      "cases": 17,
+      "passed": 9,
+      "macro_precision": 0.5294117647058824,
+      "macro_recall": 0.5294117647058824,
+      "mrr_positive": 0.42857142857142855
+    },
+    "en": {
+      "cases": 12,
+      "passed": 12,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "mrr_positive": 1.0
+    }
+  },
+  "journal_unchanged": true,
+  "cases": [
+    {
+      "id": "fr-01",
+      "language": "fr",
+      "query": "réinitialisation",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [
+        "FR-RESET"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-02",
+      "language": "fr",
+      "query": "reinitialisation",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-03",
+      "language": "fr",
+      "query": "RÉINITIALISATION",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [
+        "FR-RESET"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-04",
+      "language": "fr",
+      "query": "réinitialisation",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [
+        "FR-RESET"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-05",
+      "language": "fr",
+      "query": "securisee",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-06",
+      "language": "fr",
+      "query": "Quel choix pour la reinitialisation ?",
+      "expected": [
+        "FR-RESET"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-07",
+      "language": "fr",
+      "query": "confidentialite",
+      "expected": [
+        "FR-CRYPT"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-08",
+      "language": "fr",
+      "query": "interblocages",
+      "expected": [
+        "FR-LOCK"
+      ],
+      "actual": [
+        "FR-LOCK"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-09",
+      "language": "fr",
+      "query": "synchronisation incrementale",
+      "expected": [
+        "FR-SYNC"
+      ],
+      "actual": [
+        "FR-SYNC"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-10",
+      "language": "fr",
+      "query": "accessibilite",
+      "expected": [
+        "FR-ACCESS"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-11",
+      "language": "fr",
+      "query": "oeuvres",
+      "expected": [
+        "FR-ART"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-12",
+      "language": "fr",
+      "query": "cœur",
+      "expected": [
+        "FR-ART"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-13",
+      "language": "fr",
+      "query": "coeur",
+      "expected": [
+        "FR-ART"
+      ],
+      "actual": [],
+      "precision": 0.0,
+      "recall": 0.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": false
+    },
+    {
+      "id": "fr-14",
+      "language": "fr",
+      "query": "Pourquoi utiliser l’authentification ?",
+      "expected": [
+        "FR-AUTH",
+        "FR-SESSION",
+        "FR-SECRET"
+      ],
+      "actual": [
+        "FR-AUTH",
+        "FR-SESSION",
+        "FR-SECRET"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-15",
+      "language": "fr",
+      "query": "deserialisation",
+      "expected": [],
+      "actual": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-16",
+      "language": "fr",
+      "query": "désérialisation",
+      "expected": [],
+      "actual": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "fr-17",
+      "language": "fr",
+      "query": "géolocalisation inconnue",
+      "expected": [],
+      "actual": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-01",
+      "language": "en",
+      "query": "refund idempotency",
+      "expected": [
+        "EN-REFUND"
+      ],
+      "actual": [
+        "EN-REFUND"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "query": "duplicate reimbursements",
+      "expected": [
+        "EN-REFUND"
+      ],
+      "actual": [
+        "EN-REFUND"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "query": "tenant isolation",
+      "expected": [
+        "EN-PRIVACY"
+      ],
+      "actual": [
+        "EN-PRIVACY"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "query": "cross-workspace",
+      "expected": [
+        "EN-PRIVACY"
+      ],
+      "actual": [
+        "EN-PRIVACY"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "query": "unbounded retries",
+      "expected": [
+        "EN-FAILED"
+      ],
+      "actual": [
+        "EN-FAILED"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "query": "gateway overload",
+      "expected": [
+        "EN-FAILED"
+      ],
+      "actual": [
+        "EN-FAILED"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "query": "rotate signing keys",
+      "expected": [
+        "EN-TASK"
+      ],
+      "actual": [
+        "EN-TASK"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "query": "offline export",
+      "expected": [
+        "EN-OBJECTIVE"
+      ],
+      "actual": [
+        "EN-OBJECTIVE"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "query": "customer portability",
+      "expected": [
+        "EN-OBJECTIVE"
+      ],
+      "actual": [
+        "EN-OBJECTIVE"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "query": "unknown geolocation",
+      "expected": [],
+      "actual": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "query": "X",
+      "expected": [
+        "X"
+      ],
+      "actual": [
+        "X"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": 1,
+      "citation_errors": [],
+      "passed": true
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "query": "x",
+      "expected": [],
+      "actual": [],
+      "precision": 1.0,
+      "recall": 1.0,
+      "first_relevant_rank": null,
+      "citation_errors": [],
+      "passed": true
+    }
+  ],
+  "passed": false
+}
