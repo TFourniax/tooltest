@@ -7,11 +7,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from diffwitness.continuity_debt_bridge import sync_debt_history
+from diffwitness.continuity_debt_bridge import _event_change_id, sync_debt_history
 from diffwitness.continuity_events import ContinuityError, continuity_paths, read_project_events
 from diffwitness.continuity_state import ensure_state
 from diffwitness.debt_models import DebtReport, DebtSignal
 from diffwitness.ledger import DebtLedger
+from diffwitness.engine_protocol import change_id, repository_fingerprint
 
 
 class ContinuityDebtBridgeTests(unittest.TestCase):
@@ -127,6 +128,35 @@ class ContinuityDebtBridgeTests(unittest.TestCase):
             with self.assertRaises(ContinuityError):
                 sync_debt_history(repo)
             self.assertFalse(continuity_paths(repo).events.exists())
+
+    def test_option_like_historical_report_retains_debt_without_invented_change_link(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo, _, candidate, tree = self.repo(Path(td))
+            report, _ = self.report(repo, '--not-a-reference', candidate, tree)
+            ledger = DebtLedger.load(repo / '.git' / 'diffwitness' / 'debt-ledger.jsonl')
+            ledger.record_report(report)
+            result = sync_debt_history(repo)
+            self.assertEqual(result['created'], 1)
+            event = read_project_events(continuity_paths(repo).events)[0]
+            self.assertIsNone(event['payload']['change_id'])
+            self.assertEqual(event['relations'], [])
+            self.assertEqual(event['epistemic_status'], 'OBSERVED')
+            self.assertEqual(sync_debt_history(repo)['created'], 0)
+
+    def test_only_exact_available_base_and_well_formed_tree_can_identify_a_change(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo, base, _, tree = self.repo(Path(td))
+            invalid = [('--all', tree), ('--not-a-reference', tree), ('HEAD', tree),
+                       ('0' * len(base), tree), (base, '--all'), (base, 'invented-tree'),
+                       (base, 'a' * 64 if len(base) == 40 else 'a' * 40)]
+            for base_hint, candidate_tree in invalid:
+                with self.subTest(base=base_hint, tree=candidate_tree):
+                    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+                        'base_sha': base_hint, 'candidate_tree': candidate_tree}}}))
+            expected = change_id(repository=repository_fingerprint(repo),
+                                 base_tree=self.git(repo, 'rev-parse', base + '^{tree}'), candidate_tree=tree)
+            self.assertEqual(_event_change_id(repo, {'payload': {'report': {
+                'base_sha': base, 'candidate_tree': tree}}}), expected)
 
 
 if __name__ == "__main__":

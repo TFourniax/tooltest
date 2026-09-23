@@ -1,0 +1,71 @@
+test_corrupt_debt_ledger_never_becomes_project_history (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_corrupt_debt_ledger_never_becomes_project_history) ... ok
+test_full_ledger_lifecycle_projects_idempotently (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_full_ledger_lifecycle_projects_idempotently) ... ok
+test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) ... 
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='--all', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee') ... FAIL
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='--not-a-reference', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee') ... FAIL
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='HEAD', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee') ... FAIL
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='--all') ... FAIL
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='invented-tree') ... FAIL
+  test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') ... FAIL
+test_option_like_historical_report_retains_debt_without_invented_change_link (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_option_like_historical_report_retains_debt_without_invented_change_link) ... FAIL
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='--all', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_5153f81d3ef83c0bbcffe549' is not None
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='--not-a-reference', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_02639d6f96f06eee4924d249' is not None
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='HEAD', tree='dc72567ae5cda25891b9ab3e4fc6c31f523e86ee')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_fec9204a37e7356dad0135e7' is not None
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='--all')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_19291d94af01d09fdf422684' is not None
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='invented-tree')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_cc5dec837217283e20a43da3' is not None
+
+======================================================================
+FAIL: test_only_exact_available_base_and_well_formed_tree_can_identify_a_change (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_only_exact_available_base_and_well_formed_tree_can_identify_a_change) (base='c4a6ade9acd144179eab9bd37b18fb388158f7a7', tree='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 154, in test_only_exact_available_base_and_well_formed_tree_can_identify_a_change
+    self.assertIsNone(_event_change_id(repo, {'payload': {'report': {
+AssertionError: 'dwchg_4e56fa8c497967a6d4a5f72d' is not None
+
+======================================================================
+FAIL: test_option_like_historical_report_retains_debt_without_invented_change_link (test_continuity_debt_bridge.ContinuityDebtBridgeTests.test_option_like_historical_report_retains_debt_without_invented_change_link)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-debt-identity/tests/test_continuity_debt_bridge.py", line 141, in test_option_like_historical_report_retains_debt_without_invented_change_link
+    self.assertIsNone(event['payload']['change_id'])
+AssertionError: 'dwchg_02639d6f96f06eee4924d249' is not None
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.205s
+
+FAILED (failures=7)
