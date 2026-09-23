@@ -1,0 +1,16 @@
+test_byte_budget_counts_utf8_bytes_instead_of_characters (test_continuity_change_paths.ChangePathAdmissionTests.test_byte_budget_counts_utf8_bytes_instead_of_characters) ... ok
+test_exact_unicode_whitespace_control_and_backslash_paths (test_continuity_change_paths.ChangePathAdmissionTests.test_exact_unicode_whitespace_control_and_backslash_paths) ... ok
+test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints (test_continuity_change_paths.ChangePathAdmissionTests.test_file_facts_use_change_identity_trees_not_unrelated_or_missing_commit_hints) ... ok
+test_forged_coverage_is_rejected_atomically (test_continuity_change_paths.ChangePathAdmissionTests.test_forged_coverage_is_rejected_atomically) ... ok
+test_human_context_quotes_paths_without_terminal_control_execution (test_continuity_change_paths.ChangePathAdmissionTests.test_human_context_quotes_paths_without_terminal_control_execution) ... ok
+test_installed_cli_reports_safe_exact_and_partial_admission (test_continuity_change_paths.ChangePathAdmissionTests.test_installed_cli_reports_safe_exact_and_partial_admission) ... ok
+test_large_changes_keep_bounded_whole_paths_and_explicit_coverage (test_continuity_change_paths.ChangePathAdmissionTests.test_large_changes_keep_bounded_whole_paths_and_explicit_coverage) ... ok
+test_unavailable_tree_is_not_presented_as_observed_empty_change (test_continuity_change_paths.ChangePathAdmissionTests.test_unavailable_tree_is_not_presented_as_observed_empty_change) ... ok
+test_unrepresentable_names_are_omitted_whole_without_relabeling (test_continuity_change_paths.ChangePathAdmissionTests.test_unrepresentable_names_are_omitted_whole_without_relabeling) ... ok
+test_untrusted_commit_hint_cannot_be_a_git_option (test_continuity_change_paths.ChangePathAdmissionTests.test_untrusted_commit_hint_cannot_be_a_git_option) ... ok
+test_whole_path_byte_budget_keeps_the_original_event_limit (test_continuity_change_paths.ChangePathAdmissionTests.test_whole_path_byte_budget_keeps_the_original_event_limit) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.620s
+
+OK

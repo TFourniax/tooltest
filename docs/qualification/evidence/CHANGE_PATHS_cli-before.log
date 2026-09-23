@@ -1,0 +1,20 @@
+test_installed_cli_reports_safe_exact_and_partial_admission (test_continuity_change_paths.ChangePathAdmissionTests.test_installed_cli_reports_safe_exact_and_partial_admission) ... FAIL
+
+======================================================================
+FAIL: test_installed_cli_reports_safe_exact_and_partial_admission (test_continuity_change_paths.ChangePathAdmissionTests.test_installed_cli_reports_safe_exact_and_partial_admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 89, in test_installed_cli_reports_safe_exact_and_partial_admission
+    self.assertEqual(result['changed_files'], sorted(names)[:256])
+AssertionError: Lists differ: [] != [' spaced ', 'file-0000.py', 'file-0001.py[4045 chars].py']
+
+Second list contains 256 additional elements.
+First extra element 0:
+' spaced '
+
+Diff is 4865 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.123s
+
+FAILED (failures=1)

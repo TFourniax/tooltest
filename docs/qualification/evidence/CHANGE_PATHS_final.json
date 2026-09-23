@@ -1,0 +1,34 @@
+{
+  "classification": "MACHINE",
+  "initialCandidate": "72c7c8adedef2808f00782dae0233473f4ec39c3",
+  "correction": "Unknown unprofiled legacy coverage.status lists/dicts caused TypeError in context. A tuple comparison preserves permissive historical extension admission. Baseline failure, including a secondary lock error, is retained.",
+  "logs": {
+    "legacy-before": {
+      "bytes": 4882,
+      "sha256": "72ccd8a0c59e0503077ce86447c23fd24345af532dcd0e6a9829bb20a9c75829",
+      "summaries": [
+        "Ran 1 test in 5.160s",
+        "FAILED (errors=3)"
+      ],
+      "file": "CHANGE_PATHS_legacy-before.log"
+    },
+    "final-full": {
+      "bytes": 145710,
+      "sha256": "500801859818374ff63ab9cbd75f1c52931e0ae9e9db7d91b3869267cbfa3c05",
+      "summaries": [
+        "Ran 706 tests in 69.491s",
+        "OK (skipped=52)"
+      ],
+      "archive": "CHANGE_PATHS_final-full.log.gz.b64",
+      "encoding": "base64(gzip(raw log)); mtime=0",
+      "archiveSha256": "7f5ba04aa530d51956cc73804184fb4508a09c3147dc465705d7913647283562"
+    }
+  },
+  "wheelSha256": "e89cd418de2e26a12480bca7ecf12ac2a1bf460b6b2f6b752b92adbb04c42813",
+  "productModules": {
+    "continuity_bridge.py": "99638793c9c8a3be6446ac88ad5a4a4f4343dbe67d0244ecb52a01e4165ed5c5",
+    "continuity_contract.py": "65f1ad8f5aabbbcfc5de1a435c8c4980a617d743f25b1b7a87d383b6e89600ea",
+    "continuity_context.py": "fa30272e398598e615fbc3198cbce69407b8bfdb1ad035868b3530f62db05a4e",
+    "continuity_context_command.py": "f1d880b9b51cc550edead5cdd21f52949a225ea9044a5d1be1732fef24e48fee"
+  }
+}

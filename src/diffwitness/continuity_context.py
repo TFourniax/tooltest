@@ -431,6 +431,13 @@ def compile_context(
         event_head_row = conn.execute("select value from meta where key='event_head'").fetchone()
         structure_tree_row = conn.execute("select value from meta where key='structure_tree'").fetchone()
         coverage_row = conn.execute("select value from meta where key='structure_coverage'").fetchone()
+        incomplete_change_paths = any(
+            isinstance((value := _loads(row[0])), dict)
+            and isinstance(value.get("changed_files_coverage"), dict)
+            and value["changed_files_coverage"].get("status") in ("partial", "unavailable")
+            for row in conn.execute("select payload_json from events where event_type='change.observed' "
+                                    "and payload_json like '%\"changed_files_coverage\":%'")
+        )
     finally:
         conn.close()
 
@@ -461,6 +468,8 @@ def compile_context(
     )
 
     warnings: list[str] = []
+    if incomplete_change_paths:
+        warnings.append("Imported change path coverage is incomplete; an absent path is not evidence of no change. Inspect the source event's changed_files_coverage.")
     coverage = _loads(coverage_row[0]) if coverage_row else None
     if coverage is not None and not coverage.get("complete"):
         warnings.append("Structure coverage is incomplete: some Git source files were omitted or could not be parsed; see state.structureCoverage.")
@@ -520,6 +529,12 @@ def render_memory_item(item: dict[str, Any], *, technical: bool = False) -> str:
     return text
 
 
+def render_change_paths(files: list[str], *, limit: int) -> str:
+    from .continuity_history import _display
+
+    return ', '.join(_display(str(path), limit=500) for path in files[:limit])
+
+
 def render_context(context: dict[str, Any], *, max_chars: int = 12000) -> str:
     def block(title: str, items: list[Any], formatter) -> list[str]:
         lines = [title]
@@ -541,7 +556,7 @@ def render_context(context: dict[str, Any], *, max_chars: int = 12000) -> str:
     lines += block(
         "RECENT RELATED CHANGES",
         context["recentRelatedChanges"],
-        lambda item: f"{item['changeId']} · files {', '.join(item['files'][:4]) or 'not recorded'} · proof {(item['proof'] or {}).get('claim', 'n/a')} [{(item['proof'] or {}).get('epistemicStatus', 'n/a')}]",
+        lambda item: f"{item['changeId']} · files {render_change_paths(item['files'], limit=4) or 'not recorded'} · proof {(item['proof'] or {}).get('claim', 'n/a')} [{(item['proof'] or {}).get('epistemicStatus', 'n/a')}]",
     ) + [""]
     lines += block("REQUIRED EVIDENCE", context["requiredEvidence"], lambda item: f"{item['kind']}: {item.get('command') or item.get('requirement') or item.get('note') or ''}") + [""]
     if context["warnings"]:

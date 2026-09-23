@@ -1,0 +1,66 @@
+{
+  "classification": "MACHINE",
+  "baseline": "713d9e08644bebc35bc5d4e8ae966f06a08cb3da",
+  "baselineTree": "9ce330ca1a1d840c3d3c068677ff6bc24c85992a",
+  "fullSuite": {
+    "count": 704,
+    "skips": 52,
+    "note": "Full suite includes ten new regressions; the eleventh installed CLI test was added afterward and passes in the focused installed suite. Product code unchanged."
+  },
+  "logs": {
+    "before": {
+      "bytes": 11509,
+      "sha256": "7be12f2ff6e707a2311655a479f7ef4fc4a9fde3b7a661cc971f9ab1159db8d8",
+      "summaries": [
+        "Ran 7 tests in 0.222s",
+        "FAILED (failures=4, errors=3)"
+      ],
+      "file": "CHANGE_PATHS_before.log"
+    },
+    "before-installed": {
+      "bytes": 15934,
+      "sha256": "fed0fb30458df58d8d19d9af4bdd693a74c5beda2db0188dca698a4fb996e5d1",
+      "summaries": [
+        "Ran 10 tests in 0.334s",
+        "FAILED (failures=6, errors=4)"
+      ],
+      "file": "CHANGE_PATHS_before-installed.log"
+    },
+    "cli-before": {
+      "bytes": 1140,
+      "sha256": "b8abc4badff2d01000e3d3a15651cd8ed5782f08de54ccc9dd88106a3fcb4ba8",
+      "summaries": [
+        "Ran 1 test in 0.123s",
+        "FAILED (failures=1)"
+      ],
+      "file": "CHANGE_PATHS_cli-before.log"
+    },
+    "targeted-installed": {
+      "bytes": 2130,
+      "sha256": "6671650828bbda62e01d5af32bd6c04387685688eb91c1ce2cf17c0465c0d534",
+      "summaries": [
+        "Ran 11 tests in 0.620s",
+        "OK"
+      ],
+      "file": "CHANGE_PATHS_targeted-installed.log"
+    },
+    "full": {
+      "bytes": 145345,
+      "sha256": "a684e3da0426770566a6e4074bd1e6ed4f0c2bf0cf6c7a4cb0d3b005ac76696c",
+      "summaries": [
+        "Ran 704 tests in 69.474s",
+        "OK (skipped=52)"
+      ],
+      "archive": "CHANGE_PATHS_full.log.gz.b64",
+      "encoding": "base64(gzip(raw log)); mtime=0",
+      "archiveSha256": "af21b5515eaa63a4274ee639be11e2541d5ee7925ba58ed50b02d87ea5dd74fa"
+    }
+  },
+  "wheelSha256": "22922275602d8f9fc72af3bbe56d9473cd99276943c922b4ef72c54a60cb2f07",
+  "productModules": {
+    "continuity_bridge.py": "99638793c9c8a3be6446ac88ad5a4a4f4343dbe67d0244ecb52a01e4165ed5c5",
+    "continuity_contract.py": "65f1ad8f5aabbbcfc5de1a435c8c4980a617d743f25b1b7a87d383b6e89600ea",
+    "continuity_context.py": "1bde9097f13913e538ee5f8b79b19b4547dfd122ee9d02a6e2e676acbf2ef55e",
+    "continuity_context_command.py": "f1d880b9b51cc550edead5cdd21f52949a225ea9044a5d1be1732fef24e48fee"
+  }
+}
