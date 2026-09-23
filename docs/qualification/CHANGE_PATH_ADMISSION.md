@@ -79,3 +79,13 @@ module changed between these runs. All four changed modules are byte-equal in
 source, wheel and installation. Baseline failures, full suite and focused logs,
 wheel/module hashes are retained in `evidence/CHANGE_PATHS_local.json` and its
 referenced files. Exact PR/main qualification is tracked separately in registry #74.
+
+Before merging, a compatibility probe found that an unknown unprofiled historical
+extension could supply a list/object as coverage.status and crash context's set
+membership check. The baseline regression retains that TypeError and a subsequent
+SQLite lock error; the reader now uses a non-hashing comparison without changing
+legacy journal admission. This twelfth regression joins the real installed CLI
+test in the final full suite: 706 tests PASS, 52 explicit skips, 69.491 seconds.
+The corrected wheel and all four module hashes are in `CHANGE_PATHS_final.json`,
+along with the retained failure and lossless full-suite archive. Earlier successful
+test runs do not qualify this later product or erase that discovered defect.

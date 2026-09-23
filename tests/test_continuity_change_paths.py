@@ -158,6 +158,18 @@ class ChangePathAdmissionTests(unittest.TestCase):
                 append_project_events(repo=self.repo, events=[bad])
             self.assertEqual(journal.read_bytes(), before)
 
+    def test_unknown_legacy_coverage_extension_cannot_crash_context(self):
+        _, event = self.recorded(self.envelope([b'actual.py']))
+        for value in ([], {}, {'status': []}, {'status': {}}, {'status': False}):
+            legacy = copy.deepcopy(event)
+            legacy['provenance'].pop('diffwitness_profile')
+            legacy['dedupe_key'] = None
+            legacy['payload']['changed_files_coverage'] = value
+            append_project_events(repo=self.repo, events=[legacy])
+            with self.subTest(value=value):
+                context = compile_context(self.repo, task='')
+                self.assertIn('warnings', context)
+
 
 if __name__ == '__main__':
     unittest.main()

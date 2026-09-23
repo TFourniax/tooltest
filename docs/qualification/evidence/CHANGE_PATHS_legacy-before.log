@@ -1,0 +1,56 @@
+test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) ... 
+  test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': []}) ... ERROR
+  test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': {}}) ... ERROR
+  test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': False}) ... ERROR
+
+======================================================================
+ERROR: test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': []})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 170, in test_unknown_legacy_coverage_extension_cannot_crash_context
+    context = compile_context(self.repo, task='')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 434, in compile_context
+    incomplete_change_paths = any(
+                              ^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 437, in <genexpr>
+    and value["changed_files_coverage"].get("status") in {"partial", "unavailable"}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'list'
+
+======================================================================
+ERROR: test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': {}})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 170, in test_unknown_legacy_coverage_extension_cannot_crash_context
+    context = compile_context(self.repo, task='')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 434, in compile_context
+    incomplete_change_paths = any(
+                              ^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 437, in <genexpr>
+    and value["changed_files_coverage"].get("status") in {"partial", "unavailable"}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'dict'
+
+======================================================================
+ERROR: test_unknown_legacy_coverage_extension_cannot_crash_context (test_continuity_change_paths.ChangePathAdmissionTests.test_unknown_legacy_coverage_extension_cannot_crash_context) (value={'status': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-change-paths/tests/test_continuity_change_paths.py", line 170, in test_unknown_legacy_coverage_extension_cannot_crash_context
+    context = compile_context(self.repo, task='')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 414, in compile_context
+    state_path = _advisory_state_path(root, refresh_structure=refresh_structure)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_context.py", line 108, in _advisory_state_path
+    return ensure_state(root, include_structure=refresh_structure)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/change-paths-consumer/lib/python3.12/site-packages/diffwitness/continuity_state.py", line 587, in ensure_state
+    conn.commit()
+sqlite3.OperationalError: database is locked
+
+----------------------------------------------------------------------
+Ran 1 test in 5.160s
+
+FAILED (errors=3)

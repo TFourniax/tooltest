@@ -434,7 +434,7 @@ def compile_context(
         incomplete_change_paths = any(
             isinstance((value := _loads(row[0])), dict)
             and isinstance(value.get("changed_files_coverage"), dict)
-            and value["changed_files_coverage"].get("status") in {"partial", "unavailable"}
+            and value["changed_files_coverage"].get("status") in ("partial", "unavailable")
             for row in conn.execute("select payload_json from events where event_type='change.observed' "
                                     "and payload_json like '%\"changed_files_coverage\":%'")
         )
