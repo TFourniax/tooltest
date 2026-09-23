@@ -50,14 +50,14 @@ def _print_change_debt(report, budget) -> None:
         print(f"  ! {violation}")
 
 
-def _validate_generated_certificate(path: Path, *, repo: Path, candidate_sha: str) -> None:
+def _validate_generated_certificate(path: Path, *, repo: Path, base_sha: str, candidate_sha: str) -> None:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"Guard proof certificate cannot be read: {exc}") from exc
     if not isinstance(payload, dict):
         raise ValueError("Guard proof certificate is not a JSON object")
-    validate_debt_certificate(payload, repo=repo, candidate_sha=candidate_sha)
+    validate_debt_certificate(payload, repo=repo, base_sha=base_sha, candidate_sha=candidate_sha)
 
 
 def _agent_provenance(command: list[str]) -> dict[str, str]:
@@ -312,7 +312,7 @@ def guard_cli(argv: list[str]) -> int:
             print(tr("\nDiffWitness Guard: PROOF REJECTED", '\nDiffWitness Guard : PROOF REJETÉE'), file=sys.stderr)
             return rc
         print(tr("\nDiffWitness Guard: PROOF ACCEPTED", '\nDiffWitness Guard : PROOF ACCEPTÉE'))
-        _validate_generated_certificate(proof_path, repo=repo, candidate_sha=candidate)
+        _validate_generated_certificate(proof_path, repo=repo, base_sha=baseline, candidate_sha=candidate)
 
         if args.no_debt:
             envelope_path = _persist_guard_envelope(

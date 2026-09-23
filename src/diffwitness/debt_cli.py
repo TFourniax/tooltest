@@ -54,12 +54,12 @@ def _ledger_snapshot_exclusions(repo: Path, ledger: DebtLedger) -> list[str]:
     return [rel]
 
 
-def _validate_certificate(path: Path | None, *, repo: Path, candidate_sha: str) -> None:
+def _validate_certificate(path: Path | None, *, repo: Path, base_sha: str, candidate_sha: str) -> None:
     if path is None: return
     try: payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc: raise LedgerError(f"cannot read proof certificate {path}: {exc}") from exc
     if not isinstance(payload, dict): raise LedgerError("proof certificate must be a JSON object")
-    validate_debt_certificate(payload, repo=repo, candidate_sha=candidate_sha)
+    validate_debt_certificate(payload, repo=repo, base_sha=base_sha, candidate_sha=candidate_sha)
 
 
 def _agent_name(command: list[str]) -> str:
@@ -110,7 +110,7 @@ def debt_cli(argv: list[str]) -> int:
     parser.add_argument("--repo", default="."); parser.add_argument("--config"); parser.add_argument("--base", default="HEAD"); parser.add_argument("--candidate", default="WORKTREE")
     parser.add_argument("--certificate", type=Path, help="Existing DiffWitness proof/assurance certificate for this exact change"); parser.add_argument("--json", type=Path); parser.add_argument("--no-record", action="store_true"); parser.add_argument("--ignore-budget", action="store_true")
     args = parser.parse_args(argv); repo = repo_root(args.repo); config, debt_config, ledger = _resolve_debt_context(repo, args.config)
-    base_sha = resolve_analysis_base(repo, args.base); candidate_sha, _ = _candidate(repo, args.candidate, exclude_paths=_ledger_snapshot_exclusions(repo, ledger)); _validate_certificate(args.certificate, repo=repo, candidate_sha=candidate_sha)
+    base_sha = resolve_analysis_base(repo, args.base); candidate_sha, _ = _candidate(repo, args.candidate, exclude_paths=_ledger_snapshot_exclusions(repo, ledger)); _validate_certificate(args.certificate, repo=repo, base_sha=base_sha, candidate_sha=candidate_sha)
     report = scan_change(repo=repo, base_sha=base_sha, candidate_sha=candidate_sha, certificate_path=args.certificate, test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
     budget = evaluate_budget(ledger=ledger, change=report, debt_config=debt_config); _print_signals(report); print(); print(tr(f"Budget: {'PASS' if budget.passed else 'EXCEEDED'} — projected total {budget.projected_total}; new {budget.change_points}", f"Budget: {('PASS' if budget.passed else 'EXCEEDED')} — total projeté {budget.projected_total} ; nouveaux : {budget.change_points}"))
     for violation in budget.violations: print(f"  ! {violation}")
@@ -242,7 +242,7 @@ def repay_cli(argv: list[str]) -> int:
         certificate = Path(td) / "gate.json"; gate_args = ["--repo", str(repo), "--base", baseline, "--candidate", candidate, "--test", test_command, "--policy", "balanced", "--certificate", str(certificate), "--no-github-actions"]
         rc = entry_main(["gate", *gate_args])
         if rc != 0: print(tr("DiffWitness repay: independent Gate rejected the repayment patch.", 'DiffWitness repay : Gate indépendant a rejeté le patch de remboursement.'), file=sys.stderr); return 1
-        _validate_certificate(certificate if certificate.exists() else None, repo=repo, candidate_sha=candidate)
+        _validate_certificate(certificate if certificate.exists() else None, repo=repo, base_sha=baseline, candidate_sha=candidate)
         change_report = scan_change(repo=repo, base_sha=baseline, candidate_sha=candidate, certificate_path=certificate if certificate.exists() else None, test_globs=list(config.get("test_glob") or []), ignore_globs=list(config.get("ignore") or []))
         provenance = {"source": "repay", "agent": _agent_name(agent_command), "executable": Path(agent_command[0]).name}
         for signal in change_report.signals: signal.introduced_by.update(provenance)

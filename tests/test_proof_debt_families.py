@@ -74,6 +74,27 @@ class ProofDebtFamilyTests(unittest.TestCase):
                             "--certificate", str(cert), "--no-record", "--json", str(root / "debt.json"))
                 self.assertEqual(hashlib.sha256(cert.read_bytes()).hexdigest(), before)
 
+    def test_wrong_base_is_refused_before_measurement_for_every_real_family(self):
+        for family in ("dwac1", "dw2", "dwa1", "dwv1", "dw0"):
+            with self.subTest(family=family), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                repo, base, candidate, cert, report = self.produce(root, family)
+                original = cert.read_bytes()
+                # Another valid Git base with different content, same candidate.
+                git("checkout", "-q", "--detach", base, cwd=repo)
+                (repo / "other.py").write_text("VALUE = 99\n", encoding="utf-8")
+                git("add", ".", cwd=repo)
+                git("commit", "-qm", "other base", cwd=repo)
+                other = git("rev-parse", "HEAD", cwd=repo)
+                output = root / "must-not-write.json"
+                p = subprocess.run([sys.executable, "-c", "from diffwitness.entry import main; raise SystemExit(main())",
+                    "debt", "--base", other, "--candidate", candidate, "--certificate", str(cert),
+                    "--no-record", "--json", str(output)], cwd=repo, capture_output=True, text=True, timeout=45)
+                self.assertNotEqual(p.returncode, 0, p.stdout + p.stderr)
+                self.assertIn("certificate base", p.stdout + p.stderr)
+                self.assertFalse(output.exists())
+                self.assertEqual(cert.read_bytes(), original)
+
     def test_binding_conflicts_and_unknown_schemas_are_refused_by_both_readers(self):
         for family in ("dwac1", "dw2", "dwa1", "dwv1", "dw0"):
             with self.subTest(family=family), tempfile.TemporaryDirectory() as td:
@@ -96,7 +117,7 @@ class ProofDebtFamilyTests(unittest.TestCase):
                         bad["certificate_id"] = expected_certificate_id(bad)
                     with self.subTest(mutation=mutation):
                         with self.assertRaises(DebtCertificateError):
-                            validate_debt_certificate(bad, repo=repo, candidate_sha=candidate)
+                            validate_debt_certificate(bad, repo=repo, base_sha=base, candidate_sha=candidate)
                         try:
                             verified = verify_against_repo(bad, repo=repo, against=candidate)
                         except AttestationError:
@@ -104,7 +125,7 @@ class ProofDebtFamilyTests(unittest.TestCase):
                         else:
                             self.assertFalse(verified["valid"])
                 with self.assertRaises(DebtCertificateError):
-                    validate_debt_certificate(report, repo=repo, candidate_sha=base)
+                    validate_debt_certificate(report, repo=repo, base_sha=base, candidate_sha=base)
 
 
 if __name__ == "__main__":

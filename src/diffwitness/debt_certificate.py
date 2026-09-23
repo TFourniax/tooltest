@@ -21,25 +21,25 @@ def expected_id(report: dict[str, Any]) -> str:
         raise DebtCertificateError(str(exc)) from exc
 
 
-def validate_debt_certificate(report: dict[str, Any], *, repo: Path, candidate_sha: str) -> None:
+def validate_debt_certificate(report: dict[str, Any], *, repo: Path, base_sha: str, candidate_sha: str) -> None:
     cid = str(report.get("certificate_id") or "")
     expected = expected_id(report)
     if cid != expected:
         raise DebtCertificateError(f"certificate integrity mismatch: expected {expected}, got {cid}")
-    try:
-        embedded_sha, embedded_tree = certificate_binding(report, "candidate")
-        certificate_binding(report, "base")
-    except AttestationError as exc:
-        raise DebtCertificateError(str(exc)) from exc
-    current_tree = git(repo, "rev-parse", "--verify", f"{candidate_sha}^{{tree}}").strip()
-    if embedded_tree:
-        if embedded_tree != current_tree:
-            raise DebtCertificateError("certificate candidate tree does not match the debt measurement candidate")
-    else:
-        if not isinstance(embedded_sha, str) or not embedded_sha:
-            raise DebtCertificateError("certificate has neither candidate tree nor candidate SHA binding")
-        if embedded_sha != candidate_sha:
-            raise DebtCertificateError("certificate candidate SHA does not match the debt measurement candidate")
+    for role, measured_sha in (("candidate", candidate_sha), ("base", base_sha)):
+        try:
+            embedded_sha, embedded_tree = certificate_binding(report, role)
+        except AttestationError as exc:
+            raise DebtCertificateError(str(exc)) from exc
+        current_tree = git(repo, "rev-parse", "--verify", f"{measured_sha}^{{tree}}").strip()
+        if embedded_tree:
+            if embedded_tree != current_tree:
+                raise DebtCertificateError(f"certificate {role} tree does not match the debt measurement {role}")
+        else:
+            if not embedded_sha:
+                raise DebtCertificateError(f"certificate has neither {role} tree nor {role} SHA binding")
+            if embedded_sha != measured_sha:
+                raise DebtCertificateError(f"certificate {role} SHA does not match the debt measurement {role}")
 
 
 def is_assurance_certificate(path: Path) -> bool:
