@@ -53,6 +53,16 @@ class LanguageRetrievalTests(unittest.TestCase):
         self.assertEqual(len(self.decisions("œuvres")), 1)
         self.assertEqual(len(self.decisions("cœur")), 1)
 
+    def test_compatibility_forms_match_memory_in_both_directions(self):
+        for label, query in (("ＲＥＰＯＲＴ", "report"), ("report", "ＲＥＰＯＲＴ"),
+                             ("oﬃce", "office"), ("office", "oﬃce")):
+            with self.subTest(label=label, query=query):
+                event = self.record(label)
+                items = self.decisions(query)
+                self.assertEqual([item["id"] for item in items], ["DEC-LANGUAGE"])
+                self.assertEqual(items[0]["label"], label)
+                self.assertEqual(items[0]["source"]["eventHash"], event["event_hash"])
+
     def test_legacy_index_rebuilds_without_changing_the_journal(self):
         import re
         event = self.record()

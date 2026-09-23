@@ -17,9 +17,9 @@ def tokens(value: str) -> set[str]:
         import unicodedata
 
         # Lexical recall only: stored assertions and literal entity identities
-        # remain untouched. NFD handles both composed and decomposed accents;
-        # French ligatures need explicit expansion (NFD does not split them).
-        text = unicodedata.normalize("NFD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
+        # remain untouched. NFKD also folds compatibility forms such as full-width
+        # letters; French œ/æ need explicit expansion in addition to Unicode folding.
+        text = unicodedata.normalize("NFKD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
         text = "".join(char for char in text if not unicodedata.combining(char))
     return {word.lower() for word in _WORD.findall(text) if len(word) >= 3}
 

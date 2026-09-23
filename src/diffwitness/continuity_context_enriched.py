@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -65,10 +64,9 @@ def _debt_rows(repo: Path, identities: set[str]) -> list[dict[str, Any]]:
 
 
 def _search_tokens(value: str) -> set[str]:
-    # Retain fallback compatibility folding and its stricter four-letter floor,
-    # while sharing accent/ligature rules with indexed memory retrieval.
-    normalized = unicodedata.normalize("NFKD", str(value or ""))
-    return {token for token in tokens(normalized) if len(token) >= 4}
+    # Share all Unicode folding with indexed retrieval, retaining this fallback's
+    # stricter four-letter floor and its separate prefix-ranking heuristic.
+    return {token for token in tokens(str(value or "")) if len(token) >= 4}
 
 
 def _token_overlap(left: set[str], right: set[str]) -> int:

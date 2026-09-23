@@ -1,0 +1,23 @@
+..................................................................Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+.Switched to a new branch 'unrelated'
+..........................................................................................................................
+----------------------------------------------------------------------
+Ran 201 tests in 20.068s
+
+OK
+Objective OBJ-REFUNDS: Support partial refunds safely
+Decision DEC-IDEMPOTENCY: Keep refund operations idempotent
+Invariant INV-CAPTURE-LIMIT: Refund total must never exceed captured payment
+Failed approach FAIL-DIRECT-CHARGE: Mutating charge rows directly
