@@ -1,0 +1,23 @@
+{
+  "classification": "MACHINE",
+  "integratedParent": "0dafa160be9158e49766201035849a0db87b3750",
+  "integratedParentTree": "65c5dd1099423425a81de5cc042e0bfbbab55126",
+  "fullSuite": {
+    "tests": 708,
+    "skips": 52,
+    "seconds": 69.372,
+    "rawBytes": 146155,
+    "rawSha256": "a0b080932e5c6a83889a2a303c39a957a5ccd1f667fc80ec4a490146eecc95f5",
+    "archive": "DEBT_GIT_IDENTITY_full.log.gz.b64",
+    "archiveSha256": "4756a62d0e74e5306ecef92cba059280a2ad587971a508b2e53f3c650d383736"
+  },
+  "wheelSha256": "786c50e2126a1e72bf7b6d8c9174ca08ebe0e3ecdd58a0a0c1a2acb0519cb645",
+  "sourceWheelInstalledEqual": true,
+  "productModules": {
+    "continuity_debt_bridge.py": "11a83ea2ee889ac3ba4d0d1da7fea2f66823210220f3a80ef3924b4f270f0d1a",
+    "continuity_bridge.py": "99638793c9c8a3be6446ac88ad5a4a4f4343dbe67d0244ecb52a01e4165ed5c5",
+    "continuity_contract.py": "65f1ad8f5aabbbcfc5de1a435c8c4980a617d743f25b1b7a87d383b6e89600ea",
+    "continuity_context.py": "fa30272e398598e615fbc3198cbce69407b8bfdb1ad035868b3530f62db05a4e",
+    "continuity_context_command.py": "f1d880b9b51cc550edead5cdd21f52949a225ea9044a5d1be1732fef24e48fee"
+  }
+}

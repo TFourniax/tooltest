@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
+import time
 from typing import Any
 
 from .config import load_config
@@ -10,7 +12,7 @@ from .continuity_contract import (
 from .continuity_events import ContinuityError, append_project_events
 from .debt_budget import ledger_path, merged_debt_config
 from .engine_protocol import change_id, repository_fingerprint
-from .gitops import git, repo_root
+from .gitops import repo_root
 from .ledger import DebtLedger, LedgerError
 
 _EVENT_MAP = {name: "debt." + name for name in DEBT_LIFECYCLE_SPECS}
@@ -30,13 +32,21 @@ def _event_change_id(repo: Path, event: dict[str, Any]) -> str | None:
             raise ContinuityError(f"Debt Ledger report.{key} must be a string or null")
     if not isinstance(base_sha, str) or not base_sha or not isinstance(candidate_tree, str) or not candidate_tree:
         return None
-    try:
-        base_tree = git(repo, "rev-parse", f"{base_sha}^{{tree}}").strip()
-    except Exception:
+    # A mutable ref or an echoed rev-parse option cannot identify historical
+    # code. Native reports already contain full immutable object identities.
+    if (not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", base_sha)
+            or not re.fullmatch(r"[0-9a-f]{" + str(len(base_sha)) + r"}", candidate_tree)):
+        return None
+    from .continuity_git_history import _git
+
+    raw = _git(repo, "rev-parse", "--verify", "--end-of-options", f"{base_sha}^{{tree}}",
+               limit=65, deadline=time.monotonic() + 15, missing_ok=(1, 128))
+    if raw is None:
         # Historical Git objects can legitimately disappear after aggressive history rewriting.
         # Never invent a longitudinal change identity when the old base tree is unavailable.
         return None
-    if not base_tree:
+    base_tree = raw.decode('ascii').strip()
+    if not re.fullmatch(r"[0-9a-f]{" + str(len(base_sha)) + r"}", base_tree):
         return None
     return change_id(
         repository=repository_fingerprint(repo),
