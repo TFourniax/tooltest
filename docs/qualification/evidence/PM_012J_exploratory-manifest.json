@@ -1,0 +1,127 @@
+{
+  "classification": "MACHINE",
+  "qualification": false,
+  "description": "All surviving exploratory evidence recovered from the interrupted task, including failures; not selected qualification measurements.",
+  "files": [
+    {
+      "name": "scale-final-batch-equivalence.log",
+      "size_bytes": 534,
+      "sha256": "0ee810c3bbb1205c448cbdd428a29d29c7ec3c32290207caa9d7d2aaaad06c50"
+    },
+    {
+      "name": "scale-final-batch-exploratory.json",
+      "size_bytes": 594,
+      "sha256": "d665be02d3499e3c13e5ef1b741ae49dc51939f9688ee6566926b48686c7d187"
+    },
+    {
+      "name": "scale-final-batch-exploratory.log",
+      "size_bytes": 594,
+      "sha256": "d665be02d3499e3c13e5ef1b741ae49dc51939f9688ee6566926b48686c7d187"
+    },
+    {
+      "name": "scale-final-batch-focused.log",
+      "size_bytes": 6212,
+      "sha256": "96185a790412d28991ceb01b776c6e2d20b8888df510e27dbd863d63da438f81"
+    },
+    {
+      "name": "scale-final-canonical-baseline.log",
+      "size_bytes": 2463,
+      "sha256": "4c7f4cac88c7d98c3975722015edd5b553ed229cabac524233278a306cf4730d"
+    },
+    {
+      "name": "scale-final-canonical-exploratory.json",
+      "size_bytes": 629,
+      "sha256": "c148931bbcecdbb3ed73bd8ddadd89e68c63ea9b718c902553796f5da4e666aa"
+    },
+    {
+      "name": "scale-final-canonical-exploratory.log",
+      "size_bytes": 629,
+      "sha256": "c148931bbcecdbb3ed73bd8ddadd89e68c63ea9b718c902553796f5da4e666aa"
+    },
+    {
+      "name": "scale-final-codecs-exploratory.json",
+      "size_bytes": 595,
+      "sha256": "a825656fa3d2217920111b8eb522defdc71f7cd4a3518bf4023c2a169e73b9fd"
+    },
+    {
+      "name": "scale-final-codecs-exploratory.log",
+      "size_bytes": 595,
+      "sha256": "a825656fa3d2217920111b8eb522defdc71f7cd4a3518bf4023c2a169e73b9fd"
+    },
+    {
+      "name": "scale-final-codecs-focused.log",
+      "size_bytes": 3055,
+      "sha256": "27195493689fc3ebf8d98b730c5d4f8eb3c1364b81ff8ce1c3f478f855e88036"
+    },
+    {
+      "name": "scale-final-focused.log",
+      "size_bytes": 9580,
+      "sha256": "b84c19028d4502f3b55e59c3084fa927e0b7612312ab9bae54806941226e5c5c"
+    },
+    {
+      "name": "scale-final-indexes-exploratory.json",
+      "size_bytes": 631,
+      "sha256": "b0d637888d755824c6081747d0fa9c3607c535320d6625f5d0f0e624338906ed"
+    },
+    {
+      "name": "scale-final-indexes-exploratory.log",
+      "size_bytes": 631,
+      "sha256": "b0d637888d755824c6081747d0fa9c3607c535320d6625f5d0f0e624338906ed"
+    },
+    {
+      "name": "scale-final-integrity-micro.json",
+      "size_bytes": 1351,
+      "sha256": "321468b63eeab43b722d148445219b01b7ad67ec47e066e58f27e0e1210f66ba"
+    },
+    {
+      "name": "scale-final-layout-focused.log",
+      "size_bytes": 5232,
+      "sha256": "1fba43738e6d9aba4bcf1c714ff25d1a2aab58c085cb0ea3f86bf2725d928cd4"
+    },
+    {
+      "name": "scale-final-projection-focused.log",
+      "size_bytes": 4339,
+      "sha256": "f47e9869057eb35913f880124e21dbb595f0abfa3d49e221626ddd1f40a0f41b"
+    },
+    {
+      "name": "scale-final-stream-close.log",
+      "size_bytes": 2019,
+      "sha256": "ae26b6336baa821a6d59405fbd5a597d034195b5815f3043abedeccb26f8ed33"
+    },
+    {
+      "name": "scale-final-stream-exploratory.json",
+      "size_bytes": 595,
+      "sha256": "15faecc72ed8d075c1d07974999827a28feffda5b2348dd6f74ce3ea46759ea3"
+    },
+    {
+      "name": "scale-final-stream-exploratory.log",
+      "size_bytes": 595,
+      "sha256": "15faecc72ed8d075c1d07974999827a28feffda5b2348dd6f74ce3ea46759ea3"
+    },
+    {
+      "name": "scale-final-stream-focused.log",
+      "size_bytes": 7103,
+      "sha256": "891496effb8af5b64547e35ef19f750b4c1c4e1be2474f93b1114468d6f18f5f"
+    },
+    {
+      "name": "scale-final-without-rowid-exploratory.json",
+      "size_bytes": 594,
+      "sha256": "c6a7ad5fd2da8dd68f915bef1f7cf327e616cb76afb81128958b93f30be10904"
+    },
+    {
+      "name": "scale-final-without-rowid-exploratory.log",
+      "size_bytes": 594,
+      "sha256": "c6a7ad5fd2da8dd68f915bef1f7cf327e616cb76afb81128958b93f30be10904"
+    },
+    {
+      "name": "scale-post121-profile.json",
+      "size_bytes": 631,
+      "sha256": "d975056ec6c5224440c8d24907a8f2771ff3612cc7be60340ef632a647292a5f"
+    },
+    {
+      "name": "scale-post121-profile.log",
+      "size_bytes": 631,
+      "sha256": "d975056ec6c5224440c8d24907a8f2771ff3612cc7be60340ef632a647292a5f"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Processing /workspace/scratch/e341555d0f23/qualification/candidate-wheel/diffwitness-0.4.0a1-py3-none-any.whl
+Installing collected packages: diffwitness
+Successfully installed diffwitness-0.4.0a1
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.1
+[notice] To update, run: python -m pip install --upgrade pip

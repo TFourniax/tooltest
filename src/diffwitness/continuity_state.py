@@ -9,7 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, Iterable
 
-from .continuity_contract import projection_lifecycle as _lifecycle
+from .continuity_contract import DECLARATION_PROFILE, PROFILE_PROVENANCE_FIELD, projection_lifecycle as _lifecycle
 from .continuity_events import (ContinuityPaths, _event_lock, continuity_paths,
                                 read_project_event_snapshot, read_project_events)
 from .continuity_task_contract import is_task_edge_event
@@ -22,14 +22,17 @@ from .gitops import git, repo_root
 # to replacement content. The append-only event schema and historical Proof stay intact.
 # v7 rebuilds lexical terms with accent folding. Journal identities and bytes do
 # not change; v6 indexes must not be reused with the new query normalization.
-STATE_SCHEMA = "continuity-state-8"
+# v9 stores lexical pairs once in their composite primary-key tree. Rebuild v8
+# derived databases; journal bytes, identities and lexical semantics are unchanged.
+STATE_SCHEMA = "continuity-state-9"
 # Older stamps did not enforce explicitly selected declaration profiles.
 # Only a snapshot validated under current JSON/profile rules establishes this anchor.
 VALIDATED_EVENT_DIGEST_META = "memory_code_event_file_sha256"
+_CANONICAL_ENCODER = json.JSONEncoder(sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return _CANONICAL_ENCODER.encode(value)
 
 
 def _connect(path: Path) -> sqlite3.Connection:
@@ -44,7 +47,35 @@ def _connect(path: Path) -> sqlite3.Connection:
     return conn
 
 
-def _schema(conn: sqlite3.Connection) -> None:
+_INDEX_STATEMENTS = (
+    'create index events_type_idx on events(event_type, sequence desc)',
+    'create index events_subject_idx on events(subject_id, sequence desc)',
+    'create index entities_kind_idx on entities(kind, lifecycle, updated_at desc)',
+    'create index entities_critical_idx on entities(critical,lifecycle)',
+    'create index entity_terms_term_idx on entity_terms(term,entity_id)',
+    'create index relations_source_idx on relations(source_id, predicate)',
+    'create index relations_target_idx on relations(target_id, predicate)',
+    'create index changes_updated_idx on changes(updated_at desc)',
+    'create index proofs_change_idx on proofs(change_id, updated_at desc)',
+    'create index debts_status_idx on debts(status, updated_at desc)',
+    'create index debts_change_idx on debts(last_change_id)',
+    'create index debts_intro_change_idx on debts(introduced_change_id)',
+    'create index debts_path_idx on debts(path, status)',
+    'create index structure_components_module_idx on structure_components(module_name)',
+    'create index structure_symbols_name_idx on structure_symbols(qualified_name)',
+    'create index structure_symbols_path_idx on structure_symbols(path)',
+    'create index structure_edges_source_idx on structure_edges(source_id, predicate)',
+    'create index structure_edges_target_idx on structure_edges(target_id, predicate)',
+)
+
+
+def _indexes(conn: sqlite3.Connection) -> None:
+    # Individual execute calls preserve the schema/projection transaction.
+    for statement in _INDEX_STATEMENTS:
+        conn.execute(statement)
+
+
+def _schema(conn: sqlite3.Connection, *, indexes: bool = True) -> None:
     # This is a fresh temporary database. Keep DDL and the subsequent event
     # projection in one durable transaction, committed by rebuild_state.
     conn.executescript(
@@ -63,8 +94,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           payload_json text not null,
           provenance_json text not null
         );
-        create index events_type_idx on events(event_type, sequence desc);
-        create index events_subject_idx on events(subject_id, sequence desc);
 
         create table entities(
           entity_id text primary key,
@@ -78,10 +107,7 @@ def _schema(conn: sqlite3.Connection) -> None:
           source_event_id text not null,
           critical integer not null default 0
         );
-        create index entities_kind_idx on entities(kind, lifecycle, updated_at desc);
-        create index entities_critical_idx on entities(critical,lifecycle);
-        create table entity_terms(entity_id text not null, term text not null, primary key(entity_id,term));
-        create index entity_terms_term_idx on entity_terms(term,entity_id);
+        create table entity_terms(entity_id text not null, term text not null, primary key(entity_id,term)) without rowid;
 
         create table memory_lifecycle(entity_id text primary key, lifecycle_json text not null);
 
@@ -97,8 +123,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           source_event_id text not null,
           updated_at text not null
         );
-        create index relations_source_idx on relations(source_id, predicate);
-        create index relations_target_idx on relations(target_id, predicate);
         create view active_memory_relations as select r.* from relations r
           where r.lifecycle='active'
             and not exists(select 1 from entities e where e.entity_id=r.source_id and e.lifecycle='inactive')
@@ -116,7 +140,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           updated_at text not null,
           source_event_id text not null
         );
-        create index changes_updated_idx on changes(updated_at desc);
 
         create table proofs(
           certificate_id text primary key,
@@ -127,7 +150,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           source_event_id text not null,
           updated_at text not null
         );
-        create index proofs_change_idx on proofs(change_id, updated_at desc);
 
         create table debts(
           debt_id text primary key,
@@ -148,10 +170,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           source_event_id text not null,
           updated_at text not null
         );
-        create index debts_status_idx on debts(status, updated_at desc);
-        create index debts_change_idx on debts(last_change_id);
-        create index debts_intro_change_idx on debts(introduced_change_id);
-        create index debts_path_idx on debts(path, status);
 
         create table debt_snapshots(
           change_id text primary key,
@@ -183,7 +201,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           tree_sha text,
           indexed_at text not null
         );
-        create index structure_components_module_idx on structure_components(module_name);
 
         create table structure_symbols(
           symbol_id text primary key,
@@ -199,8 +216,6 @@ def _schema(conn: sqlite3.Connection) -> None:
           tree_sha text,
           indexed_at text not null
         );
-        create index structure_symbols_name_idx on structure_symbols(qualified_name);
-        create index structure_symbols_path_idx on structure_symbols(path);
 
         create table structure_edges(
           edge_id text primary key,
@@ -213,10 +228,10 @@ def _schema(conn: sqlite3.Connection) -> None:
           tree_sha text,
           indexed_at text not null
         );
-        create index structure_edges_source_idx on structure_edges(source_id, predicate);
-        create index structure_edges_target_idx on structure_edges(target_id, predicate);
         """
     )
+    if indexes:
+        _indexes(conn)
 
 
 def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
@@ -224,6 +239,35 @@ def _relation_id(source_id: str, predicate: str, target_id: str) -> str:
 
     seed = f"{source_id}\0{predicate}\0{target_id}".encode("utf-8")
     return "dwrel_" + hashlib.sha256(seed).hexdigest()[:24]
+
+
+_ENTITY_UPSERT = """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id,critical)
+    values(?,?,?,?,?,?,?,?,?,?)
+    on conflict(entity_id) do update set
+      kind=excluded.kind,label=coalesce(excluded.label,entities.label),epistemic_status=excluded.epistemic_status,
+      lifecycle=excluded.lifecycle,updated_at=excluded.updated_at,payload_json=excluded.payload_json,
+      provenance_json=excluded.provenance_json,source_event_id=excluded.source_event_id,critical=excluded.critical"""
+
+
+def _entity_row(event: dict[str, Any], payload_json: str | None = None,
+                provenance_json: str | None = None) -> tuple:
+    subject, payload = event["subject"], event.get("payload") or {}
+    return (str(subject["id"]), subject["kind"], subject.get("label"), event["epistemic_status"],
+            _lifecycle(event["event_type"], payload), event["timestamp"],
+            _canonical(payload) if payload_json is None else payload_json,
+            _canonical(event.get("provenance") or {}) if provenance_json is None else provenance_json,
+            event["event_id"], int(subject["kind"] == "invariant" and payload.get("critical") is True))
+
+
+def _entity_term_rows(conn: sqlite3.Connection, event: dict[str, Any]) -> Iterable[tuple[str, str]]:
+    subject = event["subject"]
+    if subject["kind"] not in SEARCHABLE_KINDS:
+        return ()
+    entity_id, label = str(subject["id"]), subject.get("label")
+    if label is None:
+        label = conn.execute("select label from entities where entity_id=?", (entity_id,)).fetchone()[0]
+    values = tokens(memory_text(subject["kind"], entity_id, label, event.get("payload") or {}))
+    return ((entity_id, term) for term in values)
 
 
 def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
@@ -237,38 +281,10 @@ def _upsert_entity(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
         return
     if event["event_type"] == "relation.declared" or is_task_edge_event(event) or is_memory_code(event):
         return
-    subject = event["subject"]
-    entity_id = str(subject["id"])
     # Authority belongs to this assertion, never to the entity ID for all time.
-    status = event["epistemic_status"]
-    payload = event.get("payload") or {}
-    conn.execute(
-        """insert into entities(entity_id,kind,label,epistemic_status,lifecycle,updated_at,payload_json,provenance_json,source_event_id,critical)
-           values(?,?,?,?,?,?,?,?,?,?)
-           on conflict(entity_id) do update set
-             kind=excluded.kind,label=coalesce(excluded.label,entities.label),epistemic_status=excluded.epistemic_status,
-             lifecycle=excluded.lifecycle,updated_at=excluded.updated_at,payload_json=excluded.payload_json,
-             provenance_json=excluded.provenance_json,source_event_id=excluded.source_event_id,critical=excluded.critical""",
-        (
-            entity_id,
-            subject["kind"],
-            subject.get("label"),
-            status,
-            _lifecycle(event["event_type"], payload),
-            event["timestamp"],
-            _canonical(payload),
-            _canonical(event.get("provenance") or {}),
-            event["event_id"],
-            int(subject["kind"] == "invariant" and payload.get("critical") is True),
-        ),
-    )
-    conn.execute("delete from entity_terms where entity_id=?", (entity_id,))
-    if subject["kind"] in SEARCHABLE_KINDS:
-        label = subject.get("label")
-        if label is None:
-            label = conn.execute("select label from entities where entity_id=?", (entity_id,)).fetchone()[0]
-        values = tokens(memory_text(subject["kind"], entity_id, label, payload))
-        conn.executemany("insert into entity_terms(entity_id,term) values(?,?)", ((entity_id, term) for term in values))
+    conn.execute(_ENTITY_UPSERT, _entity_row(event))
+    conn.execute("delete from entity_terms where entity_id=?", (str(event["subject"]["id"]),))
+    conn.executemany("insert into entity_terms(entity_id,term) values(?,?)", _entity_term_rows(conn, event))
 
 
 def _upsert_relations(conn: sqlite3.Connection, event: dict[str, Any]) -> None:
@@ -463,16 +479,54 @@ def _state_lock(paths: ContinuityPaths):
         yield
 
 
+_EVENT_INSERT = "insert into events(sequence,event_id,event_type,timestamp,epistemic_status,subject_id,subject_kind,event_hash,payload_json,provenance_json) values(?,?,?,?,?,?,?,?,?,?)"
+_BATCHABLE_DECLARATIONS = frozenset(("objective.declared", "decision.recorded", "invariant.declared", "approach.failed"))
+
+
+def _event_row(sequence: int, event: dict[str, Any]) -> tuple:
+    return (sequence, event["event_id"], event["event_type"], event["timestamp"], event["epistemic_status"],
+            event["subject"]["id"], event["subject"]["kind"], event["event_hash"],
+            _canonical(event.get("payload") or {}), _canonical(event.get("provenance") or {}))
+
+
 def _project_event(conn: sqlite3.Connection, sequence: int, event: dict[str, Any]) -> None:
-    conn.execute(
-        "insert into events(sequence,event_id,event_type,timestamp,epistemic_status,subject_id,subject_kind,event_hash,payload_json,provenance_json) values(?,?,?,?,?,?,?,?,?,?)",
-        (sequence, event["event_id"], event["event_type"], event["timestamp"], event["epistemic_status"],
-         event["subject"]["id"], event["subject"]["kind"], event["event_hash"],
-         _canonical(event.get("payload") or {}), _canonical(event.get("provenance") or {})),
-    )
+    conn.execute(_EVENT_INSERT, _event_row(sequence, event))
     _upsert_entity(conn, event)
     _upsert_relations(conn, event)
     _specialized(conn, event)
+
+
+def _project_declarations(conn: sqlite3.Connection, entries: list[tuple[int, dict[str, Any]]]) -> None:
+    """Project a bounded chronological run with no specialized lifecycle effects."""
+    rows = [_event_row(sequence, event) for sequence, event in entries]
+    conn.executemany(_EVENT_INSERT, rows)
+    # UPSERTs still run in journal order, including label coalescing and authority
+    # replacement. Only the derived lexical terms wait until the final assertion.
+    conn.executemany(_ENTITY_UPSERT, (_entity_row(event, row[-2], row[-1])
+                                    for (_, event), row in zip(entries, rows)))
+    latest = {}
+    for _, event in entries:
+        _upsert_relations(conn, event)
+        latest[str(event["subject"]["id"])] = event
+    conn.executemany("delete from entity_terms where entity_id=?", ((key,) for key in latest))
+    conn.executemany("insert into entity_terms(entity_id,term) values(?,?)",
+                     (row for event in latest.values() for row in _entity_term_rows(conn, event)))
+
+
+def _project_history(conn: sqlite3.Connection, events: list[dict[str, Any]]) -> None:
+    pending = []
+    for sequence, event in enumerate(events, start=1):
+        eligible = (event["event_type"] in _BATCHABLE_DECLARATIONS
+                    and event["provenance"].get(PROFILE_PROVENANCE_FIELD) == DECLARATION_PROFILE)
+        if pending and (not eligible or len(pending) == 2048):
+            _project_declarations(conn, pending)
+            pending = []
+        if eligible:
+            pending.append((sequence, event))
+        else:
+            _project_event(conn, sequence, event)
+    if pending:
+        _project_declarations(conn, pending)
 
 
 def _stamp_snapshot(conn: sqlite3.Connection, root: Path, events: list[dict[str, Any]], digest: str) -> None:
@@ -501,9 +555,9 @@ def _rebuild_snapshot(root_repo: Path, paths: ContinuityPaths, events: list[dict
     try:
         conn = _connect(temp)
         try:
-            _schema(conn)
-            for sequence, event in enumerate(events, start=1):
-                _project_event(conn, sequence, event)
+            _schema(conn, indexes=False)
+            _project_history(conn, events)
+            _indexes(conn)
             _stamp_snapshot(conn, root_repo, events, digest)
             conn.commit()
             if include_structure:

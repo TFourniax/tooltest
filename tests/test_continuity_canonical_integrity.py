@@ -4,7 +4,9 @@ import copy
 import hashlib
 import json
 import random
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from diffwitness import continuity_events as journal
@@ -35,6 +37,46 @@ def signed(payload=None, **extensions):
 
 
 class CanonicalIntegrityTests(unittest.TestCase):
+    def test_stream_rejection_closes_file_after_earlier_valid_events(self):
+        first = signed()
+        second = signed(prev_hash=first['event_hash'])
+        second['event_hash'] = '0' * 64
+        for suffix in (encoded(second) + b'\n', b'{"unfinished":\n', b'{"x":1,"x":2}\n'):
+            with self.subTest(suffix=suffix[:30]), tempfile.TemporaryDirectory() as td:
+                path = Path(td) / 'events.jsonl'
+                path.write_bytes(encoded(first) + b'\n' + suffix)
+                opened = []
+                original = Path.open
+                def observe(value, *args, **kwargs):
+                    handle = original(value, *args, **kwargs)
+                    if value == path:
+                        opened.append(handle)
+                    return handle
+                with patch.object(Path, 'open', observe):
+                    with self.assertRaises(journal.ContinuityError):
+                        journal.read_project_events(path)
+                self.assertEqual(len(opened), 1)
+                self.assertTrue(opened[0].closed)
+
+    def test_ordinary_validation_needs_one_complete_canonical_encoding(self):
+        event = signed({"nested": {"values": list(range(200))}})
+        with patch.object(journal, "_canonical", wraps=journal._canonical) as encode:
+            journal.validate_project_events([event])
+        self.assertEqual(encode.call_count, 1)
+
+    def test_nested_identity_lookalikes_and_missing_actor_match_reference(self):
+        for field in ("event_id", "event_hash"):
+            for location in ("payload", "actor", "aaa", "zzz"):
+                event = signed()
+                event[location] = {"a": 0, field: event[field]}
+                with self.subTest(field=field, location=location):
+                    self.assertEqual(journal._event_integrity(event), reference(event))
+                    with self.assertRaises(journal.ContinuityError):
+                        journal.validate_project_events([event])
+        for event in ({"event_id": "dwev_" + "0" * 24, "event_hash": "0" * 64},
+                      {"actor": {}, "event_id": "dwev_" + "0" * 24, "event_hash": "0" * 64}):
+            self.assertEqual(journal._event_integrity(event), reference(event))
+
     def test_full_validator_encodes_nested_payload_only_once(self):
         event = signed({"nested": {"values": list(range(200))}})
         visits = []

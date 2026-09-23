@@ -1,0 +1,29 @@
+{
+  "base": "e2e3f578d04d58f55901963e645c4bd14efbc6f3",
+  "wheel_sha256": "ea7666a6657396be9fa4d070a8c9b7b6a0828348d4f958a584620f1553bd1543",
+  "modules": [
+    {
+      "module": "continuity_events.py",
+      "identical": true,
+      "sha256": "6c616441271c81edb01b265b1cd8aa42a147ca44b3b7eb625ead838887093591"
+    },
+    {
+      "module": "continuity_state.py",
+      "identical": true,
+      "sha256": "789bb54355d5210546d0e682ce528e9e8b32d9068b5e99bf76b44d60d7488c73"
+    },
+    {
+      "module": "json_contract.py",
+      "identical": true,
+      "sha256": "17888dc90594c50b7096caad8e308efb25a5f561f1cb8d5b5cb7305bfbfd36b6"
+    }
+  ],
+  "baseline_wheel_sha256": "72afecdc8398b6b42effc1d00afa5d08b36296822b46980be4b4bae57782ddf2",
+  "full_suite": {
+    "tests": 719,
+    "skipped": 52,
+    "failures": 0,
+    "seconds": 71.911,
+    "log_sha256": "3b2e17a2c2011f9a750a60abf70c20403e247e320cc45c2bca9e4684006d20b6"
+  }
+}
