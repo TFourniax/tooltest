@@ -37,3 +37,11 @@ attempts, full logs and hashes are retained beside this document.
 Fresh final-head review/CI and exact-main requalification remain required.
 RR006 publication, immutable coordinated release manifest and #80 actual public-tag
 consumer stay open. No HUMAN or Alpha-ready status follows from this source gate.
+
+## Exact test inventory (review 4088344784)
+
+The old checker accepted an actual source archive containing an extra untracked test fixture, reporting inventory comparison success after all 734 tests passed. The corrected checker rejects that same archive before environment creation and compares the complete archived file set in both directions, then exact bytes. Missing, extra executable tests, extra non-executable fixtures and altered bytes are exercised.
+
+A clean source archive then passes all 734 tests in an isolated installed extraction (52 explicit skips); archive SHA-256 `04e160d8abab50c0b327cea710f43a2a7a5ea486b0196be7a01d91f68df287df`. Documentation additions after this build require a new final CI archive identity. Raw before/after logs and hashes are retained in `inventory-review`.
+
+Independent current-main run35933159647 remains failed on Windows/Python3.14, hook context timeout at SQLite rebuild commit. This packaging change does not resolve that PM012 incident or qualify publication.

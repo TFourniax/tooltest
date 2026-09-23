@@ -14,6 +14,22 @@ import tempfile
 import venv
 
 
+def verify_test_inventory(root: Path, source: Path) -> None:
+    expected = set(subprocess.check_output(
+        ["git", "ls-files", "-z", "--", "tests"], cwd=source
+    ).decode("utf-8").strip("\0").split("\0"))
+    if not expected or "" in expected:
+        raise ValueError("Canonical source test inventory is empty")
+    actual = {item.relative_to(root).as_posix() for item in (root / "tests").rglob("*")
+              if item.is_file()}
+    if actual != expected:
+        raise ValueError(f"Source test inventory differs: missing={sorted(expected - actual)!r}; "
+                         f"extra={sorted(actual - expected)!r}")
+    for name in sorted(expected):
+        if (root / name).read_bytes() != (source / name).read_bytes():
+            raise ValueError(f"Source distribution changed test asset: {name}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
@@ -52,16 +68,7 @@ def main() -> int:
         if not tests or not (root / "src/diffwitness/__init__.py").is_file():
             raise ValueError("Source distribution has no usable source qualification suite")
         if args.compare_source_root:
-            source = args.compare_source_root.resolve()
-            expected = subprocess.check_output(
-                ["git", "ls-files", "-z", "--", "tests"], cwd=source
-            ).decode("utf-8").strip("\0").split("\0")
-            if not expected or not all(expected):
-                raise ValueError("Canonical source test inventory is empty")
-            for name in expected:
-                bundled = root / name
-                if not bundled.is_file() or bundled.read_bytes() != (source / name).read_bytes():
-                    raise ValueError(f"Source distribution omitted or changed test asset: {name}")
+            verify_test_inventory(root, args.compare_source_root.resolve())
         with log.open("wb") as output:
             environment = Path(temporary) / "qualification-venv"
             venv.EnvBuilder(with_pip=True).create(environment)
