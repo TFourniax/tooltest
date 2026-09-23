@@ -101,6 +101,24 @@ def state_cli(argv: list[str]) -> int:
         lineage.add_argument("--path", required=True)
         lineage.add_argument("--limit", type=int, default=50)
         lineage.add_argument("--json", action="store_true")
+        history = sub.add_parser("history", help=tr("Page original events for an exact memory identity", "Parcourir les événements d’une identité mémoire exacte"))
+        history.add_argument("identity")
+        history.add_argument("--repo", default=".")
+        history.add_argument("--limit", type=int, default=50)
+        history.add_argument("--cursor")
+        history.add_argument("--json", action="store_true")
+        event = sub.add_parser("event", help=tr("Open an exact cited event", "Ouvrir un événement cité exact"))
+        event.add_argument("event_id")
+        event.add_argument("--repo", default=".")
+        event.add_argument("--hash", dest="expected_hash")
+        event.add_argument("--json", action="store_true")
+        why = sub.add_parser("why", help=tr("Follow cited recorded relationships in both directions", "Suivre les relations enregistrées et sourcées dans les deux sens"))
+        why.add_argument("identity")
+        why.add_argument("--repo", default=".")
+        why.add_argument("--depth", type=int, default=2)
+        why.add_argument("--max-nodes", type=int, default=50)
+        why.add_argument("--max-edges", type=int, default=100)
+        why.add_argument("--json", action="store_true")
         ingest = sub.add_parser("ingest-envelope")
         ingest.add_argument("envelope", type=Path)
         ingest.add_argument("--repo", default=".")
@@ -130,7 +148,31 @@ def state_cli(argv: list[str]) -> int:
         return 0
     from .continuity_events import ContinuityError, continuity_paths, read_project_events
     from .continuity_state import ensure_state, rebuild_state, state_status
-    from .gitops import repo_root
+    from .gitops import GitError, repo_root
+
+    if args.command in {"history", "event", "why"}:
+        from .continuity_history import entity_history, event_detail, why_entity, render_history, render_why
+        try:
+            if args.command == "history":
+                result = entity_history(args.repo, args.identity, limit=args.limit, cursor=args.cursor)
+                rendered = render_history
+            elif args.command == "event":
+                result = event_detail(args.repo, args.event_id, expected_hash=args.expected_hash)
+                def rendered(value):
+                    return render_history({"identity": value["identity"],
+                                           "events": [{"sequence": value["sequence"], "event": value["event"]}],
+                                           "nextCursor": None})
+            else:
+                result = why_entity(args.repo, args.identity, depth=args.depth,
+                                    max_nodes=args.max_nodes, max_edges=args.max_edges)
+                rendered = render_why
+            # Compact JSON preserves the history page's wire-byte budget.
+            print(json.dumps(result, ensure_ascii=False, separators=(",", ":")) if args.json else rendered(result),
+                  end="\n" if args.json else "")
+        except (ContinuityError, GitError, OSError, ValueError) as exc:
+            print(tr("Memory navigation rejected: ", "Navigation mémoire refusée : ") + str(exc), file=sys.stderr)
+            return 2
+        return 0
 
     repo = repo_root(args.repo)
 

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/core-history/scripts/memory_navigation_acceptance.py", line 79, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/scratch/fa8b5862d36a/core-history/scripts/memory_navigation_acceptance.py", line 71, in main
+    "actual_cli": True, "explicit_executable": bool(args.dw), "nodes": len(final["nodes"]),
+                                                    ^^^^^^^
+AttributeError: 'tuple' object has no attribute 'dw'

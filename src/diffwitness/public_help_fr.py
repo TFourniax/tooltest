@@ -9,6 +9,7 @@ Après setup, utilise ton agent de code normalement ; lance `dw status` après u
 
 Quand c’est utile :
   dw explain                         Expliquer la dernière modification à partir des preuves locales, sans IA
+  dw state why ID                     Retrouver les raisons et sources enregistrées d’un élément de mémoire
   dw protect detect                  Vérifier la protection runtime optionnelle sans modifier la configuration
   dw view technical                  Ouvrir toutes les commandes et détails d’ingénierie
 
@@ -86,6 +87,9 @@ Continuité du projet :
   dw relation add A <type> B            Relier deux faits par une relation typée déclarée humainement
   dw state status                       Examiner le journal append-only et l’état reconstructible
   dw state graph [--entity ID]          Examiner les entités et relations typées
+  dw state history ID                  Lire les événements originaux avec leurs sources exactes
+  dw state event EVENT_ID --hash SHA    Ouvrir et contrôler un événement source cité
+  dw state why ID                      Suivre les raisons et relations enregistrées dans les deux sens
   dw state rebuild                      Reconstruire state.db depuis ProjectEvents et Git
   dw state checkpoint                   Sauvegarder sur refs/diffwitness/project-events
   dw state push                         Pousser sans forcer ni perdre les écritures concurrentes

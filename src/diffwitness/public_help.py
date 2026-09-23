@@ -70,6 +70,9 @@ Project continuity:
   dw relation add A <type> B           Add a typed human-declared relation between existing facts
   dw state status                      Inspect the append-only journal and rebuildable Project State
   dw state graph [--entity ID]         Inspect typed project entities and relations
+  dw state history ID                 Read original events with exact source identities
+  dw state event EVENT_ID --hash SHA   Open and check a cited source event
+  dw state why ID                     Follow recorded reasons and relationships in both directions
   dw state rebuild                     Rebuild state.db from ProjectEvents + Git
   dw state checkpoint                  Checkpoint ProjectEvents on refs/diffwitness/project-events
   dw state push                        Push that ref without force; concurrent writers cannot be lost
@@ -111,6 +114,7 @@ After setup, use your coding agent normally; run `dw status` after a change.
 
 Useful when needed:
   dw explain                         Explain the latest change from local evidence, with no AI required
+  dw state why ID                     Find the recorded reasons and sources behind a memory item
   dw protect detect                  Check optional live protection without changing configuration
   dw view technical                  Open the complete engineering command surface
 
