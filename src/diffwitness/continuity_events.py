@@ -32,6 +32,8 @@ class ContinuityError(RuntimeError):
 
 _EVENT_TYPE = re.compile(EVENT_TYPE_PATTERN)
 _ENTITY_ID = re.compile(ENTITY_ID_PATTERN)
+_EVENT_ID = re.compile(r"dwev_[0-9a-f]{24}")
+_EVENT_DIGEST = re.compile(r"[0-9a-f]{64}")
 _LOCK_TIMEOUT_SECONDS = 10.0
 _STALE_LOCK_SECONDS = 120.0
 
@@ -100,6 +102,33 @@ def _event_id(event: dict[str, Any]) -> str:
     return "dwev_" + _sha(stable)[:24]
 
 
+def _event_integrity(event: dict[str, Any]) -> tuple[int, str, str]:
+    """Compute the existing wire size and two digests without re-encoding payloads.
+
+    Sorted JSON members before/after event_id retain exactly their original order.
+    Encode each partition once, then insert the ASCII identity member for the
+    event hash. The event_hash member contributes to size only, as before. This
+    does not use stored hashes, raw JSON spelling, or cached validation as proof.
+    Nonstandard Python inputs retain the original encoder behavior.
+    """
+    if (type(event) is not dict or any(type(key) is not str for key in event)
+            or type(event.get("event_id")) is not str or not _EVENT_ID.fullmatch(event["event_id"])
+            or type(event.get("event_hash")) is not str or not _EVENT_DIGEST.fullmatch(event["event_hash"])):
+        return len((_canonical(event) + "\n").encode("utf-8")), _event_id(event), _event_hash(event)
+    groups: tuple[dict[str, Any], dict[str, Any]] = ({}, {})
+    for key, value in event.items():
+        if key not in {"event_id", "event_hash"}:
+            groups[key > "event_id"][key] = value
+    before, after = (_canonical(group).encode("utf-8")[1:-1] if group else b"" for group in groups)
+    identity_bytes = b"{" + b",".join(part for part in (before, after) if part) + b"}"
+    identity_member = b'"event_id":"' + event["event_id"].encode("ascii") + b'"'
+    hash_bytes = b"{" + b",".join(part for part in (before, identity_member, after) if part) + b"}"
+    # A comma, the fixed event_hash member and the historical LF size bound.
+    wire_size = len(hash_bytes) + len(b',"event_hash":""') + 64 + 1
+    return (wire_size, "dwev_" + hashlib.sha256(identity_bytes).hexdigest()[:24],
+            hashlib.sha256(hash_bytes).hexdigest())
+
+
 def _validate_subject(subject: Any) -> None:
     if not isinstance(subject, dict):
         raise ContinuityError("project event subject must be an object")
@@ -132,7 +161,8 @@ def _validate_relations(relations: Any) -> None:
             raise ContinuityError("project relation metadata must be an object")
 
 
-def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> None:
+def _validate_event_shape(event: dict[str, Any], *, line: int | None = None,
+                          compute_integrity: bool = False) -> tuple[str, str] | None:
     where = f" at line {line}" if line is not None else ""
     if event.get("schema_version") != SCHEMA_VERSION:
         raise ContinuityError(f"unsupported project event schema{where}")
@@ -160,9 +190,11 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None) -> 
     dedupe_key = event.get("dedupe_key")
     if dedupe_key is not None and (not isinstance(dedupe_key, str) or not dedupe_key or len(dedupe_key) > 500):
         raise ContinuityError(f"invalid dedupe key{where}")
-    raw = (_canonical(event) + "\n").encode("utf-8")
-    if len(raw) > _MAX_EVENT_BYTES:
+    integrity = _event_integrity(event) if compute_integrity else None
+    size = integrity[0] if integrity else len((_canonical(event) + "\n").encode("utf-8"))
+    if size > _MAX_EVENT_BYTES:
         raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
+    return integrity[1:] if integrity else None
 
 
 class _ProjectEventValidator:
@@ -179,12 +211,11 @@ class _ProjectEventValidator:
         index = self.count + 1
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
-        _validate_event_shape(event, line=index)
+        expected_id, expected_hash = _validate_event_shape(event, line=index, compute_integrity=True)
         if event.get("prev_hash") != self.previous:
             raise ContinuityError(f"project event hash chain broken at line {index}")
-        if event.get("event_id") != _event_id(event):
+        if event.get("event_id") != expected_id:
             raise ContinuityError(f"project event id integrity failed at line {index}")
-        expected_hash = _event_hash(event)
         if event.get("event_hash") != expected_hash:
             raise ContinuityError(f"project event integrity failed at line {index}")
         dedupe_key = event.get("dedupe_key")
