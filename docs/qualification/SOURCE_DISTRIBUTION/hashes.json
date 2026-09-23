@@ -1,0 +1,19 @@
+{
+  "sdist-before-build.log": "fdc0b5fe13b370c815eb710d44acdb16a6327c514d4751351f4ffbf5c9d6e25a",
+  "sdist-before-backend.log": "3a863ceefb09f644d9a91faa95a5549b792001a71ab33bde501dfa7e738b0df5",
+  "sdist-before-suite.log": "8144b297b4bb166bea4e0bf16be08400586f686607e6164110db0668709c1aed",
+  "sdist-before-result.json": "7388979023e1938ed284a9ef9176e820acbb6704711edbf331f16b94ea069c34",
+  "sdist-after-build.log": "3d0851c85923af1ff9ec83a4ac173b90a360f952b0d4768f79046c4f4c5a2a3a",
+  "sdist-after-suite.log": "e06370dcb26f086b25d9efd1385089428b6ab74d12a4f567eb698c708e63ba50",
+  "sdist-after-result.json": "b1596103524226c26d7a00258149a9b862208affd7df1eab25e075b5109055c1",
+  "sdist-before-installed-suite.log": "dbc48f29387cc5f08ead698b493f9dc0cfbad32e1675b8f34f6110af6ef89cdc",
+  "sdist-before-installed-result.json": "0b4e6defe59c57a5910e66b3963d14b272927f8f2436a3a30b1052035ed4d24e",
+  "sdist-final-build.log": "218fb1b394de5969633eba446c3ce6d5a134bb79d3a9f477fc01825879974a70",
+  "sdist-final-suite.log": "2975bdb2e5b548e657c7a24284505497c13fb71a2ebe1803bc9faed86296e701",
+  "sdist-final-result.json": "b54fa3b10d6951c5adf117b4dea4034c26bd9786b4571fedca33c86b4ac22a93",
+  "sdist-before-isolated-suite.log": "436293992d669d665ad666a0caa89e6b77c93877072ae4b5557bb525a8e01e9b",
+  "sdist-before-isolated-result.json": "fea62d0ea86988f8ef205b10533de54e8632978f90bb4010c316cd5cad1ee4c9",
+  "sdist-qualified-build.log": "ad08cb03ecab1fb001db4c2a9c58253bd0952490402e1c67048b1902f9ee162d",
+  "sdist-qualified-suite.log": "14a1524e85cf72b39037a37798a62ae4ead8804b6f0a2b454ee18f92e4ad52da",
+  "sdist-qualified-result.json": "dfe9602a6d964fdd94b63100078c6f81d81a23b3b541a5aea6c37ed9121c74e3"
+}

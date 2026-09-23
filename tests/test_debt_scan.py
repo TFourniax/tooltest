@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from diffwitness.attestation import expected_certificate_id
 from diffwitness.debt_scan import scan_change, scan_project
 
 
@@ -27,6 +28,13 @@ def init_repo(repo: Path, files: dict[str, str]) -> str:
     git("add", "-A", cwd=repo)
     git("commit", "-q", "-m", "baseline", cwd=repo)
     return git("rev-parse", "HEAD", cwd=repo)
+
+
+def bound_fixture(family, base, candidate, **fields):
+    # These are accounting unit fixtures, not claims of executed evidence.
+    value={"certificate_id": family+"_pending", "base": {"sha":base}, "candidate":{"sha":candidate}, **fields}
+    value["certificate_id"]=expected_certificate_id(value)
+    return value
 
 
 class DebtScanTests(unittest.TestCase):
@@ -54,7 +62,7 @@ class DebtScanTests(unittest.TestCase):
             candidate = git("rev-parse", "HEAD", cwd=repo)
             cert = root / "non-proof.json"
             cert.write_text(
-                json.dumps({"certificate_id": "dw0_not-a-causal-proof"}),
+                json.dumps(bound_fixture("dw0", base, candidate)),
                 encoding="utf-8",
             )
             report = scan_change(
@@ -82,7 +90,7 @@ class DebtScanTests(unittest.TestCase):
             candidate = git("rev-parse", "HEAD", cwd=repo)
             cert = root / "cert.json"
             cert.write_text(
-                json.dumps({"certificate_id": "dwa1_123", "classification": "preservation-evidence"}),
+                json.dumps(bound_fixture("dwa1", base, candidate, classification="preservation-evidence")),
                 encoding="utf-8",
             )
             by_rule = {

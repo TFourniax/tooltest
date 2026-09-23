@@ -207,6 +207,16 @@ jobs:
           release-wheel-smoke/bin/dw protect --help
           release-wheel-smoke/bin/dw explain --help
           release-wheel-smoke/bin/idleproof --version
+      - name: Qualify complete source distribution outside the checkout
+        shell: bash
+        run: python scripts/source_distribution_smoke.py dist/*.tar.gz --log source-suite.log --compare-source-root .
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: preflight-source-suite-log
+          path: source-suite.log
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@v6
         with:
           name: preflight-python-distributions

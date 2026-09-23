@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -127,20 +128,38 @@ def _tree_from_commit(repo: Path, commit: str) -> str:
     return value
 
 
-def _binding(report: dict[str, Any], key: str) -> tuple[str | None, str | None]:
-    value = _git_binding(report, key)
-    sha = value.get("sha")
-    tree = value.get("tree")
-    if key == "candidate":
-        sha = sha or report.get("candidate_sha")
-        tree = tree or report.get("candidate_tree")
-    else:
-        sha = sha or report.get("base_sha")
-        tree = tree or report.get("base_tree")
-    return (
-        sha if isinstance(sha, str) and sha else None,
-        tree if isinstance(tree, str) and tree else None,
-    )
+def certificate_binding(report: dict[str, Any], key: str) -> tuple[str | None, str | None]:
+    """Read the authenticated Git identity for a public certificate family.
+
+    Adaptive ``candidate`` is an evidence run, not its Git identity. Other
+    families authenticate the nested identity. Never let an extra, potentially
+    unhashed field redirect a consumer or silently win over a contradiction.
+    Missing version fields remain readable for historical development artifacts;
+    a declared unknown version is not interpreted as today's schema.
+    """
+    if key not in {"base", "candidate"}:
+        raise AttestationError("unknown certificate binding role")
+    family = str(report.get("certificate_id") or "").partition("_")[0]
+    versions = {"dw2": 2, "dwac1": None, "dwa1": "assurance-1",
+                "dwv1": "validation-1", "dw0": "noop-1"}
+    if family not in versions:
+        raise AttestationError("unsupported certificate family")
+    if "schema_version" in report and report["schema_version"] != versions[family]:
+        raise AttestationError("unsupported certificate schema version")
+    nested = _git_binding(report, key)
+    result: list[str | None] = []
+    for field in ("sha", "tree"):
+        primary, extra = ((report.get(f"{key}_{field}"), nested.get(field))
+                          if family == "dwac1" else
+                          (nested.get(field), report.get(f"{key}_{field}")))
+        for value in (primary, extra):
+            if value is not None and (not isinstance(value, str) or
+                    re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", value) is None):
+                raise AttestationError(f"invalid certificate {key} {field} binding")
+        if extra is not None and extra != primary:
+            raise AttestationError(f"contradictory certificate {key} {field} bindings")
+        result.append(primary)
+    return result[0], result[1]
 
 
 def _artifact_relpath(repo: Path, path: Path) -> str | None:
@@ -160,8 +179,8 @@ def verify_against_repo(
     ignore_artifacts: list[str] | None = None,
 ) -> dict[str, Any]:
     integrity, actual_id, expected_id = verify_integrity(report)
-    candidate_sha, candidate_tree = _binding(report, "candidate")
-    base_sha, base_tree = _binding(report, "base")
+    candidate_sha, candidate_tree = certificate_binding(report, "candidate")
+    base_sha, base_tree = certificate_binding(report, "base")
 
     if candidate_tree:
         candidate_binding = "embedded-tree"

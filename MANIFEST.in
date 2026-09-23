@@ -1,0 +1,17 @@
+# The included source qualification suite must have its actual fixtures,
+# protocols, hooks, scripts and release-policy assets outside a Git checkout.
+include action.yml
+include CONTRIBUTING.md SECURITY.md
+include docs/*.md
+graft tests
+graft schema
+graft compat
+graft benchmarks
+graft scripts
+graft integrations
+graft hooks
+graft skills
+graft .claude-plugin
+graft .codex-plugin
+graft .github/workflows
+global-exclude __pycache__ *.py[cod] .DS_Store

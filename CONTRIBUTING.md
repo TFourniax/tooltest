@@ -27,3 +27,23 @@ python -m compileall -q src tests
 python -m unittest discover -s tests -v
 python -m pip wheel . --no-deps
 ```
+
+
+## Qualify a source distribution
+
+The sdist includes the source suite and the fixtures, schemas, hooks, scripts,
+plugin manifests, Action and release-policy files that the suite exercises.
+With Git and Python available, run:
+
+```sh
+python scripts/source_distribution_smoke.py dist/diffwitness-0.4.0a1.tar.gz --log source-suite.log
+```
+
+The harness extracts into a disposable directory outside the checkout, creates a
+fresh virtual environment, installs the extracted source in editable mode and
+runs the complete included unittest suite. Build dependencies must be available
+to pip (downloaded or cached); optional syntax providers stay separate explicit
+gates. The log retains every failure and skip. The JSON result binds the archive
+and log hashes. In a Git checkout, add `--compare-source-root .` to require every
+tracked test and fixture to match the archive byte for byte. This does not publish
+an artifact, qualify a public tag or substitute for other release gates.

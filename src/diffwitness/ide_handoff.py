@@ -240,7 +240,7 @@ def finalize_ide_session(
             return _retry_or_block(path, state, reason or "Proof did not pass")
 
         try:
-            _validate_generated_certificate(proof_path, repo=root, candidate_sha=candidate)
+            _validate_generated_certificate(proof_path, repo=root, base_sha=base, candidate_sha=candidate)
         except Exception as exc:
             return _retry_or_block(path, state, f"generated Proof certificate failed validation: {exc}")
 
