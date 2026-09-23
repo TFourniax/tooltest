@@ -86,6 +86,26 @@ class SensorNativePathTests(unittest.TestCase):
                     self.assertEqual(added[name], set(range(len(REIMPLEMENTED.splitlines()) + 1, len(destination.read_text().splitlines()) + 1)))
                     self.assertEqual(SemanticRedundancySensor().scan_change(repo=repo, base_sha=candidate, candidate_sha=current).signals, [])
 
+    def test_exact_move_is_not_new_code_and_edited_move_keeps_native_destination(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            base = init_repo(repo, {"legacy.py": LEGACY, "before.py": REIMPLEMENTED})
+            destination = "after space.py" if os.name == "nt" else "after\tspace.py"
+            git("mv", "before.py", destination, cwd=repo)
+            git("commit", "-qm", "pure rename", cwd=repo)
+            moved = git("rev-parse", "HEAD", cwd=repo)
+            self.assertEqual(_changed_added_lines(repo, base, moved), {})
+            self.assertEqual(SemanticRedundancySensor().scan_change(repo=repo, base_sha=base, candidate_sha=moved).signals, [])
+            (repo / destination).write_text(REIMPLEMENTED.replace("!= 3", "!= 4"), encoding="utf-8")
+            git("add", ".", cwd=repo)
+            git("commit", "-qm", "edited rename", cwd=repo)
+            edited = git("rev-parse", "HEAD", cwd=repo)
+            added = _changed_added_lines(repo, base, edited)
+            self.assertEqual(added, {destination: {5}})
+            result = SemanticRedundancySensor().scan_change(repo=repo, base_sha=base, candidate_sha=edited)
+            self.assertEqual(result.metadata["changed_units"], 1)
+            self.assertEqual(len(result.signals), 1)
+
     def test_limit_is_visible_in_actual_sensor_coverage(self):
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)

@@ -34,3 +34,14 @@ Exact changed lines, unrelated additions, seven POSIX names and quotePath varian
 are exercised. Invalid framing fails explicitly rather than guessing an identity.
 The original findings/logs remain. Updated installed wheel: all 724 tests PASS,
 52 explicit platform/dependency skips, 71.387 seconds. Wheel SHA-256: `82c765b21a2eb0e76e3a1133627f4b05731222a4d3c6c9a15b3344eab2e7b8d9`. Review and remote qualification of the new commit remain required.
+
+## Rename coverage follow-up
+
+Review4087911595 reproduced a pure move counted as new lines. Native raw records
+now preserve rename source/destination framing and original Git rename detection.
+Pure moves add no code; edited moves map only changed lines to the exact destination.
+The initial positive test added a comment that changed the lexical similarity enough
+to lose its advisory signal. It is retained; the final oracle changes a numeric
+comparison, independently checking exact changed lines and signal preservation.
+No sensor threshold changes. Installed integration tree includes main d1222e1:
+730 tests PASS, 52 explicit skips, 84.298 seconds. Wheel SHA256 `9fda2495a0e7cf6cf717b70fb0c941d408f76d48826108d267cf30ba455c4ab2`.

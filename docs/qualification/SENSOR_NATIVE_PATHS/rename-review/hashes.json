@@ -1,0 +1,9 @@
+{
+  "sensor-rename-before.log": "366cb6dc15ca85ca663f904dd0c111b5be5fc29d2ff0a2c8c3547392574ecb44",
+  "sensor-rename-corrected-after.log": "8255cb2a8b49740c6a16adf2eaa15d8f73d7bc26fc585429743301b050bf3fce",
+  "sensor-rename-after.log": "dcbd17c42353b2e630019557261b6a4d0c8ba3a8c1bc0cc4594c76407fe2ed4f",
+  "sensor-final-install.log": "7eda6aa00084ce86d5d492608532b4ac81e0fee66acbea66350b0748c2b54e11",
+  "sensor-final-full.log": "c1745d16fd52c5a0e46b0f578dbfe307a36e5d1eeb721e5248eb9c26f6af373e",
+  "sensor-final-build.log": "5198bd036e75820119e2ae90069ec2adc32f2d165aca92e8cf3cc4f116a1b62f",
+  "wheel_sha256": "9fda2495a0e7cf6cf717b70fb0c941d408f76d48826108d267cf30ba455c4ab2"
+}

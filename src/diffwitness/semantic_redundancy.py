@@ -402,22 +402,33 @@ def _load_units(repo: Path, candidate_sha: str, *, max_files: int, min_tokens: i
 
 
 def _changed_added_lines(repo: Path, base_sha: str, candidate_sha: str) -> dict[str, set[int]]:
-    # One native record per patch, in Git's emitted order. Disable renames so
-    # each raw record has exactly one path. Never parse display headers as IDs.
-    raw = git_bytes(repo, "diff", "--raw", "-z", "--patch", "--no-renames",
+    # One native record per patch, in Git's emitted order. Rename records
+    # carry source and destination paths. Never parse display headers as IDs.
+    raw = git_bytes(repo, "diff", "--raw", "-z", "--patch", "--no-renames", "--find-renames",
                     "--no-ext-diff", "--no-textconv", "--no-color", "--submodule=short",
                     "--unified=0", "--inter-hunk-context=0", base_sha, candidate_sha, "--")
     if not raw:
         return {}
     metadata, separator, patch = raw.partition(b"\0\0")
     records = metadata.split(b"\0")
+    paths: list[bytes] = []
+    index = 0
+    while index < len(records):
+        match = re.fullmatch(br":[0-7]{6} [0-7]{6} [0-9a-f]+ [0-9a-f]+ ([ACDMRTUXB])(?:[0-9]+)?", records[index])
+        if match is None:
+            raise ValueError("Unsupported native Git diff record; sensor coverage is unknown")
+        width = 3 if match.group(1) in {b"R", b"C"} else 2
+        if index + width > len(records):
+            raise ValueError("Truncated native Git diff record; sensor coverage is unknown")
+        paths.append(records[index + width - 1])
+        index += width
     blocks = re.split(br"(?m)^diff --git ", patch)[1:]
-    if not separator or len(records) % 2 or len(blocks) != len(records) // 2:
+    if not separator or len(blocks) != len(paths):
         raise ValueError("Unsupported native Git diff framing; sensor coverage is unknown")
     result: dict[str, set[int]] = defaultdict(set)
-    for index, block in enumerate(blocks):
+    for raw_path, block in zip(paths, blocks):
         try:
-            path = records[index * 2 + 1].decode("utf-8", errors="strict")
+            path = raw_path.decode("utf-8", errors="strict")
         except UnicodeDecodeError:
             # The source-tree reader reports this omission in source_coverage.
             continue
