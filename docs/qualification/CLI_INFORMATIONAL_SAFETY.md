@@ -34,3 +34,9 @@ was absent; the available build runtime built the wheel subsequently installed.
 
 PR review, hosted OS/binary gates and fresh post-merge main remain required.
 No HUMAN, coordinated Alpha, publication or deployment claim.
+
+The follow-up qualification adds the same regression through the actual installed
+`dw` console script and built standalone binary on all three hosted OS families.
+The new test-only executable override does not affect runtime behavior. The local
+console-script run passes all five tests. Earlier candidate runs remain evidence;
+the last commit must be reviewed and tested again.

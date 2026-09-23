@@ -48,8 +48,11 @@ class InformationalSafetyTests(unittest.TestCase):
                 for p in repo.rglob("*") if p.is_file()}
 
     def invoke(self, repo: Path, args: list[str], module: str = "diffwitness.entry"):
+        executable = os.environ.get("DIFFWITNESS_INFORMATIONAL_TEST_EXECUTABLE")
+        command = ([executable, *args] if executable and module == "diffwitness.entry" else
+                   [sys.executable, "-c", f"from {module} import main; raise SystemExit(main())", *args])
         return subprocess.run(
-            [sys.executable, "-c", f"from {module} import main; raise SystemExit(main())", *args],
+            command,
             cwd=repo, text=True, capture_output=True, timeout=30,
             env={**os.environ, "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
                  "GITHUB_ACTIONS": "false"},
