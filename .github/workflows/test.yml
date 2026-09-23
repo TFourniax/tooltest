@@ -232,6 +232,8 @@ jobs:
           python -m build --wheel
       - name: Install the exact built wheel
         run: python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
+      - name: Qualify informational and invalid commands through installed dw
+        run: python -c "import os,shutil,subprocess,sys; binary=shutil.which('dw'); assert binary; env={**os.environ,'DIFFWITNESS_INFORMATIONAL_TEST_EXECUTABLE':binary}; subprocess.check_call([sys.executable,'-m','unittest','discover','-s','tests','-p','test_cli_informational_safety.py','-v'],env=env)"
       - name: Exercise optional Protect mode lifecycle from installed wheel
         run: python scripts/protect_release_acceptance.py
       - name: Qualify first native task before any user commit
@@ -289,6 +291,8 @@ jobs:
           ./dist/dw engine --help || ./dist/dw.exe engine --help
           ./dist/dw ledger --help || ./dist/dw.exe ledger --help
           ./dist/dw envelope --help || ./dist/dw.exe envelope --help
+      - name: Qualify informational and invalid commands through standalone dw
+        run: python -c "import os,pathlib,subprocess,sys; binary=pathlib.Path('dist/dw.exe' if sys.platform == 'win32' else 'dist/dw').resolve(); env={**os.environ,'DIFFWITNESS_INFORMATIONAL_TEST_EXECUTABLE':str(binary)}; subprocess.check_call([sys.executable,'-m','unittest','discover','-s','tests','-p','test_cli_informational_safety.py','-v'],env=env)"
       - name: Qualify standalone hook executable against competing installation
         shell: bash
         run: |

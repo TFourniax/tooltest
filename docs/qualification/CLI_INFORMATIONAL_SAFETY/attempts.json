@@ -1,0 +1,42 @@
+{
+  "cli-full-suite.log": {
+    "sha256": "f882065796a42b263dcfec66fb9dd7134f972eb03927d1718bef4a6cdc1db7ae",
+    "bytes": 199140
+  },
+  "cli-final-baseline.log": {
+    "sha256": "781a9e103a1000be6db4c13c5b98dd11d715be92229b8118c74352b70e885520",
+    "bytes": 37468
+  },
+  "cli-before-corrected-oracle.log": {
+    "sha256": "586d393cbbc235a7bfc33853142a2c9901c8f30ec725c0159e7667e498cd7828",
+    "bytes": 27807
+  },
+  "cli-installed.log": {
+    "sha256": "88d312394f4ae3d85d0cc531d9988dc4ce3ffc91c74be205a4bf252aa0ff6c32",
+    "bytes": 854
+  },
+  "cli-baseline-exact.log": {
+    "sha256": "51e7715ddfd684e1302090bf643a64427bfde65c38fdaba9cd65f0443d3bdf56",
+    "bytes": 27807
+  },
+  "cli-final-full-suite.log": {
+    "sha256": "c1925a4881b3a426017dee56458e3622b709bfb617d8bd25d602e95178e67daa",
+    "bytes": 148948
+  },
+  "cli-installed-full-suite.log": {
+    "sha256": "63a22c96ac3691e4e2dc7af9e9833331fb995e655f3b85673267c8d764508c17",
+    "bytes": 149537
+  },
+  "cli-after.log": {
+    "sha256": "f64e6fe98d438edb337547407b8491f0c81eaa4f5887ce36581f89028b8da265",
+    "bytes": 854
+  },
+  "cli-before.log": {
+    "sha256": "64aa54b80b4267b35571e4e803621212ff67e033978fba93e18e15a494cf8441",
+    "bytes": 39219
+  },
+  "cli-final-installed.log": {
+    "sha256": "9f0a9ff9418ca85fed0a47f4ac2b14131a0de7e6bb0451543fe43dfaa7572fa9",
+    "bytes": 1022
+  }
+}
