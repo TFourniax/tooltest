@@ -1,0 +1,14 @@
+test_full_validator_encodes_nested_payload_only_once (test_continuity_canonical_integrity.CanonicalIntegrityTests.test_full_validator_encodes_nested_payload_only_once) ... FAIL
+
+======================================================================
+FAIL: test_full_validator_encodes_nested_payload_only_once (test_continuity_canonical_integrity.CanonicalIntegrityTests.test_full_validator_encodes_nested_payload_only_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/fa8b5862d36a/work/core/tests/test_continuity_canonical_integrity.py", line 50, in test_full_validator_encodes_nested_payload_only_once
+    self.assertEqual(len(visits), 1, "full validation must not serialize the payload repeatedly")
+AssertionError: 3 != 1 : full validation must not serialize the payload repeatedly
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)

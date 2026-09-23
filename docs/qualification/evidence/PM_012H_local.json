@@ -1,0 +1,87 @@
+{
+  "classification": "MACHINE",
+  "qualification": false,
+  "baseline": "fbebc797968014600c1b89aed603984e15f78d5c",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "candidateValidatorSha256": "44b4c3690d940722dc7829554639d4e2b46e867133e12757eb9189fc3414cdc4",
+  "wheelSha256": "72e8328a1eda19a1c106159903dfbd3af8f090f4e72a0601a8a53c19acbcb4db",
+  "sourceWheelInstalledValidatorIdentical": true,
+  "installedSuite": {
+    "run": 681,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 52,
+    "seconds": 68.326,
+    "fullLogSha256": "5a7e1a875618e090d468f590bc4ff2fceef98d05f077007f0e95b1ab7d0857b9"
+  },
+  "unsuccessfulInvocations": {
+    "scale-canonical-suite.log": {
+      "sha256": "c1c19c3d8c769b730de580d97fb9a3dc752c03265ed3e9888627798ef9122362",
+      "bytes": 190256,
+      "failureEvidence": "PM_012H_system_invocation_failures.log"
+    },
+    "scale-canonical-installed-suite.log": {
+      "sha256": "b21b5a46ffdbcc6c5f656063e975c8cd646c92ccac0b5440ab193b8072c4e442",
+      "bytes": 184809,
+      "failureEvidence": "PM_012H_metadata_invocation_failures.log"
+    }
+  },
+  "fixedPairedMedians": [
+    {
+      "events": 10000,
+      "source": "baseline",
+      "passingSamples": 3,
+      "samples": 3,
+      "append_seconds": 0.881078,
+      "full_log_verify_seconds": 0.386582,
+      "rebuild_seconds": 0.845767
+    },
+    {
+      "events": 10000,
+      "source": "candidate",
+      "passingSamples": 3,
+      "samples": 3,
+      "append_seconds": 0.799767,
+      "full_log_verify_seconds": 0.327041,
+      "rebuild_seconds": 0.781797
+    },
+    {
+      "events": 50000,
+      "source": "baseline",
+      "passingSamples": 2,
+      "samples": 3,
+      "append_seconds": 4.750889,
+      "full_log_verify_seconds": 1.923285,
+      "rebuild_seconds": 4.442607
+    },
+    {
+      "events": 50000,
+      "source": "candidate",
+      "passingSamples": 3,
+      "samples": 3,
+      "append_seconds": 4.637886,
+      "full_log_verify_seconds": 1.764765,
+      "rebuild_seconds": 4.348323
+    },
+    {
+      "events": 100000,
+      "source": "baseline",
+      "passingSamples": 0,
+      "samples": 3,
+      "append_seconds": 10.686569,
+      "full_log_verify_seconds": 3.915141,
+      "rebuild_seconds": 10.66564
+    },
+    {
+      "events": 100000,
+      "source": "candidate",
+      "passingSamples": 0,
+      "samples": 3,
+      "append_seconds": 9.910763,
+      "full_log_verify_seconds": 3.416575,
+      "rebuild_seconds": 10.226969
+    }
+  ],
+  "remaining": "100k verification and rebuild exceed unchanged 2s/5s budgets in all three candidate observations; append exceeds 10s in one. Full PM012 remains open."
+}
