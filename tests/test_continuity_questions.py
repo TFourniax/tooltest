@@ -1002,3 +1002,16 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(sorted(f['fields']['id'] for f in result['context']['facts']),expected)
                     self.assert_sources(result)
         self.assertEqual(self.paths.events.read_bytes(),before)
+
+
+    def test_generic_zone_homographs_remain_literal_lowercase_name_terms(self):
+        labels=('plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering')
+        for index,label in enumerate(labels):
+            self.record('ZONE-NAME-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question in ('Why '+label+'?', 'Pourquoi '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['ZONE-NAME-'+str(index)])
+                    self.assert_sources(result)
