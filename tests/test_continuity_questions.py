@@ -854,13 +854,16 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_numeric_date_separator_variants_never_become_path_terms(self):
         # One separator family: spacing, attached clocks and Unicode dash/slash
-        # forms that NFKC leaves distinct, for slash, hyphen and dotted dates.
+        # forms that NFKC leaves distinct, for numeric and named-month dates.
         phrases=('09/21','21/09','9/21','09 / 21','09 /21','09/ 21','21 / 09 / 2026',
                  '2026 / 09 / 21','０９／２１','09∕21','09⁄21','09/21T120000Z',
                  '21/09T12:00:00+02:00','09/21/2026T120000Z','21 / 09T12:00',
                  '09‐21','09‑21','09–21','09−21','21 ‒ 09 ‒ 2026',
                  '21. 09. 2026','21 . 09 . 2026','2026 . 09 . 21',
-                 '21.09.2026T12:00','21.09.26T120000Z','Sep‐21','21–Sep–2026','Sep∕21')
+                 '21.09.2026T12:00','21.09.26T120000Z','Sep‐21','21–Sep–2026','Sep∕21',
+                 'Sep-21T120000Z','21-SepT120000Z','Sep/21T12:00','Sep.21T120000Z',
+                 '21.Sep.26T12:00','21 Sep 2026T12:00:00Z','SepT12:00','Sep‐21T12:00',
+                 '21–SepT120000Z','2026‐09‐21')
         self.record('SEPARATOR-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+'/'.join(re.findall(r'[^\W_]+',unicodedata.normalize('NFKC',p)))
@@ -874,14 +877,31 @@ class MemoryQuestionTests(unittest.TestCase):
                         self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
                         self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
         self.assertEqual(before,self.paths.events.read_bytes())
+        # Hyphen/minus and slash variants attach identifiers exactly as their
+        # ASCII forms do; en/em dashes remain punctuation.
         for index,label in enumerate(('v9/21','build_09/21','v9‐21','api/09-21','Node 24.1.0',
-                                      'runtime 24.1.10.2','release-21.09.2026')):
-            identity='SEPARATOR-NAME-'+str(index)
-            source=self.record(identity,label,payload={'why':'Attached numeric identifier'})
-            result=answer_question(self.repo,'Why '+label+'?',entity=identity)
-            self.assertEqual(result['status'],'cited-records')
-            self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
-            self.assert_sources(result)
+                                      'runtime 24.1.10.2','release-21.09.2026','release‐2026‐09‐21',
+                                      'release‐09‐21','release−21.09.2026','sdk‐sep‐21',
+                                      'release∕21-Sep-2026','release‐09‐21T120000Z')):
+            with self.subTest(label=label):
+                identity='SEPARATOR-NAME-'+str(index)
+                source=self.record(identity,label,payload={'why':'Attached numeric identifier'})
+                result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+                self.assertEqual(result['status'],'cited-records')
+                self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+                self.assert_sources(result)
+        self.record('SEPARATOR-CLAUSES','auth what changed in billing remember',payload={'why':'All-term reason'})
+        for question,ascii_question in (('Why auth ∕ what changed in billing?','Why auth / what changed in billing?'),
+                                        ('Why auth ⁄ what changed in billing?','Why auth / what changed in billing?'),
+                                        ('Why auth ‐ what changed in billing?','Why auth - what changed in billing?'),
+                                        ('Why auth − what changed in billing?','Why auth - what changed in billing?'),
+                                        ('Why auth ∕ remember billing?','Why auth / remember billing?')):
+            with self.subTest(question=question):
+                expected=answer_question(self.repo,ascii_question,entity='SEPARATOR-CLAUSES')
+                self.assertEqual(expected['status'],'abstained')
+                result=answer_question(self.repo,question,entity='SEPARATOR-CLAUSES')
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],expected['context']['abstention'])
 
     def test_abbreviated_month_dates_never_become_path_terms(self):
         phrases=('Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',

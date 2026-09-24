@@ -61,7 +61,8 @@ def main():
                        'sept-sdk','sdk-sep-21','release/21-Sep-2026','sep.service',
                        'bracketed (v2)','billing [external]','service {adapter}',
                        'v9-21','partialrelease-09-21','partialapi/09-21','partialbuild_21-09','release-09-21T120000Z',
-                       'separatorv9/21','separatorbuild_09/21','unicodev9‐21')
+                       'separatorv9/21','separatorbuild_09/21','unicodev9‐21',
+                       'unicoderelease‐2026‐09‐21','unicodedate‐09‐21','unicodesdk‐sep‐21')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -103,6 +104,7 @@ def main():
                           '09 / 21','09 /21','09/ 21','2026 / 09 / 21','09∕21','09⁄21',
                           '09/21T120000Z','21 / 09T12:00','09‐21','09‑21','09–21','09−21',
                           '21 . 09 . 2026','21.09.2026T12:00','21.09.26T120000Z','Sep∕21',
+                          'Sep-21T120000Z','21-SepT120000Z','Sep/21T12:00','Sep.21T120000Z','21–SepT120000Z',
                           '2026-9-21','2026-09-1','2026-9-1','2026-9',
                           '2026-W39-4','2026-W39-7','2026W394','2026W397',
                           '2026-264','2026264','2024-366','2024366','2026-001','2026001',

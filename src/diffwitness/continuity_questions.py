@@ -21,6 +21,11 @@ from .language import tr
 
 MAX_PACKET_BYTES = 1024 * 1024
 _QUERY_WORD = re.compile(r"[^\W_]+(?:[+#]+[^\W_]+)*[+#]*")
+# NFKC keeps these hyphen, minus and slash forms distinct. Clause and temporal
+# scans treat them exactly as ASCII, including as identifier attachments; en
+# and em dashes stay punctuation. The mapping is one-to-one, so offsets hold.
+_ASCII_SEPARATORS = str.maketrans({'\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-',
+                                   '\u2215': '/', '\u2044': '/'})
 
 
 def _terms(value):
@@ -173,8 +178,9 @@ def _query(question, kind, since, until, entity):
     normalized_question = unicodedata.normalize('NFKC', question)
     auto_requested = kind == 'auto'
     literal_memory = kind == 'memory'
+    separated_question = normalized_question.translate(_ASCII_SEPARATORS)
     form, search_text = _question_form(normalized_question)
-    clause_intents = [] if literal_memory else _question_intents(normalized_question)
+    clause_intents = [] if literal_memory else _question_intents(separated_question)
     intents = set(clause_intents)
     ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
     if auto_requested:
@@ -193,7 +199,7 @@ def _query(question, kind, since, until, entity):
             r"[^?!;,:—–/|(){}\[\]]*\bremember\b|"
             r"(?:[?!;,:—–/|({\[]|\s+-{1,2}\s+)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\b|"
             r"\.(?!\d)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\s+\S",
-            normalized_question, re.I):
+            separated_question, re.I):
         ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:
         search_text = normalized_question
@@ -207,6 +213,8 @@ def _query(question, kind, since, until, entity):
     # Explicit standard-number prefixes identify data, not standalone years.
     # Preserve their original query terms; mask only the temporal scan.
     cleaned = re.sub(r'\b(?:RFC|ISO|IEC|IEEE)\s+\d{4,6}\b', '', cleaned, flags=re.I)
+    # Only an ASCII ISO date can be a supported bound; variants reach the scan.
+    cleaned = cleaned.translate(_ASCII_SEPARATORS)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
                           r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",
@@ -221,6 +229,8 @@ def _query(question, kind, since, until, entity):
                   r"mar(?:ch|s)?|apr(?:il)?|avr(?:il)?|may|mai|jun(?:e)?|juin|jul(?:y)?|"
                   r"juil(?:l(?:et)?)?|aug(?:ust)?|ao[uû]t|sep(?:t(?:ember|embre)?)?|"
                   r"oct(?:ober|obre)?|nov(?:ember|embre)?|d[eé]c(?:ember|embre)?)")
+    # A compact or extended clock attached to a date, e.g. T120000Z or T12:00+02:00.
+    clock = r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?"
     relative_period = re.search(
         r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
         r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
@@ -238,16 +248,14 @@ def _query(question, kind, since, until, entity):
         r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
-        # NFKC keeps dash/slash variants such as U+2010, U+2212 and U+2215
-        # distinct, so numeric date separators name them explicitly.
-        r"|\b\d{1,4}\s*[/∕⁄]\s*\d{1,2}(?:\s*[/∕⁄]\s*\d{1,4})?"
+        r"|\b\d{1,4}\s*/\s*\d{1,2}(?:\s*/\s*\d{1,4})?"
         r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?\b"
         r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2}(?:-\d)?)(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{4}W\d{2}\d?(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])(?:\d{4}-?\d{3,4}|\d{4}-\d{1,2}-\d{1,2}|"
         r"\d{4}-?W\d{2}(?:-?\d)?)(?:T\d{2}(?::?\d{2}){0,2}"
         r"(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
-        r"|(?<![\w./#:+-])\d{1,2}\s*[-‐‑‒–—−]\s*\d{1,2}(?:\s*[-‐‑‒–—−]\s*(?:\d{4}|\d{2}))?"
+        r"|(?<![\w./#:+-])\d{1,2}\s*[-–—]\s*\d{1,2}(?:\s*[-–—]\s*(?:\d{4}|\d{2}))?"
         r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])(?:\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*(?:\d{4}|\d{2})|\d{4}\s*\.\s*\d{1,2}\s*\.\s*\d{1,2})"
         r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
@@ -274,10 +282,10 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
         r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
         cleaned, re.I) or re.search(
-        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.‐‑‒–—−∕⁄]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
-        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.‐‑‒–—−∕⁄]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?\b|"
+        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.–—]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?{clock}\b|"
+        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.–—]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?{clock}\b|"
         rf"\b(?:in|en)\s+{month_word}\.?(?!\w)|"
-        rf"(?<![\w./#:+-]){month_word}(?![\w/#:+-]|\.\w)", cleaned, re.I)
+        rf"(?<![\w./#:+-]){month_word}{clock}(?![\w/#:+-]|\.\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:

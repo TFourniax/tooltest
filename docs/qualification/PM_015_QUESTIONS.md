@@ -723,3 +723,45 @@ bda2ceaafacca96aa87d66799c9ac3c9aba8cc2380b783d0fefe9511c9d87b22.
 Journal SHA256: 430990e17dd6c82137305acbdb079f09b3fc17eb0ef76b4d6401829ad3787124.
 These are MACHINE results. Independent review and hosted gates must bind the new
 commit before merge; fresh main must then be checked.
+
+## IDE continuation — findings 60–61, 2026-09-24
+
+Review 5304738054 on 09bf096 reported two findings, corrected together.
+
+Finding 60 (4093864173): two-component named-month dates with an attached
+compact or extended clock (`Sep-21T120000Z`, `21-SepT120000Z`, slash/dot
+forms) bypassed the guard because the terminal boundary cannot precede `T`.
+All named-month alternatives now consume the same attached clock as the numeric
+date branches.
+
+Finding 61 (4093864180): 09bf096 named Unicode dash/slash variants inside the
+date branches while the attachment guards stayed ASCII, so `release‐09‐21`
+(U+2010) became unqueryable although `release-09-21` is protected; the cited
+`release‐2026‐09‐21` already abstained on 7af22d6 through the standalone-year
+branch. The branch-level variant classes are replaced by one mapping: before the
+clause and temporal scans, U+2010, U+2011, U+2012 and U+2212 are read as `-`, and
+U+2215 and U+2044 as `/`. Attachment, separation and clause boundaries therefore
+follow the ASCII rules exactly, and query terms are unchanged. En and em dashes
+remain punctuation that separates date components and clauses, not identifier
+attachments. Consequently, identifiers attached with these hyphen/minus/slash
+variants become answerable like their ASCII spellings, while dates written with
+them still abstain. Only an ASCII ISO date can form the supported `since`
+bound; its Unicode spelling abstains.
+
+The regression against the installed 09bf096 wheel reproduces 41 failing
+subcases: 30 named-month clock cases, 6 Unicode-attached identifiers and 5
+Unicode clause separators whose result now must equal the ASCII form.
+After correction on Windows with Python 3.12.10: 76 focused tests PASS; 820
+installed-wheel tests PASS with 49 explicit skips (absent optional grammars and
+the POSIX pipx contract) in 1153.730 seconds; the real installed CLI journey
+PASS, opens original citations and preserves journal/state bytes. Local wheel
+SHA256: 6d827ad54a7399265f9497e707b1e8b675fb8ca2bef02a06e79d324d3d37a906.
+Journal SHA256: 854db8b33c0b3f87b7aff1a5a8a81182322974cd3cfe8cba4ed35782ec164a20.
+
+The concrete scenario of every review finding 1–61 was also replayed in its own
+disposable repository against the installed product, opening each citation and
+checking journal bytes: 61/61 PASS on this candidate. Each scenario is shown to
+detect its defect: 58/59 on 7af22d6 (59 fails), 14/59 on the first reviewed
+commit 36341f8, every one of the other 14 fails on the commit where it was
+reported, and 60–61 fail on 09bf096. These are MACHINE results; independent
+review and hosted gates must bind this commit, then fresh main must be checked.
