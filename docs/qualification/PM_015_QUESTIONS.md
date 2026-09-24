@@ -835,3 +835,28 @@ checks (test 36011104805, ProofBench 36011104389, ContinuityBench 36011104454,
 integrated 36011104258), which do not qualify this new commit. An earlier local
 run of an intermediate state of this lot was stopped before the attached forms
 were added; its partial logs are kept and are not counted.
+
+## IDE continuation — finding 64, 2026-09-24
+
+Review 5306130604 on 716910a (4095024653, P2): an uppercase Zulu `Z` after an
+`h`-style clock (`12h30Z`) matched neither the clock/zone branch nor the numeric
+Zulu branch. The accepted clock shapes (H, HHMM, HH:MM[:SS], HH.MM, HHh[MM],
+optional am/pm, noon/midi/midnight/minuit) are now defined once and shared by
+the zone, offset, Zulu and IANA-zone-name suffixes, so `12h30Z`, `12hZ`,
+`3pmZ`, `noonZ`, `midnightZ` and `12.30 Europe/Paris` abstain as well. The
+generalized Zulu suffix is case-sensitive so a lowercase unit such as `60hz`
+stays a name; the existing numeric Zulu branch keeps its case-insensitive
+behaviour. No fractional part is accepted before a generalized suffix, so a
+version such as `1.2+34` stays a name. The regression against the installed
+716910a wheel reproduces 36 failing subcases (6 forms, EN/FR, three option sets).
+
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1018.110 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+9a9172c65e579603b58a4cae371a090b79e55d32cadca817fc1d000bbef12ba4.
+Journal SHA256: eb10609e50822453cb686bde6a238c8882487da5bf89d8fd8f7a6de754ce9169.
+The replay of every review scenario gives 64/64 PASS on this candidate; the
+finding-64 scenario fails on 716910a. 716910a passed its 27 hosted checks
+(test 36015591600, ProofBench 36015591620, ContinuityBench 36015591536,
+integrated 36015591543), which do not qualify this new commit.
