@@ -67,3 +67,16 @@ and a human applicability judgment do not reverify today's code. Use the existin
 `drift`, revalidation and exact-code verification commands for those questions.
 This surface does not add unrecorded symbol/refactor lineage, reconcile divergent
 writers or implement the separate Portal longitudinal store.
+
+## Forward journal pages for incremental consumers
+
+`dw state events --after N [--expect-head HASH] --limit L --json` returns
+`project-event-page-1`: the validated journal in source order after the first `N`
+events, at most `L` (1–500) whole events and 1 MiB. `journal.genesisHash` identifies
+the journal, `next`/`head` form the next cursor. For `N > 0` the caller must present
+the hash of event `N`; a truncated or divergently replaced prefix fails closed with
+exit status 2 and asks the consumer to restart from event 0 instead of skipping.
+Without `--after` the command output is unchanged.
+
+Events are returned unchanged and include local payload text. Projection and
+redaction belong to the consumer; IdleProof exports only its Portal allowlist.

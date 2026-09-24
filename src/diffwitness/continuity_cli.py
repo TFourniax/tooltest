@@ -126,6 +126,8 @@ def state_cli(argv: list[str]) -> int:
         events = sub.add_parser("events")
         events.add_argument("--repo", default=".")
         events.add_argument("--limit", type=int, default=20)
+        events.add_argument("--after", type=int, help=tr("Page forward after this many validated events (project-event-page-1)", "Parcourir après ce nombre d’événements validés (project-event-page-1)"))
+        events.add_argument("--expect-head", dest="expect_head", help=tr("Hash of event AFTER; a different prefix fails closed", "Empreinte de l’événement AFTER ; un autre préfixe est refusé"))
         events.add_argument("--json", action="store_true")
         graph = sub.add_parser("graph")
         graph.add_argument("--repo", default=".")
@@ -149,6 +151,19 @@ def state_cli(argv: list[str]) -> int:
     from .continuity_events import ContinuityError, continuity_paths, read_project_events
     from .continuity_state import ensure_state, rebuild_state, state_status
     from .gitops import GitError, repo_root
+
+    if args.command == "events" and (args.after is not None or args.expect_head is not None):
+        from .continuity_history import journal_page
+        if not args.json or args.after is None:
+            print(tr("Memory navigation rejected: --after requires --json", "Navigation mémoire refusée : --after exige --json"), file=sys.stderr)
+            return 2
+        try:
+            result = journal_page(args.repo, after=args.after, expect_head=args.expect_head, limit=args.limit)
+        except (ContinuityError, GitError, OSError, ValueError) as exc:
+            print(tr("Memory navigation rejected: ", "Navigation mémoire refusée : ") + str(exc), file=sys.stderr)
+            return 2
+        print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
+        return 0
 
     if args.command in {"history", "event", "why"}:
         from .continuity_history import entity_history, event_detail, why_entity, render_history, render_why

@@ -104,6 +104,45 @@ def entity_history(repo: str | Path, identity: str, *, limit: int = 50,
     return result
 
 
+def journal_page(repo: str | Path, *, after: int = 0, expect_head: str | None = None,
+                 limit: int = 100) -> dict:
+    """Page the validated journal forward from an anchored prefix, oldest first.
+
+    ``after`` counts events already consumed; for ``after > 0`` the caller must
+    present the hash of event ``after``. A truncated or divergently replaced
+    prefix fails closed so a consumer can never skip or silently merge history.
+    Events are returned unchanged; projection belongs to the consumer.
+    """
+    if type(after) is not int or after < 0:
+        raise ValueError("after must be a non-negative integer event count")
+    _bound(limit, 500, "limit")
+    if after == 0 and expect_head is not None:
+        raise ValueError("expect-head applies only after a consumed prefix")
+    if after > 0 and (not isinstance(expect_head, str) or not re.fullmatch(r"[0-9a-f]{64}", expect_head)):
+        raise ValueError("expect-head must be the complete SHA-256 of event AFTER")
+    events, digest, _ = _read_validated_snapshot(continuity_paths(repo_root(repo)).events)
+    if after > len(events) or after > 0 and events[after - 1]["event_hash"] != expect_head:
+        raise ContinuityError("journal prefix does not match this page cursor; restart the export from event 0")
+    selected, size = [], 0
+    for index in range(after, min(len(events), after + limit)):
+        item = {"sequence": index + 1, "event": events[index]}
+        item_size = len(_wire(item)) + 1
+        if selected and size + item_size > MAX_HISTORY_BYTES - 8192:
+            break
+        selected.append(item)
+        size += item_size
+    following = after + len(selected)
+    result = {"schema_version": "project-event-page-1",
+              "journal": {"genesisHash": events[0]["event_hash"] if events else None,
+                          "eventCount": len(events), "sha256": digest},
+              "after": after, "events": selected, "next": following,
+              "head": events[following - 1]["event_hash"] if following else None,
+              "hasMore": following < len(events), "authority": _AUTHORITY_NOTE}
+    if len(_wire(result)) > MAX_HISTORY_BYTES:
+        raise ContinuityError("journal page exceeds its byte bound")
+    return result
+
+
 def _reason(value: Any, field: str) -> dict | None:
     if not isinstance(value, str) or not value:
         return None
