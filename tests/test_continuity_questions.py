@@ -170,3 +170,31 @@ class MemoryQuestionTests(unittest.TestCase):
         result=answer_question(self.repo,'What changed in auth?',since='2026-09-21T12:00:00Z')
         self.assertEqual(result['status'],'abstained')
         self.assertEqual(result['context']['abstention'],'insufficient-cited-records')
+
+    def test_compound_dependency_questions_do_not_ignore_outgoing_clause(self):
+        self.record('MOD-AUTH','auth',kind='component',event_type='component.observed')
+        self.record('MOD-UI','interface',kind='component',event_type='component.observed',relations=[
+            {'predicate':'depends_on','target':{'id':'MOD-AUTH','kind':'component'},'epistemic_status':'INFERRED'}])
+        for question in ('What depends on auth and what does auth depend on?',
+                         'What depends on auth; what does auth depend on?',
+                         'Qu’est-ce qui dépend de auth et de quoi auth dépend-il ?',
+                         'Qui dépend de auth, et auth dépend de quoi ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+
+    def test_explicit_bound_does_not_erase_question_side_time_constraints(self):
+        self.record('CHANGE-MORNING','auth change',kind='change',event_type='change.observed',
+                    timestamp='2026-09-21T08:00:00Z',payload={'changed_files':['auth.py']})
+        for question,options in [
+            ('What changed in auth since yesterday?', {'until':'2026-09-24'}),
+            ('What changed in auth since yesterday?', {'since':'2026-09-01'}),
+            ('What changed in auth before 2026-09-21?', {'since':'2026-09-01'}),
+            ('What changed in auth since 2026-09-22?', {'since':'2026-09-01'}),
+            ('Qu’est-ce qui a changé dans auth depuis hier ?', {'until':'2026-09-24'}),
+        ]:
+            with self.subTest(question=question,options=options):
+                result=answer_question(self.repo,question,**options)
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+        same=answer_question(self.repo,'What changed in auth since 2026-09-21?',since='2026-09-21T00:00:00Z')
+        self.assertEqual(same['status'],'cited-records')
