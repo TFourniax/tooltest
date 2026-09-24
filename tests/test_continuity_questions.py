@@ -479,3 +479,19 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_weekends_seasons_and_long_relative_periods_abstain(self):
+        periods=('this weekend','this spring','this summer','this autumn','this fall','this winter',
+                 'ce week-end','ce printemps','cet été','cet automne','cet hiver',
+                 'cette fin de semaine','this fortnight','this decade','cette décennie',
+                 'ce siècle','this century','this season','cette saison','this sprint','cette itération')
+        self.record('CHANGE-RELATIVE-PERIOD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in periods]})
+        for period in periods:
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(period=period,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+period+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')

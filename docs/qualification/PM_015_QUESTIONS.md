@@ -281,3 +281,8 @@ exact --entity with a generic question for that identity. The installed bilingua
 journey repeats every new phrase with exact misleading-path fixtures while
 retaining journal/state byte invariance. Final-head review, every gate and fresh
 main remain required. No local AFTER or HUMAN execution is claimed.
+
+Review4089471249 finds omitted weekend/season qualifiers. The next
+regression-first test covers common English/French weekends, seasons, longer
+periods and current work periods against old matching paths, with and without
+CLI bounds. All19findings remain tracked; previous778-test PASS is historical.
