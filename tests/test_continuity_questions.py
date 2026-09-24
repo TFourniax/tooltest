@@ -352,3 +352,15 @@ class MemoryQuestionTests(unittest.TestCase):
                 self.assertEqual(result['status'],'cited-records')
                 self.assertEqual([f['fields']['to'] for f in result['context']['facts']],['RAW-LIVE'])
                 self.assert_sources(result)
+
+    def test_year_only_from_bound_cannot_match_a_year_in_recorded_paths(self):
+        self.record('CHANGE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',payload={'changed_files':['auth/2026/service.py']})
+        for options in ({},{'until':'2027-01-01'},{'since':'2024-01-01'}):
+            with self.subTest(options=options):
+                result=answer_question(self.repo,'What changed in auth from 2026?',**options)
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        french=answer_question(self.repo,'Qu’est-ce qui a changé dans auth à partir de 2026 ?')
+        self.assertEqual(french['status'],'abstained')
+        self.assertEqual(french['context']['abstention'],'ambiguous-time-filter')
