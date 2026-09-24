@@ -563,3 +563,62 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'cited-records')
                     self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-NUMERIC-'+str(index)])
                     self.assert_sources(result)
+
+    def test_conjunctive_names_preserve_intent_words_and_exact_sources(self):
+        labels=('risk and memory management','risque et mémoire management',
+                'risk or change management','risk and call management')
+        for index,label in enumerate(labels):
+            identity='DEC-CONJ-'+str(index)
+            self.record(identity,label,payload={'why':'Reason for '+label})
+            self.record('SRC-CONJ-'+str(index),'source',kind='component',event_type='component.observed',
+                        relations=[{'predicate':'depends_on','target':{'id':identity,'kind':'decision'}}])
+        for index,label in enumerate(labels):
+            for question,options in [('Why '+label+'?',{}),('Pourquoi '+label+' ?',{}),
+                                      ('Remember '+label+'?',{}),(label,{'kind':'memory'})]:
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question,**options)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-CONJ-'+str(index)])
+                    self.assert_sources(result)
+            for question in ('What depends on '+label+'?', 'Qu’est-ce qui dépend de '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['to'] for f in result['context']['facts']],['DEC-CONJ-'+str(index)])
+                    self.assert_sources(result)
+
+    def test_dotted_software_versions_are_not_unintroduced_date_filters(self):
+        labels=('Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3')
+        for index,label in enumerate(labels):
+            self.record('DEC-VERSION-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question in ('Why '+label+'?', 'Pourquoi '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-VERSION-'+str(index)])
+                    self.assert_sources(result)
+
+    def test_iso_date_substrings_remain_literal_entity_identifiers(self):
+        labels=('release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21')
+        for index,label in enumerate(labels):
+            self.record('DEC-ISO-NAME-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question in ('Why '+label+'?', 'Pourquoi '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-ISO-NAME-'+str(index)])
+                    self.assert_sources(result)
+
+    def test_explicit_dotted_date_constraints_do_not_become_version_terms(self):
+        self.record('CHANGE-DOTTED-DATE','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/on/3.14/le/3.12/21.09.2026/service.py']})
+        for phrase in ('on 3.14','le 3.12','since 21.09.2026','depuis 21.09.2026'):
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
