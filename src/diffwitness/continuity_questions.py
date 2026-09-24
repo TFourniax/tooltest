@@ -66,7 +66,7 @@ def _incoming_target(question):
     target = match.group(1)
     # A conjunction can belong to a name. A new question or dependency
     # clause cannot be swallowed into that name and answered partially.
-    if re.search(r"\b(?:because|car|"
+    if re.search(r"\b(?:because|"
                  r"what|which|who|whose|that|quoi|qui|que|dont|does|do|"
                  r"since|before|after|depuis|avant|après)\b|"
                  r"\b(?:depends?\s+on|d[eé]pend(?:ent)?\s+de)\b",
@@ -117,13 +117,15 @@ def _question_form(question):
 def _question_intents(question):
     # A conjunction alone does not turn a name suffix ("and memory
     # management") into another question. Require an interrogative form.
+    # Remember is an imperative after conjunctions. Bare memory/mémoire
+    # remains a noun there; punctuation can introduce the explicit shorthand.
     # Explicit punctuation still separates independently stated clauses.
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$)|"
                        r":\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
-                       r"qu['’]|qui|de\s+quoi)\b)",
+                       r"qu['’]|qui|de\s+quoi|remember)\b)",
                        question, flags=re.I)
     intents = []
     for clause in clauses:
@@ -165,6 +167,9 @@ def _query(question, kind, since, until, entity):
     date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w/#:+-]|\.\w)'
     natural_dates = re.findall(date_token, normalized_question)
     cleaned = re.sub(date_token, '', normalized_question)
+    # Explicit standard-number prefixes identify data, not standalone years.
+    # Preserve their original query terms; mask only the temporal scan.
+    cleaned = re.sub(r'\b(?:RFC|ISO|IEC|IEEE)\s+\d{4,6}\b', '', cleaned, flags=re.I)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
                           r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",

@@ -35,13 +35,16 @@ def main():
         run(dw,'decision','record','fallback works import calls importe appelle',
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
+        run(dw,'decision','record','clause and remember billing','--id','DEC-COMPOUND',
+            '--why','Synthetic all-terms compound fixture')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
                       'risk or change retention','risk and call retention',
-                      'import management','imports management','depend management','depends management')
+                      'import management','imports management','depend management','depends management','car service')
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
-                       'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21')
+                       'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
+                       'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -236,6 +239,9 @@ def main():
                 assert value['context']['abstention']=='multiple-question-clauses'
         for lang in ('fr','en'):
             for question,reason in [
+                ('Why clause and remember billing?','mixed-question-intents'),
+                ('Pourquoi clause et remember billing ?','mixed-question-intents'),
+                ('Remember clause and remember billing?','multiple-question-clauses'),
                 ('Why auth: why billing?','multiple-question-clauses'),
                 ('Pourquoi auth : pourquoi billing ?','multiple-question-clauses'),
                 ('Remember auth: Remember billing?','multiple-question-clauses'),

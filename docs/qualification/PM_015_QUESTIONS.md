@@ -408,3 +408,23 @@ clauses, mismatching identity-bound terms, and exact generic-identity sources.
 All original authority/source/byte-invariance assertions remain. All30findings,
 latest-head review, complete hosted gates and fresh main remain mandatory.
 No local AFTER while Work is unavailable; no HUMAN or complete PM015/Alpha claim.
+
+
+Findings4090002819/4090002822/4090002828 bring the tracked total to33.
+BEFOREd114cd5ad129dc0eb32bea59ff3d0ac7bc43bd84 /35956835863 /
+Ubuntu3.11 job107497034669: 800tests,17failures,52skips,101.083s.
+The original BEFORE and prior797-test installed AFTER are retained.
+Remember is recognized as an imperative after a conjunction. This is reconciled
+with finding22: bare memory/mémoire remains a noun in a conjunctive entity name,
+and punctuation introduces the explicit Memory shorthand. Adding every bare
+memory noun as a conjunction-level intent would reintroduce the proven
+risk-and-memory-management refusal. Public grammar and old/new tests preserve
+both cases; mixed requests using Remember or punctuation abstain.
+Car is no longer globally rejected as a target-name token; actual embedded
+question/dependency markers remain guarded. Explicit RFC/ISO/IEC/IEEE number
+prefixes are masked only for the temporal scan, retaining every lexical query
+term and distinguishing the recorded standard identities.
+Real installed bilingual queries cover the new names/commands with exact source
+opening and all prior byte/authority assertions. All33findings, distinct latest
+review, complete hosted gates and fresh main remain mandatory. Work unavailable;
+no local AFTER, HUMAN or full semantic PM015/Alpha claim.

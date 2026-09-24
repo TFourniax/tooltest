@@ -673,7 +673,10 @@ or `dw ask "Remember auth?"`. Explicit `--kind memory` retains every word of the
 label query. Conjunctive names, dotted software versions and embedded ISO-date
 identifiers remain query terms. An entity ID narrows reason/change/memory selection
 without discarding the other query terms; use `dw ask "Why?" --entity ID` to
-look up that identity alone. Unsupported temporal or dependency wording abstains.
+look up that identity alone. After a conjunction, `remember` starts an explicit
+memory request; bare `memory`/`mémoire` stays in an entity name. Use a colon or
+semicolon to separate a `Memory` request. Unsupported temporal or dependency
+wording abstains.
 Open each original citation with `dw state event EVENT --hash SHA`.
 The question is never executed or stored, and no new Proof is inferred. See the
 [question scope and contract](docs/qualification/PM_015_QUESTIONS.md).
