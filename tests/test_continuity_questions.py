@@ -364,3 +364,34 @@ class MemoryQuestionTests(unittest.TestCase):
         french=answer_question(self.repo,'Qu’est-ce qui a changé dans auth à partir de 2026 ?')
         self.assertEqual(french['status'],'abstained')
         self.assertEqual(french['context']['abstention'],'ambiguous-time-filter')
+
+    def test_quarters_and_unqualified_years_never_match_path_years_as_time(self):
+        self.record('CHANGE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/2026/service.py','auth/q1/service.py']})
+        for period in ('in Q1 2026','in Q4 2026','en T1 2026','in H1 2026',
+                       'in Q1','en T2','in Ｑ１ 2026','in 2026 Q3','2026'):
+            with self.subTest(period=period):
+                result=answer_question(self.repo,'What changed in auth '+period+'?')
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_short_query_terms_distinguish_versions_and_single_letter_names(self):
+        self.record('DEC-X','auth x v1',payload={'why':'X version one'})
+        self.record('DEC-Y','auth y v2',payload={'why':'Y version two'})
+        for question,expected in [('Why auth x v1?',['DEC-X']),('Why auth y v2?',['DEC-Y']),
+                                  ('Why x?',['DEC-X']),('Why auth z?',[])]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual([f['fields']['id'] for f in result['context']['facts']],expected)
+                self.assertEqual(result['status'],'cited-records' if expected else 'abstained')
+                self.assert_sources(result)
+
+    def test_unicode_query_terms_are_not_silently_discarded(self):
+        self.record('DEC-TOKYO','auth 東京',payload={'why':'Tokyo reason'})
+        self.record('DEC-OSAKA','auth 大阪',payload={'why':'Osaka reason'})
+        for question,expected in [('Why auth 東京?','DEC-TOKYO'),('Pourquoi auth 大阪 ?','DEC-OSAKA')]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[expected])
+                self.assert_sources(result)
