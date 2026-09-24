@@ -145,3 +145,28 @@ class MemoryQuestionTests(unittest.TestCase):
         self.assertEqual(smaller['context']['coverage']['omitted'],6)
         self.assertLess(len(json.dumps(smaller['context']).encode()),MAX_PACKET_BYTES)
         self.assert_sources(smaller)
+
+    def test_outgoing_dependency_wording_abstains_in_both_languages(self):
+        self.record('MOD-AUTH','auth',kind='component',event_type='component.observed')
+        self.record('MOD-UI','interface',kind='component',event_type='component.observed',relations=[
+            {'predicate':'depends_on','target':{'id':'MOD-AUTH','kind':'component'},'epistemic_status':'INFERRED'}])
+        for question in ('auth depends on what?', 'de quoi auth dépend-il ?', 'De quoi dépend auth ?', 'Auth dépend de quoi ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'dependency-direction-ambiguous')
+
+    def test_natural_date_with_time_qualification_never_becomes_midnight(self):
+        self.record('CHANGE-MORNING','auth change',kind='change',event_type='change.observed',
+                    timestamp='2026-09-21T08:00:00Z',payload={'changed_files':['auth.py']})
+        for suffix in ('2026-09-21 12:00:00+00:00', '2026-09-21T12:00:00Z', '2026-09-21 at noon', '2026-09-21 à midi'):
+            with self.subTest(suffix=suffix):
+                result=answer_question(self.repo,'What changed in auth since '+suffix+'?')
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        # The explicit complete timestamp remains available and keeps its hour.
+        result=answer_question(self.repo,'What changed in auth?',since='2026-09-21T12:00:00Z')
+        self.assertEqual(result['status'],'abstained')
+        self.assertEqual(result['context']['abstention'],'insufficient-cited-records')
