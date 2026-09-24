@@ -1,0 +1,76 @@
+{
+  "schema": "diffwitness-batched-local-evidence-1",
+  "classification": "MACHINE",
+  "humanExecuted": false,
+  "candidates": [
+    "d861ec869b4a9ac23f3cc4b19f0d88f3656a4c39",
+    "289ea9020c682ee527c1b44aa42f6a8e7ee7e66f"
+  ],
+  "archive": {
+    "file": "core-local-evidence.tar.gz",
+    "bytes": 66031,
+    "sha256": "c441f107a0f0906f227d32880bee46023cb1ac5c33e3673bd05fdabe558130c6"
+  },
+  "files": [
+    {
+      "file": "batch-questions-build.log",
+      "bytes": 639,
+      "sha256": "ac1f93df5cf2f7e4c02669fc291e0b09379282770db200bdaeafa5e347c7aab2"
+    },
+    {
+      "file": "batch-questions-corrected-env.log",
+      "bytes": 12589,
+      "sha256": "dd83e230f6a7db11f6db202be0bf78d361e6a1aab86e58da3f59a617374fc1ed"
+    },
+    {
+      "file": "batch-questions-full.log",
+      "bytes": 165447,
+      "sha256": "e16625671695f3ff10e9fd927a87790dfaa80cde0c74b02e8ec8e2318cbb33c9"
+    },
+    {
+      "file": "batch-questions-install.log",
+      "bytes": 320,
+      "sha256": "b586fb53ce5d6a31dd997f23d2694d883d06a69188be62c107046073131efe45"
+    },
+    {
+      "file": "batch-questions-installed.log",
+      "bytes": 1376,
+      "sha256": "9022a2e482d430997430b9446fa9c951177dd7f28bb6d316d9546122a9be7f55"
+    },
+    {
+      "file": "batch-questions.log",
+      "bytes": 13516,
+      "sha256": "ba42b22be63639e60f5180db7eb12b5d947c89a92505dc5a4f85cc234fd2e6ea"
+    },
+    {
+      "file": "questions-four-review.log",
+      "bytes": 171,
+      "sha256": "5262948e2c11abafe8b038e1a1f4303f104363317ec361f10659caef66236ab8"
+    },
+    {
+      "file": "questions-review-build.log",
+      "bytes": 639,
+      "sha256": "71507f39afabdd25ac58519f11242304ab9d0167a7d6e4fcb30521d1372c2eb9"
+    },
+    {
+      "file": "questions-review-full.log",
+      "bytes": 165836,
+      "sha256": "d673bac3bf076137f56d42d9e95fcf90ba3c3387f5818ee9783eb8e2e769f8e1"
+    },
+    {
+      "file": "questions-review-install.log",
+      "bytes": 499,
+      "sha256": "4af98b33456074811126b71f02daaf7d75e71029316deb61e80179ee25b29531"
+    },
+    {
+      "file": "questions-review-installed-fixed.log",
+      "bytes": 1376,
+      "sha256": "7ba5e6358e218681a60f9fd43e29db825cf866edf988bffae310975acd7ab32d"
+    },
+    {
+      "file": "questions-review-installed.log",
+      "bytes": 1561,
+      "sha256": "d06373a4755b806600992da773894ee49ce41e9f1539ef0444946de82e97a8f9"
+    }
+  ]
+}

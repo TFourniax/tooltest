@@ -1,5 +1,7 @@
 # DiffWitness — passation Work cloud, 2026-09-24
 
+> Snapshot historique conservé. Reprise avec exécuteur et corrections regroupées : voir WORK_CLOUD_BATCH_20260924.md et les dernières entrées de #74.
+
 ## État et autorité
 
 **Mission inachevée. NOT ALPHA READY. MACHINE global incomplet ; HUMAN non exécuté.**

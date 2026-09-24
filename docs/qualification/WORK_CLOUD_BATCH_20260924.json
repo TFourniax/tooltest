@@ -1,0 +1,190 @@
+{
+  "schema": "diffwitness-work-batch-handoff-1",
+  "observedAt": "2026-09-24T08:26:14.194802+00:00",
+  "canonicalRegister": "https://github.com/TFourniax/tooltest/issues/74",
+  "evidenceOnlyBranch": true,
+  "global": {
+    "alphaReady": false,
+    "machineComplete": false,
+    "humanExecuted": false,
+    "fullPm001Through018Complete": false
+  },
+  "authorization": {
+    "production": false,
+    "publication": false,
+    "additionalSpend": false,
+    "newRunner": false,
+    "stripe": "deferred"
+  },
+  "mains": {
+    "core": "c03164e75e805ff1df976e55cdf6d86073e89b04",
+    "idle": "87a4d8c274edf2b2edcd28bb9ccd34691a5fef14",
+    "portal": "a5998dc0a0ad8a8dc62b097890e8b3ba3672751e",
+    "private": "ce3d2771821b3a9508290311513ce26f98b5c768"
+  },
+  "pmParents": [
+    {
+      "id": "PM-001",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-002",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-003",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-004",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-005",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-006",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-007",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-008",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-009",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-010",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-011",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-012",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-013",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-014",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-015",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-016",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-017",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    },
+    {
+      "id": "PM-018",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_BATCH_20260924.md"
+    }
+  ],
+  "workPolicy": "Group code changes, then test, correct failures locally, publish one candidate per coherent batch. No regression-only hosted pushes.",
+  "active": {
+    "core128": {
+      "head": "289ea9020c682ee527c1b44aa42f6a8e7ee7e66f",
+      "tree": "d1381f4a1971cef81f18a970afa4f3a4488b4ccd",
+      "knownFindings": 53,
+      "unpublishedCorrections": [
+        4091385402,
+        4091385410
+      ],
+      "testRun": 35973876281,
+      "reviewRequest": 5810408579,
+      "qualification": "NOT_QUALIFIED_LATEST_REVIEW_FINDINGS",
+      "latestLocalWheel": {
+        "bytes": 389171,
+        "sha256": "14677cd60dcf39b6605370bf2ab6c1e88440ac5c497e5410b48b143b29d3f5fd"
+      },
+      "unit": {
+        "total": 816,
+        "skipped": 52,
+        "seconds": 87.471,
+        "result": "PASS"
+      },
+      "installedJourney": "corrected fixture rerun in progress; first failure retained"
+    },
+    "core129": {
+      "head": "26f663b0d2fbecf779324a1f78f8359750787c63",
+      "draft": true,
+      "optimizationBranch": "work/batched-history-20260924",
+      "optimizationHead": "3ff3fc80ff052a4946ee87f4233083946c3c3d6d",
+      "optimizationTree": "0117551a1e2dbfd9261581b7bf65f9dd9919157b",
+      "qualification": "FAIL_100K",
+      "localSeconds": {
+        "append": 9.497201,
+        "verify": 3.056519,
+        "rebuild": 7.181036
+      },
+      "thresholdSeconds": {
+        "append": 10,
+        "verify": 2,
+        "rebuild": 5
+      }
+    },
+    "portal35": {
+      "head": "552319f6ddf791e57ac7a04233b894945bc242c1",
+      "tree": "4d70ec9845d29570912fd4b4dec7618472e48656",
+      "merged": true,
+      "mergeCommit": "a5998dc0a0ad8a8dc62b097890e8b3ba3672751e",
+      "review": 5810509617,
+      "prRun": 35974255497,
+      "attempt": 1,
+      "allSevenJobsHeadVerified": true,
+      "browserCasesPassed": 14,
+      "syntheticCheckout": "a4b1a844a701cc25a043afaba406c63820f46a6a",
+      "syntheticTreeVerified": true,
+      "localTests": 352,
+      "freshMain": "PENDING",
+      "privateEvidenceCommit": "e7a2108387b2e4e62eec7dac38540c75b4081b4c"
+    }
+  },
+  "external": {
+    "workExecutor": "restored and used for real builds/tests",
+    "supabaseDevelopmentBranches": 0,
+    "registeredMigrations": 33,
+    "repositorySqlMigrations": 38,
+    "entitlementFunctionRegistered": false,
+    "nativeAuthenticatedQualification": "not completed",
+    "existingPrivateRunnerStatus": "unknown",
+    "ciArtifactDownloads": "403 observed; metadata are not bytes",
+    "chromiumLocal": "installation failed: invalid/truncated downloaded archive; hosted Chromium153 passed14cases",
+    "supabaseFacts": "dated read-only observations, revalidate before acting"
+  },
+  "humanExecuted": false
+}
