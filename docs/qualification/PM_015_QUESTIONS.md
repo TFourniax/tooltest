@@ -604,3 +604,23 @@ containment. Only the failed journey was rerun, without product-code changes.
 Wheel389171bytes SHA25614677cd60dcf39b6605370bf2ab6c1e88440ac5c497e5410b48b143b29d3f5fd.
 Sources opened; journal SHA6046d641f112bf5c47eb4d1d4978f1aeac2897aa8904696b02116444a55506b7
 unchanged. No HUMAN or full semantic PM015 completion is claimed.
+
+
+Review54/4091527848: standalone ordinal dates YYYY-DDD and YYYYDDD now abstain,
+including compact/extended clocks, fractional seconds and zone offsets. The
+reader never turns those date constraints into path tokens. Attached release,
+version, directory and underscore identities remain positive exact-source cases.
+73 focused tests PASS;817 installed-wheel tests PASS(52skips);actual installed
+CLI acceptance PASS,sources opened and original journal/state bytes preserved.
+Wheel389209bytes SHA2563fdb739888125cede060f7ad008efd2ebbe43a17f8751556115fa1863002659b.
+Journal07438ceec4335443436557435033b0c2889e4421912896efe915620f2889e3f0 unchanged.
+
+To bound review cost,67 original qualification files(11764237bytes) are retained
+byte-for-byte at verified branch evidence/pr128-through-9add906,commit9add906.
+PM_015_QUESTIONS/evidence-index.json records every original path,size,SHA256,blob
+and immutable URL. Only their duplicate inclusion in the product diff is removed;
+no test,budget or original evidence is dropped. The product diff loses85275lines
+of historical logs while full evidence remains independently reachable. New batch
+logs use the existing evidence/work-batch-20260924 branch. Final-head CI/review
+remain mandatory; the local wheel qualified above contains unchanged product
+source across this evidence-only relocation.

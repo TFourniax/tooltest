@@ -56,7 +56,7 @@ def main():
                        'dotted-21.09.2026','build_2026.9.21','dotted-21.09.26','v24.1.10',
                        'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering','plan 12 est stable','plan 13 Est stable','plan 12 cet objet',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
-                       'System.Memory','foo.memory.py')
+                       'System.Memory','foo.memory.py','release-2026-264','v2026264','audit/2024366','build_2026-001')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -94,6 +94,9 @@ def main():
                           '09-21-2026','21-09-2026','09-21-26','21-09-26',
                           '2026-9-21','2026-09-1','2026-9-1','2026-9',
                           '2026-W39-4','2026-W39-7','2026W394','2026W397',
+                          '2026-264','2026264','2024-366','2024366','2026-001','2026001',
+                          '2026-264T120000Z','2026264T120000+0200','2026-264T12:00:00Z',
+                          '2026264T120000.123Z','2026264T120000,123Z','2026-264T12',
                           '21.09.2026','9.21.2026','2026.09.21','2026.9.21','21.09.26','09.21.26','1.2.26','Jan','Feb','Mar','Apr','Jun','Jul','Aug','Sep','Sept','Oct','Nov','Dec','janv','févr','avr','juil','déc',
                           'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
                           'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',

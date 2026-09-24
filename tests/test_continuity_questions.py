@@ -1023,6 +1023,31 @@ class MemoryQuestionTests(unittest.TestCase):
         self.record('ABBR-NAME', 'sept-sdk', payload={'why':'An attached identifier'})
         self.assertEqual(answer_question(self.repo, 'Why sept-sdk?')['status'], 'cited-records')
 
+    def test_ordinal_dates_and_clocks_cannot_become_unbounded_path_queries(self):
+        phrases = ('2026-264', '2026264', '2024-366', '2024366', '2026-001', '2026001',
+                   '2026-264T120000Z', '2026264T120000+0200', '2026-264T12:00:00Z',
+                   '2026264T120000.123Z', '2026264T120000,123Z', '2026-264T12')
+        self.record('ORDINAL-OLD', 'auth change', kind='change', event_type='change.observed',
+                    timestamp='2025-01-01T00:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace('-','/')+'/service.py' for p in phrases]})
+        before = self.paths.events.read_bytes()
+        for phrase in phrases:
+            for question in ('What changed in auth '+phrase+'?', 'Quels changements dans auth '+phrase+' ?'):
+                for options in ({}, {'until':'2027-01-01'}, {'entity':'ORDINAL-OLD'}):
+                    with self.subTest(question=question, options=options):
+                        result = answer_question(self.repo, question, **options)
+                        self.assertEqual(result['status'], 'abstained')
+                        self.assertEqual(result['parts'], [])
+                        self.assertEqual(result['context']['abstention'], 'ambiguous-time-filter')
+        self.assertEqual(before, self.paths.events.read_bytes())
+        for index, label in enumerate(('release-2026-264', 'v2026264', 'audit/2024366', 'build_2026-001')):
+            identity = 'ORDINAL-NAME-' + str(index)
+            source = self.record(identity, label, payload={'why':'Attached identifier'})
+            result = answer_question(self.repo, 'Why '+label+'?', entity=identity)
+            self.assertEqual(result['status'], 'cited-records')
+            self.assertEqual([f['source']['eventId'] for f in result['context']['facts']], [source['event_id']])
+            self.assert_sources(result)
+
     def test_interrogative_words_in_dependency_names_keep_exact_incoming_edges(self):
         for index, label in enumerate(('Doctor Who service', 'what platform', 'which platform',
                                       'ce qui fonctionne', 'Who Does It service', 'risk & memory retention',
