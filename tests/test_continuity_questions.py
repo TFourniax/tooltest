@@ -760,3 +760,40 @@ class MemoryQuestionTests(unittest.TestCase):
             self.assertEqual(result['status'],'cited-records')
             self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['AUTH'])
             self.assert_sources(result)
+
+    def test_conjoined_remember_is_a_command_not_a_noun_name_suffix(self):
+        self.record('AUTH','auth and remember billing',payload={'why':'Auth reason'})
+        for question,reason in [
+            ('Why auth and remember billing?','mixed-question-intents'),
+            ('Pourquoi auth et remember billing ?','mixed-question-intents'),
+            ('Remember auth and remember billing?','multiple-question-clauses'),
+        ]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],reason)
+
+    def test_car_is_allowed_in_incoming_target_names(self):
+        self.record('CAR','car service',kind='component',event_type='component.observed')
+        self.record('CAR-SOURCE','source',kind='component',event_type='component.observed',
+                    relations=[{'predicate':'depends_on','target':{'id':'CAR','kind':'component'}}])
+        for question in ('What depends on car service?', 'Qu’est-ce qui dépend de car service ?'):
+            for options in ({},{'entity':'CAR'}):
+                with self.subTest(question=question,options=options):
+                    result=answer_question(self.repo,question,**options)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['to'] for f in result['context']['facts']],['CAR'])
+                    self.assert_sources(result)
+
+    def test_spaced_standard_identifiers_are_not_standalone_years(self):
+        labels=('RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508')
+        for index,label in enumerate(labels):
+            self.record('STD-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question in ('Why '+label+'?', 'Pourquoi '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['STD-'+str(index)])
+                    self.assert_sources(result)
