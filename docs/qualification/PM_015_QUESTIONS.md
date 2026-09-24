@@ -765,3 +765,36 @@ detect its defect: 58/59 on 7af22d6 (59 fails), 14/59 on the first reviewed
 commit 36341f8, every one of the other 14 fails on the commit where it was
 reported, and 60–61 fail on 09bf096. These are MACHINE results; independent
 review and hosted gates must bind this commit, then fresh main must be checked.
+
+## IDE continuation — finding 62, 2026-09-24
+
+Review 5305158962 on 877b2b0 (4094207977, P1): the case-sensitive named-zone
+list omitted common abbreviations such as `EET`, `EEST`, `WET` and `WEST`, so
+`What changed in auth 12 EET?` could cite an older `auth/12/eet/` path. The list
+is now one module constant of 192 customary tz-database abbreviations, a strict
+superset of the previous 31, still matched case-sensitively after a one- or
+two-digit hour. Lowercase or capitalized words (`est`, `cet`, `wet`, `West`,
+`eet`) and non-zone uppercase terms such as `IT` remain exact-source names.
+
+The regression against the installed 877b2b0 wheel reproduces 90 failing
+subcases (15 zone forms, EN/FR, no bound / `--until` / `--entity`).
+
+Hosted gate note for 877b2b0: in run 36006223408, job 107654947849 (installed
+optional syntax providers, ubuntu-latest, attempt 1) FAILED on the unchanged
+IdleProof hook latency budget: `tree-sitter-json` p95 152.8 ms > 150 ms
+(max 204.7 ms < 500 ms). Its first 24 samples were 72–76 ms before
+second-half spikes; `python-ast` and `tree-sitter-typescript` measured 52.0 and
+73.8 ms p95, below 7af22d6 (69.8/96.5 ms) and 09bf096 (71.7/96.2 ms), whose
+JSON p95 were 98.3 and 106.6 ms. The gate runs extraction hooks; the Q&A
+module is imported only by `dw ask`. This failure is retained as a FAIL of that
+commit; no budget was changed and it does not qualify or disqualify another SHA.
+
+After correction on Windows with Python 3.12.10: 76 focused tests PASS; 820
+installed-wheel tests PASS with 49 explicit skips in 1093.095 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+c0f3b3f24eb564e7e26891dfb4155b06e54f62d48f1af2b40cd7b4c970326c02.
+Journal SHA256: 9baac7107620e0de480a8cf12339cfbf694626df123d730132e764043fdd5b61.
+The replay of every review scenario gives 62/62 PASS on this candidate; the
+finding-62 scenario fails on 877b2b0. MACHINE results only; independent review
+and hosted gates must bind this commit before merge, then fresh main.

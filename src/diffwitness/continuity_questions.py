@@ -24,6 +24,20 @@ _QUERY_WORD = re.compile(r"[^\W_]+(?:[+#]+[^\W_]+)*[+#]*")
 # NFKC keeps these hyphen, minus and slash forms distinct. Clause and temporal
 # scans treat them exactly as ASCII, including as identifier attachments; en
 # and em dashes stay punctuation. The mapping is one-to-one, so offsets hold.
+# Customary time-zone abbreviations (tz database and common usage). They match
+# case-sensitively after an hour, so words such as est, cet, wet or West stay names.
+_ZONE_ABBREVIATIONS = '|'.join(sorted(set('''
+    ACDT ACST ACT ACWST ADT AEDT AEST AFT AKDT AKST ALMT AMST AMT ANAT AQTT ART AST AWST
+    AZOST AZOT AZT BDT BNT BOT BRST BRT BST BTT CAT CCT CDT CEST CET CHADT CHAST CHOST
+    CHOT CHST ChST CHUT CIST CKT CLST CLT COST COT CST CT CVT CWST CXT DAVT DDUT EASST
+    EAST EAT ECT EDT EEST EET EGST EGT EST ET FET FJST FJT FKST FKT FNT GALT GAMT GET
+    GFT GILT GMT GST GYT HADT HAST HDT HKT HOVST HOVT HST ICT IDT IOT IRDT IRKT IRST IST
+    JST KGT KOST KRAT KST LHDT LHST LINT MAGT MART MAWT MDT MEST MET MHT MIST MMT MSD MSK
+    MST MT MUT MVT MYT NCT NDT NFT NOVT NPT NRT NST NT NUT NZDT NZST OMST ORAT PDT PET
+    PETT PGT PHOT PHT PKT PMDT PMST PONT PST PT PWT PYST PYT RET ROTT SAKT SAMT SAST SBT
+    SCT SGT SLST SRET SRT SST SYOT TAHT TFT TJT TKT TLT TMT TOT TRT TVT ULAST ULAT UT UTC
+    UYST UYT UZT VET VLAT VOLT VOST VUT WAKT WAST WAT WEST WET WFT WGST WGT WIB WIT WITA
+    WST YAKT YEKT'''.split()), key=lambda zone: (-len(zone), zone)))
 _ASCII_SEPARATORS = str.maketrans({'\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-',
                                    '\u2215': '/', '\u2044': '/'})
 
@@ -271,9 +285,7 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        r"|(?<![\w./#:+-])\d{1,2}\s*(?-i:ET|CT|MT|PT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
-        r"CET|CEST|BST|IST|JST|KST|HST|AKST|AKDT|AST|ADT|MSK|"
-        r"AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)\b"
+        rf"|(?<![\w./#:+-])\d{{1,2}}\s*(?-i:{_ZONE_ABBREVIATIONS})\b"
         r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
         r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
         r"|(?<![\w./#:+-])\d{1,2}(?::\d{2})?\s*[+-]\d{2}:?\d{2}\b"

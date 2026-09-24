@@ -55,7 +55,7 @@ def main():
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
                        'dotted-21.09.2026','build_2026.9.21','dotted-21.09.26','v24.1.10',
-                       'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering','plan 12 est stable','plan 13 Est stable','plan 12 cet objet',
+                       'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering','plan 12 est stable','plan 13 Est stable','plan 12 cet objet','plan 12 wet paint','plan 12 West wing',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
                        'System.Memory','foo.memory.py','release-2026-264','v2026264','audit/2024366','build_2026-001','v20260921','release-2026W394','build_20260921T120000Z',
                        'sept-sdk','sdk-sep-21','release/21-Sep-2026','sep.service',
@@ -122,7 +122,8 @@ def main():
                           'Aug 4th','janv. 1er','févr. 2e',
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
                           '12 ET','12 CT','12 MT','12 PT','12ET','12PT',
-                          '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
+                          '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200',
+                          '12 EET','12 EEST','12 WET','12 WEST','12 SAST','12 HKT','12 WIB','12 ChST')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',

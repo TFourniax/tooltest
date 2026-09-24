@@ -931,15 +931,19 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_named_zone_clocks_never_become_path_terms(self):
         phrases=('12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
-                 '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
+                 '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200',
+                 '12 EET','12 EEST','12 WET','12 WEST','12EET','9 MSD','12 SAST','12 HKT',
+                 '12 SGT','12 PHT','12 WIB','12 WITA','12 ChST','12 HDT','12 UT')
         self.record('ZONE-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
         for phrase in phrases:
-            with self.subTest(phrase=phrase):
-                result=answer_question(self.repo,'What changed in auth '+phrase+'?')
-                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
-                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+            for prefix in ('What changed in auth ','Quels changements dans auth '):
+                for options in ({},{'until':'2027-01-01'},{'entity':'ZONE-OLD'}):
+                    with self.subTest(phrase=phrase,prefix=prefix,options=options):
+                        result=answer_question(self.repo,prefix+phrase+'?',**options)
+                        self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                        self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
 
     def test_adjacent_period_question_clauses_preserve_dotted_names(self):
         self.record('AUTH','auth why pourquoi billing what changed in remember please memory',
@@ -1181,7 +1185,9 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_generic_zone_homographs_remain_literal_lowercase_name_terms(self):
         labels=('plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering',
-                                     'plan 12 est stable','plan 13 Est stable','plan 12 cet objet')
+                                     'plan 12 est stable','plan 13 Est stable','plan 12 cet objet',
+                                     'plan 12 wet paint','plan 12 West wing','plan 12 IT migration',
+                                     'plan 12 eet samen')
         for index,label in enumerate(labels):
             self.record('ZONE-NAME-'+str(index),label,payload={'why':'Reason for '+label})
         for index,label in enumerate(labels):
