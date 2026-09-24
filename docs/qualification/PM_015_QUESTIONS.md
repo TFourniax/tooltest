@@ -126,3 +126,16 @@ must agree exactly with an explicit lower bound. Other CLI bounds never erase
 question-side constraints. Both regressions also run in the installed journey.
 No local execution after these changes is claimed while Work cloud is offline;
 final hosted review, all gates and fresh main remain required.
+
+Review4088878860/4088878864/4088878867 found mixed question intents,
+unsupported relative-time vocabulary and UTC normalization overflow. Regression
+head 387f29ba61b3cada79f3cfefb9d3634c3f08d73a ran760tests with27subcase failures/52skips
+in96.172s on35942676200/job107454105885. The full BEFORE log is retained.
+Mixed supported intent families now abstain before precedence or an explicit kind
+can discard a clause. Unsupported relative time and numeric slash/dot dates are
+rejected independently of CLI flags; the finite lexical reader does not claim
+complete natural-language understanding. Time words that are also names may
+conservatively abstain. Datetime UTC overflow becomes a bounded ValueError and
+normal CLI status2, with no traceback. Installed FR/EN journey exercises these
+cases. Final hosted AFTER gates and review remain required; no local after-run
+is claimed while Work is offline.

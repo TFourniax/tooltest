@@ -44,7 +44,10 @@ def _instant(value):
     result = datetime.fromisoformat(value.replace('Z', '+00:00'))
     if result.tzinfo is None:
         raise ValueError('timestamp requires an explicit timezone')
-    return result.astimezone(timezone.utc)
+    try:
+        return result.astimezone(timezone.utc)
+    except OverflowError as exc:
+        raise ValueError('timestamp is outside the supported UTC range') from exc
 
 
 def _incoming_target(question):
@@ -74,20 +77,39 @@ def _query(question, kind, since, until, entity):
         from .continuity_history import _identity
         _identity(entity)
     query_tokens = tokens(question)
+    intents = {name for name, words in (
+        ('why', {'why', 'pourquoi'}),
+        ('dependencies', {'depends', 'depend', 'dependent', 'dependances', 'dependencies'}),
+        ('changes', {'changed', 'changes', 'change', 'changements'}),
+    ) if query_tokens & words}
+    ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
     if kind == 'auto':
-        kind = ('why' if query_tokens & {'why', 'pourquoi'} else
-                'dependencies' if query_tokens & {'depends', 'depend', 'dependent', 'dependances', 'dependencies'} else
-                'changes' if query_tokens & {'changed', 'changes', 'change', 'changements'} else 'memory')
-    ambiguity = None
+        kind = next(iter(intents)) if len(intents) == 1 else 'memory'
+    elif intents and kind not in intents:
+        ambiguity = ambiguity or 'question-kind-conflict'
     lower, upper = _instant(since) if since else None, _instant(until) if until else None
     natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
                           r"last|dernier|dernière|morning|matin|noon|midi)\b", question, re.I)
-    relative_period = re.search(r"\b(?:in|en|during|pendant)\s+(?:\d{4}|"
-                                r"january|february|march|april|may|june|july|august|september|october|november|december|"
-                                r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b",
-                                question, re.I)
+    # Reject unsupported time vocabulary independently of any CLI bounds.
+    # This deliberately prefers abstention when a time word is also a name.
+    relative_period = re.search(
+        r"\b(?:ago|recently|recent|earlier|later|currently|now|then|"
+        r"previous|next|latest|past|future|between|as\s+of|"
+        r"seconds?|minutes?|hours?|days?|weeks?|months?|years?|"
+        r"evening|tonight|afternoon|midnight|"
+        r"monday|tuesday|wednesday|thursday|friday|saturday|sunday|"
+        r"january|february|march|april|may|june|july|august|september|october|november|december|"
+        r"récemment|récent|récente|actuellement|maintenant|auparavant|ensuite|"
+        r"précédent|prochain|prochaine|passé|passée|entre|"
+        r"il\s+y\s+a|à\s+partir|à\s+la\s+date|"
+        r"secondes?|heures?|jours?|semaines?|mois|années?|ans?|"
+        r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
+        r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
+        r"|\b(?:in|en|during|pendant)\s+\d{4}\b"
+        r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b",
+        question, re.I) if kind == 'changes' or natural_dates or temporal else None
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:
@@ -95,11 +117,11 @@ def _query(question, kind, since, until, entity):
         if len(natural_dates) == 1 and len(temporal) == 1 and bare_bound is not None and relative_period is None:
             natural_lower = _instant(bare_bound.group(1))
             if lower is not None and lower != natural_lower:
-                ambiguity = 'ambiguous-time-filter'
+                ambiguity = ambiguity or 'ambiguous-time-filter'
             else:
                 lower = natural_lower
         else:
-            ambiguity = 'ambiguous-time-filter'
+            ambiguity = ambiguity or 'ambiguous-time-filter'
     if lower and upper and lower > upper:
         raise ValueError('since must not be later than until')
     if (lower or upper) and kind != 'changes':

@@ -63,6 +63,26 @@ def main():
                 assert ambiguous['status']=='abstained'
                 assert ambiguous['context']['abstention']=='ambiguous-time-filter'
                 assert ambiguous['parts']==[]
+        for question,reason in [
+            ('Why auth and what changed in billing?', 'mixed-question-intents'),
+            ('Pourquoi auth et quels changements dans billing ?', 'mixed-question-intents'),
+            ('What changed in auth two days ago?', 'ambiguous-time-filter'),
+            ('What changed in auth this week?', 'ambiguous-time-filter'),
+            ('What changed in auth recently?', 'ambiguous-time-filter'),
+            ('What changed in auth as of Monday?', 'ambiguous-time-filter'),
+            ('Qu’est-ce qui a changé dans auth il y a deux jours ?', 'ambiguous-time-filter'),
+            ('Qu’est-ce qui a changé dans auth récemment ?', 'ambiguous-time-filter'),
+        ]:
+            for lang in ('fr','en'):
+                result=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert result['status']=='abstained' and result['parts']==[]
+                assert result['context']['abstention']==reason
+        for flag,bound in [('--since','9999-12-31T23:59:59-23:59'),
+                           ('--until','0001-01-01T00:00:00+23:59')]:
+            rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],
+                                    cwd=repo,encoding='utf-8',capture_output=True,timeout=30)
+            assert rejected.returncode==2 and rejected.stdout==''
+            assert 'Traceback' not in rejected.stderr
         assert all(p.read_bytes()==b for p,b in before.items())
         run(dw,'decision','retire','DEC-AUTH','--reason','Historic only')
         retired=json.loads(run(dw,'ask','Why?','--entity','DEC-AUTH','--json'));assert retired['status']=='abstained'
