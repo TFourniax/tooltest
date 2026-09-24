@@ -26,6 +26,9 @@ def main():
         run(dw,'decision','record','Payment service','--id','DEC-PAY','--why','Keep payment records')
         run(dw,'objective','add','Checkout','--id','OBJ-PAY','--why','Keep payment scope')
         run(dw,'relation','add','OBJ-PAY','depends_on','DEC-PAY')
+        for identity,label in [('DEC-LEX-X','lexical x v1'),('DEC-LEX-Y','lexical y v2'),
+                               ('DEC-TOKYO','lexical 東京'),('DEC-OSAKA','lexical 大阪')]:
+            run(dw,'decision','record',label,'--id',identity,'--why','Exact lexical fixture')
         # Import-shaped fixture through the installed event API; queries and
         # exact source opening below still execute the installed CLI.
         for identity,target in [
@@ -110,6 +113,24 @@ def main():
                 result=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
                 assert result['status']=='abstained' and result['parts']==[]
                 assert result['context']['abstention']==reason
+        for lang in ('fr','en'):
+            for period in ('in Q1 2026','in Q4 2026','en T1 2026','in H1 2026',
+                           'in Q1','en T2','in Ｑ１ 2026','in 2026 Q3','2026'):
+                value=json.loads(run(dw,'--language',lang,'ask','What changed in auth '+period+'?','--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']=='ambiguous-time-filter'
+            for question,expected in [('Why lexical x v1?',['DEC-LEX-X']),
+                                      ('Why lexical y v2?',['DEC-LEX-Y']),
+                                      ('Why x?',['DEC-LEX-X']),('Why lexical z?',[]),
+                                      ('Why lexical 東京?',['DEC-TOKYO']),
+                                      ('Pourquoi lexical 大阪 ?',['DEC-OSAKA'])]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert [f['fields']['id'] for f in value['context']['facts']]==expected
+                assert value['status']==('cited-records' if expected else 'abstained')
+                for part in value['parts']:
+                    source=part['source']
+                    opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==source['eventHash']
         for flag,bound in [('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],

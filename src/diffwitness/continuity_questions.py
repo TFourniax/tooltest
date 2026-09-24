@@ -16,12 +16,24 @@ import unicodedata
 
 from .continuity_events import ContinuityError, _read_validated_snapshot, continuity_paths
 from .continuity_history import _display, _source, _wire
-from .continuity_search import tokens
 from .gitops import repo_root
 from .language import tr
 
 MAX_PACKET_BYTES = 1024 * 1024
-_STOP = tokens('why pourquoi what which who how where when does depend depends dependencies '
+_QUERY_WORD = re.compile(r"[^\W_]+")
+
+
+def _terms(value):
+    # Strict question matching must retain short/version and non-Latin terms;
+    # the general context index intentionally uses a different recall policy.
+    text = value or ""
+    if not text.isascii():
+        text = unicodedata.normalize("NFKD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
+        text = "".join(char for char in text if not unicodedata.combining(char))
+    return {word.lower() for word in _QUERY_WORD.findall(text)}
+
+
+_STOP = _terms('why pourquoi what which who how where when does depend depends dependencies '
                'depend de dependances dependent quels quelles quel quelle qui quoi comment '
                'est que dans pour sur avec nous notre cette ceci cela ici depuis apres avant '
                'the and this that those these here there from since after before about have '
@@ -52,6 +64,7 @@ def _instant(value):
 
 
 def _incoming_target(question):
+    question = unicodedata.normalize('NFKC', question)
     match = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+([^?!;]+?)\s*[?!.]*\s*", question, re.I)
              or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+([^?!;]+?)\s*[?!.]*\s*",
                              question, re.I))
@@ -77,7 +90,8 @@ def _query(question, kind, since, until, entity):
     if entity is not None:
         from .continuity_history import _identity
         _identity(entity)
-    query_tokens = tokens(question)
+    normalized_question = unicodedata.normalize('NFKC', question)
+    query_tokens = _terms(normalized_question)
     intents = {name for name, words in (
         ('why', {'why', 'pourquoi'}),
         ('dependencies', {'depends', 'depend', 'dependent', 'dependances', 'dependencies'}),
@@ -89,10 +103,11 @@ def _query(question, kind, since, until, entity):
     elif intents and kind not in intents:
         ambiguity = ambiguity or 'question-kind-conflict'
     lower, upper = _instant(since) if since else None, _instant(until) if until else None
-    natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', question)
+    natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', normalized_question)
+    cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', normalized_question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
-                          r"last|dernier|dernière|morning|matin|noon|midi)\b", question, re.I)
+                          r"last|dernier|dernière|morning|matin|noon|midi)\b", normalized_question, re.I)
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
     relative_period = re.search(
@@ -109,12 +124,13 @@ def _query(question, kind, since, until, entity):
         r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
-        r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b",
-        question, re.I)
+        r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b"
+        r"|\b(?:[QT][1-4]|[HS][12]|quarters?|trimestres?|semestres?)\b|\b\d{4}\b",
+        cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:
-        bare_bound = re.search(r"\b(?:since|depuis)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$", question, re.I)
+        bare_bound = re.search(r"\b(?:since|depuis)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$", normalized_question, re.I)
         if len(natural_dates) == 1 and len(temporal) == 1 and bare_bound is not None and relative_period is None:
             natural_lower = _instant(bare_bound.group(1))
             if lower is not None and lower != natural_lower:
@@ -129,8 +145,7 @@ def _query(question, kind, since, until, entity):
         ambiguity = ambiguity or 'temporal-filter-requires-changes'
     if kind == 'dependencies' and _incoming_target(question) is None:
         ambiguity = ambiguity or 'dependency-direction-ambiguous'
-    cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', question)
-    terms = tokens(cleaned) - _STOP
+    terms = _terms(cleaned) - _STOP
     if not terms and entity is None:
         ambiguity = ambiguity or 'no-specific-search-term'
     return {'text': question, 'kind': kind, 'entity': entity, 'terms': sorted(terms),
@@ -148,7 +163,7 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
     def match(subject, extra=''):
         if entity is not None:
             return 1000 if subject['id'] == entity else 0
-        subject_terms = tokens(' '.join((subject['id'], subject.get('label') or '', extra)))
+        subject_terms = _terms(' '.join((subject['id'], subject.get('label') or '', extra)))
         return len(terms) if terms and terms <= subject_terms else 0
     def active(identity):
         return identity not in current or current[identity]['active']
@@ -170,11 +185,11 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
         # Resolve targets before selecting edges, including matching active
         # entities with no incoming edge. Absence of an edge cannot resolve a
         # name ambiguity. Explicit --entity is the literal disambiguator.
-        target_terms = tokens(_incoming_target(question) or '') - _STOP
+        target_terms = _terms(_incoming_target(question) or '') - _STOP
         def target_match(subject):
             if entity is not None:
                 return subject['id'] == entity
-            available = tokens(subject['id'] + ' ' + (subject.get('label') or ''))
+            available = _terms(subject['id'] + ' ' + (subject.get('label') or ''))
             return bool(target_terms) and target_terms <= available
         target_ids = {identity for identity, state in current.items()
                       if state['active'] and target_match(state['assertion']['subject'])}

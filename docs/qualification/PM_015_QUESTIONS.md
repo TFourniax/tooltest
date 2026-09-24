@@ -208,3 +208,20 @@ The actual installed journey includes the misleading-year path in a synthetic
 older event and asks through the real CLI in both languages, including mixed
 CLI bounds. Final-head distinct review, every hosted gate and freshmain are
 required. Work remains offline; there is no local AFTER or HUMAN claim.
+
+The thirteenth finding 4089181415 identifies ignored quarter qualifiers. The
+regression-first head 579b61e25ccaf7176d7c432c0fd532e8e407039d runs 772 tests
+with 14 subcase failures / 52 skips in 101.083s in 35947674667 / job107469404895.
+Quarter/year expressions, short/version identifiers and non-Latin names expose
+the underlying reuse of the broad context tokenizer, which drops short terms.
+The complete BEFORE and preceding 769-test Linux AFTER logs are retained.
+Q&A now keeps short and Unicode terms for strict matching, without changing the
+general search index. Unsupported quarters, half-years and standalone years
+abstain, including compatibility Unicode forms. Complete ISO date bounds keep
+their existing behavior; literal --entity remains available for exact IDs.
+The real installed CLI journey covers quarter/year abstention and exact short,
+version and Unicode target selection in both presentation languages, opens every
+returned source, and checks unchanged journal/state bytes. No schema, original
+citation or authority assertion is weakened. Final-head distinct review, all
+hosted gates and fresh main remain required. Work is offline; no local AFTER or
+HUMAN result is claimed.
