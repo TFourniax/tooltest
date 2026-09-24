@@ -21,24 +21,28 @@ from .language import tr
 
 MAX_PACKET_BYTES = 1024 * 1024
 _QUERY_WORD = re.compile(r"[^\W_]+(?:[+#]+[^\W_]+)*[+#]*")
+# Every alphabetic abbreviation in the IANA tz database 2026d TZif files plus
+# customary forms (ET, CT, IRKT, ...). They match case-sensitively after an hour,
+# so words such as est, cet, wet or West stay names.
+_ZONE_ABBREVIATIONS = '|'.join(sorted(set('''
+    ACDT ACST ACT ACWST ADDT ADT AEDT AEST AFT AHDT AHST AKDT AKST ALMT AMST AMT ANAT
+    APT AQTT ART AST AWDT AWST AWT AZOST AZOT AZT BDST BDT BMT BNT BOT BRST BRT BST BTT
+    CAST CAT CCT CDT CEMT CEST CET CHADT CHAST CHOST CHOT CHST CHUT CIST CKT CLST CLT
+    CMT COST COT CPT CST CT CVT CWST CWT CXT ChST DAVT DDUT DMT EASST EAST EAT ECT EDT
+    EEST EET EGST EGT EMT EPT EST ET EWT FET FFMT FJST FJT FKST FKT FMT FNT GALT GAMT
+    GDT GET GFT GILT GMT GST GYT HADT HAST HDT HKST HKT HKWT HMT HOVST HOVT HPT HST HWT
+    ICT IDDT IDT IMT IOT IRDT IRKT IRST IST JDT JMT JST KDT KGT KMT KOST KRAT KST LHDT
+    LHST LINT LMT LST MAGT MART MAWT MDST MDT MEST MET MHT MIST MMT MPT MSD MSK MST MT
+    MUT MVT MWT MYT NCT NDDT NDT NFT NOVT NPT NRT NST NT NUT NWT NZDT NZMT NZST OMST
+    ORAT PDT PET PETT PGT PHOT PHT PKST PKT PLMT PMDT PMMT PMST PMT PONT PPMT PPT PST PT
+    PWT PYST PYT QMT RET RMT ROTT SAKT SAMT SAST SBT SCT SDMT SGT SJMT SLST SMT SRET SRT
+    SST SYOT TAHT TBMT TFT TJT TKT TLT TMT TOT TRT TVT ULAST ULAT UT UTC UYST UYT UZT
+    VET VLAT VOLT VOST VUT WAKT WAST WAT WEMT WEST WET WFT WGST WGT WIB WIT WITA WMT WST
+    YAKT YDDT YDT YEKT YPT YST YWT'''.split()), key=lambda zone: (-len(zone), zone)))
 # NFKC keeps these hyphen, minus and slash forms distinct. Clause and temporal
 # scans treat them exactly as ASCII, including as identifier attachments; en
 # and em dashes stay punctuation. The mapping is one-to-one, so offsets hold.
-# Customary time-zone abbreviations (tz database and common usage). They match
-# case-sensitively after an hour, so words such as est, cet, wet or West stay names.
-_ZONE_ABBREVIATIONS = '|'.join(sorted(set('''
-    ACDT ACST ACT ACWST ADT AEDT AEST AFT AKDT AKST ALMT AMST AMT ANAT AQTT ART AST AWST
-    AZOST AZOT AZT BDT BNT BOT BRST BRT BST BTT CAT CCT CDT CEST CET CHADT CHAST CHOST
-    CHOT CHST ChST CHUT CIST CKT CLST CLT COST COT CST CT CVT CWST CXT DAVT DDUT EASST
-    EAST EAT ECT EDT EEST EET EGST EGT EST ET FET FJST FJT FKST FKT FNT GALT GAMT GET
-    GFT GILT GMT GST GYT HADT HAST HDT HKT HOVST HOVT HST ICT IDT IOT IRDT IRKT IRST IST
-    JST KGT KOST KRAT KST LHDT LHST LINT MAGT MART MAWT MDT MEST MET MHT MIST MMT MSD MSK
-    MST MT MUT MVT MYT NCT NDT NFT NOVT NPT NRT NST NT NUT NZDT NZST OMST ORAT PDT PET
-    PETT PGT PHOT PHT PKT PMDT PMST PONT PST PT PWT PYST PYT RET ROTT SAKT SAMT SAST SBT
-    SCT SGT SLST SRET SRT SST SYOT TAHT TFT TJT TKT TLT TMT TOT TRT TVT ULAST ULAT UT UTC
-    UYST UYT UZT VET VLAT VOLT VOST VUT WAKT WAST WAT WEST WET WFT WGST WGT WIB WIT WITA
-    WST YAKT YEKT'''.split()), key=lambda zone: (-len(zone), zone)))
-_ASCII_SEPARATORS = str.maketrans({'\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-',
+_ASCII_SEPARATORS =str.maketrans({'\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-',
                                    '\u2215': '/', '\u2044': '/'})
 
 
@@ -285,10 +289,15 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        rf"|(?<![\w./#:+-])\d{{1,2}}\s*(?-i:{_ZONE_ABBREVIATIONS})\b"
+        # A clock (H, HHMM, HH:MM[:SS], HH.MM, HHh[MM], am/pm, noon/midnight)
+        # followed, with or without a space, by a zone, an offset or Zulu Z.
+        rf"|(?<![\w./#:+-])(?:(?:\d{{1,2}}(?:[:.]?\d{{2}}){{0,2}}|\d{{1,2}}h(?:\d{{2}})?)(?:\s*[ap]\.?m\.?)?|"
+        rf"noon|midi|midnight|minuit)\s*(?-i:{_ZONE_ABBREVIATIONS})\b"
+        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?Z\b"
+        r"|(?<![\w./#:+-])\d{1,4}\s*(?:hrs?|hours?|heures?)\b"
         r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
         r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
-        r"|(?<![\w./#:+-])\d{1,2}(?::\d{2})?\s*[+-]\d{2}:?\d{2}\b"
+        r"|(?<![\w./#:+-])\d{1,2}(?:[:.]?\d{2}){0,2}\s*[+-]\d{2}(?::?\d{2})?\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"
         r"|\b[ap]\.?m\.?\b"
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"

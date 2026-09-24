@@ -798,3 +798,40 @@ Journal SHA256: 9baac7107620e0de480a8cf12339cfbf694626df123d730132e764043fdd5b61
 The replay of every review scenario gives 62/62 PASS on this candidate; the
 finding-62 scenario fails on 877b2b0. MACHINE results only; independent review
 and hosted gates must bind this commit before merge, then fresh main.
+
+## IDE continuation — finding 63, 2026-09-24
+
+Review 5305677379 on 4e256a6 (4094642025, P2): the customary zone constant
+still omitted tz-database abbreviations such as `AHST`, `AHDT`, `HKST`, `YST`
+and `YDT`. The constant now contains every alphabetic abbreviation stored in
+the 598 TZif files of IANA tz database 2026d (Python `tzdata` 2026.4, 115
+abbreviations, extracted from the binary files rather than typed by hand)
+plus the previous customary forms: 250 in total, still case-sensitive. A
+hermetic regression pins those 115 abbreviations. tz numeric abbreviations
+such as `+03` or `-01` are covered by accepting a two-digit offset after a clock.
+
+The same family was audited for attached forms and corrected together: a clock
+(`H`, `HHMM`, `HH:MM[:SS]`, `HH.MM`, `HHh[MM]`, with am/pm, or noon/midi/
+midnight/minuit) followed with or without a space by a zone (`12:00EST`,
+`1200EST`, `3pmEST`, `12hEET`, `noonEST`, `12.30 EET`), a numeric offset
+(`1200+03`), Zulu `Z` (`1200Z`, `0930Z`, `T1200Z`, `120000Z`) or an attached
+hour unit (`1200hrs`, `12 hrs`). Attached identifiers keep the existing
+lookbehind guard (`v1200Z`, `build_1200EST`, `rev12hEET`) and remain
+exact-source positives, as do dotted versions without a zone.
+
+Regressions against the installed 4e256a6 wheel reproduce 124 failing
+subcases for the tz-database set (58 abbreviations, `+00`, `+03`, attached
+`12AHDT`) and 102 for the attached forms (17 forms, EN/FR, three option sets).
+
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1014.414 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+b2aba5ba439087caad6c878a12a2038369be29c156bf219b6f8a989a28e5b428.
+Journal SHA256: ef8a9d3214e800318afb48d0bfe7030810ded6dd8f3af2f2fa58961c90e9eaf2.
+The replay of every review scenario gives 63/63 PASS on this candidate; the
+finding-63 scenario fails on 4e256a6. 4e256a6 itself passed its 27 hosted
+checks (test 36011104805, ProofBench 36011104389, ContinuityBench 36011104454,
+integrated 36011104258), which do not qualify this new commit. An earlier local
+run of an intermediate state of this lot was stopped before the attached forms
+were added; its partial logs are kept and are not counted.

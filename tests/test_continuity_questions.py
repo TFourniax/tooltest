@@ -945,6 +945,59 @@ class MemoryQuestionTests(unittest.TestCase):
                         self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
                         self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
 
+    def test_every_tz_database_abbreviation_is_a_clock_qualifier(self):
+        # Alphabetic abbreviations of all IANA tz database 2026d TZif files, and
+        # its numeric forms. Each one after an hour is an unsupported clock.
+        alphabetic='''
+            ACDT ACST ADDT ADT AEDT AEST AHDT AHST AKDT AKST AMT APT AST AWDT AWST AWT BDST BDT BMT
+            BST CAST CAT CDT CEMT CEST CET CMT CPT CST CWT ChST DMT EAT EDT EEST EET EMT EPT EST EWT
+            FFMT FMT GDT GMT GST HDT HKST HKT HKWT HMT HPT HST HWT IDDT IDT IMT IST JDT JMT JST KDT
+            KMT KST LMT LST MDST MDT MMT MPT MSD MSK MST MWT NDDT NDT NPT NST NWT NZDT NZMT NZST PDT
+            PKST PKT PLMT PMMT PMT PPMT PPT PST PWT QMT RMT SAST SDMT SJMT SMT SST TBMT TMT UTC WAST
+            WAT WEMT WEST WET WIB WIT WITA WMT YDDT YDT YPT YST YWT
+        '''.split()
+        self.assertEqual(len(alphabetic),115)
+        phrases=['12 '+zone for zone in alphabetic]+['12 +03','12 -01','12 +0545','12 +00','9 -0330','12 AHST','12AHDT']
+        self.record('TZ-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/12/'+zone.lower()+'/service.py' for zone in alphabetic]
+                             +['auth/12/03/service.py','auth/12/01/service.py','auth/12/0545/service.py',
+                               'auth/12/00/service.py','auth/9/0330/service.py','auth/12ahdt/service.py']})
+        before=self.paths.events.read_bytes()
+        for phrase in phrases:
+            for options in ({},{'entity':'TZ-OLD'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        self.assertEqual(before,self.paths.events.read_bytes())
+
+    def test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers(self):
+        phrases=('1200Z','0930Z','T1200Z','120000Z','12:00EST','1200EST','3pmEST','3PMEST','12hEET',
+                 '12h30EET','12.30 EET','noonEST','midnightUTC','minuitCET','1200+03','12:30+0530',
+                 '1200hrs','12 hrs','9 heures')
+        self.record('ATTACHED-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+'/'.join(re.findall(r'[^\W_]+',p.lower()))+'/service.py' for p in phrases]})
+        before=self.paths.events.read_bytes()
+        for phrase in phrases:
+            for prefix in ('What changed in auth ','Quels changements dans auth '):
+                for options in ({},{'until':'2027-01-01'},{'entity':'ATTACHED-OLD'}):
+                    with self.subTest(phrase=phrase,prefix=prefix,options=options):
+                        result=answer_question(self.repo,prefix+phrase+'?',**options)
+                        self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                        self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        self.assertEqual(before,self.paths.events.read_bytes())
+        for index,label in enumerate(('v1200Z','build_1200EST','release-09-21T120000Z','rev12hEET',
+                                      'Python 3.14','Node 24.1.0','plan 12 est stable')):
+            with self.subTest(label=label):
+                identity='ATTACHED-NAME-'+str(index)
+                source=self.record(identity,label,payload={'why':'Attached clock-like identifier'})
+                result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+                self.assertEqual(result['status'],'cited-records')
+                self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+                self.assert_sources(result)
+
     def test_adjacent_period_question_clauses_preserve_dotted_names(self):
         self.record('AUTH','auth why pourquoi billing what changed in remember please memory',
                     payload={'why':'Synthetic all-term reason'})
