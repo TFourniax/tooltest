@@ -970,3 +970,34 @@ The replay of every review scenario gives 69/69 PASS on this candidate; the
 finding-69 scenario fails on bd787f6. bd787f6 passed its 27 hosted checks
 (test 36031471753, ProofBench 36031471603, ContinuityBench 36031471369,
 integrated 36031471539), which do not qualify this new commit.
+
+## IDE continuation — finding 70, 2026-09-24
+
+Review 5308011423 on 460f540 (4096627454, P2): top-level tz links with a hyphen
+(`NZ-CHAT`, `W-SU`) after an hour were lexical terms; the finding-69 correction
+had left all single-component IDs out. The clock suffix now accepts, exactly
+and case-sensitively, every top-level zone ID of the IANA tz database 2026d
+(43 IDs: `Japan`, `Turkey`, `Zulu`, `UCT`, `NZ-CHAT`, `W-SU`, `GB-Eire`, `GMT+0`,
+...) except `GB`, a common unit after a number (`12 GB volume` stays a name), and
+the `Factory` placeholder, which is not a real zone. Lowercase or inflected words
+remain names (`12 japan tea`, `12 Japanese restaurants`), as does a zone ID
+without an hour (`Japan office`).
+
+Hosted gate note for 460f540: in run 36035271297, job 107753665806 (installed
+optional syntax providers, ubuntu-latest, attempt 1) FAILED on the unchanged
+IdleProof hook latency budget: `python-ast` p95 202.2 ms > 150 ms (max 380.8 ms
+< 500 ms). The median sample was about 53 ms, as on earlier heads, with isolated
+spikes of 125–381 ms; this path does not import the Q&A module. The failure is
+retained for that commit; no budget was changed. The regression against the
+installed 460f540 wheel reproduces 42 failing subcases (7 forms, EN/FR, three
+option sets).
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1060.947 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+968f23a0bf56794439de6313d3fc15c5a5dd6b102934d103f8340d9a943bbf6c.
+Journal SHA256: e1a19a7fe0a03b8374cdc49d08b4d6b9904779b5584ee81716560b29d88c2dd1.
+The replay of every review scenario gives 70/70 PASS on this candidate; the
+finding-70 scenario fails on 460f540. 460f540's other hosted results were
+SUCCESS (ProofBench 36035271162, ContinuityBench 36035271189, integrated
+36035271004); none of them qualifies this new commit.

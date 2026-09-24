@@ -39,6 +39,13 @@ _ZONE_ABBREVIATIONS = '|'.join(sorted(set('''
     SST SYOT TAHT TBMT TFT TJT TKT TLT TMT TOT TRT TVT ULAST ULAT UT UTC UYST UYT UZT
     VET VLAT VOLT VOST VUT WAKT WAST WAT WEMT WEST WET WFT WGST WGT WIB WIT WITA WMT WST
     YAKT YDDT YDT YEKT YPT YST YWT'''.split()), key=lambda zone: (-len(zone), zone)))
+# Every top-level zone ID of the IANA tz database 2026d (Japan, NZ-CHAT, W-SU,
+# ...) except GB, a common unit after a number, and the Factory placeholder.
+_ZONE_LINK_NAMES = '|'.join(re.escape(zone) for zone in sorted('''
+    CET CST6CDT Cuba EET EST EST5EDT Egypt Eire GB-Eire GMT GMT+0 GMT-0 GMT0 Greenwich
+    HST Hongkong Iceland Iran Israel Jamaica Japan Kwajalein Libya MET MST MST7MDT NZ
+    NZ-CHAT Navajo PRC PST8PDT Poland Portugal ROC ROK Singapore Turkey UCT UTC
+    Universal W-SU WET Zulu'''.split(), key=lambda zone: (-len(zone), zone)))
 # NFKC keeps these hyphen, minus and slash forms distinct. Clause and temporal
 # scans treat them exactly as ASCII, including as identifier attachments; en
 # and em dashes stay punctuation. The mapping is one-to-one, so offsets hold.
@@ -258,7 +265,7 @@ def _query(question, kind, since, until, entity):
     # uppercase Zulu Z; a lowercase z stays a unit such as 60hz or 12z. Minutes
     # of an unsigned POSIX offset need a colon, so PT100 or PT1000 stay names.
     dst_zone = rf"(?-i:{_ZONE_ABBREVIATIONS})(?:[+-]?\d{{1,2}}(?::\d{{2}}){{0,2}})?"
-    clock_suffix = (rf"(?:(?-i:{_ZONE_ABBREVIATIONS})(?:(?:[+-]\d{{1,2}}(?::?\d{{2}}){{0,2}}|"
+    clock_suffix = (rf"(?:(?-i:{_ZONE_LINK_NAMES})|(?-i:{_ZONE_ABBREVIATIONS})(?:(?:[+-]\d{{1,2}}(?::?\d{{2}}){{0,2}}|"
                     rf"\d{{1,2}}(?::\d{{2}}){{0,2}})(?:{dst_zone})?)?|(?-i:Z)|[+-]\d{{2}}(?::?\d{{2}})?)")
     relative_period = re.search(
         r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
