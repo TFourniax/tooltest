@@ -466,3 +466,16 @@ class MemoryQuestionTests(unittest.TestCase):
                 self.assertEqual(result['status'],'cited-records')
                 self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-WORKS'])
                 self.assert_sources(result)
+
+    def test_word_clock_and_unsupported_at_constraints_abstain(self):
+        self.record('CHANGE-WORD-CLOCK','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/at/three/pm/p/m/trois/o/clock/release/around/vers/threepm/service.py']})
+        for phrase in ('at three PM','three PM','at three p.m.','à trois PM',
+                       "at three o'clock",'at release','around three PM','vers trois','threepm'):
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')

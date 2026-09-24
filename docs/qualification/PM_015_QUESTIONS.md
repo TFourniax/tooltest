@@ -263,3 +263,9 @@ abstain independently of CLI bounds. Existing full ISO date behavior remains.
 Public README and CLI help explain the explicit lookup. All original authority,
 citation and immutability assertions remain. All17findings, latest-head review,
 hosted gates and fresh main remain required. No local AFTER or HUMAN claim.
+
+Review finding4089390630 adds word-number clocks: numeric-only recognition
+still lets three PM select a matching old path. A regression-first journal
+covers word clocks, AM/PM spelling, o'clock and unsupported at/vers constraints
+with and without CLI bounds. All18findings remain tracked; previous777-test
+PASS is historical and no merge occurred.
