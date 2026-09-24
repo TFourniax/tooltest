@@ -108,7 +108,7 @@ def _query(question, kind, since, until, entity):
         r"secondes?|heures?|jours?|semaines?|mois|années?|ans?|"
         r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
-        r"|\b(?:in|en|during|pendant)\s+\d{4}\b"
+        r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b",
         question, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.

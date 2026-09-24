@@ -41,6 +41,12 @@ def main():
                 relations=[{'predicate':'depends_on','target':target,'epistemic_status':'INFERRED'}],
                 provenance={'producer':'question-acceptance','source':'synthetic-unresolved-target'},
                 actor={'kind':'fixture','id':'question-acceptance'})
+        append_project_event(repo=repo,event_type='change.observed',
+            subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
+            epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py']},
+            relations=[],timestamp='2025-09-21T08:00:00Z',
+            provenance={'producer':'question-acceptance','source':'synthetic-year-filter'},
+            actor={'kind':'fixture','id':'question-acceptance'})
         paths=continuity_paths(repo);before={p:p.read_bytes() for p in (paths.events,paths.state) if p.exists()}
         cases=[]
         for question in ['Why auth?','Pourquoi auth ?','What depends on auth service?','Qu’est-ce qui dépend de auth service ?',
@@ -72,6 +78,8 @@ def main():
             cases.append({'question':question,'status':expected,'citations':len(values[0]['parts'])})
 
         for question,flags in [
+            ('What changed in auth from 2026?', ('--until','2027-01-01')),
+            ('What changed in auth from 2026?', ('--since','2024-01-01')),
             ('What changed in auth since yesterday?', ('--until','2026-09-24')),
             ('What changed in auth before 2026-09-21?', ('--since','2026-09-01')),
             ('Qu’est-ce qui a changé dans auth depuis hier ?', ('--until','2026-09-24')),
@@ -87,6 +95,8 @@ def main():
             ('What depends on auth this week?', 'ambiguous-time-filter'),
             ('Qu’est-ce qui dépend de auth cette semaine ?', 'ambiguous-time-filter'),
             ('Remember auth as of Monday?', 'ambiguous-time-filter'),
+            ('What changed in auth from 2026?', 'ambiguous-time-filter'),
+            ('Qu’est-ce qui a changé dans auth à partir de 2026 ?', 'ambiguous-time-filter'),
             ('Why auth and what changed in billing?', 'mixed-question-intents'),
             ('Pourquoi auth et quels changements dans billing ?', 'mixed-question-intents'),
             ('What changed in auth two days ago?', 'ambiguous-time-filter'),

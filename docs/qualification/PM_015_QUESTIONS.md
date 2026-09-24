@@ -194,3 +194,17 @@ sole labels and literal-ID recovery; every returned source is opened exactly.
 No authority or source assertion was relaxed. Original BEFORE and preceding
 766-test AFTER logs are retained. Final hosted review/gates and freshmain are
 still required; no local execution after the Work failure is claimed.
+
+A complete review-thread audit found12findings, not11: earlier4088979861
+(from <year>) was still open. The later all-term matcher did not fix the case
+where a2025event contains auth/2026/service.py. Regression-firstb2bceda9/
+35946613080/job107466121402 executes769tests with3subcase failures/52skips
+in96.739s, with no CLI bound, an explicit upper bound and an explicit lower bound.
+The existing French guard remains covered. Complete BEFORE and the preceding
+768-test Linux AFTER logs are retained; the earlier clean review alone did not
+close this missing case and no merge occurred.
+Year-only from bounds now abstain under the same unsupported-time policy.
+The actual installed journey includes the misleading-year path in a synthetic
+older event and asks through the real CLI in both languages, including mixed
+CLI bounds. Final-head distinct review, every hosted gate and freshmain are
+required. Work remains offline; there is no local AFTER or HUMAN claim.
