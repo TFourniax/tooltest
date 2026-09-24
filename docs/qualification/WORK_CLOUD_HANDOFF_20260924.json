@@ -1,0 +1,149 @@
+{
+  "schema": "diffwitness-work-handoff-1",
+  "date": "2026-09-24",
+  "evidenceOnlyBranch": true,
+  "productCodeMustUsePrHead": true,
+  "global": {
+    "alphaReady": false,
+    "machineComplete": false,
+    "humanExecuted": false,
+    "fullPm001Through018Complete": false
+  },
+  "mains": {
+    "core": "c03164e75e805ff1df976e55cdf6d86073e89b04",
+    "idle": "87a4d8c274edf2b2edcd28bb9ccd34691a5fef14",
+    "portal": "0e12c644f1f65f399af76a70ef81a684b5fc64cd",
+    "private": "ce3d2771821b3a9508290311513ce26f98b5c768"
+  },
+  "active": {
+    "core128": {
+      "head": "41b0cc55bea6190286ca63c136c3d15779164df4",
+      "tree": "302574b90d5c79293dd417c034d370f670288f0a",
+      "knownFindings": 46,
+      "reviewRequest": 5808718371,
+      "testRun": 35963216955,
+      "qualification": "pending",
+      "mergeHold": "unresolved provider max 558.800441ms >500ms; full gates/review pending"
+    },
+    "core129": {
+      "head": "26f663b0d2fbecf779324a1f78f8359750787c63",
+      "qualification": "FAIL_100K",
+      "draft": true
+    },
+    "portal35": {
+      "head": "f37436a252bd9fd46f0ba0e7a757915efe0d0a12",
+      "qualification": "5_PASS_2_FAIL"
+    }
+  },
+  "pmParents": [
+    {
+      "id": "PM-001",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-002",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-003",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-004",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-005",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-006",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-007",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-008",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-009",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-010",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-011",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-012",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-013",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-014",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-015",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-016",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-017",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    },
+    {
+      "id": "PM-018",
+      "status": "OPEN_OR_PARTIAL",
+      "details": "WORK_CLOUD_HANDOFF_20260924.md"
+    }
+  ],
+  "external": {
+    "workExecutor": "unavailable",
+    "supabaseDevelopmentBranches": 0,
+    "registeredMigrations": 33,
+    "repositorySqlMigrations": 38,
+    "entitlementFunctionRegistered": false,
+    "nativeAuthenticatedQualification": "not completed",
+    "existingPrivateRunnerStatus": "unknown",
+    "ciArtifactDownloads": "403 observed; metadata are not bytes"
+  },
+  "authorization": {
+    "production": false,
+    "publication": false,
+    "additionalSpend": false,
+    "newRunner": false,
+    "stripe": "deferred"
+  },
+  "canonicalRegister": "https://github.com/TFourniax/tooltest/issues/74",
+  "historicalZipIsCurrent": false
+}

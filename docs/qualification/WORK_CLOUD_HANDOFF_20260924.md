@@ -60,26 +60,31 @@ Les diagnostics Idle ne prouvent pas la résolution des incidents antérieurs.
 ### Core128, tranche extractive de PM015
 https://github.com/TFourniax/tooltest/pull/128
 Branche feat/grounded-memory-questions.
-HEAD **396c40c4b3e1cb3e95c7ee7d649649cd48bf233a** ; tree **155c21e4bc2d955d91025dfafeacafc155cbbc38**.
+HEAD **41b0cc55bea6190286ca63c136c3d15779164df4** ; tree **302574b90d5c79293dd417c034d370f670288f0a**.
 Base c03164e75e805ff1df976e55cdf6d86073e89b04.
-Revue du dernier head demandée dans5808338453 ; qualification finale encore en cours.
-**41 constats suivis, audit de TOUS les fils requis**, pas seulement les derniers commentaires.
-Dernier BEFORE0c2f510 /35960335738/job107507412610 : **808 tests, 49 échecs, 52 skips, 97,652 s**.
+Revue du dernier head demandée dans5808718371 ; qualification finale en cours.
+**46 constats suivis. Auditer tous les fils**, pas seulement les derniers commentaires.
+Dernier BEFORE75add4e /35962880322/job107515376349 : **814 tests, 8 échecs, 52 skips, 82,255 s**.
 Les logs complets sont committés dans docs/qualification/PM_015_QUESTIONS/.
-Les trois derniers constats concernent les questions françaises adjacentes avec élision,
-les ordinaux après un mois abrégé et les dates année-mois-jour à champs variables.
-Correction396c40c et parcours CLI bilingues poussés. Run test35960666593 en cours ;
-Proof35960666631, Continuity35960666712 et integrated35960666627 passent.
+Dernière correction : les abréviations génériques ET/CT/MT/PT respectent la casse,
+pour préserver la conjonction française « et » et les unités « pt » dans les noms.
+Les négatifs en majuscules et tous les anciens contrôles restent en place.
+Run test **35963216955** en attente à ce checkpoint ;
+Proof35963216985, Continuity35963216973 et integrated35963216995 passent.
 
-Preuve historique c960ee6 : **805 tests PASS, 52 skips, 100,279 s**,
-job107504819938/run35959425107 ; parcours CLI installé Ubuntu107504819834 PASS,
-citations originales et invariance des octets.
-Checkout réel **ea6cb33ac4e050945b78f8f12f34a8d44c447a62** :
-tree **caa4699061abb9498910fe0425372c04da529967** identique au head c960ee6,
-vérifié par API ; ce SHA reste distinct, parents c03164e/c960ee6.
-Ce run finit à **20 PASS / 4 CANCELLED** lorsque les nouvelles régressions arrivent.
-Les quatre jobs Windows annulés ne sont pas des PASS.
-Ces résultats ne qualifient pas le head396c40c.
+Preuve historique855a850 : **813 tests PASS, 52 skips, 98,670 s**,
+job107513900213/run35962389469 ; parcours CLI installé Ubuntu107513900179 PASS.
+Checkout réel **8fea59a7b9cf3e57c3fd495bb67d9dfc7989196a**, tree
+**4514f90a27cbd416cbc5cb17e414c73533f22237**, identique au head855a850,
+vérifié par API ; SHA distinct, parents c03164e/855a850.
+Ce run finit à **13 PASS / 11 CANCELLED** après l'ajout de la régression suivante.
+Les annulations ne sont pas des PASS. Ces résultats ne qualifient pas41b0cc5.
+
+L'échec installé e7506d1 est préservé. Un nouvel exemple partageait tous ses termes
+avec un exemple existant ; correction isolée de cet exemple et assertion exacte
+conservée. Le parcours installé bcb85da/107512382213 passe sans changement produit.
+Des contrôles supplémentaires démontrent maintenant les deux sources pour des
+termes identiques et la sélection exacte par identifiant. Cela n'est pas du Q&A sémantique.
 
 **Incident fournisseur non résolu** : au33b1afa, run35957187387/job107498223040,
 hook Python max558.800441ms>500ms, p9579.963834ms<=150. ConsumerIdle2b919f7dddeaf3488091017a46f079d8c9718056,
