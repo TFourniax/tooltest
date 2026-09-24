@@ -425,3 +425,28 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_import_and_call_questions_cannot_fall_back_to_memory(self):
+        self.record('MOD-AUTH','auth import imports imported importing call calls called calling '
+                    'importe importent importer appelle appellent appeler',kind='component',
+                    event_type='component.observed')
+        for question in ('What does auth import?', 'What does auth call?',
+                         'Who calls auth?', 'Who imports auth?',
+                         'Qu’est-ce que auth importe ?', 'Qu’appelle auth ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'dependency-direction-ambiguous')
+
+    def test_clock_qualifiers_do_not_become_matching_path_components(self):
+        self.record('CHANGE-CLOCK','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/at/12/30/3pm/pm/12h30/vers/utc/service.py']})
+        for phrase in ('at 12:30','at 3pm','at 12 PM','à 12h30','vers 12','at 12 UTC'):
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')

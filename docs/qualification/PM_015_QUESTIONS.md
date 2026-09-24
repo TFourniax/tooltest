@@ -243,3 +243,9 @@ such exact identifiers. The installed bilingual CLI checks exact technology
 selection and compact-period abstention, retaining all existing byte/source
 assertions. Final-head review, all hosted gates and fresh main are pending.
 No local AFTER while Work is offline; no HUMAN execution claimed.
+
+Review of aa749a8 raises findings4089335578/4089335580: import/call questions
+must not fall back to lexical memory, and clock qualifiers must not select old
+events whose path components happen to match. Two journal-backed regressions
+precede correction. All17 findings are tracked; prior774-test PASS remains
+historical, not qualification of these cases.
