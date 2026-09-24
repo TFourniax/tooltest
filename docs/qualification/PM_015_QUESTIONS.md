@@ -521,3 +521,16 @@ They document lexical lookup, not full-phrase identity resolution or semantic Q&
 All45 findings, latest-head review and full gates remain mandatory. The earlier
 provider558.800441>500ms incident and PM012100k remain unresolved. No local AFTER,
 merge, full PM015, HUMAN or Alpha claim.
+
+
+Finding4090442851 is tracked as46. BEFORE75add4e2ad8fd0d78370cecc9128d43d89ed6a60 /
+35962880322 / Ubuntu3.11 job107515376349:814 tests,8 failures,52 skips,82.255s.
+Generic ET/CT/MT/PT zones now use a scoped case-sensitive alternative inside
+the existing case-insensitive temporal scan. The uppercase clock negatives
+remain unchanged; French lowercase et and lower/mixed-case pt name terms
+retain their exact source identities. All four positive names also execute
+through the bilingual installed CLI with the existing source/byte assertions.
+The preceding855a850 run ended13PASS/11cancelled when this concrete regression
+was pushed, not a full matrix PASS. Its813-test/installed Linux results and
+this original BEFORE are retained. Latest-head review and full gates remain
+required. Provider incident, full PM015/PM001-018 and HUMAN/Alpha remain open.

@@ -231,7 +231,7 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        r"|(?<![\w./#:+-])\d{1,2}\s*(?:ET|CT|MT|PT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
+        r"|(?<![\w./#:+-])\d{1,2}\s*(?:(?-i:ET|CT|MT|PT)|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
         r"CET|CEST|BST|IST|JST|KST|HST|AKST|AKDT|AST|ADT|MSK|"
         r"AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)\b"
         r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"

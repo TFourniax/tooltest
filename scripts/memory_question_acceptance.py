@@ -52,6 +52,7 @@ def main():
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
                        'dotted-21.09.2026','build_2026.9.21',
+                       'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
                        'System.Memory','foo.memory.py')
         for index,label in enumerate(intent_names):
