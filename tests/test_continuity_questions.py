@@ -826,16 +826,29 @@ class MemoryQuestionTests(unittest.TestCase):
         self.assert_sources(literal)
 
     def test_non_iso_hyphenated_dates_never_become_path_terms(self):
-        phrases=('09-21-2026','21-09-2026','09-21-26','21-09-26')
+        phrases=('09-21-2026','21-09-2026','09-21-26','21-09-26',
+                 '09-21','21-09','9-21','21-9','1-2','01-02',
+                 '09 - 21','21 - 09 - 2026','０９-２１',
+                 '09-21T120000Z','21-09T12:00:00+02:00','09-21-2026T120000Z')
         self.record('DATE-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+p.replace('-','/')+'/service.py' for p in phrases]})
+        before=self.paths.events.read_bytes()
         for phrase in phrases:
-            for options in ({},{'until':'2027-01-01'}):
-                with self.subTest(phrase=phrase,options=options):
-                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
-                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
-                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+            for prefix in ('What changed in auth ','Quels changements dans auth '):
+                for options in ({},{'until':'2027-01-01'},{'entity':'DATE-OLD'}):
+                    with self.subTest(phrase=phrase,prefix=prefix,options=options):
+                        result=answer_question(self.repo,prefix+phrase+'?',**options)
+                        self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                        self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        self.assertEqual(before,self.paths.events.read_bytes())
+        for index,label in enumerate(('v9-21','release-09-21','api/09-21','build_21-09','release-09-21T120000Z')):
+            identity='PARTIAL-DATE-NAME-'+str(index)
+            source=self.record(identity,label,payload={'why':'Attached numeric identifier'})
+            result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+            self.assert_sources(result)
 
     def test_abbreviated_month_dates_never_become_path_terms(self):
         phrases=('Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',

@@ -677,3 +677,23 @@ Journal SHA256: 5348376fb373fe401330f7f253cdb08b2b7f7fbe08f3c777a73ec6835c464596
 These are MACHINE results. Independent review and hosted gates must bind this
 new commit before merge; fresh main must then be checked. Full PM015, PM012 and
 all other uncompleted PM requirements remain outside this closing slice.
+
+## Work continuation — finding 58, 2026-09-24
+
+Review 4092727135 on 42d80ea exposed standalone two-component hyphen dates
+without a year. The existing hyphen-date family now includes optional years,
+spacing around separators and attached compact/extended clocks. NFKC forms and
+EN/FR questions are covered; attached release, path, version and underscore
+identifiers remain positive exact-source cases. Explicit CLI bounds and identity
+selection cannot erase an ambiguous question-side date.
+
+The expanded regression reproduces 60 failing subcases on the installed 42d80ea
+product. After correction, 75 focused tests PASS, 819 installed-wheel tests PASS
+(52 explicit skips, 92.076 seconds), and the real installed CLI journey PASS.
+The new journey names were checked for overlap with existing fixtures and made
+distinct without changing assertions. Original sources are opened and journal/
+state bytes remain unchanged. Wheel SHA256:
+9823b0920e31aa88bef123961aa7bc78dfb4c53c1ff7a808d79b0f7afa7830a6.
+Journal SHA256: 5cfdbe935028a7b2d272258bf6fd1c65ed015754148af62c2da8591f647721c0.
+This local wheel precedes this documentation update; it is not a published
+release. Fresh exact-head review/CI and post-merge main remain required.

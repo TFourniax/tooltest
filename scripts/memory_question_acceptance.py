@@ -59,7 +59,8 @@ def main():
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
                        'System.Memory','foo.memory.py','release-2026-264','v2026264','audit/2024366','build_2026-001','v20260921','release-2026W394','build_20260921T120000Z',
                        'sept-sdk','sdk-sep-21','release/21-Sep-2026','sep.service',
-                       'bracketed (v2)','billing [external]','service {adapter}')
+                       'bracketed (v2)','billing [external]','service {adapter}',
+                       'v9-21','partialrelease-09-21','partialapi/09-21','partialbuild_21-09','release-09-21T120000Z')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -95,6 +96,9 @@ def main():
                           "jusqu'ici",'jusqu’ici','à ce jour','a ce jour',
                           "pour l'instant",'pour le moment','à présent','a present',
                           '09-21-2026','21-09-2026','09-21-26','21-09-26',
+                          '09-21','21-09','9-21','21-9','1-2','01-02','09 - 21',
+                          '21 - 09 - 2026','０９-２１','09-21T120000Z',
+                          '21-09T12:00:00+02:00','09-21-2026T120000Z',
                           '2026-9-21','2026-09-1','2026-9-1','2026-9',
                           '2026-W39-4','2026-W39-7','2026W394','2026W397',
                           '2026-264','2026264','2024-366','2024366','2026-001','2026001',
