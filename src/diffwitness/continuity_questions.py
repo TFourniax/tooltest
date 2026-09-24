@@ -305,8 +305,11 @@ def _query(question, kind, since, until, entity):
         rf"|(?<![\w./#:+-])T?{clock_shape}(?:\s+{clock_suffix}\b|{clock_suffix}(?![\w/#:+-]|\.\w))"
         r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?(?-i:Z)(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{1,4}(?:\s+(?:hrs?|hours?|heures?)\b|(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w))"
-        rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
-        r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
+        # Every zone-ID namespace of the IANA tz database 2026d, including the
+        # backward links (Brazil, Canada, Chile, Mexico, US), plus historic SystemV.
+        rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|Atlantic|"
+        r"Australia|Brazil|Canada|Chile|Etc|Europe|Indian|Mexico|Pacific|US|SystemV)"
+        r"/[A-Za-z0-9_+-]+(?:/[A-Za-z0-9_+-]+)?\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"
         r"|\b[ap]\.?m\.?\b"
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"

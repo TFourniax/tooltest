@@ -124,7 +124,7 @@ def main():
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
                           '12 ET','12 CT','12 MT','12 PT','12ET','12PT',
                           '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200',
-                          '12 EET','12 EEST','12 WET','12 WEST','12 SAST','12 HKT','12 WIB','12 ChST','12 AHST','12 HKST','12 YST','12 YDT','12 +03','9 -0330','1200Z','12:00EST','3pmEST','noonEST','1200hrs','1200+03','12h30Z','3pmZ','12h30+02','12 EST/PST','12EST-5','12 hrs-service','12 EST5EDT','12 PST8PDT')
+                          '12 EET','12 EEST','12 WET','12 WEST','12 SAST','12 HKT','12 WIB','12 ChST','12 AHST','12 HKST','12 YST','12 YDT','12 +03','9 -0330','1200Z','12:00EST','3pmEST','noonEST','1200hrs','1200+03','12h30Z','3pmZ','12h30+02','12 EST/PST','12EST-5','12 hrs-service','12 EST5EDT','12 PST8PDT','12 US/Eastern','12 Canada/Pacific')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',

@@ -945,3 +945,28 @@ The replay of every review scenario gives 68/68 PASS on this candidate; the
 finding-67 and finding-68 scenarios fail on 935b183. 935b183 passed its 27
 hosted checks (test 36026705588, ProofBench 36026705564, ContinuityBench
 36026705707, integrated 36026705593), which do not qualify this new commit.
+
+## IDE continuation — finding 69, 2026-09-24
+
+Review 5307672012 on bd787f6 (4096333942, P2): legacy IANA zone IDs outside
+the continent allowlist (`US/Eastern`, `Canada/Pacific`, `SystemV/...`) after an
+hour were lexical terms. The zone-ID branch now lists every namespace directory
+of the IANA tz database 2026d package (Africa, America, Antarctica, Arctic, Asia,
+Atlantic, Australia, Brazil, Canada, Chile, Etc, Europe, Indian, Mexico,
+Pacific, US; 553 namespaced IDs, at most two levels) plus the historic SystemV,
+and accepts digits in components (`SystemV/EST5EDT`, `Etc/GMT+5`). Single-word
+legacy IDs such as `Japan`, `Turkey` or `GB` are ordinary words (`12 GB volume`)
+and are not treated as zones; those that are also abbreviations or POSIX zones
+(`CET`, `GMT0`, `EST5EDT`) already abstain. Without an hour, `US/Eastern region`
+stays a name. The regression against the installed bd787f6 wheel reproduces 24
+failing subcases (4 forms, EN/FR, three option sets).
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1088.524 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+08673f4bfc3162f2dbec403b730917b9223c808ebaf2d66454b88f849e4e7c6e.
+Journal SHA256: 67282ef4d3b1588c51bf0c653e2b9dfe11e7289a1b99e29e5c96c6b02b7b132f.
+The replay of every review scenario gives 69/69 PASS on this candidate; the
+finding-69 scenario fails on bd787f6. bd787f6 passed its 27 hosted checks
+(test 36031471753, ProofBench 36031471603, ContinuityBench 36031471369,
+integrated 36031471539), which do not qualify this new commit.

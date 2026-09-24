@@ -979,7 +979,9 @@ class MemoryQuestionTests(unittest.TestCase):
                  '12h30+02','3pm+02','noon-05','12h30 +0530','12.30 Europe/Paris','12 EST/PST',
                  '12EST-5','12 EST+5','12 EST-service','12 hrs-service','12 hr-report',
                  '12 EST5EDT','12 CST6CDT','12 MST7MDT','12 PST8PDT','12EST5EDT','12 CET-1CEST',
-                 '12 EST5EDT,M3.2.0,M11.1.0','12EST-0500','12 EST5','9 UTC0')
+                 '12 EST5EDT,M3.2.0,M11.1.0','12EST-0500','12 EST5','9 UTC0','12 US/Eastern',
+                 '12 Canada/Pacific','12 SystemV/EST5EDT','12:00 Brazil/East','3pm Mexico/General',
+                 '12 Chile/Continental','12 America/Argentina/Buenos_Aires','12 Etc/GMT+5')
         self.record('ATTACHED-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+'/'.join(re.findall(r'[^\W_]+',p.lower()))+'/service.py' for p in phrases]})
@@ -997,7 +999,8 @@ class MemoryQuestionTests(unittest.TestCase):
                                       '60hz filter','1.2+34 build','12h30Z-service','1200EST-api',
                                       '3pmZ-build','1200Z-service','1200hrs-report','12h30Z/api',
                                       '12h30Z+plugin','12EST-service','12hrs-service','12z compression',
-                                      '1200z router','PST8PDT migration','12 PT100 probe','12 PT1000 probe')):
+                                      '1200z router','PST8PDT migration','12 PT100 probe','12 PT1000 probe',
+                                      'US/Eastern region','12 GB volume')):
             with self.subTest(label=label):
                 identity='ATTACHED-NAME-'+str(index)
                 source=self.record(identity,label,payload={'why':'Attached clock-like identifier'})
