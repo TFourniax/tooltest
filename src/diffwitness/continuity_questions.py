@@ -40,7 +40,7 @@ _STOP = _terms('why pourquoi what which who how where when does depend depends d
                'the and this that those these here there from since after before about have '
                'has was were are using use uses utilisons utiliser utilise module component '
                'composant fichiers files changed changes change changee changements fait faits '
-               'memory memoire records recorded logiciel software '
+               'memory memoire remember records recorded logiciel software '
                'do we is it its our in on of to a an du des le la les un une qu ce')
 _AUTHORITY = ('Extracts describe recorded assertions, not authenticated authors, current code '
               'applicability, complete semantic coverage or new causal Proof.')
@@ -93,10 +93,15 @@ def _query(question, kind, since, until, entity):
         _identity(entity)
     normalized_question = unicodedata.normalize('NFKC', question)
     query_tokens = _terms(normalized_question)
+    auto_requested = kind == 'auto'
     intents = {name for name, words in (
         ('why', {'why', 'pourquoi'}),
-        ('dependencies', {'depends', 'depend', 'dependent', 'dependances', 'dependencies'}),
+        ('dependencies', {'depends', 'depend', 'dependent', 'dependance', 'dependances',
+                          'dependency', 'dependencies', 'import', 'imports', 'imported', 'importing',
+                          'importe', 'importent', 'importer', 'call', 'calls', 'called', 'calling',
+                          'appelle', 'appellent', 'appeler'}),
         ('changes', {'changed', 'changes', 'change', 'changements'}),
+        ('memory', {'memory', 'memoire', 'remember'}),
     ) if query_tokens & words}
     ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
     if kind == 'auto':
@@ -129,7 +134,10 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b\d{2}(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
-        r"|\b(?:FY|AF)\d{2,4}\b|\d{4}",
+        r"|\b(?:FY|AF)\d{2,4}\b|\d{4}"
+        r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
+        r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
+        r"|\b(?:at|vers|à)\s+\d{1,2}\b",
         cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
@@ -149,6 +157,8 @@ def _query(question, kind, since, until, entity):
         ambiguity = ambiguity or 'temporal-filter-requires-changes'
     if kind == 'dependencies' and _incoming_target(question) is None:
         ambiguity = ambiguity or 'dependency-direction-ambiguous'
+    if auto_requested and not intents:
+        ambiguity = ambiguity or 'unrecognized-question-intent'
     terms = _terms(cleaned) - _STOP
     if not terms and entity is None:
         ambiguity = ambiguity or 'no-specific-search-term'
@@ -314,7 +324,9 @@ def question_cli(argv):
         'Interroger la mémoire locale avec des sources exactes ou une abstention.'))
     parser.add_argument('question', nargs='+')
     parser.add_argument('--repo', default='.')
-    parser.add_argument('--kind', choices=('auto','why','dependencies','changes','memory'), default='auto')
+    parser.add_argument('--kind', choices=('auto','why','dependencies','changes','memory'), default='auto',
+                        help=tr('Auto abstains on unknown intents; memory explicitly searches recorded labels.',
+                                'Auto refuse les intentions inconnues ; memory recherche explicitement les libellés enregistrés.'))
     parser.add_argument('--entity')
     parser.add_argument('--since')
     parser.add_argument('--until')

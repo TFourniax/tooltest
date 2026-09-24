@@ -32,6 +32,8 @@ def main():
         for identity,label in [('DEC-TECH-CPP','C++ runtime'),('DEC-TECH-CSHARP','C# runtime'),
                                ('DEC-TECH-FSHARP','F# runtime'),('DEC-TECH-C','C runtime')]:
             run(dw,'decision','record',label,'--id',identity,'--why','Exact technology fixture')
+        run(dw,'decision','record','fallback works import calls importe appelle',
+            '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         # Import-shaped fixture through the installed event API; queries and
         # exact source opening below still execute the installed CLI.
         for identity,target in [
@@ -49,7 +51,7 @@ def main():
                 actor={'kind':'fixture','id':'question-acceptance'})
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
-            epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py']},
+            epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py']},
             relations=[],timestamp='2025-09-21T08:00:00Z',
             provenance={'producer':'question-acceptance','source':'synthetic-year-filter'},
             actor={'kind':'fixture','id':'question-acceptance'})
@@ -134,6 +136,27 @@ def main():
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
                 assert [f['fields']['id'] for f in value['context']['facts']]==expected
                 assert value['status']==('cited-records' if expected else 'abstained')
+                for part in value['parts']:
+                    source=part['source']
+                    opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==source['eventHash']
+        for lang in ('fr','en'):
+            for phrase in ('at 12:30','at 3pm','at 12 PM','à 12h30','vers 12','at 12 UTC'):
+                value=json.loads(run(dw,'--language',lang,'ask','What changed in auth '+phrase+'?','--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']=='ambiguous-time-filter'
+            for question,reason in [('What does fallback import?','dependency-direction-ambiguous'),
+                                    ('Who calls fallback?','dependency-direction-ambiguous'),
+                                    ('Qu’appelle fallback ?','dependency-direction-ambiguous'),
+                                    ('How fallback works?','unrecognized-question-intent')]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']==reason
+            for question,flags in [('Remember fallback works?',()),('Mémoire fallback works ?',()),
+                                   ('fallback works',('--kind','memory'))]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,*flags,'--json'))
+                assert [f['fields']['id'] for f in value['context']['facts']]==['DEC-QUERY']
+                assert value['status']=='cited-records'
                 for part in value['parts']:
                     source=part['source']
                     opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))

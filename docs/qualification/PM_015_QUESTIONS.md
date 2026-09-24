@@ -249,3 +249,17 @@ must not fall back to lexical memory, and clock qualifiers must not select old
 events whose path components happen to match. Two journal-backed regressions
 precede correction. All17 findings are tracked; prior774-test PASS remains
 historical, not qualification of these cases.
+
+Regression-first b59d6a1af24f2571c7abbfc72144beba007c0a2a / run35949816851 /
+Ubuntu3.11 job107476062725: 776 tests,18 failures,52 skips,91.746s.
+Full original BEFORE and preceding774-test Linux AFTER logs are retained.
+Import/call vocabulary now selects dependency intent and reaches the unsupported
+direction guard. More generally, auto no longer silently falls back to memory
+when no supported intent exists: it abstains. Explicit --kind memory or a
+Memory/Mémoire/Remember request retains lexical lookup; a new additional
+regression and real installed bilingual cases cover that documented behavior.
+Clock-only qualifiers (colon, AM/PM, French hours, bare at/vers hours and zones)
+abstain independently of CLI bounds. Existing full ISO date behavior remains.
+Public README and CLI help explain the explicit lookup. All original authority,
+citation and immutability assertions remain. All17findings, latest-head review,
+hosted gates and fresh main remain required. No local AFTER or HUMAN claim.

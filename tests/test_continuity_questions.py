@@ -450,3 +450,19 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_unknown_auto_intent_abstains_but_explicit_memory_lookup_remains(self):
+        self.record('DEC-WORKS','auth works implements invokes',payload={'why':'Recorded reason'})
+        for question in ('How auth works?', 'What auth implements?', 'Who invokes auth?', 'auth works'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'unrecognized-question-intent')
+        for question,options in [('Remember auth works?',{}),('Mémoire auth works ?',{}),
+                                  ('auth works',{'kind':'memory'})]:
+            with self.subTest(question=question,options=options):
+                result=answer_question(self.repo,question,**options)
+                self.assertEqual(result['status'],'cited-records')
+                self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-WORKS'])
+                self.assert_sources(result)

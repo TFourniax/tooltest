@@ -667,6 +667,9 @@ Use `dw task impact anticipate TASK-ID --file path --unknown "unmodeled effects"
 `dw ask "Why auth?"` returns cited local memory or abstains when sources are
 insufficient. Ask about recorded incoming dependencies or changes since an ISO
 date; use `--entity ID` to select an exact item and `--json` for the bounded
-ContextPack. Open each original citation with `dw state event EVENT --hash SHA`.
+ContextPack. Auto mode abstains when it cannot recognize the question's intent.
+Use `dw ask "auth" --kind memory` for explicit lexical lookup of recorded labels,
+or `dw ask "Remember auth?"`. Unsupported temporal or dependency wording abstains.
+Open each original citation with `dw state event EVENT --hash SHA`.
 The question is never executed or stored, and no new Proof is inferred. See the
 [question scope and contract](docs/qualification/PM_015_QUESTIONS.md).
