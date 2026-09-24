@@ -1,0 +1,233 @@
+{
+  "bytesDownloaded": false,
+  "artifacts": [
+    {
+      "id": 10793730902,
+      "name": "unittest-macOS-py3.14",
+      "size_in_bytes": 30112,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793730902",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793730902/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:22:04Z",
+      "expires_at": "2026-10-01T06:22:02Z",
+      "updated_at": "2026-09-24T06:22:04Z",
+      "digest": "sha256:68342d9690ec7a900c279a65cc322f32d16d2d68020580a044f2ca2cb99d98df",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10793670628,
+      "name": "unittest-Windows-py3.11",
+      "size_in_bytes": 30359,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793670628",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793670628/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:19:24Z",
+      "expires_at": "2026-10-01T06:19:24Z",
+      "updated_at": "2026-09-24T06:19:24Z",
+      "digest": "sha256:d42d4fff3ff6783c8299a50ab6473ff1c1811b9ec031199b743ab7296058e214",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10793665107,
+      "name": "preflight-source-suite-log",
+      "size_in_bytes": 4530,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793665107",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793665107/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:15:04Z",
+      "expires_at": "2026-10-24T06:15:04Z",
+      "updated_at": "2026-09-24T06:15:04Z",
+      "digest": "sha256:797ac16035204372406898a6f9bf31e7a7e8cb50bd4cead7e335e498c0b2174d",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10793490760,
+      "name": "preflight-python-distributions",
+      "size_in_bytes": 1089487,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793490760",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793490760/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:15:05Z",
+      "expires_at": "2026-10-01T06:15:05Z",
+      "updated_at": "2026-09-24T06:15:05Z",
+      "digest": "sha256:904f33bb3d913c47dfff2e092ea0c163dcfabef4a78cd87afc69bccad15a6984",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10793356890,
+      "name": "unittest-Linux-py3.12",
+      "size_in_bytes": 30019,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793356890",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793356890/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:13:35Z",
+      "expires_at": "2026-10-01T06:13:34Z",
+      "updated_at": "2026-09-24T06:13:35Z",
+      "digest": "sha256:a722d5d11ccf52d52338ebc0a9b12181e0e1dc5df0aeff5329245bd9980a27d6",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10793282284,
+      "name": "unittest-Linux-py3.13",
+      "size_in_bytes": 30007,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793282284",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10793282284/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:13:41Z",
+      "expires_at": "2026-10-01T06:13:41Z",
+      "updated_at": "2026-09-24T06:13:41Z",
+      "digest": "sha256:a4344579666eb63eac262771cf2ef3696f8d3db8e95bc5ec28addaf066ac0bc7",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792899391,
+      "name": "unittest-macOS-py3.13",
+      "size_in_bytes": 30132,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792899391",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792899391/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:16:32Z",
+      "expires_at": "2026-10-01T06:16:31Z",
+      "updated_at": "2026-09-24T06:16:32Z",
+      "digest": "sha256:5873edd603743a82e801a634b90b1d1b35d20152c2036930e2b17ff958a9be6e",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792894660,
+      "name": "unittest-macOS-py3.11",
+      "size_in_bytes": 30103,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792894660",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792894660/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:17:58Z",
+      "expires_at": "2026-10-01T06:17:57Z",
+      "updated_at": "2026-09-24T06:17:58Z",
+      "digest": "sha256:3b05e24d5d1969b30c51c9311165d7c08ac187c71cf85646671cb332c2ce94ab",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792837667,
+      "name": "unittest-Linux-py3.14",
+      "size_in_bytes": 29997,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792837667",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792837667/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:13:06Z",
+      "expires_at": "2026-10-01T06:13:05Z",
+      "updated_at": "2026-09-24T06:13:06Z",
+      "digest": "sha256:964cef08fb979c641e018a315762546baa8b3013a26f07b47ed13f61023d3553",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792643275,
+      "name": "diffwitness-self-health",
+      "size_in_bytes": 5198,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792643275",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792643275/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:13:12Z",
+      "expires_at": "2026-10-08T06:13:11Z",
+      "updated_at": "2026-09-24T06:13:12Z",
+      "digest": "sha256:99140228be867d158c91fe81bcb940f339dd3233343519bd4aad9d73c613fe68",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792528433,
+      "name": "unittest-Linux-py3.11",
+      "size_in_bytes": 30000,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792528433",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792528433/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:13:52Z",
+      "expires_at": "2026-10-01T06:13:51Z",
+      "updated_at": "2026-09-24T06:13:52Z",
+      "digest": "sha256:11d5924fa1c2ed4cb57785d663cdf770e011193e76040460c85c9f67c94db7e2",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    },
+    {
+      "id": 10792289352,
+      "name": "unittest-macOS-py3.12",
+      "size_in_bytes": 30098,
+      "url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792289352",
+      "archive_download_url": "https://api.github.com/repos/TFourniax/tooltest/actions/artifacts/10792289352/zip",
+      "expired": false,
+      "created_at": "2026-09-24T06:17:59Z",
+      "expires_at": "2026-10-01T06:17:58Z",
+      "updated_at": "2026-09-24T06:17:59Z",
+      "digest": "sha256:32d7a799c8e60dbb50ab2a74aeaf1ce16ebbd4425eb9aa76a4c0c045911679b7",
+      "workflow_run": {
+        "id": 35963216955,
+        "repository_id": 1334989829,
+        "head_repository_id": 1334989829,
+        "head_branch": "feat/grounded-memory-questions",
+        "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+      }
+    }
+  ]
+}

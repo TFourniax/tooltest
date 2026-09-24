@@ -1,0 +1,178 @@
+{
+  "head": "41b0cc55bea6190286ca63c136c3d15779164df4",
+  "run": 35963216955,
+  "counts": {
+    "success": 20,
+    "in_progress": 4
+  },
+  "jobs": [
+    {
+      "id": 107516369290,
+      "name": "fatal static checks",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369392,
+      "name": "installed optional syntax providers (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369439,
+      "name": "standalone binary (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369444,
+      "name": "test (macos-latest, 3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369453,
+      "name": "test (windows-latest, 3.14)",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369455,
+      "name": "installed optional syntax providers (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369468,
+      "name": "test (macos-latest, 3.13)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369476,
+      "name": "standalone binary (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369484,
+      "name": "test (ubuntu-latest, 3.14)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369490,
+      "name": "test (macos-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369507,
+      "name": "test (ubuntu-latest, 3.13)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369533,
+      "name": "standalone binary (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369553,
+      "name": "release package preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369560,
+      "name": "test (windows-latest, 3.12)",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369588,
+      "name": "installed wheel commercial-alpha journeys (windows-latest)",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369595,
+      "name": "composite Action end-to-end",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369610,
+      "name": "installed wheel commercial-alpha journeys (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369631,
+      "name": "test (ubuntu-latest, 3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369633,
+      "name": "installed wheel commercial-alpha journeys (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369641,
+      "name": "test (macos-latest, 3.14)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369651,
+      "name": "test (ubuntu-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369680,
+      "name": "test (windows-latest, 3.13)",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369684,
+      "name": "installed optional syntax providers (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    },
+    {
+      "id": 107516369715,
+      "name": "test (windows-latest, 3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "41b0cc55bea6190286ca63c136c3d15779164df4"
+    }
+  ]
+}

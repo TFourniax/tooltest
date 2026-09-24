@@ -19,11 +19,50 @@
     "core128": {
       "head": "41b0cc55bea6190286ca63c136c3d15779164df4",
       "tree": "302574b90d5c79293dd417c034d370f670288f0a",
-      "knownFindings": 46,
+      "knownFindings": 47,
       "reviewRequest": 5808718371,
       "testRun": 35963216955,
-      "qualification": "pending",
-      "mergeHold": "unresolved provider max 558.800441ms >500ms; full gates/review pending"
+      "qualification": "BLOCKED_REVIEW_P1_AND_PROVIDER",
+      "mergeHold": "open P1 review finding47 plus unresolved provider max558.800441ms >500ms",
+      "reviewId": 5300522957,
+      "reviewSubmittedAt": "2026-09-24T06:16:02Z",
+      "openLatestFinding": {
+        "id": 4090514176,
+        "priority": "P1",
+        "summary": "two-digit dotted dates still become lexical path terms",
+        "corrected": false,
+        "regressionCovered": false
+      },
+      "unit": {
+        "job": 107516369651,
+        "total": 814,
+        "failures": 0,
+        "skipped": 52,
+        "seconds": 102.21
+      },
+      "installedUbuntu": {
+        "job": 107516369633,
+        "result": "PASS",
+        "classification": "MACHINE",
+        "humanExecuted": false
+      },
+      "matrixCounts": {
+        "success": 20,
+        "in_progress": 4
+      },
+      "allJobHeadShasVerified": true,
+      "actualCheckout": "72fc27c025dc42d915e8f0fcd85b283426943c28",
+      "actualTree": "302574b90d5c79293dd417c034d370f670288f0a",
+      "treeEqualityApiVerified": true,
+      "distributionArtifactMetadata": [
+        {
+          "id": 10793490760,
+          "digest": "sha256:904f33bb3d913c47dfff2e092ea0c163dcfabef4a78cd87afc69bccad15a6984",
+          "size": 1089487,
+          "expiresAt": "2026-10-01T06:15:05Z",
+          "bytesDownloaded": false
+        }
+      ]
     },
     "core129": {
       "head": "26f663b0d2fbecf779324a1f78f8359750787c63",

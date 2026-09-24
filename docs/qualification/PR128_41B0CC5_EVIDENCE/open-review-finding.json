@@ -1,0 +1,9 @@
+{
+  "reviewId": 5300522957,
+  "commit": "41b0cc55bea6190286ca63c136c3d15779164df4",
+  "corrected": false,
+  "regressionCovered": false,
+  "thread": "PRRT_kwDOT5JUBc6ldhSK",
+  "id": 4090514176,
+  "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Reject dotted dates with two-digit years**\n\nThe dotted-date alternative requires a four-digit year, so common forms such as `21.09.26` and `09.21.26` are treated as lexical path terms instead of unsupported temporal constraints. For example, `What changed in auth 21.09.26?` returns a 2025 event with path `auth/21/09/26/service.py` as `cited-records`, silently ignoring the requested date; accept two-digit years here as the slash and hyphen branches already do.\n\nUseful? React with 👍 / 👎."
+}

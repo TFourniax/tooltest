@@ -62,15 +62,33 @@ https://github.com/TFourniax/tooltest/pull/128
 Branche feat/grounded-memory-questions.
 HEAD **41b0cc55bea6190286ca63c136c3d15779164df4** ; tree **302574b90d5c79293dd417c034d370f670288f0a**.
 Base c03164e75e805ff1df976e55cdf6d86073e89b04.
-Revue du dernier head demandée dans5808718371 ; qualification finale en cours.
-**46 constats suivis. Auditer tous les fils**, pas seulement les derniers commentaires.
+Revue du dernier commit **5300522957**, datée du **2026-09-24 à 06:16:02 UTC**.
+**47 constats suivis ; le dernier P1 reste OUVERT et non corrigé** :
+https://github.com/TFourniax/tooltest/pull/128#discussion_r4090514176 .
+Les dates à points avec une année sur deux chiffres, telles que « 21.09.26 »,
+peuvent encore devenir des termes de chemin. La suite actuelle ne couvre pas ce cas.
+Aucun nouveau BEFORE/AFTER ni correction n'est revendiqué pour ce47e constat.
+Les46 constats précédents ont leurs corrections et régressions ; tous les fils restent audités,
+mais une revue avec ce P1 ouvert n'est pas une revue propre.
+
 Dernier BEFORE75add4e /35962880322/job107515376349 : **814 tests, 8 échecs, 52 skips, 82,255 s**.
-Les logs complets sont committés dans docs/qualification/PM_015_QUESTIONS/.
-Dernière correction : les abréviations génériques ET/CT/MT/PT respectent la casse,
-pour préserver la conjonction française « et » et les unités « pt » dans les noms.
-Les négatifs en majuscules et tous les anciens contrôles restent en place.
-Run test **35963216955** en attente à ce checkpoint ;
-Proof35963216985, Continuity35963216973 et integrated35963216995 passent.
+AFTER du commit41b0cc5, run **35963216955** :
+- Ubuntu3.11/job107516369651 : **814 tests, aucun échec, 52 skips, 102,210 s**.
+- Parcours CLI installé Ubuntu/job107516369633 : **PASS**, sources ouvertes, octets inchangés,
+  sorties MACHINE et human_executed:false.
+- Matrice au relevé : **20 success / 4 in_progress** ; tous les24 jobs rattachés au head41b0cc5.
+- Proof35963216985, Continuity35963216973 et integrated35963216995 : **PASS**.
+- Checkout réel **72fc27c025dc42d915e8f0fcd85b283426943c28**, tree
+  **302574b90d5c79293dd417c034d370f670288f0a**, égal au tree du candidat par API ;
+  SHA distinct, parents c03164e/41b0cc5.
+
+Logs originaux AFTER et métadonnées de matrice/artefacts conservés dans
+**docs/qualification/PR128_41B0CC5_EVIDENCE/** de cette branche de preuves.
+Les métadonnées des artefacts ne constituent pas une copie téléchargée de leurs octets.
+Le head produit n'est pas déplacé pour conserver ces preuves.
+
+**Non fusionnable : P1 de revue ouvert ET incident fournisseur non résolu.**
+Aucun main frais de cette PR, qualification globale, HUMAN ou Alpha n'est revendiqué.
 
 Preuve historique855a850 : **813 tests PASS, 52 skips, 98,670 s**,
 job107513900213/run35962389469 ; parcours CLI installé Ubuntu107513900179 PASS.
