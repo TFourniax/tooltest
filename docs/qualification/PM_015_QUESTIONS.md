@@ -497,3 +497,27 @@ bilingual CLI with the original exact sources and byte/authority checks.
 All42 findings, latest-head review and full gates remain required. This does
 not resolve the preserved provider558.800441>500ms incident or PM012100k.
 No local AFTER, merge, full semantic PM015, HUMAN or Alpha claim.
+
+
+Review5300314258 adds findings4090360930/4090360937/4090360945 (45 total).
+BEFOREbcb85dade69e651f3845a4d63f8794309fe7b3db /35961897418 /
+Ubuntu3.11 job107512382114:812 tests,54 failures,52 skips,143.856s.
+Extended/compact ISO weekday dates and generic ET/CT/MT/PT clock qualifiers
+now abstain. Em/en dashes and spaced ASCII dash separators recognize a following
+supported question form; prefixed memory commands use the same dash boundaries.
+Existing name, numeric, source, byte and authority controls remain unchanged.
+The installed bilingual journey adds old-path and all-term-label regressions.
+
+The e7506d1 installed Ubuntu job107510913752 failed an exact-ID assertion.
+Its newly added release-21.09.2026 fixture shares the complete lexical term set
+of the existing release-2026-09-21 fixture. The baseline bcb85da changes only
+that new fixture to dotted-21.09.2026 and adds context to the unchanged assertion.
+The actual bcb85da installed Ubuntu107512382213 then PASSES without a product
+change. Original labels and exact-ID/source assertions remain. Full failed and
+successful logs are retained. A further unit test and actual installed cases
+explicitly verify both sources for equal lexical term sets and exact --entity
+selection; these additional positive controls were not in the 812-test BEFORE.
+They document lexical lookup, not full-phrase identity resolution or semantic Q&A.
+All45 findings, latest-head review and full gates remain mandatory. The earlier
+provider558.800441>500ms incident and PM012100k remain unresolved. No local AFTER,
+merge, full PM015, HUMAN or Alpha claim.

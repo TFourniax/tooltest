@@ -39,6 +39,11 @@ def main():
             '--why','Synthetic all-terms compound fixture')
         run(dw,'decision','record','adjacent why pourquoi billing what changed in remember please memory qu est ce qui que a changé dans dépend de appelle importe',
             '--id','DEC-ADJACENT','--why','Synthetic adjacent-question fixture')
+        run(dw,'decision','record','dashed why pourquoi what changed in billing quels changements dans '
+            'qu est ce qui a changé remember please memory','--id','DEC-DASH','--why','Synthetic dash-clause fixture')
+        lexical_shapes=('lexicalshape-2026-09-21','lexicalshape-21.09.2026')
+        for index,label in enumerate(lexical_shapes):
+            run(dw,'decision','record',label,'--id','DEC-LEXICAL-'+str(index),'--why','Exact lexical-shape reason')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
                       'risk or change retention','risk and call retention',
@@ -85,12 +90,14 @@ def main():
                           "pour l'instant",'pour le moment','à présent','a present',
                           '09-21-2026','21-09-2026','09-21-26','21-09-26',
                           '2026-9-21','2026-09-1','2026-9-1','2026-9',
+                          '2026-W39-4','2026-W39-7','2026W394','2026W397',
                           '21.09.2026','9.21.2026','2026.09.21','2026.9.21',
                           'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
                           'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
                           'Sep 21st','Sep. 21st','Sept21st','Jan 1st','Feb 2nd','Apr 3rd',
                           'Aug 4th','janv. 1er','févr. 2e',
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
+                          '12 ET','12 CT','12 MT','12 PT','12ET','12PT',
                           '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
@@ -322,6 +329,30 @@ def main():
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--entity','DEC-ADJACENT','--json'))
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']==reason
+        for lang in ('fr','en'):
+            for separator in (' — ',' – ',' - ',' -- ','—','–'):
+                for tail,reason in (
+                    ('what changed in billing?','mixed-question-intents'),
+                    ('quels changements dans billing ?','mixed-question-intents'),
+                    ('Qu’est-ce qui a changé dans billing ?','mixed-question-intents'),
+                    ('why billing?','multiple-question-clauses'),
+                    ('please remember billing?','unsupported-compound-memory-clause'),
+                ):
+                    value=json.loads(run(dw,'--language',lang,'ask','Why dashed'+separator+tail,'--entity','DEC-DASH','--json'))
+                    assert value['status']=='abstained' and value['parts']==[]
+                    assert value['context']['abstention']==reason
+            for label in lexical_shapes:
+                for identity in (None,'DEC-LEXICAL-0','DEC-LEXICAL-1'):
+                    flags=() if identity is None else ('--entity',identity)
+                    value=json.loads(run(dw,'--language',lang,'ask','Why '+label+'?',*flags,'--json'))
+                    expected=['DEC-LEXICAL-0','DEC-LEXICAL-1'] if identity is None else [identity]
+                    assert value['status']=='cited-records'
+                    assert sorted(f['fields']['id'] for f in value['context']['facts'])==expected
+                    assert value['assurance']=='none' and value['actions']==[] and value['questionStored'] is False
+                    for part in value['parts']:
+                        citation=part['source']
+                        opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
+                        assert opened['event']['event_hash']==citation['eventHash']
         for flag,bound in [('--since',''),('--until',''),('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],

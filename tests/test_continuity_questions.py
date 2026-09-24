@@ -986,3 +986,19 @@ class MemoryQuestionTests(unittest.TestCase):
                     result=answer_question(self.repo,'Why auth'+separator+tail,entity='DEC')
                     self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],reason)
+
+    def test_equal_lexical_terms_keep_all_sources_until_identity_is_selected(self):
+        labels=('lexicalshape-2026-09-21','lexicalshape-21.09.2026')
+        for index,label in enumerate(labels):
+            self.record('LEXICAL-'+str(index),label,payload={'why':'Reason for '+label})
+        before=self.paths.events.read_bytes()
+        for label in labels:
+            for identity in (None,'LEXICAL-0','LEXICAL-1'):
+                with self.subTest(label=label,identity=identity):
+                    options={} if identity is None else {'entity':identity}
+                    result=answer_question(self.repo,'Why '+label+'?',**options)
+                    expected=['LEXICAL-0','LEXICAL-1'] if identity is None else [identity]
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual(sorted(f['fields']['id'] for f in result['context']['facts']),expected)
+                    self.assert_sources(result)
+        self.assertEqual(self.paths.events.read_bytes(),before)

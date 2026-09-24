@@ -123,7 +123,7 @@ def _question_intents(question):
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:(?:why|pourquoi|what|which|who|"
                        r"quels?|quelles?|qui|de\s+quoi|remember|memory|m[eé]moire)\s+|"
                        r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
-                       r":\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"(?:[:—–]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
@@ -166,9 +166,9 @@ def _query(question, kind, since, until, entity):
     # may introduce that shorthand. Literal --kind memory is not a command.
     if not literal_memory and re.search(
             r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b"
-            r"[^?!;,:]*\bremember\b|"
-            r"[?!;,:][^?!;,:]*\b(?:remember|memory|m[eé]moire)\b|"
-            r"\.(?!\d)[^?!;,:]*\b(?:remember|memory|m[eé]moire)\s+\S",
+            r"[^?!;,:—–]*\bremember\b|"
+            r"(?:[?!;,:—–]|\s+-{1,2}\s+)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\b|"
+            r"\.(?!\d)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\s+\S",
             normalized_question, re.I):
         ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:
@@ -215,8 +215,8 @@ def _query(question, kind, since, until, entity):
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
-        r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2})(?![\w/#:+-]|\.\w)"
-        r"|(?<![\w./#:+-])\d{4}W\d{2}(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2}(?:-\d)?)(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{4}W\d{2}\d?(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{1,2}-\d{1,2}-(?:\d{4}|\d{2})(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4}\.\d{1,2}\.\d{1,2})(?![\w/#:+-]|\.\w)"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
@@ -231,7 +231,7 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        r"|(?<![\w./#:+-])\d{1,2}\s*(?:EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
+        r"|(?<![\w./#:+-])\d{1,2}\s*(?:ET|CT|MT|PT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
         r"CET|CEST|BST|IST|JST|KST|HST|AKST|AKDT|AST|ADT|MSK|"
         r"AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)\b"
         r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
