@@ -22,6 +22,9 @@ et201rattachements de sources, mais son état d'exécution est ancien. Aucun v6 
 
 ## Références relues
 
+Les quatre refs main ont encore été relues pendant ce checkpoint ; elles restent inchangées.
+L'inventaire courant expose toujours zéro outil d'exécution shell.
+
 | Dépôt | main | Qualification et limite |
 |---|---|---|
 | TFourniax/tooltest | c03164e75e805ff1df976e55cdf6d86073e89b04 | Fresh main35939990884 :23PASS/1FAIL, TypeScript p95187.065>150ms. Les3spécialistes passent. Pas de MACHINE global. |
@@ -57,20 +60,26 @@ Les diagnostics Idle ne prouvent pas la résolution des incidents antérieurs.
 ### Core128, tranche extractive de PM015
 https://github.com/TFourniax/tooltest/pull/128
 Branche feat/grounded-memory-questions.
-HEAD **c960ee625d28ab3e6ab386e6b15a820286ed1dfc** ; tree **caa4699061abb9498910fe0425372c04da529967**.
+HEAD **396c40c4b3e1cb3e95c7ee7d649649cd48bf233a** ; tree **155c21e4bc2d955d91025dfafeacafc155cbbc38**.
 Base c03164e75e805ff1df976e55cdf6d86073e89b04.
-Revue du dernier head demandée dans5808178365 ; qualification finale encore en cours à ce snapshot.
-**38constats suivis, audit de TOUS les fils requis**, pas seulement les derniers commentaires.
-Dernier BEFORE48c3324 /35958895056/job107503318258 :805tests,36échecs,52skips,95.363s.
+Revue du dernier head demandée dans5808338453 ; qualification finale encore en cours.
+**41 constats suivis, audit de TOUS les fils requis**, pas seulement les derniers commentaires.
+Dernier BEFORE0c2f510 /35960335738/job107507412610 : **808 tests, 49 échecs, 52 skips, 97,652 s**.
 Les logs complets sont committés dans docs/qualification/PM_015_QUESTIONS/.
-Les quatre derniers constats : dates à tirets hors ISO, mois abrégés, fuseaux nommés,
-questions accolées après un point. Positifs System.Memory/filename/versions conservés.
+Les trois derniers constats concernent les questions françaises adjacentes avec élision,
+les ordinaux après un mois abrégé et les dates année-mois-jour à champs variables.
+Correction396c40c et parcours CLI bilingues poussés. Run test35960666593 en cours ;
+Proof35960666631, Continuity35960666712 et integrated35960666627 passent.
 
-Preuve historique cfb303a :801tests PASS/52skips/100.792s, job107501066264/run35958153105 ;
-parcours CLI installé107501066145 PASS, citations originales et invariance des octets.
-Checkout réel80076d896e6177175fc652db93595565fb3959fc : tree3b147d5596734762ea2f10683b18ac0b6ad839a6
-identique au headcfb303a, vérifié par API. Ce SHA reste distinct.
-Ces résultats ne qualifient pas le headc960ee6.
+Preuve historique c960ee6 : **805 tests PASS, 52 skips, 100,279 s**,
+job107504819938/run35959425107 ; parcours CLI installé Ubuntu107504819834 PASS,
+citations originales et invariance des octets.
+Checkout réel **ea6cb33ac4e050945b78f8f12f34a8d44c447a62** :
+tree **caa4699061abb9498910fe0425372c04da529967** identique au head c960ee6,
+vérifié par API ; ce SHA reste distinct, parents c03164e/c960ee6.
+Ce run finit à **20 PASS / 4 CANCELLED** lorsque les nouvelles régressions arrivent.
+Les quatre jobs Windows annulés ne sont pas des PASS.
+Ces résultats ne qualifient pas le head396c40c.
 
 **Incident fournisseur non résolu** : au33b1afa, run35957187387/job107498223040,
 hook Python max558.800441ms>500ms, p9579.963834ms<=150. ConsumerIdle2b919f7dddeaf3488091017a46f079d8c9718056,
