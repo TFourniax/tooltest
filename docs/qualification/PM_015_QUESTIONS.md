@@ -308,3 +308,22 @@ identifiers must not be interpreted as year substrings. Three regression-first
 tests cover why, explicit memory and incoming dependency queries with competing
 intent-word names, plus ISO/RFC/CVE/version identifiers. The correction must
 retain all earlier mixed-intent, period and compact-year refusal guarantees.
+
+Regression-first06bd1a404e3ded2e59c50600b54803b10848bcda / run35952701891 /
+Ubuntu3.13 job107484590576:784tests,30failures,52skips,79.254s. Full original
+BEFORE and preceding781-test Linux AFTER logs are retained. Supported leading
+question forms now determine intent; clause forms retain mixed-question checks.
+Only recognized grammatical prefixes/suffixes are removed from the entity phrase.
+The global stop-word filter is removed, so change/memory/call/dependency names
+and single-letter names remain distinguishing query data. Explicit --kind memory
+keeps the entire label query; temporal guards still apply. Incoming target words
+are retained completely. Unknown auto forms still abstain, and unsupported
+outgoing forms retain their direction guard.
+Unqualified years are standalone numeric tokens, not substrings of ISO/RFC/CVE/
+version identifiers. Compact fiscal/quarter/half-year forms retain explicit
+recognition, including four-digit year-first forms. The real installed bilingual
+journey covers competing names, literal memory, dependencies, numeric names and
+exact citation opening. An additional single-letter A control is not claimed in
+the prior BEFORE. All original mixed/time/authority/source/immutability controls
+remain. All21findings, fresh review, every hosted gate and fresh main are required.
+Work remains offline; no local AFTER or HUMAN claim.

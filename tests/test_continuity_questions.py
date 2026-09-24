@@ -379,8 +379,9 @@ class MemoryQuestionTests(unittest.TestCase):
     def test_short_query_terms_distinguish_versions_and_single_letter_names(self):
         self.record('DEC-X','auth x v1',payload={'why':'X version one'})
         self.record('DEC-Y','auth y v2',payload={'why':'Y version two'})
+        self.record('DEC-A','auth a v3',payload={'why':'A version three'})
         for question,expected in [('Why auth x v1?',['DEC-X']),('Why auth y v2?',['DEC-Y']),
-                                  ('Why x?',['DEC-X']),('Why auth z?',[])]:
+                                  ('Why x?',['DEC-X']),('Why a?',['DEC-A']),('Why auth z?',[])]:
             with self.subTest(question=question):
                 result=answer_question(self.repo,question)
                 self.assertEqual([f['fields']['id'] for f in result['context']['facts']],expected)

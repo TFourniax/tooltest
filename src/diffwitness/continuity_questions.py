@@ -34,14 +34,6 @@ def _terms(value):
     return {word.lower() for word in _QUERY_WORD.findall(text)}
 
 
-_STOP = _terms('why pourquoi what which who how where when does depend depends dependencies '
-               'depend de dependances dependent quels quelles quel quelle qui quoi comment '
-               'est que dans pour sur avec nous notre cette ceci cela ici depuis apres avant '
-               'the and this that those these here there from since after before about have '
-               'has was were are using use uses utilisons utiliser utilise module component '
-               'composant fichiers files changed changes change changee changements fait faits '
-               'memory memoire remember records recorded logiciel software '
-               'do we is it its our in on of to a an du des le la les un une qu ce')
 _AUTHORITY = ('Extracts describe recorded assertions, not authenticated authors, current code '
               'applicability, complete semantic coverage or new causal Proof.')
 
@@ -82,6 +74,58 @@ def _incoming_target(question):
     return target
 
 
+def _question_form(question):
+    """Parse a supported leading form, retaining the complete entity phrase."""
+    text = question.strip()
+    for name, pattern in (
+        ('why', r"^(?:why|pourquoi)\b\s*"),
+        ('changes', r"^(?:what(?:\s+has)?\s+changed|(?:what|which)\s+changes|"
+                    r"quels?\s+changements|quelles?\s+modifications|"
+                    r"qu['’]est-ce\s+qui\s+a\s+chang[eé])\b\s*"),
+        ('memory', r"^(?:memory|m[eé]moire|remember)\b\s*"),
+    ):
+        match = re.match(pattern, text, re.I)
+        if match is None:
+            continue
+        target = text[match.end():].strip()
+        if name == 'why':
+            target = re.sub(r"^(?:do\s+we\s+(?:use|have)|are\s+we\s+using|"
+                            r"utilisons[- ]nous|nous\s+utilisons|utiliser|utilise|utilisons)\s+",
+                            '', target, flags=re.I)
+            target = re.sub(r"\s+(?:here|ici)\s*[?!.]*\s*$", '', target, flags=re.I)
+        elif name == 'changes':
+            target = re.sub(r"^(?:in|dans)\s+", '', target, flags=re.I)
+        return name, target
+    target = _incoming_target(text)
+    if target is not None:
+        return 'dependencies', target
+    # Recognize unsupported dependency questions by grammatical form so they
+    # reach the direction guard; a bare label like "call management" is data.
+    if (re.match(r"^(?:(?:what|who)\s+(?:depends?\s+on\b|imports?\b|calls?\b)|"
+                 r"what\s+(?:does|do)\s+.+\s+(?:depend(?:\s+on)?|import|call)\b|"
+                 r"(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\b|"
+                 r"qu['’]est-ce\s+que\s+.+\s+import(?:e|ent)\b|"
+                 r"qu['’]appelle\b|de\s+quoi\b)", text, re.I)
+            or re.search(r"\b(?:depends?\s+on|imports?|calls?)\s+(?:what|who)[\s?!.]*$|"
+                         r"\bd[eé]pend(?:ent)?(?:-il)?\s+de\s+(?:quoi|qui)[\s?!.]*$",
+                         text, re.I)):
+        return 'dependencies', text
+    return None, text
+
+
+def _question_intents(question):
+    # Inspect clause-leading forms, not every word in an entity name.
+    clauses = re.split(r"[?!;,]+|\.(?:\s+|$)|"
+                       r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\b",
+                       question, flags=re.I)
+    intents = set()
+    for clause in clauses:
+        name, _ = _question_form(clause)
+        if name is not None:
+            intents.add(name)
+    return intents
+
+
 def _query(question, kind, since, until, entity):
     if (not isinstance(question, str) or not question.strip() or len(question) > 2000
             or any(ord(c) < 32 or ord(c) == 127 for c in question)):
@@ -92,22 +136,17 @@ def _query(question, kind, since, until, entity):
         from .continuity_history import _identity
         _identity(entity)
     normalized_question = unicodedata.normalize('NFKC', question)
-    query_tokens = _terms(normalized_question)
     auto_requested = kind == 'auto'
-    intents = {name for name, words in (
-        ('why', {'why', 'pourquoi'}),
-        ('dependencies', {'depends', 'depend', 'dependent', 'dependance', 'dependances',
-                          'dependency', 'dependencies', 'import', 'imports', 'imported', 'importing',
-                          'importe', 'importent', 'importer', 'call', 'calls', 'called', 'calling',
-                          'appelle', 'appellent', 'appeler'}),
-        ('changes', {'changed', 'changes', 'change', 'changements'}),
-        ('memory', {'memory', 'memoire', 'remember'}),
-    ) if query_tokens & words}
+    literal_memory = kind == 'memory'
+    form, search_text = _question_form(normalized_question)
+    intents = set() if literal_memory else _question_intents(normalized_question)
     ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
-    if kind == 'auto':
+    if auto_requested:
         kind = next(iter(intents)) if len(intents) == 1 else 'memory'
     elif intents and kind not in intents:
         ambiguity = ambiguity or 'question-kind-conflict'
+    if literal_memory or form != kind:
+        search_text = normalized_question
     lower, upper = _instant(since) if since else None, _instant(until) if until else None
     natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', normalized_question)
     cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', normalized_question)
@@ -133,9 +172,9 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
-        r"|\b\d{2}(?:[QT][1-4]|[HS][12])\b"
+        r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
-        r"|\b(?:FY|AF)[\s'’\-]*\d{2,4}\b|\d{4}"
+        r"|\b(?:FY|AF)[\s'’\-]*\d{2,4}\b|(?<![\w./#:+-])\d{4}(?![\w./#:+-])"
         r"|\b(?:week[\s-]?ends?|fortnights?|decades?|centur(?:y|ies)|seasons?|"
         r"quinzaines?|décennies?|siècles?|saisons?)\b"
         r"|\b(?:this|these|current|ce|cet|cette|ces|in|en|au|aux|over|through|throughout)\s+"
@@ -169,7 +208,10 @@ def _query(question, kind, since, until, entity):
         ambiguity = ambiguity or 'dependency-direction-ambiguous'
     if auto_requested and not intents:
         ambiguity = ambiguity or 'unrecognized-question-intent'
-    terms = _terms(cleaned) - _STOP
+    if not literal_memory:
+        search_text = re.sub(r"\b(?:since|depuis)\s+\d{4}-\d{2}-\d{2}\s*[?!.]*\s*$",
+                             '', search_text, flags=re.I)
+    terms = _terms(search_text)
     if not terms and entity is None:
         ambiguity = ambiguity or 'no-specific-search-term'
     return {'text': question, 'kind': kind, 'entity': entity, 'terms': sorted(terms),
@@ -209,7 +251,7 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
         # Resolve targets before selecting edges, including matching active
         # entities with no incoming edge. Absence of an edge cannot resolve a
         # name ambiguity. Explicit --entity is the literal disambiguator.
-        target_terms = _terms(_incoming_target(question) or '') - _STOP
+        target_terms = _terms(_incoming_target(question) or '')
         def target_match(subject):
             if entity is not None:
                 return subject['id'] == entity
@@ -335,8 +377,8 @@ def question_cli(argv):
     parser.add_argument('question', nargs='+')
     parser.add_argument('--repo', default='.')
     parser.add_argument('--kind', choices=('auto','why','dependencies','changes','memory'), default='auto',
-                        help=tr('Auto abstains on unknown intents; memory explicitly searches recorded labels.',
-                                'Auto refuse les intentions inconnues ; memory recherche explicitement les libellés enregistrés.'))
+                        help=tr('Auto abstains on unknown forms; memory retains every label word for lexical lookup.',
+                                'Auto refuse les formes inconnues ; memory conserve tous les mots du libellé recherché.'))
     parser.add_argument('--entity')
     parser.add_argument('--since')
     parser.add_argument('--until')

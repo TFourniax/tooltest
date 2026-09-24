@@ -35,6 +35,15 @@ def main():
         run(dw,'decision','record','fallback works import calls importe appelle',
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
+        intent_names=('change management','memory management','call management','dependency management')
+        numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha')
+        for index,label in enumerate(intent_names):
+            identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
+            run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
+            run(dw,'objective','add','Source','--id',source_identity,'--why','Record dependency source')
+            run(dw,'relation','add',source_identity,'depends_on',identity)
+        for index,label in enumerate(numeric_names):
+            run(dw,'decision','record',label,'--id','DEC-NUMERIC-'+str(index),'--why','Original numeric-name reason')
         # Import-shaped fixture through the installed event API; queries and
         # exact source opening below still execute the installed CLI.
         for identity,target in [
@@ -173,6 +182,35 @@ def main():
                     source=part['source']
                     opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
                     assert opened['event']['event_hash']==source['eventHash']
+        for lang in ('fr','en'):
+            for index,label in enumerate(intent_names):
+                identity='DEC-NAME-'+str(index)
+                for question,flags in [('Why '+label+'?',()),
+                                       ('Pourquoi utilisons-nous '+label+' ici ?',()),
+                                       (label,('--kind','memory')),('Remember '+label+'?',())]:
+                    value=json.loads(run(dw,'--language',lang,'ask',question,*flags,'--json'))
+                    assert value['status']=='cited-records'
+                    assert [f['fields']['id'] for f in value['context']['facts']]==[identity]
+                    for part in value['parts']:
+                        citation=part['source']
+                        opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
+                        assert opened['event']['event_hash']==citation['eventHash']
+                for question in ('What depends on '+label+'?', 'Qu’est-ce qui dépend de '+label+' ?'):
+                    value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                    assert value['status']=='cited-records'
+                    assert [f['fields']['to'] for f in value['context']['facts']]==[identity]
+                    for part in value['parts']:
+                        citation=part['source']
+                        opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
+                        assert opened['event']['event_hash']==citation['eventHash']
+            for index,label in enumerate(numeric_names):
+                value=json.loads(run(dw,'--language',lang,'ask','Why '+label+'?','--json'))
+                assert value['status']=='cited-records'
+                assert [f['fields']['id'] for f in value['context']['facts']]==['DEC-NUMERIC-'+str(index)]
+                for part in value['parts']:
+                    citation=part['source']
+                    opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==citation['eventHash']
         for flag,bound in [('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],
