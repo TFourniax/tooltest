@@ -113,7 +113,8 @@ def _query(question, kind, since, until, entity):
     cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', normalized_question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
-                          r"last|dernier|dernière|morning|matin|noon|midi)\b", normalized_question, re.I)
+                          r"last|dernier|dernière|morning|matin|noon|midi|at|vers|o['’]clock)\b",
+                          normalized_question, re.I)
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
     relative_period = re.search(
@@ -137,7 +138,10 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:FY|AF)\d{2,4}\b|\d{4}"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        r"|\b(?:at|vers|à)\s+\d{1,2}\b",
+        r"|\b(?:at|vers|à)\s+\d{1,2}\b"
+        r"|\b[ap]\.?m\.?\b"
+        r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+        r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
         cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.

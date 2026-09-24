@@ -51,7 +51,8 @@ def main():
                 actor={'kind':'fixture','id':'question-acceptance'})
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
-            epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py']},
+            epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
+                'auth/at/three/pm/p/m/trois/o/clock/release/around/vers/threepm/service.py']},
             relations=[],timestamp='2025-09-21T08:00:00Z',
             provenance={'producer':'question-acceptance','source':'synthetic-year-filter'},
             actor={'kind':'fixture','id':'question-acceptance'})
@@ -141,7 +142,9 @@ def main():
                     opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
                     assert opened['event']['event_hash']==source['eventHash']
         for lang in ('fr','en'):
-            for phrase in ('at 12:30','at 3pm','at 12 PM','à 12h30','vers 12','at 12 UTC'):
+            for phrase in ('at 12:30','at 3pm','at 12 PM','à 12h30','vers 12','at 12 UTC',
+                           'at three PM','three PM','at three p.m.','à trois PM',
+                           "at three o'clock",'at release','around three PM','vers trois','threepm'):
                 value=json.loads(run(dw,'--language',lang,'ask','What changed in auth '+phrase+'?','--json'))
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']=='ambiguous-time-filter'

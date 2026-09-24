@@ -269,3 +269,15 @@ still lets three PM select a matching old path. A regression-first journal
 covers word clocks, AM/PM spelling, o'clock and unsupported at/vers constraints
 with and without CLI bounds. All18findings remain tracked; previous777-test
 PASS is historical and no merge occurred.
+
+Regression-first d41ab23a87d4bb451bbdd60b83fbf206da63e0a6 / run35950623623 /
+Ubuntu3.11 job107478446977 runs778tests with18failures/52skips in96.024s.
+Full BEFORE and preceding777-test Linux AFTER logs are retained.
+AM/PM markers are now detected independently of numeric hour spelling. Compact
+English/French word-hour suffixes and o'clock are recognized too. Unsupported
+at/vers clauses abstain regardless of whether the following bound is numeric.
+This is deliberately conservative when a time marker is also a name; use an
+exact --entity with a generic question for that identity. The installed bilingual
+journey repeats every new phrase with exact misleading-path fixtures while
+retaining journal/state byte invariance. Final-head review, every gate and fresh
+main remain required. No local AFTER or HUMAN execution is claimed.
