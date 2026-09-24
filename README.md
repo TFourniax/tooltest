@@ -657,3 +657,7 @@ for this repository. `dw language en` restores the English preference. Selection
 explicit invocation > saved project language > English; view and language are independent.
 JSON, evidence, reason codes and native hook protocols remain canonical. See the
 [language contract](docs/LANGUAGE_CONTRACT.md) and [targeted human checks](docs/LANGUAGE_HUMAN_QUALIFICATION.md).
+
+### Anticipated scope and observed changes
+
+Use `dw task impact anticipate TASK-ID --file path --unknown "unmodeled effects"` before a change to retain a task-scoped, immutable worktree baseline and explicit file expectations. After the existing Gate or native flow records a change, `dw task impact compare PLAN-ID CHANGE-ID` saves a cited comparison. `dw task impact show TASK-ID` or `CHANGE-ID` retrieves it in the selected language. Incomplete coverage and baseline mismatches remain unknown; comparisons do not establish semantic impact, correctness or causal Proof. See [the impact contract and qualification scope](docs/qualification/PM_017_IMPACT.md).

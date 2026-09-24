@@ -22,6 +22,7 @@ from .continuity_contract import (
 )
 from .gitops import git, repo_root
 from .json_contract import strict_json_loads
+from .continuity_impact_contract import ImpactHistoryValidator
 from .continuity_task_contract import TaskHistoryValidator
 from .continuity_lifecycle_contract import MemoryHistoryValidator
 
@@ -205,6 +206,7 @@ class _ProjectEventValidator:
         self.previous: str | None = None
         self.dedupe: set[str] = set()
         self.task_history = TaskHistoryValidator()
+        self.impact_history = ImpactHistoryValidator()
         self.memory_history = MemoryHistoryValidator()
         self.count = 0
 
@@ -233,6 +235,10 @@ class _ProjectEventValidator:
             self.memory_history.admit(event)
         except ValueError as exc:
             raise ContinuityError(f"invalid memory history at line {index}: {exc}") from exc
+        try:
+            self.impact_history.admit(event)
+        except ValueError as exc:
+            raise ContinuityError(f"invalid impact history at line {index}: {exc}") from exc
         self.count = index
 
 

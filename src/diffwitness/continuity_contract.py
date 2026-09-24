@@ -10,6 +10,7 @@ import hashlib
 import re
 from typing import Any
 
+from .continuity_impact_contract import IMPACT_PROFILE, impact_descriptor, validate_impact
 from .continuity_task_contract import TASK_PROFILE, task_profile_descriptor, validate_task_profile
 from .continuity_lifecycle_contract import MEMORY_LIFECYCLE_PROFILE, memory_lifecycle_descriptor, validate_memory_lifecycle
 from .continuity_memory_code_contract import MEMORY_CODE_PROFILE, code_descriptor, validate_memory_code
@@ -37,7 +38,7 @@ MAX_LABEL_CHARS = 500
 ENTITY_KINDS = (
     "task", "objective", "decision", "invariant", "failed-approach", "feature",
     "component", "symbol", "dependency", "change", "proof-certificate", "debt",
-    "understanding", "file", "external-module", "git-commit", "git-message", "git-lineage", "memory-code",
+    "impact-plan", "impact-comparison", "understanding", "file", "external-module", "git-commit", "git-message", "git-lineage", "memory-code",
 )
 HUMAN_DECLARABLE_RELATIONS = frozenset({
     "motivated_by", "affects", "introduced_in", "created", "protects", "constrains",
@@ -162,6 +163,9 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     """
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
+        return
+    if provenance[PROFILE_PROVENANCE_FIELD] == IMPACT_PROFILE:
+        validate_impact(event)
         return
     if provenance[PROFILE_PROVENANCE_FIELD] == MEMORY_CODE_PROFILE:
         validate_memory_code(event)
@@ -443,6 +447,7 @@ def project_memory_contract() -> dict[str, Any]:
             MEMORY_LIFECYCLE_PROFILE: memory_lifecycle_descriptor(),
             MEMORY_CODE_PROFILE: code_descriptor(),
             TASK_PROFILE: task_profile_descriptor(),
+            IMPACT_PROFILE: impact_descriptor(),
             DEBT_LIFECYCLE_PROFILE: {
                 "provenance_field": PROFILE_PROVENANCE_FIELD,
                 "event_types": {"debt." + name: copy.deepcopy(spec) for name, spec in DEBT_LIFECYCLE_SPECS.items()},
