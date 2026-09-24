@@ -225,3 +225,9 @@ returned source, and checks unchanged journal/state bytes. No schema, original
 citation or authority assertion is weakened. Final-head distinct review, all
 hosted gates and fresh main remain required. Work is offline; no local AFTER or
 HUMAN result is claimed.
+
+Latest-head review of ef0b937 raises findings 4089288605 and 4089288609:
+C++ must not retrieve a C# runtime reason, and compact fiscal/quarter periods
+must not select old events whose paths contain those period strings. Two
+journal-backed regressions are added before correction. All 15 findings remain
+tracked; the prior 772-test PASS does not discharge these new cases.

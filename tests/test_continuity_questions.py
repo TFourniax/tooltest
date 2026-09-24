@@ -395,3 +395,33 @@ class MemoryQuestionTests(unittest.TestCase):
                 result=answer_question(self.repo,question)
                 self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[expected])
                 self.assert_sources(result)
+
+    def test_punctuation_bearing_technology_names_remain_distinct(self):
+        self.record('DEC-CSHARP','C# runtime',payload={'why':'Managed runtime'})
+        before=answer_question(self.repo,'Why C++?')
+        self.assertEqual(before['status'],'abstained')
+        self.assertEqual(before['parts'],[])
+        self.record('DEC-CPP','C++ runtime',payload={'why':'Native runtime'})
+        self.record('DEC-FSHARP','F# runtime',payload={'why':'Functional runtime'})
+        self.record('DEC-C','C runtime',payload={'why':'C runtime'})
+        for question,expected in [('Why C++?','DEC-CPP'),('Why C#?','DEC-CSHARP'),
+                                  ('Pourquoi F# ?','DEC-FSHARP'),('Why C?','DEC-C')]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[expected])
+                self.assert_sources(result)
+
+    def test_compact_fiscal_and_quarter_periods_never_become_path_terms(self):
+        periods=('FY2026','FY26','2026Q1','Q12026','2026H1','H12026',
+                 'AF2026','AF26','２０２６Ｑ１')
+        for index,period in enumerate(periods):
+            self.record('CHANGE-PERIOD-'+str(index),'auth change',kind='change',event_type='change.observed',
+                        timestamp='2025-09-21T08:00:00Z',
+                        payload={'changed_files':['auth/'+period+'/service.py']})
+        for period in periods:
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(period=period,options=options):
+                    result=answer_question(self.repo,'What changed in auth in '+period+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
