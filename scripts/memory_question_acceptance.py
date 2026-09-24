@@ -28,6 +28,8 @@ def main():
         for question in ['Why auth?','Pourquoi auth ?','What depends on auth?','Qu’est-ce qui dépend de auth ?',
                          'Why unrecorded_lunar_module?','What changed in auth since yesterday?',
                          'auth depends on what?', 'de quoi auth dépend-il ?',
+                         'What depends on auth and what does auth depend on?',
+                         'Qu’est-ce qui dépend de auth et de quoi auth dépend-il ?',
                          'What changed in auth since 2026-09-21T12:00:00Z?',
                          'Qu’est-ce qui a changé dans auth depuis 2026-09-21 à midi ?']:
             values=[]
@@ -41,13 +43,26 @@ def main():
                 readable=run(dw,'--language',lang,'ask',question)
                 assert ('Mémoire' if lang=='fr' else 'Recorded') in readable
             assert values[0]==values[1]
-            ambiguous_direction=question in ('auth depends on what?', 'de quoi auth dépend-il ?')
+            ambiguous_direction=question in ('auth depends on what?', 'de quoi auth dépend-il ?',
+                'What depends on auth and what does auth depend on?',
+                'Qu’est-ce qui dépend de auth et de quoi auth dépend-il ?')
             ambiguous_time='yesterday' in question or '2026-09-21' in question
             expected='abstained' if 'unrecorded_' in question or ambiguous_direction or ambiguous_time else 'cited-records'
             assert values[0]['status']==expected
             if ambiguous_direction:assert values[0]['context']['abstention']=='dependency-direction-ambiguous'
             if ambiguous_time:assert values[0]['context']['abstention']=='ambiguous-time-filter'
             cases.append({'question':question,'status':expected,'citations':len(values[0]['parts'])})
+
+        for question,flags in [
+            ('What changed in auth since yesterday?', ('--until','2026-09-24')),
+            ('What changed in auth before 2026-09-21?', ('--since','2026-09-01')),
+            ('Qu’est-ce qui a changé dans auth depuis hier ?', ('--until','2026-09-24')),
+        ]:
+            for lang in ('fr','en'):
+                ambiguous=json.loads(run(dw,'--language',lang,'ask',question,*flags,'--json'))
+                assert ambiguous['status']=='abstained'
+                assert ambiguous['context']['abstention']=='ambiguous-time-filter'
+                assert ambiguous['parts']==[]
         assert all(p.read_bytes()==b for p,b in before.items())
         run(dw,'decision','retire','DEC-AUTH','--reason','Historic only')
         retired=json.loads(run(dw,'ask','Why?','--entity','DEC-AUTH','--json'));assert retired['status']=='abstained'

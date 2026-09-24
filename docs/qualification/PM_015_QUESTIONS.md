@@ -112,3 +112,17 @@ Hosted BEFORE: run35941138786/job107449326048,755tests,7failures,52skips,
 abstention is required; the ISO-T form already abstains and remains covered.
 Separate optional-provider job107449326392 fails hookp95166.7ms>150ms; retained
 as a PM012 incident, not attributed to these question parsing changes.
+
+Review4088833583/4088833589 found compound-direction and mixed CLI/question
+constraints. BEFORE79b6d77 run35941905285/job107451753320 executes757tests:
+9subcase failures,52skips,93.576s. Its complete log is retained. The first-round
+fix had already passed755tests on Linux job107450310955; that does not cover the
+newly found cases.
+
+The incoming target now rejects conjunctions, embedded questions and further
+dependency clauses. Temporal language is inspected independently of CLI flags;
+unsupported relative/qualified bounds abstain. A supported bare since/depuis date
+must agree exactly with an explicit lower bound. Other CLI bounds never erase
+question-side constraints. Both regressions also run in the installed journey.
+No local execution after these changes is claimed while Work cloud is offline;
+final hosted review, all gates and fresh main remain required.

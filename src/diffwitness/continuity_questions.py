@@ -47,6 +47,23 @@ def _instant(value):
     return result.astimezone(timezone.utc)
 
 
+def _incoming_target(question):
+    match = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+([^?!;]+?)\s*[?!.]*\s*", question, re.I)
+             or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+([^?!;]+?)\s*[?!.]*\s*",
+                             question, re.I))
+    if match is None:
+        return None
+    target = match.group(1)
+    # An entity phrase must not absorb another question, conjunction or
+    # dependency clause. Unknown compound wording is not a partial answer.
+    if re.search(r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car|"
+                 r"what|which|who|whose|that|quoi|qui|que|dont|does|do|"
+                 r"depends?|d[eé]pend(?:ent)?|imports?|since|before|after|depuis|avant|après)\b",
+                 target, re.I):
+        return None
+    return target
+
+
 def _query(question, kind, since, until, entity):
     if (not isinstance(question, str) or not question.strip() or len(question) > 2000
             or any(ord(c) < 32 or ord(c) == 127 for c in question)):
@@ -62,30 +79,33 @@ def _query(question, kind, since, until, entity):
                 'dependencies' if query_tokens & {'depends', 'depend', 'dependent', 'dependances', 'dependencies'} else
                 'changes' if query_tokens & {'changed', 'changes', 'change', 'changements'} else 'memory')
     ambiguity = None
-    # Only explicit ISO dates are interpreted. Relative dates and historical
-    # "before/as of" questions must not silently become a current-state answer.
+    lower, upper = _instant(since) if since else None, _instant(until) if until else None
     natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', question)
-    if since is None and natural_dates:
-        bare_bound = re.search(r"\b(?:since|depuis|after|après)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$",
-                               question, re.I)
-        if len(natural_dates) == 1 and bare_bound is not None:
-            since = bare_bound.group(1)
+    temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
+                          r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
+                          r"last|dernier|dernière|morning|matin|noon|midi)\b", question, re.I)
+    relative_period = re.search(r"\b(?:in|en|during|pendant)\s+(?:\d{4}|"
+                                r"january|february|march|april|may|june|july|august|september|october|november|december|"
+                                r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b",
+                                question, re.I)
+    # Question-side constraints are inspected even when CLI bounds exist.
+    # Only a single bare terminal since/depuis date has an unambiguous meaning.
+    if natural_dates or temporal or relative_period:
+        bare_bound = re.search(r"\b(?:since|depuis)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$", question, re.I)
+        if len(natural_dates) == 1 and len(temporal) == 1 and bare_bound is not None and relative_period is None:
+            natural_lower = _instant(bare_bound.group(1))
+            if lower is not None and lower != natural_lower:
+                ambiguity = 'ambiguous-time-filter'
+            else:
+                lower = natural_lower
         else:
             ambiguity = 'ambiguous-time-filter'
-    elif since is None and until is None and query_tokens & {'since', 'depuis', 'after', 'apres', 'before', 'avant', 'yesterday', 'hier'}:
-        ambiguity = 'ambiguous-time-filter'
-    lower, upper = _instant(since) if since else None, _instant(until) if until else None
     if lower and upper and lower > upper:
         raise ValueError('since must not be later than until')
     if (lower or upper) and kind != 'changes':
-        ambiguity = 'temporal-filter-requires-changes'
-    # An incoming recorded dependency question has one supported direction.
-    if kind == 'dependencies':
-        incoming = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+.+?[?!.]*\s*", question, re.I)
-                    or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+.+?[?!.]*\s*",
-                                    question, re.I))
-        if incoming is None:
-            ambiguity = 'dependency-direction-ambiguous'
+        ambiguity = ambiguity or 'temporal-filter-requires-changes'
+    if kind == 'dependencies' and _incoming_target(question) is None:
+        ambiguity = ambiguity or 'dependency-direction-ambiguous'
     cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', question)
     terms = tokens(cleaned) - _STOP
     if not terms and entity is None:
@@ -94,7 +114,6 @@ def _query(question, kind, since, until, entity):
             'since': lower.isoformat() if lower else None, 'until': upper.isoformat() if upper else None,
             'timeBasis': 'inclusive recorded timestamps; not authenticated wall-clock',
             'dependencyDirection': 'incoming recorded edges' if kind == 'dependencies' else None}, ambiguity
-
 
 def question_context(repo, question, *, kind='auto', since=None, until=None, entity=None, limit=12):
     if type(limit) is not int or not 1 <= limit <= 50:
