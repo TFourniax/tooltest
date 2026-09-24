@@ -231,3 +231,15 @@ C++ must not retrieve a C# runtime reason, and compact fiscal/quarter periods
 must not select old events whose paths contain those period strings. Two
 journal-backed regressions are added before correction. All 15 findings remain
 tracked; the prior 772-test PASS does not discharge these new cases.
+
+Regression-first 272d467f16d026736b285995e8f9bb83b34a9c78, run35949081790 /
+Ubuntu3.13 job107473617511: 774 tests, 19 failures, 52 skips, 101.398s.
+The original full log and preceding 772-test Linux AFTER are retained.
+Question tokens now keep adjacent +/# qualifiers, distinguishing C++, C#, F#
+and C. Unsupported compact fiscal/quarter/half-year forms abstain; four-digit
+sequences outside the supported full ISO date are conservatively rejected even
+inside words. Literal --entity with a generic question remains available for
+such exact identifiers. The installed bilingual CLI checks exact technology
+selection and compact-period abstention, retaining all existing byte/source
+assertions. Final-head review, all hosted gates and fresh main are pending.
+No local AFTER while Work is offline; no HUMAN execution claimed.

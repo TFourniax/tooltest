@@ -29,6 +29,9 @@ def main():
         for identity,label in [('DEC-LEX-X','lexical x v1'),('DEC-LEX-Y','lexical y v2'),
                                ('DEC-TOKYO','lexical 東京'),('DEC-OSAKA','lexical 大阪')]:
             run(dw,'decision','record',label,'--id',identity,'--why','Exact lexical fixture')
+        for identity,label in [('DEC-TECH-CPP','C++ runtime'),('DEC-TECH-CSHARP','C# runtime'),
+                               ('DEC-TECH-FSHARP','F# runtime'),('DEC-TECH-C','C runtime')]:
+            run(dw,'decision','record',label,'--id',identity,'--why','Exact technology fixture')
         # Import-shaped fixture through the installed event API; queries and
         # exact source opening below still execute the installed CLI.
         for identity,target in [
@@ -115,7 +118,9 @@ def main():
                 assert result['context']['abstention']==reason
         for lang in ('fr','en'):
             for period in ('in Q1 2026','in Q4 2026','en T1 2026','in H1 2026',
-                           'in Q1','en T2','in Ｑ１ 2026','in 2026 Q3','2026'):
+                           'in Q1','en T2','in Ｑ１ 2026','in 2026 Q3','2026',
+                           'in FY2026','in FY26','in 2026Q1','in Q12026',
+                           'in 2026H1','in H12026','en AF2026','en AF26','in ２０２６Ｑ１'):
                 value=json.loads(run(dw,'--language',lang,'ask','What changed in auth '+period+'?','--json'))
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']=='ambiguous-time-filter'
@@ -123,7 +128,9 @@ def main():
                                       ('Why lexical y v2?',['DEC-LEX-Y']),
                                       ('Why x?',['DEC-LEX-X']),('Why lexical z?',[]),
                                       ('Why lexical 東京?',['DEC-TOKYO']),
-                                      ('Pourquoi lexical 大阪 ?',['DEC-OSAKA'])]:
+                                      ('Pourquoi lexical 大阪 ?',['DEC-OSAKA']),
+                                      ('Why C++?',['DEC-TECH-CPP']),('Why C#?',['DEC-TECH-CSHARP']),
+                                      ('Pourquoi F# ?',['DEC-TECH-FSHARP']),('Why C?',['DEC-TECH-C'])]:
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
                 assert [f['fields']['id'] for f in value['context']['facts']]==expected
                 assert value['status']==('cited-records' if expected else 'abstained')

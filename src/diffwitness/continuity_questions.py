@@ -20,12 +20,13 @@ from .gitops import repo_root
 from .language import tr
 
 MAX_PACKET_BYTES = 1024 * 1024
-_QUERY_WORD = re.compile(r"[^\W_]+")
+_QUERY_WORD = re.compile(r"[^\W_]+(?:[+#]+[^\W_]+)*[+#]*")
 
 
 def _terms(value):
-    # Strict question matching must retain short/version and non-Latin terms;
-    # the general context index intentionally uses a different recall policy.
+    # Keep technology qualifiers such as C++, C# and F# distinct as well as
+    # short/version and non-Latin terms. Strict question matching and
+    # the general context index intentionally use different recall policies.
     text = value or ""
     if not text.isascii():
         text = unicodedata.normalize("NFKD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
@@ -125,7 +126,10 @@ def _query(question, kind, since, until, entity):
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b"
-        r"|\b(?:[QT][1-4]|[HS][12]|quarters?|trimestres?|semestres?)\b|\b\d{4}\b",
+        r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
+        r"|\b\d{2}(?:[QT][1-4]|[HS][12])\b"
+        r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
+        r"|\b(?:FY|AF)\d{2,4}\b|\d{4}",
         cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
