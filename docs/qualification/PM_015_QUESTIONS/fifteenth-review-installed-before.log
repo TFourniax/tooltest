@@ -1,0 +1,718 @@
+﻿2026-09-24T04:11:06.9418261Z Current runner version: '2.337.0'
+2026-09-24T04:11:06.9452500Z ##[group]Runner Image Provisioner
+2026-09-24T04:11:06.9453848Z Hosted Compute Agent
+2026-09-24T04:11:06.9454768Z Version: 20260828.587
+2026-09-24T04:11:06.9455905Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-24T04:11:06.9457187Z Build Date: 2026-08-28T16:44:25Z
+2026-09-24T04:11:06.9458246Z Worker ID: {d4309fb1-cce7-4185-91f9-e416323b1012}
+2026-09-24T04:11:06.9459621Z Azure Region: eastus2
+2026-09-24T04:11:06.9460547Z ##[endgroup]
+2026-09-24T04:11:06.9463301Z ##[group]Operating System
+2026-09-24T04:11:06.9464396Z Ubuntu
+2026-09-24T04:11:06.9465295Z 24.04.5
+2026-09-24T04:11:06.9466125Z LTS
+2026-09-24T04:11:06.9467004Z ##[endgroup]
+2026-09-24T04:11:06.9468035Z ##[group]Runner Image
+2026-09-24T04:11:06.9469008Z Image: ubuntu-24.04
+2026-09-24T04:11:06.9470014Z Version: 20260920.314.1
+2026-09-24T04:11:06.9472102Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-24T04:11:06.9475175Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-24T04:11:06.9476905Z ##[endgroup]
+2026-09-24T04:11:06.9478800Z ##[group]GITHUB_TOKEN Permissions
+2026-09-24T04:11:06.9481404Z Contents: read
+2026-09-24T04:11:06.9482733Z Metadata: read
+2026-09-24T04:11:06.9483725Z ##[endgroup]
+2026-09-24T04:11:06.9486759Z Secret source: Actions
+2026-09-24T04:11:06.9488258Z Cache mode: write
+2026-09-24T04:11:06.9489507Z Prepare workflow directory
+2026-09-24T04:11:06.9972824Z Prepare all required actions
+2026-09-24T04:11:07.0046579Z Getting action download info
+2026-09-24T04:11:07.2160113Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-24T04:11:07.3197177Z Download action repository 'actions/setup-python@v7' (SHA:5fda3b95a4ea91299a34e894583c3862153e4b97)
+2026-09-24T04:11:07.5067793Z Complete job name: installed wheel commercial-alpha journeys (ubuntu-latest)
+2026-09-24T04:11:07.5920830Z ##[group]Run actions/checkout@v7
+2026-09-24T04:11:07.5921734Z with:
+2026-09-24T04:11:07.5922390Z   repository: TFourniax/tooltest
+2026-09-24T04:11:07.5926339Z   token: ***
+2026-09-24T04:11:07.5926758Z   ssh-strict: true
+2026-09-24T04:11:07.5927181Z   ssh-user: git
+2026-09-24T04:11:07.5927610Z   persist-credentials: true
+2026-09-24T04:11:07.5928077Z   clean: true
+2026-09-24T04:11:07.5928507Z   sparse-checkout-cone-mode: true
+2026-09-24T04:11:07.5929006Z   fetch-depth: 1
+2026-09-24T04:11:07.5929433Z   fetch-tags: false
+2026-09-24T04:11:07.5929864Z   show-progress: true
+2026-09-24T04:11:07.5930293Z   lfs: false
+2026-09-24T04:11:07.5930689Z   submodules: false
+2026-09-24T04:11:07.5931126Z   set-safe-directory: true
+2026-09-24T04:11:07.5931619Z   allow-unsafe-pr-checkout: false
+2026-09-24T04:11:07.5932639Z ##[endgroup]
+2026-09-24T04:11:07.6956828Z Syncing repository: TFourniax/tooltest
+2026-09-24T04:11:07.6959280Z ##[group]Getting Git version info
+2026-09-24T04:11:07.6960634Z Working directory is '/home/runner/work/tooltest/tooltest'
+2026-09-24T04:11:07.6962437Z [command]/usr/bin/git version
+2026-09-24T04:11:07.7026868Z git version 2.55.0
+2026-09-24T04:11:07.7051638Z ##[endgroup]
+2026-09-24T04:11:07.7065838Z Temporarily overriding HOME='/home/runner/work/_temp/16f1ae59-8d78-4a11-8aae-7cf5d83b9da2' before making global git config changes
+2026-09-24T04:11:07.7068286Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T04:11:07.7074684Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T04:11:07.7127049Z Deleting the contents of '/home/runner/work/tooltest/tooltest'
+2026-09-24T04:11:07.7130608Z ##[group]Determining repository object format
+2026-09-24T04:11:07.7132382Z ##[endgroup]
+2026-09-24T04:11:07.7133645Z ##[group]Initializing the repository
+2026-09-24T04:11:07.7137149Z [command]/usr/bin/git init /home/runner/work/tooltest/tooltest
+2026-09-24T04:11:07.7259301Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-24T04:11:07.7261030Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-24T04:11:07.7261984Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-24T04:11:07.7263235Z hint: call:
+2026-09-24T04:11:07.7263633Z hint:
+2026-09-24T04:11:07.7264165Z hint: 	git config --global init.defaultBranch <name>
+2026-09-24T04:11:07.7264766Z hint:
+2026-09-24T04:11:07.7265331Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-24T04:11:07.7266247Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-24T04:11:07.7266962Z hint:
+2026-09-24T04:11:07.7267364Z hint: 	git branch -m <name>
+2026-09-24T04:11:07.7267819Z hint:
+2026-09-24T04:11:07.7268431Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-24T04:11:07.7274490Z Initialized empty Git repository in /home/runner/work/tooltest/tooltest/.git/
+2026-09-24T04:11:07.7285030Z [command]/usr/bin/git remote add origin https://github.com/TFourniax/tooltest
+2026-09-24T04:11:07.7366608Z ##[endgroup]
+2026-09-24T04:11:07.7367919Z ##[group]Disabling automatic garbage collection
+2026-09-24T04:11:07.7372594Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-24T04:11:07.7402831Z ##[endgroup]
+2026-09-24T04:11:07.7404363Z ##[group]Setting up auth
+2026-09-24T04:11:07.7405306Z Removing SSH command configuration
+2026-09-24T04:11:07.7408877Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T04:11:07.7441111Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T04:11:07.7835394Z Removing HTTP extra header
+2026-09-24T04:11:07.7839555Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T04:11:07.7877033Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T04:11:07.8129110Z Removing includeIf entries pointing to credentials config files
+2026-09-24T04:11:07.8135244Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T04:11:07.8170318Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T04:11:07.8395927Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-24T04:11:07.8434280Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git.path /home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:11:07.8547309Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:11:07.8553461Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:11:07.8560146Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:11:07.8590835Z ##[endgroup]
+2026-09-24T04:11:07.8592726Z ##[group]Fetching the repository
+2026-09-24T04:11:07.8599862Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ba23a98056001539831d72814abb10f5b93fff51:refs/remotes/pull/128/merge
+2026-09-24T04:11:08.1903933Z From https://github.com/TFourniax/tooltest
+2026-09-24T04:11:08.1906494Z  * [new ref]         ba23a98056001539831d72814abb10f5b93fff51 -> pull/128/merge
+2026-09-24T04:11:08.1910865Z ##[endgroup]
+2026-09-24T04:11:08.1913512Z ##[group]Determining the checkout info
+2026-09-24T04:11:08.1915842Z ##[endgroup]
+2026-09-24T04:11:08.1917645Z [command]/usr/bin/git sparse-checkout disable
+2026-09-24T04:11:08.1975961Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-24T04:11:08.2013876Z ##[group]Checking out the ref
+2026-09-24T04:11:08.2016726Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/128/merge
+2026-09-24T04:11:08.2714878Z Note: switching to 'refs/remotes/pull/128/merge'.
+2026-09-24T04:11:08.2716975Z 
+2026-09-24T04:11:08.2718059Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-24T04:11:08.2720358Z changes and commit them, and you can discard any commits you make in this
+2026-09-24T04:11:08.2723451Z state without impacting any branches by switching back to a branch.
+2026-09-24T04:11:08.2725641Z 
+2026-09-24T04:11:08.2727048Z If you want to create a new branch to retain commits you create, you may
+2026-09-24T04:11:08.2730422Z do so (now or later) by using -c with the switch command. Example:
+2026-09-24T04:11:08.2732687Z 
+2026-09-24T04:11:08.2733631Z   git switch -c <new-branch-name>
+2026-09-24T04:11:08.2735130Z 
+2026-09-24T04:11:08.2736167Z Or undo this operation with:
+2026-09-24T04:11:08.2737549Z 
+2026-09-24T04:11:08.2738296Z   git switch -
+2026-09-24T04:11:08.2739231Z 
+2026-09-24T04:11:08.2740724Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-24T04:11:08.2743063Z 
+2026-09-24T04:11:08.2745361Z HEAD is now at ba23a98 Merge c1a694859ee15409576a74d8e65689e28a3fe0ff into c03164e75e805ff1df976e55cdf6d86073e89b04
+2026-09-24T04:11:08.2750815Z ##[endgroup]
+2026-09-24T04:11:08.2785506Z [command]/usr/bin/git log -1 --format=%H
+2026-09-24T04:11:08.2815681Z ba23a98056001539831d72814abb10f5b93fff51
+2026-09-24T04:11:08.3203673Z ##[group]Run actions/setup-python@v7
+2026-09-24T04:11:08.3204972Z with:
+2026-09-24T04:11:08.3205855Z   python-version: 3.12
+2026-09-24T04:11:08.3206875Z   check-latest: false
+2026-09-24T04:11:08.3216699Z   token: ***
+2026-09-24T04:11:08.3217672Z   update-environment: true
+2026-09-24T04:11:08.3218767Z   allow-prereleases: false
+2026-09-24T04:11:08.3219829Z   freethreaded: false
+2026-09-24T04:11:08.3220803Z ##[endgroup]
+2026-09-24T04:11:08.4403476Z ##[group]Installed versions
+2026-09-24T04:11:08.4498239Z Successfully set up CPython (3.12.14)
+2026-09-24T04:11:08.4501312Z ##[endgroup]
+2026-09-24T04:11:08.4737349Z ##[group]Run python -m pip install --upgrade build
+2026-09-24T04:11:08.4739879Z [36;1mpython -m pip install --upgrade build[0m
+2026-09-24T04:11:08.4742003Z [36;1mpython -m build --wheel[0m
+2026-09-24T04:11:08.5082903Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:08.5084009Z env:
+2026-09-24T04:11:08.5085121Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:08.5086910Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:08.5088693Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:08.5090347Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:08.5091969Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:08.5093761Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:08.5095148Z ##[endgroup]
+2026-09-24T04:11:09.4080890Z Collecting build
+2026-09-24T04:11:09.4776835Z   Downloading build-1.6.1-py3-none-any.whl.metadata (5.6 kB)
+2026-09-24T04:11:09.5110187Z Collecting packaging>=24.0 (from build)
+2026-09-24T04:11:09.5191224Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-09-24T04:11:09.5339874Z Collecting pyproject_hooks (from build)
+2026-09-24T04:11:09.5418923Z   Downloading pyproject_hooks-1.3.3-py3-none-any.whl.metadata (1.3 kB)
+2026-09-24T04:11:09.5525659Z Downloading build-1.6.1-py3-none-any.whl (31 kB)
+2026-09-24T04:11:09.5690900Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-09-24T04:11:09.5925485Z Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+2026-09-24T04:11:09.6434717Z Installing collected packages: pyproject_hooks, packaging, build
+2026-09-24T04:11:09.7624580Z 
+2026-09-24T04:11:09.7637001Z Successfully installed build-1.6.1 packaging-26.3 pyproject_hooks-1.3.3
+2026-09-24T04:11:09.9583109Z * Creating isolated environment: venv+pip...
+2026-09-24T04:11:09.9836904Z * Installing packages in isolated environment:
+2026-09-24T04:11:09.9837424Z   - setuptools>=77
+2026-09-24T04:11:10.9197833Z * Getting build dependencies for wheel...
+2026-09-24T04:11:11.4130866Z running egg_info
+2026-09-24T04:11:11.4147100Z creating src/diffwitness.egg-info
+2026-09-24T04:11:11.4148543Z writing src/diffwitness.egg-info/PKG-INFO
+2026-09-24T04:11:11.4165660Z writing dependency_links to src/diffwitness.egg-info/dependency_links.txt
+2026-09-24T04:11:11.4173646Z writing entry points to src/diffwitness.egg-info/entry_points.txt
+2026-09-24T04:11:11.4179080Z writing requirements to src/diffwitness.egg-info/requires.txt
+2026-09-24T04:11:11.4180489Z writing top-level names to src/diffwitness.egg-info/top_level.txt
+2026-09-24T04:11:11.4181810Z writing manifest file 'src/diffwitness.egg-info/SOURCES.txt'
+2026-09-24T04:11:11.4257258Z reading manifest file 'src/diffwitness.egg-info/SOURCES.txt'
+2026-09-24T04:11:11.4263385Z reading manifest template 'MANIFEST.in'
+2026-09-24T04:11:11.4294793Z warning: no previously-included files matching '__pycache__' found anywhere in distribution
+2026-09-24T04:11:11.4300427Z warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+2026-09-24T04:11:11.4306141Z warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+2026-09-24T04:11:11.4307279Z adding license file 'LICENSE'
+2026-09-24T04:11:11.4344107Z writing manifest file 'src/diffwitness.egg-info/SOURCES.txt'
+2026-09-24T04:11:11.4607047Z * Installed build dependency versions:
+2026-09-24T04:11:11.4607902Z   - setuptools==84.0.0
+2026-09-24T04:11:11.4608452Z * Building wheel...
+2026-09-24T04:11:11.6202034Z running bdist_wheel
+2026-09-24T04:11:11.6267485Z running build
+2026-09-24T04:11:11.6268125Z running build_py
+2026-09-24T04:11:11.6292548Z creating build/lib/diffwitness
+2026-09-24T04:11:11.6296192Z copying src/diffwitness/ide_handoff.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6299378Z copying src/diffwitness/continuity_relation_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6315383Z copying src/diffwitness/native_activation.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6316726Z copying src/diffwitness/continuity_state.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6333912Z copying src/diffwitness/engine_protocol.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6334924Z copying src/diffwitness/continuity_transport_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6335992Z copying src/diffwitness/continuity_task_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6336929Z copying src/diffwitness/debt_budget.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6337777Z copying src/diffwitness/debt_sensor.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6338646Z copying src/diffwitness/proof_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6339480Z copying src/diffwitness/structure_data.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6340377Z copying src/diffwitness/runtime_executable.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6341264Z copying src/diffwitness/autodetect.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6342442Z copying src/diffwitness/continuity_context.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6343289Z copying src/diffwitness/cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6344086Z copying src/diffwitness/structure_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6344952Z copying src/diffwitness/explain_ui.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6345850Z copying src/diffwitness/continuity_git_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6346799Z copying src/diffwitness/continuity_impact.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6347674Z copying src/diffwitness/status_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6348857Z copying src/diffwitness/public_help.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6349676Z copying src/diffwitness/ide_plugin.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6350544Z copying src/diffwitness/structure_provider.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6351501Z copying src/diffwitness/idleproof_explanation.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6352678Z copying src/diffwitness/__main__.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6353577Z copying src/diffwitness/continuity_memory_code.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6354495Z copying src/diffwitness/debt_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6355308Z copying src/diffwitness/continuity_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6356738Z copying src/diffwitness/structure_registry.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6359841Z copying src/diffwitness/continuity_context_command.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6361527Z copying src/diffwitness/structure_transport.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6363959Z copying src/diffwitness/debt_certificate.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6366061Z copying src/diffwitness/continuity_context_enriched.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6367962Z copying src/diffwitness/json_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6369882Z copying src/diffwitness/structure_syntax.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6371909Z copying src/diffwitness/semantic_redundancy.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6374465Z copying src/diffwitness/debt_verify.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6376429Z copying src/diffwitness/attestation.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6378629Z copying src/diffwitness/continuity_lineage_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6380512Z copying src/diffwitness/view_mode.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6382705Z copying src/diffwitness/security_scan.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6384681Z copying src/diffwitness/continuity_git_history.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6386735Z copying src/diffwitness/idleproof_entry.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6388751Z copying src/diffwitness/idleproof_sidecar.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6390900Z copying src/diffwitness/debt_scan.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6393838Z copying src/diffwitness/debt_models.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6395544Z copying src/diffwitness/models.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6397669Z copying src/diffwitness/continuity_questions.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6399765Z copying src/diffwitness/engine_capabilities.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6401749Z copying src/diffwitness/continuity_bridge.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6404199Z copying src/diffwitness/protect.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6406350Z copying src/diffwitness/structure_native.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6408239Z copying src/diffwitness/doctor.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6410360Z copying src/diffwitness/continuity_git_lineage.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6412455Z copying src/diffwitness/gate.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6414798Z copying src/diffwitness/reporting.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6416803Z copying src/diffwitness/frontend.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6419047Z copying src/diffwitness/structure_javascript.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6420887Z copying src/diffwitness/config.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6433334Z copying src/diffwitness/debt_history.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6443816Z copying src/diffwitness/structure_sources.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6444700Z copying src/diffwitness/validation.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6445845Z copying src/diffwitness/continuity_task_session.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6446730Z copying src/diffwitness/continuity_events.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6447516Z copying src/diffwitness/debt_entry.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6448273Z copying src/diffwitness/adaptive.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6449018Z copying src/diffwitness/project_scan.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6449806Z copying src/diffwitness/github_actions.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6450760Z copying src/diffwitness/continuity_lifecycle_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6451768Z copying src/diffwitness/language.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6452857Z copying src/diffwitness/continuity_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6453699Z copying src/diffwitness/setup.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6473368Z copying src/diffwitness/ledger_transport.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6503417Z copying src/diffwitness/continuity_search.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6533311Z copying src/diffwitness/local_git_state.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6543551Z copying src/diffwitness/diffing.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6544426Z copying src/diffwitness/protect_ui.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6544985Z copying src/diffwitness/portal_proxy.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6545524Z copying src/diffwitness/analysis.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6546028Z copying src/diffwitness/structure_catalog.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6546518Z copying src/diffwitness/attest.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6547050Z copying src/diffwitness/continuity_memory_code_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6547615Z copying src/diffwitness/structure_dynamic.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6548366Z copying src/diffwitness/ledger_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6548988Z copying src/diffwitness/runner.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6549479Z copying src/diffwitness/continuity_transport.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6549962Z copying src/diffwitness/ledger.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6550394Z copying src/diffwitness/engine_cli.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6551101Z copying src/diffwitness/structure_python.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6551699Z copying src/diffwitness/__init__.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6552562Z copying src/diffwitness/gitops.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6553673Z copying src/diffwitness/idleproof_user_inference.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6554337Z copying src/diffwitness/continuity_tasks.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6554789Z copying src/diffwitness/public_help_fr.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6555257Z copying src/diffwitness/continuity_history.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6555728Z copying src/diffwitness/continuity_lifecycle.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6556167Z copying src/diffwitness/guard.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6556600Z copying src/diffwitness/continuity_debt_bridge.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6557065Z copying src/diffwitness/assurance.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6557530Z copying src/diffwitness/continuity_impact_contract.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6557998Z copying src/diffwitness/readiness.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6558422Z copying src/diffwitness/structure_managed.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6558869Z copying src/diffwitness/change_envelope.py -> build/lib/diffwitness
+2026-09-24T04:11:11.6559235Z creating build/lib/diffwitness/entry
+2026-09-24T04:11:11.6559592Z copying src/diffwitness/entry/__main__.py -> build/lib/diffwitness/entry
+2026-09-24T04:11:11.6560240Z copying src/diffwitness/entry/__init__.py -> build/lib/diffwitness/entry
+2026-09-24T04:11:11.6560600Z running egg_info
+2026-09-24T04:11:11.6560840Z writing src/diffwitness.egg-info/PKG-INFO
+2026-09-24T04:11:11.6561230Z writing dependency_links to src/diffwitness.egg-info/dependency_links.txt
+2026-09-24T04:11:11.6561708Z writing entry points to src/diffwitness.egg-info/entry_points.txt
+2026-09-24T04:11:11.6562735Z writing requirements to src/diffwitness.egg-info/requires.txt
+2026-09-24T04:11:11.6563299Z writing top-level names to src/diffwitness.egg-info/top_level.txt
+2026-09-24T04:11:11.6611579Z reading manifest file 'src/diffwitness.egg-info/SOURCES.txt'
+2026-09-24T04:11:11.6652817Z reading manifest template 'MANIFEST.in'
+2026-09-24T04:11:11.6688075Z warning: no previously-included files matching '__pycache__' found anywhere in distribution
+2026-09-24T04:11:11.6694365Z warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+2026-09-24T04:11:11.6699789Z warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+2026-09-24T04:11:11.6700580Z adding license file 'LICENSE'
+2026-09-24T04:11:11.6746897Z writing manifest file 'src/diffwitness.egg-info/SOURCES.txt'
+2026-09-24T04:11:11.6798913Z installing to build/bdist.linux-x86_64/wheel
+2026-09-24T04:11:11.6799545Z running install
+2026-09-24T04:11:11.6868738Z running install_lib
+2026-09-24T04:11:11.6883292Z creating build/bdist.linux-x86_64/wheel
+2026-09-24T04:11:11.6886640Z creating build/bdist.linux-x86_64/wheel/diffwitness
+2026-09-24T04:11:11.6888608Z copying build/lib/diffwitness/ide_handoff.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6890502Z copying build/lib/diffwitness/continuity_relation_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6892363Z copying build/lib/diffwitness/native_activation.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6894246Z copying build/lib/diffwitness/continuity_state.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6896339Z copying build/lib/diffwitness/engine_protocol.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6897908Z copying build/lib/diffwitness/continuity_transport_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6899771Z copying build/lib/diffwitness/continuity_task_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6901239Z copying build/lib/diffwitness/debt_budget.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6903144Z copying build/lib/diffwitness/debt_sensor.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6904820Z copying build/lib/diffwitness/proof_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6906618Z copying build/lib/diffwitness/structure_data.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6908308Z copying build/lib/diffwitness/runtime_executable.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6910007Z copying build/lib/diffwitness/autodetect.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6911786Z copying build/lib/diffwitness/continuity_context.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6914540Z copying build/lib/diffwitness/cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6916357Z copying build/lib/diffwitness/structure_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6917953Z copying build/lib/diffwitness/explain_ui.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6919733Z copying build/lib/diffwitness/continuity_git_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6921380Z copying build/lib/diffwitness/continuity_impact.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6923371Z copying build/lib/diffwitness/status_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6925297Z copying build/lib/diffwitness/public_help.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6926995Z copying build/lib/diffwitness/ide_plugin.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6928766Z copying build/lib/diffwitness/structure_provider.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6930509Z copying build/lib/diffwitness/idleproof_explanation.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6932394Z copying build/lib/diffwitness/__main__.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6934459Z copying build/lib/diffwitness/continuity_memory_code.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6936016Z copying build/lib/diffwitness/debt_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6938032Z copying build/lib/diffwitness/continuity_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6939861Z copying build/lib/diffwitness/structure_registry.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6941579Z copying build/lib/diffwitness/continuity_context_command.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6943558Z copying build/lib/diffwitness/structure_transport.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6945286Z copying build/lib/diffwitness/debt_certificate.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6947025Z copying build/lib/diffwitness/continuity_context_enriched.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6948634Z copying build/lib/diffwitness/json_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6950339Z copying build/lib/diffwitness/structure_syntax.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6952237Z copying build/lib/diffwitness/semantic_redundancy.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6954053Z copying build/lib/diffwitness/debt_verify.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6955778Z copying build/lib/diffwitness/attestation.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6957641Z copying build/lib/diffwitness/continuity_lineage_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6959400Z copying build/lib/diffwitness/view_mode.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6960910Z copying build/lib/diffwitness/security_scan.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6962889Z copying build/lib/diffwitness/continuity_git_history.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6964812Z copying build/lib/diffwitness/idleproof_entry.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6966515Z copying build/lib/diffwitness/idleproof_sidecar.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6968617Z copying build/lib/diffwitness/debt_scan.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6970429Z copying build/lib/diffwitness/debt_models.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6972342Z copying build/lib/diffwitness/models.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6974577Z copying build/lib/diffwitness/continuity_questions.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6976245Z copying build/lib/diffwitness/engine_capabilities.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6977920Z copying build/lib/diffwitness/continuity_bridge.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6979636Z copying build/lib/diffwitness/protect.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6981905Z copying build/lib/diffwitness/structure_native.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6984517Z creating build/bdist.linux-x86_64/wheel/diffwitness/entry
+2026-09-24T04:11:11.6986182Z copying build/lib/diffwitness/entry/__main__.py -> build/bdist.linux-x86_64/wheel/./diffwitness/entry
+2026-09-24T04:11:11.6987889Z copying build/lib/diffwitness/entry/__init__.py -> build/bdist.linux-x86_64/wheel/./diffwitness/entry
+2026-09-24T04:11:11.6989635Z copying build/lib/diffwitness/doctor.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6991882Z copying build/lib/diffwitness/continuity_git_lineage.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6993712Z copying build/lib/diffwitness/gate.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6995859Z copying build/lib/diffwitness/reporting.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6997476Z copying build/lib/diffwitness/frontend.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.6999551Z copying build/lib/diffwitness/structure_javascript.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7001029Z copying build/lib/diffwitness/config.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7002860Z copying build/lib/diffwitness/debt_history.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7004715Z copying build/lib/diffwitness/structure_sources.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7006445Z copying build/lib/diffwitness/validation.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7008272Z copying build/lib/diffwitness/continuity_task_session.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7009983Z copying build/lib/diffwitness/continuity_events.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7011824Z copying build/lib/diffwitness/debt_entry.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7013852Z copying build/lib/diffwitness/adaptive.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7015633Z copying build/lib/diffwitness/project_scan.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7017377Z copying build/lib/diffwitness/github_actions.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7019281Z copying build/lib/diffwitness/continuity_lifecycle_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7021172Z copying build/lib/diffwitness/language.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7022857Z copying build/lib/diffwitness/continuity_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7024681Z copying build/lib/diffwitness/setup.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7026738Z copying build/lib/diffwitness/ledger_transport.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7028434Z copying build/lib/diffwitness/continuity_search.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7030135Z copying build/lib/diffwitness/local_git_state.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7031770Z copying build/lib/diffwitness/diffing.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7034067Z copying build/lib/diffwitness/protect_ui.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7035886Z copying build/lib/diffwitness/portal_proxy.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7037602Z copying build/lib/diffwitness/analysis.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7039732Z copying build/lib/diffwitness/structure_catalog.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7041244Z copying build/lib/diffwitness/attest.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7043129Z copying build/lib/diffwitness/continuity_memory_code_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7044922Z copying build/lib/diffwitness/structure_dynamic.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7046617Z copying build/lib/diffwitness/ledger_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7048348Z copying build/lib/diffwitness/runner.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7050514Z copying build/lib/diffwitness/continuity_transport.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7052014Z copying build/lib/diffwitness/ledger.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7054391Z copying build/lib/diffwitness/engine_cli.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7056067Z copying build/lib/diffwitness/structure_python.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7057756Z copying build/lib/diffwitness/__init__.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7059446Z copying build/lib/diffwitness/gitops.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7061377Z copying build/lib/diffwitness/idleproof_user_inference.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7063578Z copying build/lib/diffwitness/continuity_tasks.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7065250Z copying build/lib/diffwitness/public_help_fr.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7067022Z copying build/lib/diffwitness/continuity_history.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7068811Z copying build/lib/diffwitness/continuity_lifecycle.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7070448Z copying build/lib/diffwitness/guard.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7072673Z copying build/lib/diffwitness/continuity_debt_bridge.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7074399Z copying build/lib/diffwitness/assurance.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7076239Z copying build/lib/diffwitness/continuity_impact_contract.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7077871Z copying build/lib/diffwitness/readiness.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7079673Z copying build/lib/diffwitness/structure_managed.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7081626Z copying build/lib/diffwitness/change_envelope.py -> build/bdist.linux-x86_64/wheel/./diffwitness
+2026-09-24T04:11:11.7083188Z running install_egg_info
+2026-09-24T04:11:11.7098944Z Copying src/diffwitness.egg-info to build/bdist.linux-x86_64/wheel/./diffwitness-0.4.0a1-py3.12.egg-info
+2026-09-24T04:11:11.7111809Z running install_scripts
+2026-09-24T04:11:11.7124226Z creating build/bdist.linux-x86_64/wheel/diffwitness-0.4.0a1.dist-info/WHEEL
+2026-09-24T04:11:11.7129568Z creating '/home/runner/work/tooltest/tooltest/dist/.tmp-_ygjofsr/diffwitness-0.4.0a1-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+2026-09-24T04:11:11.7133595Z adding 'diffwitness/__init__.py'
+2026-09-24T04:11:11.7135944Z adding 'diffwitness/__main__.py'
+2026-09-24T04:11:11.7141088Z adding 'diffwitness/adaptive.py'
+2026-09-24T04:11:11.7146722Z adding 'diffwitness/analysis.py'
+2026-09-24T04:11:11.7150303Z adding 'diffwitness/assurance.py'
+2026-09-24T04:11:11.7152328Z adding 'diffwitness/attest.py'
+2026-09-24T04:11:11.7157354Z adding 'diffwitness/attestation.py'
+2026-09-24T04:11:11.7160605Z adding 'diffwitness/autodetect.py'
+2026-09-24T04:11:11.7165823Z adding 'diffwitness/change_envelope.py'
+2026-09-24T04:11:11.7173152Z adding 'diffwitness/cli.py'
+2026-09-24T04:11:11.7178160Z adding 'diffwitness/config.py'
+2026-09-24T04:11:11.7184169Z adding 'diffwitness/continuity_bridge.py'
+2026-09-24T04:11:11.7191106Z adding 'diffwitness/continuity_cli.py'
+2026-09-24T04:11:11.7199722Z adding 'diffwitness/continuity_context.py'
+2026-09-24T04:11:11.7203390Z adding 'diffwitness/continuity_context_command.py'
+2026-09-24T04:11:11.7207466Z adding 'diffwitness/continuity_context_enriched.py'
+2026-09-24T04:11:11.7215996Z adding 'diffwitness/continuity_contract.py'
+2026-09-24T04:11:11.7219638Z adding 'diffwitness/continuity_debt_bridge.py'
+2026-09-24T04:11:11.7227808Z adding 'diffwitness/continuity_events.py'
+2026-09-24T04:11:11.7230799Z adding 'diffwitness/continuity_git_contract.py'
+2026-09-24T04:11:11.7237388Z adding 'diffwitness/continuity_git_history.py'
+2026-09-24T04:11:11.7241603Z adding 'diffwitness/continuity_git_lineage.py'
+2026-09-24T04:11:11.7246961Z adding 'diffwitness/continuity_history.py'
+2026-09-24T04:11:11.7250622Z adding 'diffwitness/continuity_impact.py'
+2026-09-24T04:11:11.7254560Z adding 'diffwitness/continuity_impact_contract.py'
+2026-09-24T04:11:11.7257845Z adding 'diffwitness/continuity_lifecycle.py'
+2026-09-24T04:11:11.7261487Z adding 'diffwitness/continuity_lifecycle_contract.py'
+2026-09-24T04:11:11.7264662Z adding 'diffwitness/continuity_lineage_contract.py'
+2026-09-24T04:11:11.7268203Z adding 'diffwitness/continuity_memory_code.py'
+2026-09-24T04:11:11.7270973Z adding 'diffwitness/continuity_memory_code_contract.py'
+2026-09-24T04:11:11.7278513Z adding 'diffwitness/continuity_questions.py'
+2026-09-24T04:11:11.7281391Z adding 'diffwitness/continuity_relation_cli.py'
+2026-09-24T04:11:11.7284407Z adding 'diffwitness/continuity_search.py'
+2026-09-24T04:11:11.7292744Z adding 'diffwitness/continuity_state.py'
+2026-09-24T04:11:11.7296840Z adding 'diffwitness/continuity_task_contract.py'
+2026-09-24T04:11:11.7299980Z adding 'diffwitness/continuity_task_session.py'
+2026-09-24T04:11:11.7304457Z adding 'diffwitness/continuity_tasks.py'
+2026-09-24T04:11:11.7308386Z adding 'diffwitness/continuity_transport.py'
+2026-09-24T04:11:11.7310800Z adding 'diffwitness/continuity_transport_cli.py'
+2026-09-24T04:11:11.7314323Z adding 'diffwitness/debt_budget.py'
+2026-09-24T04:11:11.7317021Z adding 'diffwitness/debt_certificate.py'
+2026-09-24T04:11:11.7324951Z adding 'diffwitness/debt_cli.py'
+2026-09-24T04:11:11.7327166Z adding 'diffwitness/debt_entry.py'
+2026-09-24T04:11:11.7329396Z adding 'diffwitness/debt_history.py'
+2026-09-24T04:11:11.7333443Z adding 'diffwitness/debt_models.py'
+2026-09-24T04:11:11.7344007Z adding 'diffwitness/debt_scan.py'
+2026-09-24T04:11:11.7346590Z adding 'diffwitness/debt_sensor.py'
+2026-09-24T04:11:11.7350227Z adding 'diffwitness/debt_verify.py'
+2026-09-24T04:11:11.7354005Z adding 'diffwitness/diffing.py'
+2026-09-24T04:11:11.7362069Z adding 'diffwitness/doctor.py'
+2026-09-24T04:11:11.7383368Z adding 'diffwitness/engine_capabilities.py'
+2026-09-24T04:11:11.7383977Z adding 'diffwitness/engine_cli.py'
+2026-09-24T04:11:11.7384432Z adding 'diffwitness/engine_protocol.py'
+2026-09-24T04:11:11.7384987Z adding 'diffwitness/explain_ui.py'
+2026-09-24T04:11:11.7385474Z adding 'diffwitness/frontend.py'
+2026-09-24T04:11:11.7396652Z adding 'diffwitness/gate.py'
+2026-09-24T04:11:11.7397167Z adding 'diffwitness/github_actions.py'
+2026-09-24T04:11:11.7397573Z adding 'diffwitness/gitops.py'
+2026-09-24T04:11:11.7401964Z adding 'diffwitness/guard.py'
+2026-09-24T04:11:11.7407486Z adding 'diffwitness/ide_handoff.py'
+2026-09-24T04:11:11.7412482Z adding 'diffwitness/ide_plugin.py'
+2026-09-24T04:11:11.7416409Z adding 'diffwitness/idleproof_entry.py'
+2026-09-24T04:11:11.7424351Z adding 'diffwitness/idleproof_explanation.py'
+2026-09-24T04:11:11.7436622Z adding 'diffwitness/idleproof_sidecar.py'
+2026-09-24T04:11:11.7443666Z adding 'diffwitness/idleproof_user_inference.py'
+2026-09-24T04:11:11.7446093Z adding 'diffwitness/json_contract.py'
+2026-09-24T04:11:11.7448482Z adding 'diffwitness/language.py'
+2026-09-24T04:11:11.7455790Z adding 'diffwitness/ledger.py'
+2026-09-24T04:11:11.7459875Z adding 'diffwitness/ledger_cli.py'
+2026-09-24T04:11:11.7464067Z adding 'diffwitness/ledger_transport.py'
+2026-09-24T04:11:11.7466581Z adding 'diffwitness/local_git_state.py'
+2026-09-24T04:11:11.7469058Z adding 'diffwitness/models.py'
+2026-09-24T04:11:11.7472489Z adding 'diffwitness/native_activation.py'
+2026-09-24T04:11:11.7475286Z adding 'diffwitness/portal_proxy.py'
+2026-09-24T04:11:11.7478493Z adding 'diffwitness/project_scan.py'
+2026-09-24T04:11:11.7486214Z adding 'diffwitness/proof_cli.py'
+2026-09-24T04:11:11.7500017Z adding 'diffwitness/protect.py'
+2026-09-24T04:11:11.7504804Z adding 'diffwitness/protect_ui.py'
+2026-09-24T04:11:11.7508955Z adding 'diffwitness/public_help.py'
+2026-09-24T04:11:11.7513091Z adding 'diffwitness/public_help_fr.py'
+2026-09-24T04:11:11.7517166Z adding 'diffwitness/readiness.py'
+2026-09-24T04:11:11.7520734Z adding 'diffwitness/reporting.py'
+2026-09-24T04:11:11.7525500Z adding 'diffwitness/runner.py'
+2026-09-24T04:11:11.7528256Z adding 'diffwitness/runtime_executable.py'
+2026-09-24T04:11:11.7531527Z adding 'diffwitness/security_scan.py'
+2026-09-24T04:11:11.7538998Z adding 'diffwitness/semantic_redundancy.py'
+2026-09-24T04:11:11.7545925Z adding 'diffwitness/setup.py'
+2026-09-24T04:11:11.7555706Z adding 'diffwitness/status_cli.py'
+2026-09-24T04:11:11.7558066Z adding 'diffwitness/structure_catalog.py'
+2026-09-24T04:11:11.7560604Z adding 'diffwitness/structure_contract.py'
+2026-09-24T04:11:11.7563959Z adding 'diffwitness/structure_data.py'
+2026-09-24T04:11:11.7566975Z adding 'diffwitness/structure_dynamic.py'
+2026-09-24T04:11:11.7569624Z adding 'diffwitness/structure_javascript.py'
+2026-09-24T04:11:11.7572500Z adding 'diffwitness/structure_managed.py'
+2026-09-24T04:11:11.7575965Z adding 'diffwitness/structure_native.py'
+2026-09-24T04:11:11.7579131Z adding 'diffwitness/structure_provider.py'
+2026-09-24T04:11:11.7581556Z adding 'diffwitness/structure_python.py'
+2026-09-24T04:11:11.7584183Z adding 'diffwitness/structure_registry.py'
+2026-09-24T04:11:11.7586814Z adding 'diffwitness/structure_sources.py'
+2026-09-24T04:11:11.7590480Z adding 'diffwitness/structure_syntax.py'
+2026-09-24T04:11:11.7593554Z adding 'diffwitness/structure_transport.py'
+2026-09-24T04:11:11.7596190Z adding 'diffwitness/validation.py'
+2026-09-24T04:11:11.7598797Z adding 'diffwitness/view_mode.py'
+2026-09-24T04:11:11.7604294Z adding 'diffwitness/entry/__init__.py'
+2026-09-24T04:11:11.7606183Z adding 'diffwitness/entry/__main__.py'
+2026-09-24T04:11:11.7609581Z adding 'diffwitness-0.4.0a1.dist-info/licenses/LICENSE'
+2026-09-24T04:11:11.7620255Z adding 'diffwitness-0.4.0a1.dist-info/METADATA'
+2026-09-24T04:11:11.7621968Z adding 'diffwitness-0.4.0a1.dist-info/WHEEL'
+2026-09-24T04:11:11.7623876Z adding 'diffwitness-0.4.0a1.dist-info/entry_points.txt'
+2026-09-24T04:11:11.7625368Z adding 'diffwitness-0.4.0a1.dist-info/top_level.txt'
+2026-09-24T04:11:11.7630532Z adding 'diffwitness-0.4.0a1.dist-info/RECORD'
+2026-09-24T04:11:11.7634709Z removing build/bdist.linux-x86_64/wheel
+2026-09-24T04:11:11.8029711Z Successfully built diffwitness-0.4.0a1-py3-none-any.whl
+2026-09-24T04:11:11.8282785Z ##[group]Run python -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"
+2026-09-24T04:11:11.8284096Z [36;1mpython -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('dist').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install','--no-deps',str(wheel)])"[0m
+2026-09-24T04:11:11.8351342Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:11.8351601Z env:
+2026-09-24T04:11:11.8351879Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:11.8352741Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:11.8353185Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:11.8353568Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:11.8353952Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:11.8354373Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:11.8354695Z ##[endgroup]
+2026-09-24T04:11:12.1969564Z Processing ./dist/diffwitness-0.4.0a1-py3-none-any.whl
+2026-09-24T04:11:12.2162763Z Installing collected packages: diffwitness
+2026-09-24T04:11:12.5180886Z Successfully installed diffwitness-0.4.0a1
+2026-09-24T04:11:12.5671028Z ##[group]Run python -c "import os,shutil,subprocess,sys; binary=shutil.which('dw'); assert binary; env={**os.environ,'DIFFWITNESS_INFORMATIONAL_TEST_EXECUTABLE':binary}; subprocess.check_call([sys.executable,'-m','unittest','discover','-s','tests','-p','test_cli_informational_safety.py','-v'],env=env)"
+2026-09-24T04:11:12.5673260Z [36;1mpython -c "import os,shutil,subprocess,sys; binary=shutil.which('dw'); assert binary; env={**os.environ,'DIFFWITNESS_INFORMATIONAL_TEST_EXECUTABLE':binary}; subprocess.check_call([sys.executable,'-m','unittest','discover','-s','tests','-p','test_cli_informational_safety.py','-v'],env=env)"[0m
+2026-09-24T04:11:12.5742824Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:12.5743080Z env:
+2026-09-24T04:11:12.5743351Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:12.5743808Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:12.5744293Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:12.5744689Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:12.5745083Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:12.5745467Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:12.5745845Z ##[endgroup]
+2026-09-24T04:11:13.0320813Z test_direct_frontends_also_parse_before_preflight_or_discovery (test_cli_informational_safety.InformationalSafetyTests.test_direct_frontends_also_parse_before_preflight_or_discovery) ... ok
+2026-09-24T04:11:13.4938358Z test_explicit_proof_still_executes_repository_tests (test_cli_informational_safety.InformationalSafetyTests.test_explicit_proof_still_executes_repository_tests) ... ok
+2026-09-24T04:11:16.7244322Z test_help_and_version_preserve_repository_and_historical_evidence (test_cli_informational_safety.InformationalSafetyTests.test_help_and_version_preserve_repository_and_historical_evidence) ... ok
+2026-09-24T04:11:17.1598308Z test_help_inside_explicit_test_command_still_executes (test_cli_informational_safety.InformationalSafetyTests.test_help_inside_explicit_test_command_still_executes) ... ok
+2026-09-24T04:11:18.0194573Z test_invalid_options_fail_before_execution_or_certificate_deletion (test_cli_informational_safety.InformationalSafetyTests.test_invalid_options_fail_before_execution_or_certificate_deletion) ... ok
+2026-09-24T04:11:18.0195516Z 
+2026-09-24T04:11:18.0195707Z ----------------------------------------------------------------------
+2026-09-24T04:11:18.0196101Z Ran 5 tests in 5.319s
+2026-09-24T04:11:18.0196263Z 
+2026-09-24T04:11:18.0196351Z OK
+2026-09-24T04:11:18.0363003Z ##[group]Run python scripts/protect_release_acceptance.py
+2026-09-24T04:11:18.0363450Z [36;1mpython scripts/protect_release_acceptance.py[0m
+2026-09-24T04:11:18.0427037Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:18.0427285Z env:
+2026-09-24T04:11:18.0427549Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.0427983Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:18.0428424Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.0428794Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.0429177Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.0429570Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:18.0429889Z ##[endgroup]
+2026-09-24T04:11:18.6754450Z Protect installed-artifact acceptance PASS
+2026-09-24T04:11:18.6848589Z ##[group]Run python scripts/unborn_release_acceptance.py
+2026-09-24T04:11:18.6849040Z [36;1mpython scripts/unborn_release_acceptance.py[0m
+2026-09-24T04:11:18.6910895Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:18.6911143Z env:
+2026-09-24T04:11:18.6911408Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.6911860Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:18.6912645Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.6913230Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.6913623Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:18.6914033Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:18.6914367Z ##[endgroup]
+2026-09-24T04:11:19.6749453Z PASS codex unsupported text: installed Stop blocks, prove exit 2, no analysis/Proof/reduction, index/HEAD/hooks preserved
+2026-09-24T04:11:21.9796031Z PASS codex LF: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, stale/return, first user commit with historical envelopes unchanged
+2026-09-24T04:11:24.2514739Z PASS codex CRLF: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, stale/return, first user commit with historical envelopes unchanged
+2026-09-24T04:11:25.1693276Z PASS claude unsupported text: installed Stop blocks, prove exit 2, no analysis/Proof/reduction, index/HEAD/hooks preserved
+2026-09-24T04:11:27.4579335Z PASS claude LF: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, stale/return, first user commit with historical envelopes unchanged
+2026-09-24T04:11:29.7557603Z PASS claude CRLF: installed hooks, unborn task to Proof/Continuity, index/HEAD preserved, stale/return, first user commit with historical envelopes unchanged
+2026-09-24T04:11:29.7737689Z Unborn repository installed consumer acceptance PASS
+2026-09-24T04:11:29.7841180Z ##[group]Run python scripts/git_history_acceptance.py
+2026-09-24T04:11:29.7841609Z [36;1mpython scripts/git_history_acceptance.py[0m
+2026-09-24T04:11:29.7907258Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:29.7907514Z env:
+2026-09-24T04:11:29.7907788Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:29.7908256Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:29.7908702Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:29.7909094Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:29.7909494Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:29.7909896Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:29.7910219Z ##[endgroup]
+2026-09-24T04:11:30.7694161Z {"schema": "installed-git-history-1", "classification": "MACHINE", "passed": true, "captured_commits": 5, "later_tip_excluded_until_restart": true, "messages": "explicit DECLARED opt-in", "real_index_preserved": true}
+2026-09-24T04:11:30.7792899Z ##[group]Run python scripts/git_lineage_acceptance.py
+2026-09-24T04:11:30.7793338Z [36;1mpython scripts/git_lineage_acceptance.py[0m
+2026-09-24T04:11:30.7855558Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:30.7855804Z env:
+2026-09-24T04:11:30.7856070Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:30.7856513Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:30.7856947Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:30.7857333Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:30.7857721Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:30.7858112Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:30.7858431Z ##[endgroup]
+2026-09-24T04:11:31.5350523Z {"schema": "installed-git-lineage-1", "classification": "MACHINE", "passed": true, "exact_citations": true, "languages": ["fr", "en"], "hypothesis_authority": "INFERRED", "raw_content_excluded": true, "real_index_preserved": true}
+2026-09-24T04:11:31.5447967Z ##[group]Run python scripts/memory_code_acceptance.py
+2026-09-24T04:11:31.5448403Z [36;1mpython scripts/memory_code_acceptance.py[0m
+2026-09-24T04:11:31.5510794Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:31.5511044Z env:
+2026-09-24T04:11:31.5511314Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:31.5511761Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:31.5512580Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:31.5512963Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:31.5513349Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:31.5513732Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:31.5514058Z ##[endgroup]
+2026-09-24T04:11:33.1856190Z {"schema": "installed-memory-code-1", "classification": "MACHINE", "passed": true, "languages": ["fr", "en"], "views": ["guided", "technical"], "binding_event_id": "dwev_5d0434c24ed3948e52d8088a", "binding_event_hash": "60aa7e4be2e2c34861b2b5231ed5cbf261fafb5685dc491cdf93c16714d0078f", "revalidation_event_id": "dwev_2437dd0db1a60321c050c3aa", "real_index_preserved": true, "explicit_role_removal_event_id": "dwev_aa7a1594af7f011d3d280010", "dirty_worktree_preserved": true, "assertion_and_lifecycle_preserved": true, "corrupt_journal_rejected": true, "worktree_checked": false}
+2026-09-24T04:11:33.1967122Z ##[group]Run python scripts/memory_navigation_acceptance.py
+2026-09-24T04:11:33.1968029Z [36;1mpython scripts/memory_navigation_acceptance.py[0m
+2026-09-24T04:11:33.2057927Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:33.2058309Z env:
+2026-09-24T04:11:33.2058820Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:33.2059385Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:33.2059961Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:33.2060526Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:33.2061014Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:33.2061533Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:33.2062021Z ##[endgroup]
+2026-09-24T04:11:34.5892057Z {"schema": "memory-navigation-acceptance-1", "classification": "MACHINE", "passed": true, "actual_cli": true, "explicit_executable": false, "nodes": 3, "relationships": 2, "history_cursor_survives_append": true, "assertion_and_review_sources_distinct": true, "fr_en_json_equal": true, "journal_and_index_unchanged_by_queries": true}
+2026-09-24T04:11:34.6058177Z ##[group]Run python scripts/impact_plan_acceptance.py
+2026-09-24T04:11:34.6058760Z [36;1mpython scripts/impact_plan_acceptance.py[0m
+2026-09-24T04:11:34.6121125Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:34.6121577Z env:
+2026-09-24T04:11:34.6121984Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:34.6122777Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:34.6123326Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:34.6123839Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:34.6124386Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:34.6124871Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:34.6125314Z ##[endgroup]
+2026-09-24T04:11:36.2157772Z {"schema": "impact-plan-acceptance-1", "classification": "MACHINE", "passed": true, "base_commit": "d330f6983518b45888e20ee2186ddc88d6fc1e8b", "base_tree": "6a440676593db0e6297e68f061ee928528805f6e", "change_id": "dwchg_c5204e0e0564e53993109d4b", "plan_event": "dwev_5879f147274541d71b51c79c", "comparison_event": "dwev_502fae6122e448cd9bc909b8", "public_proof_event": "dwev_8b875de25bbed43db3d7ed46", "journal_sha256": "84147342c11cd37d2399f0189795fb1d886614de69de3b268f42d0ed91f46ada", "human_executed": false}
+2026-09-24T04:11:36.2296149Z ##[group]Run python scripts/memory_question_acceptance.py
+2026-09-24T04:11:36.2296598Z [36;1mpython scripts/memory_question_acceptance.py[0m
+2026-09-24T04:11:36.2357764Z shell: /usr/bin/bash -e {0}
+2026-09-24T04:11:36.2358003Z env:
+2026-09-24T04:11:36.2358264Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:36.2358700Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T04:11:36.2359132Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:36.2359686Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:36.2360092Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T04:11:36.2360487Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T04:11:36.2360809Z ##[endgroup]
+2026-09-24T04:12:05.2826392Z Traceback (most recent call last):
+2026-09-24T04:12:05.2838382Z   File "/home/runner/work/tooltest/tooltest/scripts/memory_question_acceptance.py", line 266, in <module>
+2026-09-24T04:12:05.2839274Z     if __name__=='__main__':main()
+2026-09-24T04:12:05.2839674Z                             ^^^^^^
+2026-09-24T04:12:05.2840462Z   File "/home/runner/work/tooltest/tooltest/scripts/memory_question_acceptance.py", line 198, in main
+2026-09-24T04:12:05.2841398Z     assert [f['fields']['id'] for f in value['context']['facts']]==[identity]
+2026-09-24T04:12:05.2842012Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-09-24T04:12:05.2842776Z AssertionError
+2026-09-24T04:12:05.2975927Z ##[error]Process completed with exit code 1.
+2026-09-24T04:12:05.3142705Z Post job cleanup.
+2026-09-24T04:12:05.4053352Z [command]/usr/bin/git version
+2026-09-24T04:12:05.4101696Z git version 2.55.0
+2026-09-24T04:12:05.4143874Z Temporarily overriding HOME='/home/runner/work/_temp/f5bc45e8-31e6-4fd6-b5fa-5c697bd15094' before making global git config changes
+2026-09-24T04:12:05.4145417Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T04:12:05.4150753Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T04:12:05.4190494Z Removing SSH command configuration
+2026-09-24T04:12:05.4198308Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T04:12:05.4239626Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T04:12:05.4540691Z Removing HTTP extra header
+2026-09-24T04:12:05.4546989Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T04:12:05.4589206Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T04:12:05.4862621Z Removing includeIf entries pointing to credentials config files
+2026-09-24T04:12:05.4864596Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T04:12:05.4884988Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T04:12:05.4886290Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T04:12:05.4887320Z includeif.gitdir:/github/workspace/.git.path
+2026-09-24T04:12:05.4888031Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T04:12:05.4894443Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T04:12:05.4922828Z /home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:12:05.4933432Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-dd613c8e\-ac58\-455a\-9409\-5255f0aa45e6\.config
+2026-09-24T04:12:05.4980600Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T04:12:05.5021251Z /home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:12:05.5030778Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-dd613c8e\-ac58\-455a\-9409\-5255f0aa45e6\.config
+2026-09-24T04:12:05.5069588Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-24T04:12:05.5097638Z /github/runner_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:12:05.5106646Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-dd613c8e\-ac58\-455a\-9409\-5255f0aa45e6\.config
+2026-09-24T04:12:05.5145175Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T04:12:05.5171867Z /github/runner_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config
+2026-09-24T04:12:05.5181552Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-dd613c8e\-ac58\-455a\-9409\-5255f0aa45e6\.config
+2026-09-24T04:12:05.5223937Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T04:12:05.5448692Z Removing credentials config '/home/runner/work/_temp/git-credentials-dd613c8e-ac58-455a-9409-5255f0aa45e6.config'
+2026-09-24T04:12:05.5606517Z Cleaning up orphan processes

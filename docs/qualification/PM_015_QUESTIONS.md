@@ -354,3 +354,16 @@ right boundary now distinguishes a terminal period from a dotted identifier
 suffix. An additional six-case EN/FR ?/./! exact-source regression covers this;
 it is not attributed to the prior788-test BEFORE run. Latest-head review and all
 gates must run again on this correction. No local execution claimed.
+
+
+Hosted c1a6948 /35954423851: Ubuntu3.11 job107489877319 completes789tests
+PASS/52skips/96.799s. The installed Ubuntu job107489877175 FAILS an unchanged
+exact-ID assertion because the newly added conjunctive labels include an older
+query's whole label (memory management/risk and memory management). Lexical
+matching can legitimately return both; dependency lookup would be ambiguous.
+The new installed fixtures now use a distinct retention suffix, retaining every
+conjunction/intent-word case and all original exact-ID/source/byte assertions.
+The unit regressions retain the original review labels in their isolated journal.
+The assertion now includes synthetic question/flags/facts for diagnosis; its
+condition is unchanged. Full failing installed log and789-test unit log retained.
+Latest-head review and all hosted gates remain required; no local AFTER claimed.

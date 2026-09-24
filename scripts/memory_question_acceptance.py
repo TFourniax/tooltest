@@ -36,8 +36,8 @@ def main():
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
         intent_names=('change management','memory management','call management','dependency management',
-                      'risk and memory management','risque et mémoire management',
-                      'risk or change management','risk and call management')
+                      'risk and memory retention','risque et mémoire retention',
+                      'risk or change retention','risk and call retention')
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21')
@@ -195,7 +195,7 @@ def main():
                                        (label,('--kind','memory')),('Remember '+label+'?',())]:
                     value=json.loads(run(dw,'--language',lang,'ask',question,*flags,'--json'))
                     assert value['status']=='cited-records'
-                    assert [f['fields']['id'] for f in value['context']['facts']]==[identity]
+                    assert [f['fields']['id'] for f in value['context']['facts']]==[identity], (question, flags, value['context']['facts'])
                     for part in value['parts']:
                         citation=part['source']
                         opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
