@@ -347,3 +347,10 @@ conjunctive dependencies, and misleading old paths for the dotted-date controls.
 All previous mixed-intent/direction/time/source/authority/immutability assertions
 remain. Final-head distinct review, all hosted gates and fresh main required.
 No local AFTER while Work is offline; no HUMAN or full PM015/Alpha claim.
+
+Before final qualification, inspection found that the new identifier boundary also
+blocked a sentence-final period after an otherwise supported ISO bound. The
+right boundary now distinguishes a terminal period from a dotted identifier
+suffix. An additional six-case EN/FR ?/./! exact-source regression covers this;
+it is not attributed to the prior788-test BEFORE run. Latest-head review and all
+gates must run again on this correction. No local execution claimed.

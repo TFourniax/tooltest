@@ -622,3 +622,16 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_bare_iso_bound_retains_terminal_sentence_punctuation(self):
+        self.record('CHANGE-OLD','change',kind='change',event_type='change.observed',
+                    timestamp='2026-09-20T12:00:00Z',payload={'changed_files':['calendar/service.py']})
+        self.record('CHANGE-NEW','change',kind='change',event_type='change.observed',
+                    timestamp='2026-09-21T12:00:00Z',payload={'changed_files':['calendar/service.py']})
+        for prefix in ('What changed in calendar since ', 'Qu’est-ce qui a changé dans calendar depuis '):
+            for punctuation in ('?', '.', '!'):
+                with self.subTest(prefix=prefix,punctuation=punctuation):
+                    result=answer_question(self.repo,prefix+'2026-09-21'+punctuation)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['CHANGE-NEW'])
+                    self.assert_sources(result)

@@ -154,7 +154,7 @@ def _query(question, kind, since, until, entity):
     lower, upper = _instant(since) if since else None, _instant(until) if until else None
     # Standalone dates are ambiguous unless introduced by the supported
     # since/depuis clause; embedded release/build identifiers remain data.
-    date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w./#:+-])'
+    date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w/#:+-]|\.\w)'
     natural_dates = re.findall(date_token, normalized_question)
     cleaned = re.sub(date_token, '', normalized_question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
