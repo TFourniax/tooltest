@@ -624,3 +624,13 @@ of historical logs while full evidence remains independently reachable. New batc
 logs use the existing evidence/work-batch-20260924 branch. Final-head CI/review
 remain mandatory; the local wheel qualified above contains unchanged product
 source across this evidence-only relocation.
+
+
+The same numeric-date guard now covers compact calendar dates and attached clocks
+on calendar/week forms as a single family, preventing another unsupported date
+from becoming an unbounded path query. Prefixed version/release/build identities
+remain literal.73 focused tests and817 installed-wheel tests PASS (52skips,
+93.106s),actual installed CLI acceptance PASS. Wheel389225bytes:
+9ecab60dbda72758f77bad7badb3f55c296bcca0b3b40bd8f835d1b21e1cc81d.
+Journal/state remain unchanged; original sources are opened. Final candidate
+review and hosted gates are still required; no result transfers between SHAs.
