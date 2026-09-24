@@ -324,3 +324,31 @@ class MemoryQuestionTests(unittest.TestCase):
                 for fact in facts:
                     self.assertEqual(fact['source']['eventHash'],hashes[fact['fields']['from']])
                 self.assert_sources(result)
+
+    def test_inactive_source_cannot_name_an_unknown_target_for_an_active_edge(self):
+        self.record('SOURCE-OLD','Source',kind='component',event_type='component.observed',
+            payload={'lifecycle':'inactive'},relations=[{'predicate':'depends_on',
+                'target':{'id':'RAW-TARGET','kind':'component','label':'auth service'}}])
+        self.record('SOURCE-LIVE','Source',kind='component',event_type='component.observed',
+            relations=[{'predicate':'depends_on','target':{'id':'RAW-TARGET','kind':'component'}}])
+        for question in ('What depends on auth service?', 'Qu’est-ce qui dépend de auth service ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'insufficient-cited-records')
+        exact=answer_question(self.repo,'What depends on auth service?',entity='RAW-TARGET')
+        self.assertEqual([f['fields']['from'] for f in exact['context']['facts']],['SOURCE-LIVE'])
+        self.assert_sources(exact)
+
+    def test_inactive_edge_cannot_make_an_active_unknown_target_ambiguous(self):
+        for source,target,inactive in [('SOURCE-LIVE','RAW-LIVE',False),('SOURCE-OLD','RAW-OLD',True)]:
+            self.record(source,'Source',kind='component',event_type='component.observed',
+                payload={'lifecycle':'inactive'} if inactive else {},
+                relations=[{'predicate':'depends_on',
+                    'target':{'id':target,'kind':'component','label':'auth service'}}])
+        for question in ('What depends on auth service?', 'Qu’est-ce qui dépend de auth service ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'cited-records')
+                self.assertEqual([f['fields']['to'] for f in result['context']['facts']],['RAW-LIVE'])
+                self.assert_sources(result)
