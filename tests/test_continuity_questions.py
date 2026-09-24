@@ -797,3 +797,28 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'cited-records')
                     self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['STD-'+str(index)])
                     self.assert_sources(result)
+
+    def test_prefixed_compound_memory_commands_never_become_name_terms(self):
+        self.record('AUTH','auth and please do kindly could would can will you '
+                    'remember billing et veuillez because car',payload={'why':'Synthetic all-term reason'})
+        self.record('SOURCE','source',kind='component',event_type='component.observed',
+                    relations=[{'predicate':'depends_on','target':{'id':'AUTH','kind':'decision'}}])
+        for question,options in [
+            ('Why auth and please remember billing?',{}),
+            ('Why auth and do remember billing?',{}),
+            ('Why auth and could you please remember billing?',{}),
+            ('Why auth and kindly remember billing?',{}),
+            ('Why auth: please remember billing?',{}),
+            ('Why auth; please remember billing?',{}),
+            ('Pourquoi auth et veuillez remember billing ?',{}),
+            ('Remember auth and please remember billing?',{}),
+            ('What depends on auth and please remember billing?',{'entity':'AUTH'}),
+        ]:
+            with self.subTest(question=question,options=options):
+                result=answer_question(self.repo,question,**options)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+        # Explicit memory is literal label lookup, not a compound command.
+        literal=answer_question(self.repo,'auth and please remember billing',kind='memory',entity='AUTH')
+        self.assertEqual(literal['status'],'cited-records')
+        self.assert_sources(literal)
