@@ -165,6 +165,8 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
                     continue
                 key = (event['subject']['id'], relation['predicate'], relation['target']['id'])
                 latest[key] = sequence, event, relation
+        live_edges = [record for record in latest.values()
+                      if active(record[1]['subject']['id']) and active(record[2]['target']['id'])]
         # Resolve targets before selecting edges, including matching active
         # entities with no incoming edge. Absence of an edge cannot resolve a
         # name ambiguity. Explicit --entity is the literal disambiguator.
@@ -176,20 +178,20 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
             return bool(target_terms) and target_terms <= available
         target_ids = {identity for identity, state in current.items()
                       if state['active'] and target_match(state['assertion']['subject'])}
-        for _, _, relation in latest.values():
+        for _, _, relation in live_edges:
             target = relation['target']
             if target['id'] not in current and target_match(target):
                 target_ids.add(target['id'])
         if len(target_ids) > 1:
             abstention = 'ambiguous-dependency-target'
-        for sequence, event, relation in latest.values():
+        for sequence, event, relation in live_edges:
             if abstention or relation['target']['id'] not in target_ids:
                 continue
             target = relation['target']
             # The identity is already resolved. Optional per-occurrence labels
             # must not erase other edges to that same target.
             score = 1000 if entity is not None else len(target_terms)
-            if score and active(event['subject']['id']) and active(target['id']):
+            if score:
                 revisions = [current[x]['revision'] for x in (event['subject']['id'], target['id'])
                              if x in current and current[x]['action']]
                 candidates.append(fact(sequence, event, 'dependency',

@@ -180,3 +180,17 @@ and exact coverage counts. The installed journey adds an import-shaped fixture
 through the installed event API, then real CLI questions and source opening in
 both languages. These synthetic fixture declarations are not a native producer
 or HUMAN qualification. Final hosted review/gates and freshmain remain required.
+
+Review4089081719 found that an inactive source could still supply a label during
+unknown-target resolution, or create false ambiguity against a valid active
+target. BEFOREcf60210d/35945699625/job107463343422 runs768tests with4subcase
+failures/52skips in92.329s. Both false resolution and false ambiguity are
+reproduced in French and English; literal identity recovery is retained.
+One active-endpoint edge set is now shared by target resolution and selection.
+An inactive edge cannot supply a usable label or a competing identity. Current
+active assertion names still resolve targets independently of incoming edges.
+The installed import-shaped fixture covers inactive competing labels, inactive
+sole labels and literal-ID recovery; every returned source is opened exactly.
+No authority or source assertion was relaxed. Original BEFORE and preceding
+766-test AFTER logs are retained. Final hosted review/gates and freshmain are
+still required; no local execution after the Work failure is claimed.

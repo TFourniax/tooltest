@@ -31,10 +31,13 @@ def main():
         for identity,target in [
             ('OPA-SRC-A',{'id':'RAW-TARGET','kind':'component','label':'opaque boundary'}),
             ('OPA-SRC-B',{'id':'RAW-TARGET','kind':'component'}),
+            ('OPA-SRC-DORMANT',{'id':'RAW-DORMANT','kind':'component','label':'opaque boundary'}),
+            ('STALE-SRC-DORMANT',{'id':'RAW-STALE','kind':'component','label':'stale boundary'}),
+            ('STALE-SRC-LIVE',{'id':'RAW-STALE','kind':'component'}),
         ]:
             append_project_event(repo=repo,event_type='component.observed',
                 subject={'id':identity,'kind':'component','label':'Imported source'},
-                epistemic_status='DECLARED',payload={},
+                epistemic_status='DECLARED',payload={'lifecycle':'inactive'} if identity.endswith('DORMANT') else {},
                 relations=[{'predicate':'depends_on','target':target,'epistemic_status':'INFERRED'}],
                 provenance={'producer':'question-acceptance','source':'synthetic-unresolved-target'},
                 actor={'kind':'fixture','id':'question-acceptance'})
@@ -123,6 +126,17 @@ def main():
                 assert selected['context']['coverage']['matches']==2
                 assert selected['context']['coverage']['omitted']==0
                 for part in selected['parts']:
+                    source=part['source']
+                    opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==source['eventHash']
+        for lang in ('fr','en'):
+            for question in ('What depends on stale boundary?', 'Qu’est-ce qui dépend de stale boundary ?'):
+                unresolved=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert unresolved['status']=='abstained' and unresolved['parts']==[]
+                assert unresolved['context']['abstention']=='insufficient-cited-records'
+                exact=json.loads(run(dw,'--language',lang,'ask',question,'--entity','RAW-STALE','--json'))
+                assert [f['fields']['from'] for f in exact['context']['facts']]==['STALE-SRC-LIVE']
+                for part in exact['parts']:
                     source=part['source']
                     opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
                     assert opened['event']['event_hash']==source['eventHash']
