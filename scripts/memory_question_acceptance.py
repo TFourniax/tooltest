@@ -34,6 +34,7 @@ def main():
             run(dw,'decision','record',label,'--id',identity,'--why','Exact technology fixture')
         run(dw,'decision','record','fallback works import calls importe appelle',
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
+        run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
         # Import-shaped fixture through the installed event API; queries and
         # exact source opening below still execute the installed CLI.
         for identity,target in [
@@ -49,10 +50,16 @@ def main():
                 relations=[{'predicate':'depends_on','target':target,'epistemic_status':'INFERRED'}],
                 provenance={'producer':'question-acceptance','source':'synthetic-unresolved-target'},
                 actor={'kind':'fixture','id':'question-acceptance'})
+        relative_periods=('this weekend','this spring','this summer','this autumn','this fall','this winter',
+                          'ce week-end','ce printemps','cet été','cet automne','cet hiver',
+                          'cette fin de semaine','this fortnight','this decade','cette décennie',
+                          'ce siècle','this century','this season','cette saison','this sprint','cette itération',
+                          'from launch','during migration','pendant migration','durant migration')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
-                'auth/at/three/pm/p/m/trois/o/clock/release/around/vers/threepm/service.py']},
+                'auth/at/three/pm/p/m/trois/o/clock/release/around/vers/threepm/service.py']
+                + ['auth/'+period.replace(' ','/')+'/service.py' for period in relative_periods]},
             relations=[],timestamp='2025-09-21T08:00:00Z',
             provenance={'producer':'question-acceptance','source':'synthetic-year-filter'},
             actor={'kind':'fixture','id':'question-acceptance'})
@@ -123,7 +130,8 @@ def main():
             for period in ('in Q1 2026','in Q4 2026','en T1 2026','in H1 2026',
                            'in Q1','en T2','in Ｑ１ 2026','in 2026 Q3','2026',
                            'in FY2026','in FY26','in 2026Q1','in Q12026',
-                           'in 2026H1','in H12026','en AF2026','en AF26','in ２０２６Ｑ１'):
+                           'in 2026H1','in H12026','en AF2026','en AF26','in ２０２６Ｑ１',
+                           'in FY 26',"in FY'26",'en AF 26') + relative_periods:
                 value=json.loads(run(dw,'--language',lang,'ask','What changed in auth '+period+'?','--json'))
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']=='ambiguous-time-filter'
@@ -133,7 +141,8 @@ def main():
                                       ('Why lexical 東京?',['DEC-TOKYO']),
                                       ('Pourquoi lexical 大阪 ?',['DEC-OSAKA']),
                                       ('Why C++?',['DEC-TECH-CPP']),('Why C#?',['DEC-TECH-CSHARP']),
-                                      ('Pourquoi F# ?',['DEC-TECH-FSHARP']),('Why C?',['DEC-TECH-C'])]:
+                                      ('Pourquoi F# ?',['DEC-TECH-FSHARP']),('Why C?',['DEC-TECH-C']),
+                                      ('Why Spring?',['DEC-SPRING'])]:
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
                 assert [f['fields']['id'] for f in value['context']['facts']]==expected
                 assert value['status']==('cited-records' if expected else 'abstained')

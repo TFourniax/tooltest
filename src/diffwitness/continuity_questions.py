@@ -113,7 +113,7 @@ def _query(question, kind, since, until, entity):
     cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', normalized_question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
-                          r"last|dernier|dernière|morning|matin|noon|midi|at|vers|o['’]clock)\b",
+                          r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",
                           normalized_question, re.I)
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
@@ -135,7 +135,13 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b\d{2}(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
-        r"|\b(?:FY|AF)\d{2,4}\b|\d{4}"
+        r"|\b(?:FY|AF)[\s'’\-]*\d{2,4}\b|\d{4}"
+        r"|\b(?:week[\s-]?ends?|fortnights?|decades?|centur(?:y|ies)|seasons?|"
+        r"quinzaines?|décennies?|siècles?|saisons?)\b"
+        r"|\b(?:this|these|current|ce|cet|cette|ces|in|en|au|aux|over|through|throughout)\s+"
+        r"(?:(?:the|le|la)\s+)?(?:spring|summer|autumn|fall|winter|printemps|étés?|automnes?|hivers?)\b"
+        r"|\b(?:this|these|current|ce|cet|cette|ces)\s+"
+        r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"

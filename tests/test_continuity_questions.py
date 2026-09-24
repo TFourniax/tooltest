@@ -413,7 +413,7 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_compact_fiscal_and_quarter_periods_never_become_path_terms(self):
         periods=('FY2026','FY26','2026Q1','Q12026','2026H1','H12026',
-                 'AF2026','AF26','２０２６Ｑ１')
+                 'AF2026','AF26','２０２６Ｑ１','FY 26',"FY'26",'AF 26')
         for index,period in enumerate(periods):
             self.record('CHANGE-PERIOD-'+str(index),'auth change',kind='change',event_type='change.observed',
                         timestamp='2025-09-21T08:00:00Z',
@@ -492,6 +492,32 @@ class MemoryQuestionTests(unittest.TestCase):
             for options in ({},{'until':'2027-01-01'}):
                 with self.subTest(period=period,options=options):
                     result=answer_question(self.repo,'What changed in auth '+period+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_season_named_technology_without_period_qualifier_is_queryable(self):
+        self.record('MOD-SPRING','Spring',kind='component',event_type='component.observed',
+                    payload={'why':'Compose the application'})
+        self.record('MOD-UI','interface',kind='component',event_type='component.observed',
+                    relations=[{'predicate':'depends_on','target':{'id':'MOD-SPRING','kind':'component'}}])
+        reason=answer_question(self.repo,'Why Spring?')
+        self.assertEqual(reason['status'],'cited-records')
+        self.assertEqual([f['fields']['id'] for f in reason['context']['facts']],['MOD-SPRING'])
+        self.assert_sources(reason)
+        dependency=answer_question(self.repo,'What depends on Spring?')
+        self.assertEqual(dependency['status'],'cited-records')
+        self.assertEqual([f['fields']['to'] for f in dependency['context']['facts']],['MOD-SPRING'])
+        self.assert_sources(dependency)
+
+    def test_unsupported_named_period_bounds_abstain(self):
+        self.record('CHANGE-NAMED-BOUND','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/from/launch/during/pendant/durant/migration/service.py']})
+        for phrase in ('from launch','during migration','pendant migration','durant migration'):
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')

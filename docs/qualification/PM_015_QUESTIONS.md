@@ -286,3 +286,18 @@ Review4089471249 finds omitted weekend/season qualifiers. The next
 regression-first test covers common English/French weekends, seasons, longer
 periods and current work periods against old matching paths, with and without
 CLI bounds. All19findings remain tracked; previous778-test PASS is historical.
+
+Regression-first2d8af7a017b0ee39e3c83b5338279b0b7a3c0c3c / run35951481018 /
+Ubuntu3.11 job107481006775:779tests,38failures,52skips,97.622s. Existing
+week-end/semaine spellings already abstained; the38 failures reproduce the
+omitted forms. The complete log and previous778-test Linux AFTER are retained.
+The detector now handles weekends, longer periods and qualified seasonal/work
+periods in EN/FR. A season name alone is not automatically a period: additional
+positive controls retain Why Spring? and incoming Spring dependencies with exact
+sources. Named from/during/pendant/durant bounds remain unsupported and abstain;
+additional unit/installed cases cover these and separated/apostrophe fiscal-year
+spellings. These extra cases are not misrepresented as part of the prior779-test
+BEFORE run. The installed CLI uses old matching-path fixtures for every relative
+period and preserves every source/authority/journal/state assertion. All19review
+findings, final-head review, hosted gates and fresh main remain required. No
+local AFTER while Work is offline and no HUMAN execution is claimed.
