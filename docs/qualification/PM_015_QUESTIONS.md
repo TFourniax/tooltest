@@ -891,3 +891,23 @@ The replay of every review scenario gives 65/65 PASS on this candidate; the
 finding-65 scenario fails on eacd74f. eacd74f passed its 27 hosted checks
 (test 36019272770, ProofBench 36019272714, ContinuityBench 36019273046,
 integrated 36019272746), which do not qualify this new commit.
+
+## IDE continuation — finding 66, 2026-09-24
+
+Review 5306843914 on 5c3d529 (4095630671, P2): the hour-unit branch combined
+optional spacing with the attached-identifier guard, so the spaced qualifier in
+`12 hrs-service` no longer abstained. It is now split like the clock suffix:
+a unit after a space (`12 hrs-service`, `12 hr-report`) qualifies the clock and
+abstains, while an attached unit (`12hrs-service`, `1200hrs-report`) keeps the
+right guard and stays a name. The regression against the installed 5c3d529
+wheel reproduces 12 failing subcases (2 forms, EN/FR, three option sets).
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1099.778 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+27ef107e5f976a3698643ad02c4fdf71d147dfc0e15d9ca8c09005b266afa2b6.
+Journal SHA256: 9e280e63bf4fd2f27206299014b29c60d5892d6284412466180ad03df62d53dd.
+The replay of every review scenario gives 66/66 PASS on this candidate; the
+finding-66 scenario fails on 5c3d529. 5c3d529 passed its 27 hosted checks
+(test 36023359779, ProofBench 36023359655, ContinuityBench 36023359831,
+integrated 36023359856), which do not qualify this new commit.

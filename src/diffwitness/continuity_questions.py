@@ -302,7 +302,7 @@ def _query(question, kind, since, until, entity):
         # it takes the date patterns' right guard, so 12h30Z-service stays a name.
         rf"|(?<![\w./#:+-])T?{clock_shape}(?:\s+{clock_suffix}\b|{clock_suffix}(?![\w/#:+-]|\.\w))"
         r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?Z(?![\w/#:+-]|\.\w)"
-        r"|(?<![\w./#:+-])\d{1,4}\s*(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{1,4}(?:\s+(?:hrs?|hours?|heures?)\b|(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w))"
         rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
         r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"
