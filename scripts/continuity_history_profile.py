@@ -39,7 +39,7 @@ def main():
             print(f"PM012 PROFILE {name}\n{output.getvalue()}", flush=True)
             profile.dump_stats(f"continuity-100k-{name}.pstats")
         print(json.dumps({"classification": "DIAGNOSTIC", "completed": True,
-                          "journal_sha256": original, "journal_bytes": path.stat().st_size()}), flush=True)
+                          "journal_sha256": original, "journal_bytes": path.stat().st_size}), flush=True)
 
 
 if __name__ == "__main__":

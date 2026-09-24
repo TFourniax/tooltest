@@ -1,0 +1,962 @@
+﻿2026-09-24T01:30:21.5920932Z Current runner version: '2.337.0'
+2026-09-24T01:30:21.5945069Z ##[group]Runner Image Provisioner
+2026-09-24T01:30:21.5946029Z Hosted Compute Agent
+2026-09-24T01:30:21.5946648Z Version: 20260828.587
+2026-09-24T01:30:21.5947285Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-24T01:30:21.5948141Z Build Date: 2026-08-28T16:44:25Z
+2026-09-24T01:30:21.5948907Z Worker ID: {296069d8-d65c-4f76-8789-0e161d401d4b}
+2026-09-24T01:30:21.5949884Z Azure Region: westus
+2026-09-24T01:30:21.5950560Z ##[endgroup]
+2026-09-24T01:30:21.5952015Z ##[group]Operating System
+2026-09-24T01:30:21.5952711Z Ubuntu
+2026-09-24T01:30:21.5953325Z 24.04.5
+2026-09-24T01:30:21.5953823Z LTS
+2026-09-24T01:30:21.5954391Z ##[endgroup]
+2026-09-24T01:30:21.5954941Z ##[group]Runner Image
+2026-09-24T01:30:21.5955620Z Image: ubuntu-24.04
+2026-09-24T01:30:21.5956231Z Version: 20260920.314.1
+2026-09-24T01:30:21.5957521Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-24T01:30:21.5959115Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-24T01:30:21.5960385Z ##[endgroup]
+2026-09-24T01:30:21.5961553Z ##[group]GITHUB_TOKEN Permissions
+2026-09-24T01:30:21.5963668Z Contents: read
+2026-09-24T01:30:21.5964336Z Metadata: read
+2026-09-24T01:30:21.5964933Z ##[endgroup]
+2026-09-24T01:30:21.5967063Z Secret source: Actions
+2026-09-24T01:30:21.5968098Z Cache mode: write
+2026-09-24T01:30:21.5968992Z Prepare workflow directory
+2026-09-24T01:30:21.6299092Z Prepare all required actions
+2026-09-24T01:30:21.6348437Z Getting action download info
+2026-09-24T01:30:22.0107984Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-24T01:30:22.1163887Z Download action repository 'actions/setup-python@v7' (SHA:5fda3b95a4ea91299a34e894583c3862153e4b97)
+2026-09-24T01:30:22.2012979Z Download action repository 'actions/upload-artifact@v6' (SHA:b7c566a772e6b6bfb58ed0dc250532a479d7789f)
+2026-09-24T01:30:22.6720817Z Complete job name: continuitybench
+2026-09-24T01:30:22.7687378Z ##[group]Run actions/checkout@v7
+2026-09-24T01:30:22.7688831Z with:
+2026-09-24T01:30:22.7689975Z   repository: TFourniax/tooltest
+2026-09-24T01:30:22.7698695Z   token: ***
+2026-09-24T01:30:22.7699709Z   ssh-strict: true
+2026-09-24T01:30:22.7700625Z   ssh-user: git
+2026-09-24T01:30:22.7701546Z   persist-credentials: true
+2026-09-24T01:30:22.7702606Z   clean: true
+2026-09-24T01:30:22.7703522Z   sparse-checkout-cone-mode: true
+2026-09-24T01:30:22.7704606Z   fetch-depth: 1
+2026-09-24T01:30:22.7705491Z   fetch-tags: false
+2026-09-24T01:30:22.7706416Z   show-progress: true
+2026-09-24T01:30:22.7707352Z   lfs: false
+2026-09-24T01:30:22.7708228Z   submodules: false
+2026-09-24T01:30:22.7709175Z   set-safe-directory: true
+2026-09-24T01:30:22.7710444Z   allow-unsafe-pr-checkout: false
+2026-09-24T01:30:22.7711832Z ##[endgroup]
+2026-09-24T01:30:22.8781398Z Syncing repository: TFourniax/tooltest
+2026-09-24T01:30:22.8784611Z ##[group]Getting Git version info
+2026-09-24T01:30:22.8786993Z Working directory is '/home/runner/work/tooltest/tooltest'
+2026-09-24T01:30:22.8789337Z [command]/usr/bin/git version
+2026-09-24T01:30:22.8837013Z git version 2.55.0
+2026-09-24T01:30:22.8870727Z ##[endgroup]
+2026-09-24T01:30:22.8882376Z Temporarily overriding HOME='/home/runner/work/_temp/ce7460c2-9884-4d40-becd-6e0c052d0206' before making global git config changes
+2026-09-24T01:30:22.8887588Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T01:30:22.8890296Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T01:30:22.8933737Z Deleting the contents of '/home/runner/work/tooltest/tooltest'
+2026-09-24T01:30:22.8937741Z ##[group]Determining repository object format
+2026-09-24T01:30:22.8940888Z ##[endgroup]
+2026-09-24T01:30:22.8943286Z ##[group]Initializing the repository
+2026-09-24T01:30:22.8945564Z [command]/usr/bin/git init /home/runner/work/tooltest/tooltest
+2026-09-24T01:30:22.9056443Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-24T01:30:22.9060747Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-24T01:30:22.9064569Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-24T01:30:22.9067496Z hint: call:
+2026-09-24T01:30:22.9069159Z hint:
+2026-09-24T01:30:22.9071584Z hint: 	git config --global init.defaultBranch <name>
+2026-09-24T01:30:22.9074630Z hint:
+2026-09-24T01:30:22.9076160Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-24T01:30:22.9079146Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-24T01:30:22.9085334Z hint:
+2026-09-24T01:30:22.9087050Z hint: 	git branch -m <name>
+2026-09-24T01:30:22.9088820Z hint:
+2026-09-24T01:30:22.9091747Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-24T01:30:22.9095602Z Initialized empty Git repository in /home/runner/work/tooltest/tooltest/.git/
+2026-09-24T01:30:22.9183533Z [command]/usr/bin/git remote add origin https://github.com/TFourniax/tooltest
+2026-09-24T01:30:22.9189290Z ##[endgroup]
+2026-09-24T01:30:22.9191236Z ##[group]Disabling automatic garbage collection
+2026-09-24T01:30:22.9192820Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-24T01:30:22.9196559Z ##[endgroup]
+2026-09-24T01:30:22.9197992Z ##[group]Setting up auth
+2026-09-24T01:30:22.9199253Z Removing SSH command configuration
+2026-09-24T01:30:22.9201849Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T01:30:22.9237474Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T01:30:22.9602308Z Removing HTTP extra header
+2026-09-24T01:30:22.9608596Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T01:30:22.9650583Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T01:30:22.9885183Z Removing includeIf entries pointing to credentials config files
+2026-09-24T01:30:22.9890642Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T01:30:22.9928299Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T01:30:23.0155297Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-24T01:30:23.0194866Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git.path /home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:30:23.0228977Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:30:23.0267788Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:30:23.0307208Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:30:23.0341176Z ##[endgroup]
+2026-09-24T01:30:23.0343810Z ##[group]Fetching the repository
+2026-09-24T01:30:23.0349110Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +4382bd9652255beae3c0b4846a64351b0642d3ca:refs/remotes/pull/129/merge
+2026-09-24T01:30:23.8100114Z From https://github.com/TFourniax/tooltest
+2026-09-24T01:30:23.8100999Z  * [new ref]         4382bd9652255beae3c0b4846a64351b0642d3ca -> pull/129/merge
+2026-09-24T01:30:23.8105191Z ##[endgroup]
+2026-09-24T01:30:23.8105871Z ##[group]Determining the checkout info
+2026-09-24T01:30:23.8106726Z ##[endgroup]
+2026-09-24T01:30:23.8112111Z [command]/usr/bin/git sparse-checkout disable
+2026-09-24T01:30:23.8167254Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-24T01:30:23.8201065Z ##[group]Checking out the ref
+2026-09-24T01:30:23.8204988Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/129/merge
+2026-09-24T01:30:23.8760982Z Note: switching to 'refs/remotes/pull/129/merge'.
+2026-09-24T01:30:23.8761563Z 
+2026-09-24T01:30:23.8762027Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-24T01:30:23.8763005Z changes and commit them, and you can discard any commits you make in this
+2026-09-24T01:30:23.8763939Z state without impacting any branches by switching back to a branch.
+2026-09-24T01:30:23.8764455Z 
+2026-09-24T01:30:23.8764892Z If you want to create a new branch to retain commits you create, you may
+2026-09-24T01:30:23.8765724Z do so (now or later) by using -c with the switch command. Example:
+2026-09-24T01:30:23.8766237Z 
+2026-09-24T01:30:23.8766453Z   git switch -c <new-branch-name>
+2026-09-24T01:30:23.8766786Z 
+2026-09-24T01:30:23.8766989Z Or undo this operation with:
+2026-09-24T01:30:23.8767304Z 
+2026-09-24T01:30:23.8767492Z   git switch -
+2026-09-24T01:30:23.8767747Z 
+2026-09-24T01:30:23.8768345Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-24T01:30:23.8769195Z 
+2026-09-24T01:30:23.8769998Z HEAD is now at 4382bd9 Merge b7ca3ce184a726986447284da8bb929b2268d53c into c03164e75e805ff1df976e55cdf6d86073e89b04
+2026-09-24T01:30:23.8775355Z ##[endgroup]
+2026-09-24T01:30:23.8838358Z [command]/usr/bin/git log -1 --format=%H
+2026-09-24T01:30:23.8871595Z 4382bd9652255beae3c0b4846a64351b0642d3ca
+2026-09-24T01:30:23.9166565Z ##[group]Run actions/setup-python@v7
+2026-09-24T01:30:23.9166938Z with:
+2026-09-24T01:30:23.9167182Z   python-version: 3.14
+2026-09-24T01:30:23.9167458Z   check-latest: false
+2026-09-24T01:30:23.9170370Z   token: ***
+2026-09-24T01:30:23.9170642Z   update-environment: true
+2026-09-24T01:30:23.9171080Z   allow-prereleases: false
+2026-09-24T01:30:23.9171392Z   freethreaded: false
+2026-09-24T01:30:23.9171650Z ##[endgroup]
+2026-09-24T01:30:24.0452868Z ##[group]Installed versions
+2026-09-24T01:30:24.0536798Z Successfully set up CPython (3.14.7)
+2026-09-24T01:30:24.0538922Z ##[endgroup]
+2026-09-24T01:30:24.0745851Z ##[group]Run python -m pip install -e .
+2026-09-24T01:30:24.0746605Z [36;1mpython -m pip install -e .[0m
+2026-09-24T01:30:24.1058862Z shell: /usr/bin/bash -e {0}
+2026-09-24T01:30:24.1059326Z env:
+2026-09-24T01:30:24.1059923Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:24.1060584Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:30:24.1061210Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:24.1061795Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:24.1062355Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:24.1062918Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:30:24.1063408Z ##[endgroup]
+2026-09-24T01:30:24.8773809Z Obtaining file:///home/runner/work/tooltest/tooltest
+2026-09-24T01:30:24.8790237Z   Installing build dependencies: started
+2026-09-24T01:30:25.6345361Z   Installing build dependencies: finished with status 'done'
+2026-09-24T01:30:25.6355338Z   Checking if build backend supports build_editable: started
+2026-09-24T01:30:26.1586521Z   Checking if build backend supports build_editable: finished with status 'done'
+2026-09-24T01:30:26.1595368Z   Getting requirements to build editable: started
+2026-09-24T01:30:26.6212837Z   Getting requirements to build editable: finished with status 'done'
+2026-09-24T01:30:26.6221154Z   Preparing editable metadata (pyproject.toml): started
+2026-09-24T01:30:26.8404079Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+2026-09-24T01:30:26.8466750Z Building wheels for collected packages: diffwitness
+2026-09-24T01:30:26.8474825Z   Building editable for diffwitness (pyproject.toml): started
+2026-09-24T01:30:27.1023015Z   Building editable for diffwitness (pyproject.toml): finished with status 'done'
+2026-09-24T01:30:27.1029452Z   Created wheel for diffwitness: filename=diffwitness-0.4.0a1-0.editable-py3-none-any.whl size=12810 sha256=53005b15d145902a40fad7f7384749021b1e27e43f9e818b6d7aeaa725abb3f2
+2026-09-24T01:30:27.1031798Z   Stored in directory: /tmp/pip-ephem-wheel-cache-kko_ox4r/wheels/23/23/77/998b6ac641c97dbbecde183cfec846b7bcb84c4e0e3f71dd1b
+2026-09-24T01:30:27.1066751Z Successfully built diffwitness
+2026-09-24T01:30:27.1210990Z Installing collected packages: diffwitness
+2026-09-24T01:30:27.1283660Z Successfully installed diffwitness-0.4.0a1
+2026-09-24T01:30:27.1994506Z ##[group]Run python scripts/continuity_bench.py --events 10000 --batch-size 2000 --context-runs 7 --max-append-seconds 10 --max-verify-seconds 2 --max-rebuild-seconds 5 --max-context-cold-ms 1000 --max-context-hot-p95-ms 300 --json continuitybench.json
+2026-09-24T01:30:27.1996293Z [36;1mpython scripts/continuity_bench.py --events 10000 --batch-size 2000 --context-runs 7 --max-append-seconds 10 --max-verify-seconds 2 --max-rebuild-seconds 5 --max-context-cold-ms 1000 --max-context-hot-p95-ms 300 --json continuitybench.json[0m
+2026-09-24T01:30:27.2060203Z shell: /usr/bin/bash -e {0}
+2026-09-24T01:30:27.2060472Z env:
+2026-09-24T01:30:27.2060741Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:27.2061176Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:30:27.2061604Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:27.2061983Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:27.2062395Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:27.2062799Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:30:27.2063125Z ##[endgroup]
+2026-09-24T01:30:30.1081791Z {
+2026-09-24T01:30:30.1082958Z   "schema_version": "continuity-bench-2",
+2026-09-24T01:30:30.1083458Z   "events": 10000,
+2026-09-24T01:30:30.1083744Z   "batch_size": 2000,
+2026-09-24T01:30:30.1084042Z   "event_log_bytes": 7208837,
+2026-09-24T01:30:30.1084358Z   "state_db_bytes": 15581184,
+2026-09-24T01:30:30.1084663Z   "append_seconds": 1.054073,
+2026-09-24T01:30:30.1084982Z   "full_log_verify_seconds": 0.467164,
+2026-09-24T01:30:30.1085323Z   "rebuild_seconds": 0.9508,
+2026-09-24T01:30:30.1085619Z   "context": {
+2026-09-24T01:30:30.1085881Z     "cold_ms": 17.888,
+2026-09-24T01:30:30.1086194Z     "hot_runs": 7,
+2026-09-24T01:30:30.1086515Z     "hot_ms": {
+2026-09-24T01:30:30.1086763Z       "min": 16.3,
+2026-09-24T01:30:30.1087017Z       "median": 16.41,
+2026-09-24T01:30:30.1087314Z       "p95": 16.523,
+2026-09-24T01:30:30.1087590Z       "max": 16.523
+2026-09-24T01:30:30.1087877Z     }
+2026-09-24T01:30:30.1088102Z   },
+2026-09-24T01:30:30.1088339Z   "context_chars": 647,
+2026-09-24T01:30:30.1088677Z   "context_id": "dwctx_5c67c5fdc2acdc8b05b01466",
+2026-09-24T01:30:30.1089064Z   "passed": true,
+2026-09-24T01:30:30.1089318Z   "failures": []
+2026-09-24T01:30:30.1089888Z }
+2026-09-24T01:30:30.2210145Z ##[group]Run actions/upload-artifact@v6
+2026-09-24T01:30:30.2210479Z with:
+2026-09-24T01:30:30.2210686Z   name: continuitybench-10k
+2026-09-24T01:30:30.2210931Z   path: continuitybench.json
+2026-09-24T01:30:30.2211182Z   if-no-files-found: error
+2026-09-24T01:30:30.2211410Z   retention-days: 30
+2026-09-24T01:30:30.2211622Z   compression-level: 6
+2026-09-24T01:30:30.2211828Z   overwrite: false
+2026-09-24T01:30:30.2212031Z   include-hidden-files: false
+2026-09-24T01:30:30.2212250Z env:
+2026-09-24T01:30:30.2212493Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:30.2212916Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:30:30.2213514Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:30.2213878Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:30.2214243Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:30.2214639Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:30:30.2214949Z ##[endgroup]
+2026-09-24T01:30:30.3815557Z With the provided path, there will be 1 file uploaded
+2026-09-24T01:30:30.3817544Z Artifact name is valid!
+2026-09-24T01:30:30.3818541Z Root directory input is valid!
+2026-09-24T01:30:30.7963182Z Beginning upload of artifact content to blob storage
+2026-09-24T01:30:31.0883904Z Uploaded bytes 441
+2026-09-24T01:30:31.1568422Z Finished uploading artifact content to blob storage!
+2026-09-24T01:30:31.1569448Z SHA256 digest of uploaded artifact zip is d4c2896a35cf44c56d34ed44e3197832fcc3d1b600a7850b1e4bb5801fff0352
+2026-09-24T01:30:31.1571529Z Finalizing artifact upload
+2026-09-24T01:30:31.5745313Z Artifact continuitybench-10k.zip successfully finalized. Artifact ID 10785573620
+2026-09-24T01:30:31.5747032Z Artifact continuitybench-10k has been successfully uploaded! Final size is 441 bytes. Artifact ID is 10785573620
+2026-09-24T01:30:31.5751687Z Artifact download URL: https://github.com/TFourniax/tooltest/actions/runs/35943160391/artifacts/10785573620
+2026-09-24T01:30:31.6580794Z ##[group]Run python scripts/continuity_bench.py --events 100000 --batch-size 2000 --context-runs 7 --max-append-seconds 10 --max-verify-seconds 2 --max-rebuild-seconds 5 --max-context-cold-ms 1000 --max-context-hot-p95-ms 300 --json continuitybench-100k.json
+2026-09-24T01:30:31.6582591Z [36;1mpython scripts/continuity_bench.py --events 100000 --batch-size 2000 --context-runs 7 --max-append-seconds 10 --max-verify-seconds 2 --max-rebuild-seconds 5 --max-context-cold-ms 1000 --max-context-hot-p95-ms 300 --json continuitybench-100k.json[0m
+2026-09-24T01:30:31.6645183Z shell: /usr/bin/bash -e {0}
+2026-09-24T01:30:31.6645456Z env:
+2026-09-24T01:30:31.6645723Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:31.6646168Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:30:31.6646596Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:31.6647033Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:31.6647432Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:31.6647834Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:30:31.6648166Z ##[endgroup]
+2026-09-24T01:30:59.1333254Z {
+2026-09-24T01:30:59.1333844Z   "schema_version": "continuity-bench-2",
+2026-09-24T01:30:59.1334509Z   "events": 100000,
+2026-09-24T01:30:59.1335001Z   "batch_size": 2000,
+2026-09-24T01:30:59.1335510Z   "event_log_bytes": 72188837,
+2026-09-24T01:30:59.1336083Z   "state_db_bytes": 154345472,
+2026-09-24T01:30:59.1336644Z   "append_seconds": 10.900786,
+2026-09-24T01:30:59.1337225Z   "full_log_verify_seconds": 4.949088,
+2026-09-24T01:30:59.1337876Z   "rebuild_seconds": 10.307589,
+2026-09-24T01:30:59.1338297Z   "context": {
+2026-09-24T01:30:59.1338590Z     "cold_ms": 63.015,
+2026-09-24T01:30:59.1338909Z     "hot_runs": 7,
+2026-09-24T01:30:59.1339202Z     "hot_ms": {
+2026-09-24T01:30:59.1339497Z       "min": 61.283,
+2026-09-24T01:30:59.1340072Z       "median": 61.557,
+2026-09-24T01:30:59.1340396Z       "p95": 62.638,
+2026-09-24T01:30:59.1340695Z       "max": 62.638
+2026-09-24T01:30:59.1340980Z     }
+2026-09-24T01:30:59.1341244Z   },
+2026-09-24T01:30:59.1341517Z   "context_chars": 647,
+2026-09-24T01:30:59.1341895Z   "context_id": "dwctx_d15049f64bb950dc19c7a704",
+2026-09-24T01:30:59.1342328Z   "passed": false,
+2026-09-24T01:30:59.1342628Z   "failures": [
+2026-09-24T01:30:59.1342932Z     "append 10.900786s > 10.0s",
+2026-09-24T01:30:59.1343295Z     "verify 4.949088s > 2.0s",
+2026-09-24T01:30:59.1343650Z     "rebuild 10.307589s > 5.0s"
+2026-09-24T01:30:59.1343988Z   ]
+2026-09-24T01:30:59.1344236Z }
+2026-09-24T01:30:59.5291526Z ##[error]Process completed with exit code 1.
+2026-09-24T01:30:59.5342748Z ##[group]Run python scripts/continuity_history_profile.py
+2026-09-24T01:30:59.5343211Z [36;1mpython scripts/continuity_history_profile.py[0m
+2026-09-24T01:30:59.5405931Z shell: /usr/bin/bash -e {0}
+2026-09-24T01:30:59.5406200Z env:
+2026-09-24T01:30:59.5406505Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:59.5406957Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:30:59.5407382Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:59.5407778Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:59.5408166Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:30:59.5408548Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:30:59.5408867Z ##[endgroup]
+2026-09-24T01:30:59.7846334Z {"classification": "DIAGNOSTIC", "human_executed": false, "events": 100000, "batch_size": 2000, "checkout_sha": "4382bd9652255beae3c0b4846a64351b0642d3ca", "python": "3.14.7", "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39"}
+2026-09-24T01:31:21.8055284Z PM012 PROFILE verify
+2026-09-24T01:31:21.8056084Z          15300029 function calls (15200029 primitive calls) in 10.450 seconds
+2026-09-24T01:31:21.8056704Z 
+2026-09-24T01:31:21.8056901Z    Ordered by: cumulative time
+2026-09-24T01:31:21.8057474Z    List reduced from 70 to 35 due to restriction <35>
+2026-09-24T01:31:21.8057923Z 
+2026-09-24T01:31:21.8058303Z    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+2026-09-24T01:31:21.8059277Z         1    0.184    0.184   10.450   10.450 continuity_history_profile.py:30(<lambda>)
+2026-09-24T01:31:21.8060616Z         1    0.025    0.025   10.266   10.266 continuity_events.py:291(read_project_events)
+2026-09-24T01:31:21.8061429Z         1    0.000    0.000   10.242   10.242 continuity_events.py:286(read_project_event_snapshot)
+2026-09-24T01:31:21.8062088Z         1    0.000    0.000   10.242   10.242 continuity_events.py:252(_read_validated_snapshot)
+2026-09-24T01:31:21.8062705Z         1    0.065    0.065   10.241   10.241 continuity_events.py:245(validate_project_events)
+2026-09-24T01:31:21.8063268Z    100000    0.409    0.000    7.562    0.000 continuity_events.py:213(admit)
+2026-09-24T01:31:21.8063829Z    100000    0.749    0.000    6.219    0.000 continuity_events.py:166(_validate_event_shape)
+2026-09-24T01:31:21.8064419Z    100000    1.169    0.000    3.349    0.000 continuity_events.py:108(_event_integrity)
+2026-09-24T01:31:21.8064981Z    100001    0.267    0.000    2.615    0.000 continuity_events.py:263(parsed_events)
+2026-09-24T01:31:21.8065530Z    100000    0.086    0.000    2.124    0.000 json_contract.py:29(strict_json_loads)
+2026-09-24T01:31:21.8066295Z    100000    0.167    0.000    2.019    0.000 decoder.py:340(decode)
+2026-09-24T01:31:21.8066954Z    100000    0.989    0.000    1.709    0.000 decoder.py:351(raw_decode)
+2026-09-24T01:31:21.8067701Z    100000    0.044    0.000    1.180    0.000 continuity_events.py:48(_canonical)
+2026-09-24T01:31:21.8068209Z    100000    0.157    0.000    1.136    0.000 encoder.py:185(encode)
+2026-09-24T01:31:21.8068767Z    100000    0.514    0.000    1.018    0.000 continuity_contract.py:158(validate_admission_profile)
+2026-09-24T01:31:21.8069343Z    100000    0.913    0.000    0.913    0.000 encoder.py:207(iterencode)
+2026-09-24T01:31:21.8070196Z    500000    0.607    0.000    0.720    0.000 json_contract.py:7(_pairs)
+2026-09-24T01:31:21.8070667Z    100000    0.246    0.000    0.620    0.000 continuity_events.py:134(_validate_subject)
+2026-09-24T01:31:21.8071124Z   3300000    0.582    0.000    0.582    0.000 {method 'get' of 'dict' objects}
+2026-09-24T01:31:21.8071568Z    100000    0.303    0.000    0.513    0.000 continuity_lifecycle_contract.py:62(admit)
+2026-09-24T01:31:21.8072074Z   2200000    0.310    0.000    0.310    0.000 {built-in method builtins.isinstance}
+2026-09-24T01:31:21.8072847Z 300000/200000    0.221    0.000    0.308    0.000 continuity_contract.py:134(_matches_payload_field)
+2026-09-24T01:31:21.8073497Z    500000    0.290    0.000    0.290    0.000 {method 'fullmatch' of 're.Pattern' objects}
+2026-09-24T01:31:21.8073957Z   1400000    0.248    0.000    0.248    0.000 continuity_events.py:118(<genexpr>)
+2026-09-24T01:31:21.8074375Z    100000    0.062    0.000    0.218    0.000 __init__.py:169(fullmatch)
+2026-09-24T01:31:21.8074769Z   1500001    0.190    0.000    0.190    0.000 {built-in method builtins.len}
+2026-09-24T01:31:21.8075193Z    100000    0.146    0.000    0.184    0.000 continuity_task_contract.py:111(admit)
+2026-09-24T01:31:21.8075643Z    200001    0.167    0.000    0.167    0.000 {built-in method _hashlib.openssl_sha256}
+2026-09-24T01:31:21.8076099Z    100000    0.119    0.000    0.134    0.000 continuity_impact_contract.py:101(admit)
+2026-09-24T01:31:21.8076568Z    200001    0.119    0.000    0.119    0.000 {method 'hexdigest' of '_hashlib.HASH' objects}
+2026-09-24T01:31:21.8077014Z    100000    0.072    0.000    0.113    0.000 __init__.py:330(_compile)
+2026-09-24T01:31:21.8077445Z    200000    0.103    0.000    0.103    0.000 {method 'replace' of 'bytes' objects}
+2026-09-24T01:31:21.8077882Z    200000    0.093    0.000    0.093    0.000 {method 'count' of 'bytes' objects}
+2026-09-24T01:31:21.8078320Z    200000    0.092    0.000    0.092    0.000 {method 'match' of 're.Pattern' objects}
+2026-09-24T01:31:21.8078799Z    100000    0.060    0.000    0.084    0.000 continuity_events.py:148(_validate_relations)
+2026-09-24T01:31:21.8079099Z 
+2026-09-24T01:31:21.8079104Z 
+2026-09-24T01:31:21.8079108Z 
+2026-09-24T01:31:40.5936186Z PM012 PROFILE rebuild
+2026-09-24T01:31:40.5936797Z          24319870 function calls (24219541 primitive calls) in 18.725 seconds
+2026-09-24T01:31:40.5937182Z 
+2026-09-24T01:31:40.5937320Z    Ordered by: cumulative time
+2026-09-24T01:31:40.5937724Z    List reduced from 718 to 35 due to restriction <35>
+2026-09-24T01:31:40.5938013Z 
+2026-09-24T01:31:40.5938258Z    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+2026-09-24T01:31:40.5938888Z         1    0.191    0.191   18.725   18.725 continuity_history_profile.py:31(<lambda>)
+2026-09-24T01:31:40.5939478Z         1    0.025    0.025   18.534   18.534 continuity_state.py:540(rebuild_state)
+2026-09-24T01:31:40.5940568Z         1    0.000    0.000   10.486   10.486 continuity_events.py:286(read_project_event_snapshot)
+2026-09-24T01:31:40.5941300Z         1    0.000    0.000   10.486   10.486 continuity_events.py:252(_read_validated_snapshot)
+2026-09-24T01:31:40.5941938Z         1    0.065    0.065   10.486   10.486 continuity_events.py:245(validate_project_events)
+2026-09-24T01:31:40.5942517Z         1    0.000    0.000    8.016    8.016 continuity_state.py:548(_rebuild_snapshot)
+2026-09-24T01:31:40.5943050Z    100000    0.409    0.000    7.539    0.000 continuity_events.py:213(admit)
+2026-09-24T01:31:40.5943575Z         1    0.115    0.115    7.065    7.065 continuity_state.py:516(_project_history)
+2026-09-24T01:31:40.5944157Z        49    0.084    0.002    6.902    0.141 continuity_state.py:499(_project_declarations)
+2026-09-24T01:31:40.5944761Z    100000    0.757    0.000    6.200    0.000 continuity_events.py:166(_validate_event_shape)
+2026-09-24T01:31:40.5945393Z       198    2.716    0.014    5.767    0.029 {method 'executemany' of 'sqlite3.Connection' objects}
+2026-09-24T01:31:40.5946006Z    100000    1.120    0.000    3.321    0.000 continuity_events.py:108(_event_integrity)
+2026-09-24T01:31:40.5946576Z    100001    0.274    0.000    2.883    0.000 continuity_events.py:263(parsed_events)
+2026-09-24T01:31:40.5947129Z   1000053    0.313    0.000    2.673    0.000 continuity_state.py:513(<genexpr>)
+2026-09-24T01:31:40.5947668Z    100000    0.088    0.000    2.384    0.000 json_contract.py:29(strict_json_loads)
+2026-09-24T01:31:40.5948170Z    400002    0.479    0.000    2.323    0.000 encoder.py:185(encode)
+2026-09-24T01:31:40.5948628Z    100001    0.173    0.000    2.277    0.000 decoder.py:340(decode)
+2026-09-24T01:31:40.5949822Z    100000    0.212    0.000    2.167    0.000 continuity_state.py:262(_entity_term_rows)
+2026-09-24T01:31:40.5950393Z    100001    1.249    0.000    1.961    0.000 decoder.py:351(raw_decode)
+2026-09-24T01:31:40.5950881Z    400002    1.617    0.000    1.617    0.000 encoder.py:207(iterencode)
+2026-09-24T01:31:40.5951401Z    100000    0.045    0.000    1.185    0.000 continuity_events.py:48(_canonical)
+2026-09-24T01:31:40.5951920Z    100000    0.569    0.000    1.161    0.000 continuity_search.py:14(tokens)
+2026-09-24T01:31:40.5952415Z    100000    0.513    0.000    1.016    0.000 continuity_contract.py:158(validate_admission_profile)
+2026-09-24T01:31:40.5952911Z    100000    0.160    0.000    0.979    0.000 continuity_state.py:486(_event_row)
+2026-09-24T01:31:40.5953372Z        25    0.802    0.032    0.802    0.032 {method 'execute' of 'sqlite3.Connection' objects}
+2026-09-24T01:31:40.5953828Z         1    0.000    0.000    0.802    0.802 continuity_state.py:72(_indexes)
+2026-09-24T01:31:40.5954245Z   4200465    0.785    0.000    0.785    0.000 {method 'get' of 'dict' objects}
+2026-09-24T01:31:40.5954676Z    200000    0.053    0.000    0.785    0.000 continuity_state.py:34(_canonical)
+2026-09-24T01:31:40.5955112Z    100000    0.097    0.000    0.738    0.000 continuity_search.py:27(memory_text)
+2026-09-24T01:31:40.5955529Z    500000    0.600    0.000    0.712    0.000 json_contract.py:7(_pairs)
+2026-09-24T01:31:40.5955968Z    100000    0.249    0.000    0.622    0.000 continuity_events.py:134(_validate_subject)
+2026-09-24T01:31:40.5956395Z    100002    0.151    0.000    0.618    0.000 __init__.py:185(dumps)
+2026-09-24T01:31:40.5956807Z    100000    0.305    0.000    0.514    0.000 continuity_lifecycle_contract.py:62(admit)
+2026-09-24T01:31:40.5957273Z   2801622    0.421    0.000    0.421    0.000 {built-in method builtins.isinstance}
+2026-09-24T01:31:40.5957719Z    100049    0.061    0.000    0.365    0.000 continuity_state.py:505(<genexpr>)
+2026-09-24T01:31:40.5957980Z 
+2026-09-24T01:31:40.5957985Z 
+2026-09-24T01:31:40.5957994Z 
+2026-09-24T01:31:40.6356156Z Traceback (most recent call last):
+2026-09-24T01:31:40.6366338Z   File "/home/runner/work/tooltest/tooltest/scripts/continuity_history_profile.py", line 46, in <module>
+2026-09-24T01:31:40.6367158Z     main()
+2026-09-24T01:31:40.6367444Z     ~~~~^^
+2026-09-24T01:31:40.6368194Z   File "/home/runner/work/tooltest/tooltest/scripts/continuity_history_profile.py", line 42, in main
+2026-09-24T01:31:40.6369213Z     "journal_sha256": original, "journal_bytes": path.stat().st_size()}), flush=True)
+2026-09-24T01:31:40.6370192Z                                                  ~~~~~~~~~~~~~~~~~~~^^
+2026-09-24T01:31:40.6370704Z TypeError: 'int' object is not callable
+2026-09-24T01:31:41.0391082Z ##[error]Process completed with exit code 1.
+2026-09-24T01:31:41.0441086Z ##[group]Run actions/upload-artifact@v6
+2026-09-24T01:31:41.0441408Z with:
+2026-09-24T01:31:41.0441627Z   name: continuitybench-100k-and-profile
+2026-09-24T01:31:41.0441979Z   path: continuitybench-100k.json
+continuity-100k-*.pstats
+
+2026-09-24T01:31:41.0442333Z   if-no-files-found: error
+2026-09-24T01:31:41.0442572Z   retention-days: 30
+2026-09-24T01:31:41.0442783Z   compression-level: 6
+2026-09-24T01:31:41.0442996Z   overwrite: false
+2026-09-24T01:31:41.0443210Z   include-hidden-files: false
+2026-09-24T01:31:41.0443438Z env:
+2026-09-24T01:31:41.0443693Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:41.0444169Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:31:41.0444583Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:41.0444964Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:41.0445343Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:41.0445761Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:31:41.0446088Z ##[endgroup]
+2026-09-24T01:31:41.2079120Z With the provided path, there will be 3 files uploaded
+2026-09-24T01:31:41.2100168Z Artifact name is valid!
+2026-09-24T01:31:41.2100875Z Root directory input is valid!
+2026-09-24T01:31:41.6104143Z Beginning upload of artifact content to blob storage
+2026-09-24T01:31:42.0220180Z Uploaded bytes 42607
+2026-09-24T01:31:42.0925397Z Finished uploading artifact content to blob storage!
+2026-09-24T01:31:42.0926907Z SHA256 digest of uploaded artifact zip is 4f019047647246800ae86f98ac23e943d55d4faef56aac46fbbe54dc7ed4aaea
+2026-09-24T01:31:42.0928098Z Finalizing artifact upload
+2026-09-24T01:31:42.4802723Z Artifact continuitybench-100k-and-profile.zip successfully finalized. Artifact ID 10785896477
+2026-09-24T01:31:42.4804221Z Artifact continuitybench-100k-and-profile has been successfully uploaded! Final size is 42607 bytes. Artifact ID is 10785896477
+2026-09-24T01:31:42.4808397Z Artifact download URL: https://github.com/TFourniax/tooltest/actions/runs/35943160391/artifacts/10785896477
+2026-09-24T01:31:42.4921129Z ##[group]Run python scripts/continuity_retrieval_bench.py --json continuity-retrieval.json
+2026-09-24T01:31:42.4921852Z [36;1mpython scripts/continuity_retrieval_bench.py --json continuity-retrieval.json[0m
+2026-09-24T01:31:42.4985342Z shell: /usr/bin/bash -e {0}
+2026-09-24T01:31:42.4985614Z env:
+2026-09-24T01:31:42.4985897Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:42.4986366Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:31:42.4986814Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:42.4987198Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:42.4987591Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:42.4987973Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:31:42.4988306Z ##[endgroup]
+2026-09-24T01:31:43.4623956Z {
+2026-09-24T01:31:43.4624561Z   "schema_version": "continuity-retrieval-bench-1",
+2026-09-24T01:31:43.4625572Z   "corpus_sha256": "73a16f6110337f3eccc2fd43555bb14c9a9d11253bb790e80630eb669c5e1dd9",
+2026-09-24T01:31:43.4626508Z   "scope": "Synthetic FR/EN lexical, identity and two-hop scenarios; not a semantic translation benchmark",
+2026-09-24T01:31:43.4627278Z   "distractors": 1200,
+2026-09-24T01:31:43.4627636Z   "metrics": {
+2026-09-24T01:31:43.4628187Z     "fr": {
+2026-09-24T01:31:43.4628498Z       "cases": 17,
+2026-09-24T01:31:43.4628950Z       "passed": 17,
+2026-09-24T01:31:43.4629293Z       "macro_precision": 1.0,
+2026-09-24T01:31:43.4629982Z       "macro_recall": 1.0,
+2026-09-24T01:31:43.4630409Z       "mrr_positive": 1.0
+2026-09-24T01:31:43.4630743Z     },
+2026-09-24T01:31:43.4631136Z     "en": {
+2026-09-24T01:31:43.4631478Z       "cases": 12,
+2026-09-24T01:31:43.4645272Z       "passed": 12,
+2026-09-24T01:31:43.4645708Z       "macro_precision": 1.0,
+2026-09-24T01:31:43.4646172Z       "macro_recall": 1.0,
+2026-09-24T01:31:43.4646578Z       "mrr_positive": 1.0
+2026-09-24T01:31:43.4646958Z     }
+2026-09-24T01:31:43.4647235Z   },
+2026-09-24T01:31:43.4647548Z   "journal_unchanged": true,
+2026-09-24T01:31:43.4647972Z   "cases": [
+2026-09-24T01:31:43.4648278Z     {
+2026-09-24T01:31:43.4648552Z       "id": "fr-01",
+2026-09-24T01:31:43.4648878Z       "language": "fr",
+2026-09-24T01:31:43.4649514Z       "query": "réinitialisation",
+2026-09-24T01:31:43.4650230Z       "expected": [
+2026-09-24T01:31:43.4650569Z         "FR-RESET"
+2026-09-24T01:31:43.4650912Z       ],
+2026-09-24T01:31:43.4651217Z       "actual": [
+2026-09-24T01:31:43.4651562Z         "FR-RESET"
+2026-09-24T01:31:43.4651891Z       ],
+2026-09-24T01:31:43.4652233Z       "precision": 1.0,
+2026-09-24T01:31:43.4652615Z       "recall": 1.0,
+2026-09-24T01:31:43.4652995Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4653420Z       "citation_errors": [],
+2026-09-24T01:31:43.4653845Z       "passed": true
+2026-09-24T01:31:43.4654200Z     },
+2026-09-24T01:31:43.4654503Z     {
+2026-09-24T01:31:43.4654823Z       "id": "fr-02",
+2026-09-24T01:31:43.4655219Z       "language": "fr",
+2026-09-24T01:31:43.4655607Z       "query": "reinitialisation",
+2026-09-24T01:31:43.4656367Z       "expected": [
+2026-09-24T01:31:43.4656615Z         "FR-RESET"
+2026-09-24T01:31:43.4656827Z       ],
+2026-09-24T01:31:43.4657014Z       "actual": [
+2026-09-24T01:31:43.4657210Z         "FR-RESET"
+2026-09-24T01:31:43.4657411Z       ],
+2026-09-24T01:31:43.4657603Z       "precision": 1.0,
+2026-09-24T01:31:43.4657836Z       "recall": 1.0,
+2026-09-24T01:31:43.4658060Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4658320Z       "citation_errors": [],
+2026-09-24T01:31:43.4658569Z       "passed": true
+2026-09-24T01:31:43.4658788Z     },
+2026-09-24T01:31:43.4658975Z     {
+2026-09-24T01:31:43.4659167Z       "id": "fr-03",
+2026-09-24T01:31:43.4659383Z       "language": "fr",
+2026-09-24T01:31:43.4660095Z       "query": "RÉINITIALISATION",
+2026-09-24T01:31:43.4660368Z       "expected": [
+2026-09-24T01:31:43.4660574Z         "FR-RESET"
+2026-09-24T01:31:43.4660772Z       ],
+2026-09-24T01:31:43.4661204Z       "actual": [
+2026-09-24T01:31:43.4661423Z         "FR-RESET"
+2026-09-24T01:31:43.4661631Z       ],
+2026-09-24T01:31:43.4661923Z       "precision": 1.0,
+2026-09-24T01:31:43.4662177Z       "recall": 1.0,
+2026-09-24T01:31:43.4662392Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4662643Z       "citation_errors": [],
+2026-09-24T01:31:43.4662881Z       "passed": true
+2026-09-24T01:31:43.4663079Z     },
+2026-09-24T01:31:43.4663265Z     {
+2026-09-24T01:31:43.4663444Z       "id": "fr-04",
+2026-09-24T01:31:43.4663653Z       "language": "fr",
+2026-09-24T01:31:43.4663962Z       "query": "réinitialisation",
+2026-09-24T01:31:43.4664218Z       "expected": [
+2026-09-24T01:31:43.4664415Z         "FR-RESET"
+2026-09-24T01:31:43.4664611Z       ],
+2026-09-24T01:31:43.4664786Z       "actual": [
+2026-09-24T01:31:43.4664980Z         "FR-RESET"
+2026-09-24T01:31:43.4665192Z       ],
+2026-09-24T01:31:43.4665379Z       "precision": 1.0,
+2026-09-24T01:31:43.4665599Z       "recall": 1.0,
+2026-09-24T01:31:43.4665822Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4666071Z       "citation_errors": [],
+2026-09-24T01:31:43.4666317Z       "passed": true
+2026-09-24T01:31:43.4666515Z     },
+2026-09-24T01:31:43.4666694Z     {
+2026-09-24T01:31:43.4666876Z       "id": "fr-05",
+2026-09-24T01:31:43.4667079Z       "language": "fr",
+2026-09-24T01:31:43.4667295Z       "query": "securisee",
+2026-09-24T01:31:43.4667534Z       "expected": [
+2026-09-24T01:31:43.4667741Z         "FR-RESET"
+2026-09-24T01:31:43.4667941Z       ],
+2026-09-24T01:31:43.4668117Z       "actual": [
+2026-09-24T01:31:43.4668311Z         "FR-RESET"
+2026-09-24T01:31:43.4668508Z       ],
+2026-09-24T01:31:43.4668695Z       "precision": 1.0,
+2026-09-24T01:31:43.4668911Z       "recall": 1.0,
+2026-09-24T01:31:43.4669135Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4669381Z       "citation_errors": [],
+2026-09-24T01:31:43.4669920Z       "passed": true
+2026-09-24T01:31:43.4670171Z     },
+2026-09-24T01:31:43.4670435Z     {
+2026-09-24T01:31:43.4670639Z       "id": "fr-06",
+2026-09-24T01:31:43.4670852Z       "language": "fr",
+2026-09-24T01:31:43.4671118Z       "query": "Quel choix pour la reinitialisation ?",
+2026-09-24T01:31:43.4671441Z       "expected": [
+2026-09-24T01:31:43.4671662Z         "FR-RESET"
+2026-09-24T01:31:43.4671863Z       ],
+2026-09-24T01:31:43.4672042Z       "actual": [
+2026-09-24T01:31:43.4672242Z         "FR-RESET"
+2026-09-24T01:31:43.4672443Z       ],
+2026-09-24T01:31:43.4672636Z       "precision": 1.0,
+2026-09-24T01:31:43.4672853Z       "recall": 1.0,
+2026-09-24T01:31:43.4673076Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4673328Z       "citation_errors": [],
+2026-09-24T01:31:43.4673568Z       "passed": true
+2026-09-24T01:31:43.4673776Z     },
+2026-09-24T01:31:43.4673952Z     {
+2026-09-24T01:31:43.4674182Z       "id": "fr-07",
+2026-09-24T01:31:43.4674401Z       "language": "fr",
+2026-09-24T01:31:43.4674630Z       "query": "confidentialite",
+2026-09-24T01:31:43.4674896Z       "expected": [
+2026-09-24T01:31:43.4675102Z         "FR-CRYPT"
+2026-09-24T01:31:43.4675303Z       ],
+2026-09-24T01:31:43.4675490Z       "actual": [
+2026-09-24T01:31:43.4675862Z         "FR-CRYPT"
+2026-09-24T01:31:43.4676066Z       ],
+2026-09-24T01:31:43.4676257Z       "precision": 1.0,
+2026-09-24T01:31:43.4676479Z       "recall": 1.0,
+2026-09-24T01:31:43.4676701Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4676944Z       "citation_errors": [],
+2026-09-24T01:31:43.4677181Z       "passed": true
+2026-09-24T01:31:43.4677394Z     },
+2026-09-24T01:31:43.4677569Z     {
+2026-09-24T01:31:43.4677751Z       "id": "fr-08",
+2026-09-24T01:31:43.4677970Z       "language": "fr",
+2026-09-24T01:31:43.4678194Z       "query": "interblocages",
+2026-09-24T01:31:43.4678432Z       "expected": [
+2026-09-24T01:31:43.4678639Z         "FR-LOCK"
+2026-09-24T01:31:43.4678832Z       ],
+2026-09-24T01:31:43.4679011Z       "actual": [
+2026-09-24T01:31:43.4679208Z         "FR-LOCK"
+2026-09-24T01:31:43.4679395Z       ],
+2026-09-24T01:31:43.4679797Z       "precision": 1.0,
+2026-09-24T01:31:43.4680187Z       "recall": 1.0,
+2026-09-24T01:31:43.4680410Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4680664Z       "citation_errors": [],
+2026-09-24T01:31:43.4680895Z       "passed": true
+2026-09-24T01:31:43.4681091Z     },
+2026-09-24T01:31:43.4681270Z     {
+2026-09-24T01:31:43.4681449Z       "id": "fr-09",
+2026-09-24T01:31:43.4681654Z       "language": "fr",
+2026-09-24T01:31:43.4681912Z       "query": "synchronisation incrementale",
+2026-09-24T01:31:43.4682201Z       "expected": [
+2026-09-24T01:31:43.4682410Z         "FR-SYNC"
+2026-09-24T01:31:43.4682596Z       ],
+2026-09-24T01:31:43.4682773Z       "actual": [
+2026-09-24T01:31:43.4682966Z         "FR-SYNC"
+2026-09-24T01:31:43.4683156Z       ],
+2026-09-24T01:31:43.4683345Z       "precision": 1.0,
+2026-09-24T01:31:43.4683572Z       "recall": 1.0,
+2026-09-24T01:31:43.4683789Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4684032Z       "citation_errors": [],
+2026-09-24T01:31:43.4684268Z       "passed": true
+2026-09-24T01:31:43.4684468Z     },
+2026-09-24T01:31:43.4684652Z     {
+2026-09-24T01:31:43.4684830Z       "id": "fr-10",
+2026-09-24T01:31:43.4685035Z       "language": "fr",
+2026-09-24T01:31:43.4685269Z       "query": "accessibilite",
+2026-09-24T01:31:43.4685496Z       "expected": [
+2026-09-24T01:31:43.4685706Z         "FR-ACCESS"
+2026-09-24T01:31:43.4685901Z       ],
+2026-09-24T01:31:43.4686078Z       "actual": [
+2026-09-24T01:31:43.4686278Z         "FR-ACCESS"
+2026-09-24T01:31:43.4686470Z       ],
+2026-09-24T01:31:43.4686655Z       "precision": 1.0,
+2026-09-24T01:31:43.4686869Z       "recall": 1.0,
+2026-09-24T01:31:43.4687080Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4687325Z       "citation_errors": [],
+2026-09-24T01:31:43.4687615Z       "passed": true
+2026-09-24T01:31:43.4687812Z     },
+2026-09-24T01:31:43.4687984Z     {
+2026-09-24T01:31:43.4688166Z       "id": "fr-11",
+2026-09-24T01:31:43.4688369Z       "language": "fr",
+2026-09-24T01:31:43.4688592Z       "query": "oeuvres",
+2026-09-24T01:31:43.4688816Z       "expected": [
+2026-09-24T01:31:43.4689030Z         "FR-ART"
+2026-09-24T01:31:43.4689236Z       ],
+2026-09-24T01:31:43.4689415Z       "actual": [
+2026-09-24T01:31:43.4689821Z         "FR-ART"
+2026-09-24T01:31:43.4690022Z       ],
+2026-09-24T01:31:43.4690233Z       "precision": 1.0,
+2026-09-24T01:31:43.4690441Z       "recall": 1.0,
+2026-09-24T01:31:43.4690656Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4690902Z       "citation_errors": [],
+2026-09-24T01:31:43.4691132Z       "passed": true
+2026-09-24T01:31:43.4691332Z     },
+2026-09-24T01:31:43.4691511Z     {
+2026-09-24T01:31:43.4691689Z       "id": "fr-12",
+2026-09-24T01:31:43.4691900Z       "language": "fr",
+2026-09-24T01:31:43.4692214Z       "query": "cœur",
+2026-09-24T01:31:43.4692426Z       "expected": [
+2026-09-24T01:31:43.4692628Z         "FR-ART"
+2026-09-24T01:31:43.4692819Z       ],
+2026-09-24T01:31:43.4692998Z       "actual": [
+2026-09-24T01:31:43.4693195Z         "FR-ART"
+2026-09-24T01:31:43.4693377Z       ],
+2026-09-24T01:31:43.4693564Z       "precision": 1.0,
+2026-09-24T01:31:43.4693781Z       "recall": 1.0,
+2026-09-24T01:31:43.4693992Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4694392Z       "citation_errors": [],
+2026-09-24T01:31:43.4694618Z       "passed": true
+2026-09-24T01:31:43.4694814Z     },
+2026-09-24T01:31:43.4694992Z     {
+2026-09-24T01:31:43.4695167Z       "id": "fr-13",
+2026-09-24T01:31:43.4695365Z       "language": "fr",
+2026-09-24T01:31:43.4695585Z       "query": "coeur",
+2026-09-24T01:31:43.4695790Z       "expected": [
+2026-09-24T01:31:43.4695988Z         "FR-ART"
+2026-09-24T01:31:43.4696173Z       ],
+2026-09-24T01:31:43.4696348Z       "actual": [
+2026-09-24T01:31:43.4696541Z         "FR-ART"
+2026-09-24T01:31:43.4696728Z       ],
+2026-09-24T01:31:43.4696911Z       "precision": 1.0,
+2026-09-24T01:31:43.4697130Z       "recall": 1.0,
+2026-09-24T01:31:43.4697346Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4697585Z       "citation_errors": [],
+2026-09-24T01:31:43.4697821Z       "passed": true
+2026-09-24T01:31:43.4698016Z     },
+2026-09-24T01:31:43.4698350Z     {
+2026-09-24T01:31:43.4698533Z       "id": "fr-14",
+2026-09-24T01:31:43.4698732Z       "language": "fr",
+2026-09-24T01:31:43.4699089Z       "query": "Pourquoi utiliser l’authentification ?",
+2026-09-24T01:31:43.4699407Z       "expected": [
+2026-09-24T01:31:43.4699887Z         "FR-AUTH",
+2026-09-24T01:31:43.4700104Z         "FR-SESSION",
+2026-09-24T01:31:43.4700312Z         "FR-SECRET"
+2026-09-24T01:31:43.4700510Z       ],
+2026-09-24T01:31:43.4700685Z       "actual": [
+2026-09-24T01:31:43.4700875Z         "FR-AUTH",
+2026-09-24T01:31:43.4701085Z         "FR-SESSION",
+2026-09-24T01:31:43.4701286Z         "FR-SECRET"
+2026-09-24T01:31:43.4701482Z       ],
+2026-09-24T01:31:43.4701674Z       "precision": 1.0,
+2026-09-24T01:31:43.4701886Z       "recall": 1.0,
+2026-09-24T01:31:43.4702101Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4702346Z       "citation_errors": [],
+2026-09-24T01:31:43.4702574Z       "passed": true
+2026-09-24T01:31:43.4702782Z     },
+2026-09-24T01:31:43.4702964Z     {
+2026-09-24T01:31:43.4703141Z       "id": "fr-15",
+2026-09-24T01:31:43.4703350Z       "language": "fr",
+2026-09-24T01:31:43.4703581Z       "query": "deserialisation",
+2026-09-24T01:31:43.4703835Z       "expected": [],
+2026-09-24T01:31:43.4704048Z       "actual": [],
+2026-09-24T01:31:43.4704252Z       "precision": 1.0,
+2026-09-24T01:31:43.4704471Z       "recall": 1.0,
+2026-09-24T01:31:43.4704686Z       "first_relevant_rank": null,
+2026-09-24T01:31:43.4704944Z       "citation_errors": [],
+2026-09-24T01:31:43.4705182Z       "passed": true
+2026-09-24T01:31:43.4705379Z     },
+2026-09-24T01:31:43.4705553Z     {
+2026-09-24T01:31:43.4705733Z       "id": "fr-16",
+2026-09-24T01:31:43.4705938Z       "language": "fr",
+2026-09-24T01:31:43.4706215Z       "query": "désérialisation",
+2026-09-24T01:31:43.4706465Z       "expected": [],
+2026-09-24T01:31:43.4706670Z       "actual": [],
+2026-09-24T01:31:43.4706877Z       "precision": 1.0,
+2026-09-24T01:31:43.4707089Z       "recall": 1.0,
+2026-09-24T01:31:43.4707308Z       "first_relevant_rank": null,
+2026-09-24T01:31:43.4707565Z       "citation_errors": [],
+2026-09-24T01:31:43.4707795Z       "passed": true
+2026-09-24T01:31:43.4707999Z     },
+2026-09-24T01:31:43.4708177Z     {
+2026-09-24T01:31:43.4708359Z       "id": "fr-17",
+2026-09-24T01:31:43.4708561Z       "language": "fr",
+2026-09-24T01:31:43.4708848Z       "query": "géolocalisation inconnue",
+2026-09-24T01:31:43.4709129Z       "expected": [],
+2026-09-24T01:31:43.4709335Z       "actual": [],
+2026-09-24T01:31:43.4709546Z       "precision": 1.0,
+2026-09-24T01:31:43.4710038Z       "recall": 1.0,
+2026-09-24T01:31:43.4710259Z       "first_relevant_rank": null,
+2026-09-24T01:31:43.4710519Z       "citation_errors": [],
+2026-09-24T01:31:43.4710749Z       "passed": true
+2026-09-24T01:31:43.4710948Z     },
+2026-09-24T01:31:43.4711125Z     {
+2026-09-24T01:31:43.4711305Z       "id": "en-01",
+2026-09-24T01:31:43.4711517Z       "language": "en",
+2026-09-24T01:31:43.4711745Z       "query": "refund idempotency",
+2026-09-24T01:31:43.4712013Z       "expected": [
+2026-09-24T01:31:43.4712218Z         "EN-REFUND"
+2026-09-24T01:31:43.4712409Z       ],
+2026-09-24T01:31:43.4712782Z       "actual": [
+2026-09-24T01:31:43.4712978Z         "EN-REFUND"
+2026-09-24T01:31:43.4713164Z       ],
+2026-09-24T01:31:43.4713344Z       "precision": 1.0,
+2026-09-24T01:31:43.4713563Z       "recall": 1.0,
+2026-09-24T01:31:43.4713772Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4714024Z       "citation_errors": [],
+2026-09-24T01:31:43.4714260Z       "passed": true
+2026-09-24T01:31:43.4714463Z     },
+2026-09-24T01:31:43.4714636Z     {
+2026-09-24T01:31:43.4714810Z       "id": "en-02",
+2026-09-24T01:31:43.4715021Z       "language": "en",
+2026-09-24T01:31:43.4715264Z       "query": "duplicate reimbursements",
+2026-09-24T01:31:43.4715534Z       "expected": [
+2026-09-24T01:31:43.4715737Z         "EN-REFUND"
+2026-09-24T01:31:43.4715930Z       ],
+2026-09-24T01:31:43.4716108Z       "actual": [
+2026-09-24T01:31:43.4716303Z         "EN-REFUND"
+2026-09-24T01:31:43.4716633Z       ],
+2026-09-24T01:31:43.4716831Z       "precision": 1.0,
+2026-09-24T01:31:43.4717044Z       "recall": 1.0,
+2026-09-24T01:31:43.4717257Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4717500Z       "citation_errors": [],
+2026-09-24T01:31:43.4717732Z       "passed": true
+2026-09-24T01:31:43.4717926Z     },
+2026-09-24T01:31:43.4718105Z     {
+2026-09-24T01:31:43.4718282Z       "id": "en-03",
+2026-09-24T01:31:43.4718489Z       "language": "en",
+2026-09-24T01:31:43.4718712Z       "query": "tenant isolation",
+2026-09-24T01:31:43.4718958Z       "expected": [
+2026-09-24T01:31:43.4719169Z         "EN-PRIVACY"
+2026-09-24T01:31:43.4719364Z       ],
+2026-09-24T01:31:43.4719765Z       "actual": [
+2026-09-24T01:31:43.4719995Z         "EN-PRIVACY"
+2026-09-24T01:31:43.4720191Z       ],
+2026-09-24T01:31:43.4720380Z       "precision": 1.0,
+2026-09-24T01:31:43.4720593Z       "recall": 1.0,
+2026-09-24T01:31:43.4720801Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4721044Z       "citation_errors": [],
+2026-09-24T01:31:43.4721279Z       "passed": true
+2026-09-24T01:31:43.4721475Z     },
+2026-09-24T01:31:43.4721652Z     {
+2026-09-24T01:31:43.4721832Z       "id": "en-04",
+2026-09-24T01:31:43.4722032Z       "language": "en",
+2026-09-24T01:31:43.4722262Z       "query": "cross-workspace",
+2026-09-24T01:31:43.4722508Z       "expected": [
+2026-09-24T01:31:43.4722719Z         "EN-PRIVACY"
+2026-09-24T01:31:43.4722913Z       ],
+2026-09-24T01:31:43.4723089Z       "actual": [
+2026-09-24T01:31:43.4723292Z         "EN-PRIVACY"
+2026-09-24T01:31:43.4723490Z       ],
+2026-09-24T01:31:43.4723675Z       "precision": 1.0,
+2026-09-24T01:31:43.4723894Z       "recall": 1.0,
+2026-09-24T01:31:43.4724106Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4724349Z       "citation_errors": [],
+2026-09-24T01:31:43.4724576Z       "passed": true
+2026-09-24T01:31:43.4724771Z     },
+2026-09-24T01:31:43.4724949Z     {
+2026-09-24T01:31:43.4725129Z       "id": "en-05",
+2026-09-24T01:31:43.4725327Z       "language": "en",
+2026-09-24T01:31:43.4725566Z       "query": "unbounded retries",
+2026-09-24T01:31:43.4725827Z       "expected": [
+2026-09-24T01:31:43.4726036Z         "EN-FAILED"
+2026-09-24T01:31:43.4726244Z       ],
+2026-09-24T01:31:43.4726424Z       "actual": [
+2026-09-24T01:31:43.4726622Z         "EN-FAILED"
+2026-09-24T01:31:43.4726813Z       ],
+2026-09-24T01:31:43.4727006Z       "precision": 1.0,
+2026-09-24T01:31:43.4727235Z       "recall": 1.0,
+2026-09-24T01:31:43.4727457Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4727709Z       "citation_errors": [],
+2026-09-24T01:31:43.4727952Z       "passed": true
+2026-09-24T01:31:43.4728155Z     },
+2026-09-24T01:31:43.4728333Z     {
+2026-09-24T01:31:43.4728520Z       "id": "en-06",
+2026-09-24T01:31:43.4728725Z       "language": "en",
+2026-09-24T01:31:43.4728962Z       "query": "gateway overload",
+2026-09-24T01:31:43.4729213Z       "expected": [
+2026-09-24T01:31:43.4729415Z         "EN-FAILED"
+2026-09-24T01:31:43.4729827Z       ],
+2026-09-24T01:31:43.4730015Z       "actual": [
+2026-09-24T01:31:43.4730216Z         "EN-FAILED"
+2026-09-24T01:31:43.4730415Z       ],
+2026-09-24T01:31:43.4730608Z       "precision": 1.0,
+2026-09-24T01:31:43.4731005Z       "recall": 1.0,
+2026-09-24T01:31:43.4731229Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4731476Z       "citation_errors": [],
+2026-09-24T01:31:43.4731714Z       "passed": true
+2026-09-24T01:31:43.4731912Z     },
+2026-09-24T01:31:43.4732086Z     {
+2026-09-24T01:31:43.4732276Z       "id": "en-07",
+2026-09-24T01:31:43.4732480Z       "language": "en",
+2026-09-24T01:31:43.4732711Z       "query": "rotate signing keys",
+2026-09-24T01:31:43.4732977Z       "expected": [
+2026-09-24T01:31:43.4733175Z         "EN-TASK"
+2026-09-24T01:31:43.4733373Z       ],
+2026-09-24T01:31:43.4733554Z       "actual": [
+2026-09-24T01:31:43.4733747Z         "EN-TASK"
+2026-09-24T01:31:43.4733938Z       ],
+2026-09-24T01:31:43.4734124Z       "precision": 1.0,
+2026-09-24T01:31:43.4734336Z       "recall": 1.0,
+2026-09-24T01:31:43.4734558Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4734977Z       "citation_errors": [],
+2026-09-24T01:31:43.4735223Z       "passed": true
+2026-09-24T01:31:43.4735421Z     },
+2026-09-24T01:31:43.4735596Z     {
+2026-09-24T01:31:43.4735780Z       "id": "en-08",
+2026-09-24T01:31:43.4735984Z       "language": "en",
+2026-09-24T01:31:43.4736210Z       "query": "offline export",
+2026-09-24T01:31:43.4736461Z       "expected": [
+2026-09-24T01:31:43.4736668Z         "EN-OBJECTIVE"
+2026-09-24T01:31:43.4736875Z       ],
+2026-09-24T01:31:43.4737063Z       "actual": [
+2026-09-24T01:31:43.4737262Z         "EN-OBJECTIVE"
+2026-09-24T01:31:43.4737469Z       ],
+2026-09-24T01:31:43.4737655Z       "precision": 1.0,
+2026-09-24T01:31:43.4737870Z       "recall": 1.0,
+2026-09-24T01:31:43.4738087Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4738328Z       "citation_errors": [],
+2026-09-24T01:31:43.4738560Z       "passed": true
+2026-09-24T01:31:43.4738760Z     },
+2026-09-24T01:31:43.4738934Z     {
+2026-09-24T01:31:43.4739107Z       "id": "en-09",
+2026-09-24T01:31:43.4739329Z       "language": "en",
+2026-09-24T01:31:43.4739791Z       "query": "customer portability",
+2026-09-24T01:31:43.4740081Z       "expected": [
+2026-09-24T01:31:43.4740285Z         "EN-OBJECTIVE"
+2026-09-24T01:31:43.4740497Z       ],
+2026-09-24T01:31:43.4740686Z       "actual": [
+2026-09-24T01:31:43.4740894Z         "EN-OBJECTIVE"
+2026-09-24T01:31:43.4741121Z       ],
+2026-09-24T01:31:43.4741309Z       "precision": 1.0,
+2026-09-24T01:31:43.4741524Z       "recall": 1.0,
+2026-09-24T01:31:43.4741750Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4742003Z       "citation_errors": [],
+2026-09-24T01:31:43.4742242Z       "passed": true
+2026-09-24T01:31:43.4742447Z     },
+2026-09-24T01:31:43.4742626Z     {
+2026-09-24T01:31:43.4742809Z       "id": "en-10",
+2026-09-24T01:31:43.4743023Z       "language": "en",
+2026-09-24T01:31:43.4743261Z       "query": "unknown geolocation",
+2026-09-24T01:31:43.4743524Z       "expected": [],
+2026-09-24T01:31:43.4743740Z       "actual": [],
+2026-09-24T01:31:43.4743954Z       "precision": 1.0,
+2026-09-24T01:31:43.4744178Z       "recall": 1.0,
+2026-09-24T01:31:43.4744397Z       "first_relevant_rank": null,
+2026-09-24T01:31:43.4744662Z       "citation_errors": [],
+2026-09-24T01:31:43.4744903Z       "passed": true
+2026-09-24T01:31:43.4745102Z     },
+2026-09-24T01:31:43.4745277Z     {
+2026-09-24T01:31:43.4745466Z       "id": "en-11",
+2026-09-24T01:31:43.4745670Z       "language": "en",
+2026-09-24T01:31:43.4745887Z       "query": "X",
+2026-09-24T01:31:43.4746088Z       "expected": [
+2026-09-24T01:31:43.4746288Z         "X"
+2026-09-24T01:31:43.4746513Z       ],
+2026-09-24T01:31:43.4746695Z       "actual": [
+2026-09-24T01:31:43.4746887Z         "X"
+2026-09-24T01:31:43.4747082Z       ],
+2026-09-24T01:31:43.4747269Z       "precision": 1.0,
+2026-09-24T01:31:43.4747491Z       "recall": 1.0,
+2026-09-24T01:31:43.4747719Z       "first_relevant_rank": 1,
+2026-09-24T01:31:43.4747971Z       "citation_errors": [],
+2026-09-24T01:31:43.4748218Z       "passed": true
+2026-09-24T01:31:43.4748423Z     },
+2026-09-24T01:31:43.4748599Z     {
+2026-09-24T01:31:43.4748787Z       "id": "en-12",
+2026-09-24T01:31:43.4748994Z       "language": "en",
+2026-09-24T01:31:43.4749346Z       "query": "x",
+2026-09-24T01:31:43.4749823Z       "expected": [],
+2026-09-24T01:31:43.4750056Z       "actual": [],
+2026-09-24T01:31:43.4750290Z       "precision": 1.0,
+2026-09-24T01:31:43.4750508Z       "recall": 1.0,
+2026-09-24T01:31:43.4750728Z       "first_relevant_rank": null,
+2026-09-24T01:31:43.4750995Z       "citation_errors": [],
+2026-09-24T01:31:43.4751228Z       "passed": true
+2026-09-24T01:31:43.4751427Z     }
+2026-09-24T01:31:43.4751605Z   ],
+2026-09-24T01:31:43.4751789Z   "passed": true
+2026-09-24T01:31:43.4751991Z }
+2026-09-24T01:31:43.4752099Z 
+2026-09-24T01:31:43.5446302Z ##[group]Run actions/upload-artifact@v6
+2026-09-24T01:31:43.5446650Z with:
+2026-09-24T01:31:43.5446877Z   name: continuity-retrieval-fr-en
+2026-09-24T01:31:43.5447178Z   path: continuity-retrieval.json
+2026-09-24T01:31:43.5447461Z   if-no-files-found: error
+2026-09-24T01:31:43.5447713Z   retention-days: 30
+2026-09-24T01:31:43.5447946Z   compression-level: 6
+2026-09-24T01:31:43.5448190Z   overwrite: false
+2026-09-24T01:31:43.5448412Z   include-hidden-files: false
+2026-09-24T01:31:43.5448664Z env:
+2026-09-24T01:31:43.5448935Z   pythonLocation: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:43.5449385Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib/pkgconfig
+2026-09-24T01:31:43.5450106Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:43.5450497Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:43.5450885Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.14.7/x64
+2026-09-24T01:31:43.5451314Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.14.7/x64/lib
+2026-09-24T01:31:43.5451642Z ##[endgroup]
+2026-09-24T01:31:43.7237947Z With the provided path, there will be 1 file uploaded
+2026-09-24T01:31:43.7260992Z Artifact name is valid!
+2026-09-24T01:31:43.7261751Z Root directory input is valid!
+2026-09-24T01:31:44.1140592Z Beginning upload of artifact content to blob storage
+2026-09-24T01:31:44.3988444Z Uploaded bytes 1252
+2026-09-24T01:31:44.4687128Z Finished uploading artifact content to blob storage!
+2026-09-24T01:31:44.4688143Z SHA256 digest of uploaded artifact zip is a7c86c2e51b0e4a3643cc399052ba23bfc3a9dc6d60748df95957134b5dfcbc0
+2026-09-24T01:31:44.4689306Z Finalizing artifact upload
+2026-09-24T01:31:44.8886605Z Artifact continuity-retrieval-fr-en.zip successfully finalized. Artifact ID 10785990990
+2026-09-24T01:31:44.8888246Z Artifact continuity-retrieval-fr-en has been successfully uploaded! Final size is 1252 bytes. Artifact ID is 10785990990
+2026-09-24T01:31:44.8892969Z Artifact download URL: https://github.com/TFourniax/tooltest/actions/runs/35943160391/artifacts/10785990990
+2026-09-24T01:31:44.9081954Z Post job cleanup.
+2026-09-24T01:31:44.9949972Z [command]/usr/bin/git version
+2026-09-24T01:31:44.9994521Z git version 2.55.0
+2026-09-24T01:31:45.0033565Z Temporarily overriding HOME='/home/runner/work/_temp/601a7b76-c4c6-4841-935b-0b83b7a84b79' before making global git config changes
+2026-09-24T01:31:45.0035076Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T01:31:45.0040206Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T01:31:45.0075497Z Removing SSH command configuration
+2026-09-24T01:31:45.0082869Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T01:31:45.0121577Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T01:31:45.0388193Z Removing HTTP extra header
+2026-09-24T01:31:45.0395899Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T01:31:45.0449336Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T01:31:45.0708384Z Removing includeIf entries pointing to credentials config files
+2026-09-24T01:31:45.0717863Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T01:31:45.0747883Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T01:31:45.0749193Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T01:31:45.0750717Z includeif.gitdir:/github/workspace/.git.path
+2026-09-24T01:31:45.0751890Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T01:31:45.0758936Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T01:31:45.0795470Z /home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:31:45.0808348Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-2046665a\-2ad8\-4af2\-8eed\-85d0db1b6bda\.config
+2026-09-24T01:31:45.0857235Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T01:31:45.0896599Z /home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:31:45.0906448Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-2046665a\-2ad8\-4af2\-8eed\-85d0db1b6bda\.config
+2026-09-24T01:31:45.0947998Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-24T01:31:45.0976668Z /github/runner_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:31:45.0984928Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-2046665a\-2ad8\-4af2\-8eed\-85d0db1b6bda\.config
+2026-09-24T01:31:45.1024534Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T01:31:45.1054458Z /github/runner_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config
+2026-09-24T01:31:45.1065914Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-2046665a\-2ad8\-4af2\-8eed\-85d0db1b6bda\.config
+2026-09-24T01:31:45.1111234Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T01:31:45.1355341Z Removing credentials config '/home/runner/work/_temp/git-credentials-2046665a-2ad8-4af2-8eed-85d0db1b6bda.config'
+2026-09-24T01:31:45.1540171Z Cleaning up orphan processes
