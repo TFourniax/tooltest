@@ -158,6 +158,16 @@ def _query(question, kind, since, until, entity):
     if len(clause_intents) > 1 and kind != 'dependencies':
         ambiguity = ambiguity or 'multiple-question-clauses'
     # Compound dependencies retain their stricter direction-ambiguity guard.
+    # A prefixed command after a separator is still a compound request. Do not
+    # reinterpret "please/could you/... remember" as extra entity-name words.
+    # Noun memory/mémoire stays valid after a conjunction; explicit punctuation
+    # may introduce that shorthand. Literal --kind memory is not a command.
+    if not literal_memory and re.search(
+            r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b"
+            r"[^?!;,:]*\bremember\b|"
+            r"(?:[?!;,:]|\.(?:\s+|$))[^?!;,:]*\b(?:remember|memory|m[eé]moire)\b",
+            normalized_question, re.I):
+        ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:
         search_text = normalized_question
     lower = _instant(since) if since is not None else None

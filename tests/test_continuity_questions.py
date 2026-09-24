@@ -800,7 +800,7 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_prefixed_compound_memory_commands_never_become_name_terms(self):
         self.record('AUTH','auth and please do kindly could would can will you '
-                    'remember billing et veuillez because car',payload={'why':'Synthetic all-term reason'})
+                    'remember memory mémoire billing et veuillez because car',payload={'why':'Synthetic all-term reason'})
         self.record('SOURCE','source',kind='component',event_type='component.observed',
                     relations=[{'predicate':'depends_on','target':{'id':'AUTH','kind':'decision'}}])
         for question,options in [
@@ -810,6 +810,8 @@ class MemoryQuestionTests(unittest.TestCase):
             ('Why auth and kindly remember billing?',{}),
             ('Why auth: please remember billing?',{}),
             ('Why auth; please remember billing?',{}),
+            ('Why auth: please Memory billing?',{}),
+            ('Pourquoi auth ; veuillez Mémoire billing ?',{}),
             ('Pourquoi auth et veuillez remember billing ?',{}),
             ('Remember auth and please remember billing?',{}),
             ('What depends on auth and please remember billing?',{'entity':'AUTH'}),

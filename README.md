@@ -675,7 +675,8 @@ identifiers remain query terms. An entity ID narrows reason/change/memory select
 without discarding the other query terms; use `dw ask "Why?" --entity ID` to
 look up that identity alone. After a conjunction, `remember` starts an explicit
 memory request; bare `memory`/`mémoire` stays in an entity name. Use a colon or
-semicolon to separate a `Memory` request. Unsupported temporal or dependency
+semicolon to separate a `Memory` request. Prefixed compound memory commands
+abstain; explicit `--kind memory` remains literal label lookup. Unsupported temporal or dependency
 wording abstains.
 Open each original citation with `dw state event EVENT --hash SHA`.
 The question is never executed or stored, and no new Proof is inferred. See the

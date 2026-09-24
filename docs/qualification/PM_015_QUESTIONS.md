@@ -428,3 +428,21 @@ Real installed bilingual queries cover the new names/commands with exact source
 opening and all prior byte/authority assertions. All33findings, distinct latest
 review, complete hosted gates and fresh main remain mandatory. Work unavailable;
 no local AFTER, HUMAN or full semantic PM015/Alpha claim.
+
+
+Finding4090063735 is tracked as34. BEFORE0e46ae564941874d9bbe014139d31bfd94e50c5d /
+35957770710 / Ubuntu3.11 job107499894695:801tests,9failures,52skips,95.665s.
+The complete original log is retained. The guard now abstains on a Remember
+command later in a conjunctive clause regardless of its prefix, rather than
+enumerating only please/do spellings. After explicit punctuation it also guards
+prefixed Memory/Mémoire shorthand. Two additional noun-shorthand controls are
+not attributed to that prior BEFORE. Immediate recognized compounds keep their
+existing mixed/multiple reasons; otherwise the reason is
+unsupported-compound-memory-clause. Bare memory nouns after conjunctions and
+explicit literal --kind memory remain available with exact source assertions.
+The actual installed bilingual journey covers these cases and byte invariance.
+The33b1afa provider max558.800441>500ms failure remains unresolved; full evidence
+is on9f4a684ebb5764e66286d83aeb00a1d5acc57972. This functional correction does not
+fix or erase that PM012/merge hold. New CI verifies concrete changed behavior.
+All34findings, final review and all gates/fresh main remain mandatory. No local
+AFTER while Work is unavailable; no HUMAN or Alpha claim.

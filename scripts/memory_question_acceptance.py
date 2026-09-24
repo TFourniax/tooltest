@@ -35,7 +35,7 @@ def main():
         run(dw,'decision','record','fallback works import calls importe appelle',
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
-        run(dw,'decision','record','clause and remember billing','--id','DEC-COMPOUND',
+        run(dw,'decision','record','clause and please do kindly could you remember memory mémoire billing et veuillez','--id','DEC-COMPOUND',
             '--why','Synthetic all-terms compound fixture')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
@@ -266,6 +266,30 @@ def main():
             assert exact['status']=='cited-records'
             assert [f['fields']['id'] for f in exact['context']['facts']]==['DEC-AUTH']
             for part in exact['parts']:
+                source=part['source']
+                opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                assert opened['event']['event_hash']==source['eventHash']
+        for lang in ('fr','en'):
+            for question,identity in [
+                ('Why clause and please remember billing?','DEC-COMPOUND'),
+                ('Why clause and do remember billing?','DEC-COMPOUND'),
+                ('Why clause and could you please remember billing?','DEC-COMPOUND'),
+                ('Why clause and kindly remember billing?','DEC-COMPOUND'),
+                ('Why clause: please remember billing?','DEC-COMPOUND'),
+                ('Why clause; please remember billing?','DEC-COMPOUND'),
+                ('Why clause: please Memory billing?','DEC-COMPOUND'),
+                ('Pourquoi clause ; veuillez Mémoire billing ?','DEC-COMPOUND'),
+                ('Remember clause and please remember billing?','DEC-COMPOUND'),
+                ('What depends on auth and please remember billing?','DEC-AUTH'),
+            ]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--entity',identity,'--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']=='unsupported-compound-memory-clause'
+            literal=json.loads(run(dw,'--language',lang,'ask','clause and please remember billing',
+                                   '--kind','memory','--entity','DEC-COMPOUND','--json'))
+            assert literal['status']=='cited-records'
+            assert [f['fields']['id'] for f in literal['context']['facts']]==['DEC-COMPOUND']
+            for part in literal['parts']:
                 source=part['source']
                 opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
                 assert opened['event']['event_hash']==source['eventHash']
