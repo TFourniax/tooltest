@@ -88,11 +88,11 @@ class ImpactTests(unittest.TestCase):
         plan=self.plan();cid=self.change();compare(self.repo,plan['subject']['id'],cid);before=self.path.read_bytes()
         for language,word in [('en','Anticipated'),('fr','anticipés')]:
             args=[sys.executable,'-m','diffwitness.entry','--language',language,'task','impact','show',cid,'--repo',str(self.repo)]
-            result=subprocess.run(args,capture_output=True,text=True,timeout=15)
+            result=subprocess.run(args,capture_output=True,encoding="utf-8",timeout=15)
             self.assertEqual(result.returncode,0,result.stderr);self.assertIn(word.lower(),result.stdout.lower())
-            result=subprocess.run(args+['--json'],capture_output=True,text=True,timeout=15)
+            result=subprocess.run(args+['--json'],capture_output=True,encoding="utf-8",timeout=15)
             self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(json.loads(result.stdout)['plans'],[plan])
-        result=subprocess.run([sys.executable,'-m','diffwitness.entry','task','impact','anticipate','MISSING','--help'],cwd=self.repo,capture_output=True,text=True,timeout=15)
+        result=subprocess.run([sys.executable,'-m','diffwitness.entry','task','impact','anticipate','MISSING','--help'],cwd=self.repo,capture_output=True,encoding="utf-8",timeout=15)
         self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(self.path.read_bytes(),before)
 
     def test_actual_unavailable_git_tree_and_exact_cited_memory(self):

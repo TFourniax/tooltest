@@ -79,3 +79,12 @@ selection for each category, coordinated IdleProof/Portal interfaces and authent
 long journeys. PM012 intermittence and full release/HUMAN gates remain open.
 
 Local integrated source:744tests PASS,52explicit skips. Ten focused tests and the actual installed public-Gate journey PASS. Built wheel hash is recorded in PM_017_IMPACT/hashes.json; later documentation changes require a fresh CI artifact identity. Exact final-head review, hosted gates and fresh main remain required.
+
+Final-head CI35937209246 failed all four Windows unit jobs on the new French
+assertion. The actual CLI emits UTF-8 (existing stream configuration), while this
+test decoded captured bytes through the Windows locale. Explicit UTF-8 decoding
+at all three CLI capture boundaries corrects the harness without changing any
+assertion or product output. All10focused tests pass locally; fresh Windows CI
+is still required. The original Windows3.12 log/job107436803723 is retained;
+3.11/job107436803860,3.13/job107436803999,3.14/job107436804056 report the same
+single failure among744tests. This is distinct from the open PM012 incidents.
