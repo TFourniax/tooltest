@@ -1,0 +1,555 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "context",
+    "parts",
+    "assurance",
+    "actions",
+    "questionStored",
+    "answer_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "memory-question-answer-1"
+    },
+    "status": {
+      "enum": [
+        "abstained",
+        "cited-records"
+      ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "question",
+        "anchor",
+        "facts",
+        "coverage",
+        "abstention",
+        "authority",
+        "context_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "memory-question-context-1"
+        },
+        "question": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "kind",
+            "entity",
+            "terms",
+            "since",
+            "until",
+            "timeBasis",
+            "dependencyDirection"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "kind": {
+              "enum": [
+                "why",
+                "dependencies",
+                "changes",
+                "memory"
+              ]
+            },
+            "entity": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "terms": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "since": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "until": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "timeBasis": {
+              "const": "inclusive recorded timestamps; not authenticated wall-clock"
+            },
+            "dependencyDirection": {
+              "enum": [
+                null,
+                "incoming recorded edges"
+              ]
+            }
+          }
+        },
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "eventCount",
+            "eventHead",
+            "journalSha256"
+          ],
+          "properties": {
+            "eventCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "eventHead": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "journalSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "fields",
+                  "epistemicStatus",
+                  "source",
+                  "sequence",
+                  "recordedAt",
+                  "applicabilitySources",
+                  "relevance"
+                ],
+                "properties": {
+                  "category": {
+                    "const": "why"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "kind",
+                      "label",
+                      "reasonField",
+                      "reason"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "reasonField": {
+                        "enum": [
+                          "why",
+                          "reason"
+                        ]
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "epistemicStatus": {
+                    "enum": [
+                      "DECLARED",
+                      "INFERRED",
+                      "OBSERVED",
+                      "VERIFIED"
+                    ]
+                  },
+                  "source": {
+                    "$ref": "#/$defs/source"
+                  },
+                  "sequence": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "recordedAt": {
+                    "type": "string"
+                  },
+                  "applicabilitySources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/source"
+                    },
+                    "maxItems": 2
+                  },
+                  "relevance": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "fields",
+                  "epistemicStatus",
+                  "source",
+                  "sequence",
+                  "recordedAt",
+                  "applicabilitySources",
+                  "relevance"
+                ],
+                "properties": {
+                  "category": {
+                    "const": "memory"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "kind",
+                      "label"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "epistemicStatus": {
+                    "enum": [
+                      "DECLARED",
+                      "INFERRED",
+                      "OBSERVED",
+                      "VERIFIED"
+                    ]
+                  },
+                  "source": {
+                    "$ref": "#/$defs/source"
+                  },
+                  "sequence": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "recordedAt": {
+                    "type": "string"
+                  },
+                  "applicabilitySources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/source"
+                    },
+                    "maxItems": 2
+                  },
+                  "relevance": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "fields",
+                  "epistemicStatus",
+                  "source",
+                  "sequence",
+                  "recordedAt",
+                  "applicabilitySources",
+                  "relevance"
+                ],
+                "properties": {
+                  "category": {
+                    "const": "dependency"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "from",
+                      "predicate",
+                      "to"
+                    ],
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "predicate": {
+                        "enum": [
+                          "depends_on",
+                          "imports",
+                          "calls-name"
+                        ]
+                      },
+                      "to": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "epistemicStatus": {
+                    "enum": [
+                      "DECLARED",
+                      "INFERRED",
+                      "OBSERVED",
+                      "VERIFIED"
+                    ]
+                  },
+                  "source": {
+                    "$ref": "#/$defs/source"
+                  },
+                  "sequence": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "recordedAt": {
+                    "type": "string"
+                  },
+                  "applicabilitySources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/source"
+                    },
+                    "maxItems": 2
+                  },
+                  "relevance": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "category",
+                  "fields",
+                  "epistemicStatus",
+                  "source",
+                  "sequence",
+                  "recordedAt",
+                  "applicabilitySources",
+                  "relevance"
+                ],
+                "properties": {
+                  "category": {
+                    "const": "change"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "paths",
+                      "baseTree",
+                      "candidateTree",
+                      "pathCoverage"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "paths": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "baseTree": {},
+                      "candidateTree": {},
+                      "pathCoverage": {}
+                    }
+                  },
+                  "epistemicStatus": {
+                    "enum": [
+                      "DECLARED",
+                      "INFERRED",
+                      "OBSERVED",
+                      "VERIFIED"
+                    ]
+                  },
+                  "source": {
+                    "$ref": "#/$defs/source"
+                  },
+                  "sequence": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "recordedAt": {
+                    "type": "string"
+                  },
+                  "applicabilitySources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/source"
+                    },
+                    "maxItems": 2
+                  },
+                  "relevance": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 50
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "scope",
+            "matches",
+            "omitted",
+            "unusableTimestamps",
+            "semanticCompleteness"
+          ],
+          "properties": {
+            "method": {
+              "const": "deterministic lexical lookup in validated journal"
+            },
+            "scope": {
+              "enum": [
+                "recorded incoming relations",
+                "recorded change events",
+                "current active assertions"
+              ]
+            },
+            "matches": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "omitted": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unusableTimestamps": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "semanticCompleteness": {
+              "const": "unknown"
+            }
+          }
+        },
+        "abstention": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authority": {
+          "type": "string"
+        },
+        "context_id": {
+          "type": "string",
+          "pattern": "^dwqctx_[0-9a-f]{64}$"
+        }
+      }
+    },
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "factIndex",
+          "source"
+        ],
+        "properties": {
+          "factIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 49
+          },
+          "source": {
+            "$ref": "#/$defs/source"
+          }
+        }
+      },
+      "maxItems": 50
+    },
+    "assurance": {
+      "const": "none"
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "questionStored": {
+      "const": false
+    },
+    "answer_id": {
+      "type": "string",
+      "pattern": "^dwanswer_[0-9a-f]{64}$"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Extractive local memory question answer, version 1",
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "eventId",
+        "eventHash"
+      ],
+      "properties": {
+        "kind": {
+          "const": "project-event"
+        },
+        "eventId": {
+          "type": "string",
+          "pattern": "^dwev_[0-9a-f]{24}$"
+        },
+        "eventHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  },
+  "description": "Structure only. Context/answer hashes, exact part-to-fact bindings and validated original journal provenance remain semantic requirements; hashes do not authenticate authors."
+}
