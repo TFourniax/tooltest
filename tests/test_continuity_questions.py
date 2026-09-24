@@ -300,3 +300,27 @@ class MemoryQuestionTests(unittest.TestCase):
                 result=answer_question(self.repo,question)
                 self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['AUTH'])
                 self.assert_sources(result)
+
+    def test_resolved_unknown_target_keeps_every_active_incoming_edge(self):
+        hashes={}
+        for identity,target,payload in [
+            ('SRC-A',{'id':'OPAQUE-TARGET','kind':'component','label':'auth service'},{}),
+            ('SRC-B',{'id':'OPAQUE-TARGET','kind':'component'},{}),
+            ('SRC-DORMANT',{'id':'OPAQUE-TARGET','kind':'component'},{'lifecycle':'inactive'}),
+            ('SRC-PAY',{'id':'OPAQUE-PAY','kind':'component','label':'payment service'},{}),
+        ]:
+            event=self.record(identity,identity,kind='component',event_type='component.observed',payload=payload,
+                relations=[{'predicate':'depends_on','target':target,'epistemic_status':'INFERRED'}])
+            hashes[identity]=event['event_hash']
+        for question in ('What depends on auth service?', 'Qu’est-ce qui dépend de auth service ?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'cited-records')
+                facts=result['context']['facts']
+                self.assertEqual(sorted(f['fields']['from'] for f in facts),['SRC-A','SRC-B'])
+                self.assertEqual({f['fields']['to'] for f in facts},{'OPAQUE-TARGET'})
+                self.assertEqual(result['context']['coverage']['matches'],2)
+                self.assertEqual(result['context']['coverage']['omitted'],0)
+                for fact in facts:
+                    self.assertEqual(fact['source']['eventHash'],hashes[fact['fields']['from']])
+                self.assert_sources(result)
