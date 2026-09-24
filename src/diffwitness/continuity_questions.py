@@ -27,7 +27,8 @@ _STOP = tokens('why pourquoi what which who how where when does depend depends d
                'the and this that those these here there from since after before about have '
                'has was were are using use uses utilisons utiliser utilise module component '
                'composant fichiers files changed changes change changee changements fait faits '
-               'memory memoire records recorded logiciel software')
+               'memory memoire records recorded logiciel software '
+               'do we is it its our in on of to a an du des le la les un une qu ce')
 _AUTHORITY = ('Extracts describe recorded assertions, not authenticated authors, current code '
               'applicability, complete semantic coverage or new causal Proof.')
 
@@ -147,7 +148,8 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
     def match(subject, extra=''):
         if entity is not None:
             return 1000 if subject['id'] == entity else 0
-        return len(terms & tokens(' '.join((subject['id'], subject.get('label') or '', extra))))
+        subject_terms = tokens(' '.join((subject['id'], subject.get('label') or '', extra)))
+        return len(terms) if terms and terms <= subject_terms else 0
     def active(identity):
         return identity not in current or current[identity]['active']
     def fact(sequence, event, category, fields, score, *, status=None, revisions=()):
@@ -163,7 +165,26 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
                     continue
                 key = (event['subject']['id'], relation['predicate'], relation['target']['id'])
                 latest[key] = sequence, event, relation
+        # Resolve targets before selecting edges, including matching active
+        # entities with no incoming edge. Absence of an edge cannot resolve a
+        # name ambiguity. Explicit --entity is the literal disambiguator.
+        target_terms = tokens(_incoming_target(question) or '') - _STOP
+        def target_match(subject):
+            if entity is not None:
+                return subject['id'] == entity
+            available = tokens(subject['id'] + ' ' + (subject.get('label') or ''))
+            return bool(target_terms) and target_terms <= available
+        target_ids = {identity for identity, state in current.items()
+                      if state['active'] and target_match(state['assertion']['subject'])}
+        for _, _, relation in latest.values():
+            target = relation['target']
+            if target['id'] not in current and target_match(target):
+                target_ids.add(target['id'])
+        if len(target_ids) > 1:
+            abstention = 'ambiguous-dependency-target'
         for sequence, event, relation in latest.values():
+            if abstention or relation['target']['id'] not in target_ids:
+                continue
             target = relation['target']; target_state = current.get(target['id'])
             target_subject = target_state['assertion']['subject'] if target_state else target
             score = match(target_subject)

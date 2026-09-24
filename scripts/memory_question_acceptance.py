@@ -20,12 +20,15 @@ def main():
             return r.stdout
         run('git','init','-q');run('git','config','user.name','Question Fixture');run('git','config','user.email','question@example.test')
         run('git','-c','commit.gpgsign=false','commit','--allow-empty','-qm','baseline')
-        run(dw,'decision','record','Authentification auth','--id','DEC-AUTH','--why','Réduire les accès non autorisés')
+        run(dw,'decision','record','Authentification auth service','--id','DEC-AUTH','--why','Réduire les accès non autorisés')
         run(dw,'objective','add','Contrôle auth','--id','OBJ-AUTH','--why','Garder une frontière explicite')
         run(dw,'relation','add','OBJ-AUTH','depends_on','DEC-AUTH')
+        run(dw,'decision','record','Payment service','--id','DEC-PAY','--why','Keep payment records')
+        run(dw,'objective','add','Checkout','--id','OBJ-PAY','--why','Keep payment scope')
+        run(dw,'relation','add','OBJ-PAY','depends_on','DEC-PAY')
         paths=continuity_paths(repo);before={p:p.read_bytes() for p in (paths.events,paths.state) if p.exists()}
         cases=[]
-        for question in ['Why auth?','Pourquoi auth ?','What depends on auth?','Qu’est-ce qui dépend de auth ?',
+        for question in ['Why auth?','Pourquoi auth ?','What depends on auth service?','Qu’est-ce qui dépend de auth service ?',
                          'Why unrecorded_lunar_module?','What changed in auth since yesterday?',
                          'auth depends on what?', 'de quoi auth dépend-il ?',
                          'What depends on auth and what does auth depend on?',
@@ -88,6 +91,19 @@ def main():
                                     cwd=repo,encoding='utf-8',capture_output=True,timeout=30)
             assert rejected.returncode==2 and rejected.stdout==''
             assert 'Traceback' not in rejected.stderr
+        for lang in ('fr','en'):
+            for question in ('What depends on auth service?', 'Qu’est-ce qui dépend de auth service ?'):
+                selected=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert [f['fields']['to'] for f in selected['context']['facts']]==['DEC-AUTH']
+                for part in selected['parts']:
+                    source=part['source']
+                    opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==source['eventHash']
+            ambiguous=json.loads(run(dw,'--language',lang,'ask','What depends on auth?','--json'))
+            assert ambiguous['status']=='abstained' and ambiguous['parts']==[]
+            assert ambiguous['context']['abstention']=='ambiguous-dependency-target'
+            exact=json.loads(run(dw,'--language',lang,'ask','What depends on auth?','--entity','DEC-AUTH','--json'))
+            assert [f['fields']['to'] for f in exact['context']['facts']]==['DEC-AUTH']
         assert all(p.read_bytes()==b for p,b in before.items())
         run(dw,'decision','retire','DEC-AUTH','--reason','Historic only')
         retired=json.loads(run(dw,'ask','Why?','--entity','DEC-AUTH','--json'));assert retired['status']=='abstained'

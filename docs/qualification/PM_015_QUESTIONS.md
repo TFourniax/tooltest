@@ -148,3 +148,22 @@ The condition is removed so the same temporal policy applies to why, incoming
 dependencies and memory queries too. Five corresponding installed FR/EN cases
 are added. The prior760-test Linux after-result is retained separately and does
 not qualify this final change. Final hosted gates/review and freshmain required.
+
+Review4088979869 exposed partial-word false positives for multiword dependency
+targets. The same risk also affected why and changes. Regression-first9836b01
+runs765tests with9subcase failures/52skips in94.398s on35944338885/
+job107459127110. The complete BEFORE log is retained.
+Retrieval now requires every meaningful normalized query term, with explicit
+French/English grammatical stop words; partial overlaps no longer suffice.
+Dependencies resolve the parsed target before selecting edges. Multiple matching
+active identities abstain, including a matching identity without an incoming edge;
+--entity provides literal disambiguation. Unknown relation targets are considered
+without inventing current state.
+The installed journey includes a payment-service distractor, precise auth-service
+selection, a genuinely ambiguous auth query and recovery by literal identity.
+Instruction-shaped queries with unmatched content abstain; a separate plain query
+still proves exact malicious recorded text is quoted as data, citations remain
+original and files/index/journal remain unchanged. This strengthens rather than
+removes the instruction/data boundary test. The lexical reader still makes no
+claim of full natural-language or semantic coverage. Final hosted gates, review
+and freshmain are required; no local execution is claimed while Work is offline.
