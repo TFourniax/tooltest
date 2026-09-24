@@ -637,7 +637,8 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assert_sources(result)
 
     def test_partial_iso_and_day_constraints_never_become_unbounded_paths(self):
-        phrases=('on 2026-09','le 2026-09','2026-09','on 09-21','le 21-09','on 21')
+        phrases=('on 2026-09','le 2026-09','2026-09','on 09-21','le 21-09','on 21',
+                 'on Mon','le début','2026W39','2026-W39')
         self.record('CHANGE-PARTIAL-DATE','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
@@ -665,3 +666,43 @@ class MemoryQuestionTests(unittest.TestCase):
                         self.assertEqual(result['status'],'cited-records')
                         self.assertEqual([f['fields']['to'] for f in result['context']['facts']],[identity])
                         self.assert_sources(result)
+
+    def test_repeated_same_intent_clauses_abstain_even_with_literal_entity(self):
+        self.record('AUTH','auth',payload={'why':'Auth reason'})
+        self.record('BILLING','billing',payload={'why':'Billing reason'})
+        self.record('CHANGE-AUTH','auth change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['auth.py']})
+        for question,identity,kind in [
+            ('Why auth. Why billing?','AUTH','why'),
+            ('Why auth and why billing?','AUTH','why'),
+            ('Pourquoi auth et pourquoi billing ?','AUTH','why'),
+            ('Remember auth; Remember billing?','AUTH','auto'),
+            ('What changed in auth and what changed in billing?','CHANGE-AUTH','changes'),
+        ]:
+            for selected_kind in {'auto',kind}:
+                with self.subTest(question=question,kind=selected_kind):
+                    result=answer_question(self.repo,question,entity=identity,kind=selected_kind)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'multiple-question-clauses')
+
+    def test_explicit_empty_bounds_raise_instead_of_becoming_unbounded(self):
+        self.record('CHANGE-AUTH','auth change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['auth.py']})
+        for option in ('since','until'):
+            with self.subTest(option=option):
+                with self.assertRaises(ValueError):
+                    answer_question(self.repo,'What changed in auth?',**{option:''})
+
+    def test_explicit_empty_bounds_have_bounded_cli_rejection(self):
+        self.record('CHANGE-AUTH','auth change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['auth.py']})
+        before=self.paths.events.read_bytes()
+        for flag in ('--since','--until'):
+            with self.subTest(flag=flag):
+                run=subprocess.run([sys.executable,'-m','diffwitness.entry','ask',
+                    'What changed in auth?','--repo',str(self.repo),flag,'','--json'],
+                    capture_output=True,encoding='utf-8',timeout=15)
+                self.assertEqual(run.returncode,2,run.stderr)
+                self.assertEqual(run.stdout,'');self.assertNotIn('Traceback',run.stderr)
+        self.assertEqual(self.paths.events.read_bytes(),before)
