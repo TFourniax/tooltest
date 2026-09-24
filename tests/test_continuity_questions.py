@@ -635,3 +635,33 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'cited-records')
                     self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['CHANGE-NEW'])
                     self.assert_sources(result)
+
+    def test_partial_iso_and_day_constraints_never_become_unbounded_paths(self):
+        phrases=('on 2026-09','le 2026-09','2026-09','on 09-21','le 21-09','on 21')
+        self.record('CHANGE-PARTIAL-DATE','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_dependency_verb_words_in_names_are_not_embedded_clauses(self):
+        labels=('import management','imports management','depend management','depends management')
+        for index,label in enumerate(labels):
+            identity='MOD-VERB-'+str(index)
+            self.record(identity,label,kind='component',event_type='component.observed')
+            self.record('SRC-VERB-'+str(index),'source',kind='component',event_type='component.observed',
+                        relations=[{'predicate':'imports','target':{'id':identity,'kind':'component'}}])
+        for index,label in enumerate(labels):
+            identity='MOD-VERB-'+str(index)
+            for question in ('What depends on '+label+'?', 'Qu’est-ce qui dépend de '+label+' ?'):
+                for options in ({},{'entity':identity}):
+                    with self.subTest(question=question,options=options):
+                        result=answer_question(self.repo,question,**options)
+                        self.assertEqual(result['status'],'cited-records')
+                        self.assertEqual([f['fields']['to'] for f in result['context']['facts']],[identity])
+                        self.assert_sources(result)
