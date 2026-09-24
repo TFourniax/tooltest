@@ -466,3 +466,20 @@ for the dotted-name positives. No prior authority, byte, source or direction
 assertion is removed. All38findings, latest-head review and complete gates remain
 required. The33b1afa provider max558.800441>500ms incident is still unresolved;
 these question changes do not fix it or establish Alpha/HUMAN readiness.
+
+
+Review5300151500 on c960ee6 adds findings4090220923/4090220930/4090220934
+(41total). BEFORE0c2f510c7ad2c2d10e036e0c720fe550bf5ed6a4 /35960335738 /
+Ubuntu3.11 job107507412610:808tests,49failures,52skips,97.652s.
+The original log is retained. Adjacent French elided forms now recognize the
+whole interrogative prefix, rather than requiring whitespace after qu'.
+Abbreviated month-first dates accept ordinal suffixes for the ambiguity guard;
+standalone year-first dates with variable-width month/day fields also abstain.
+Identity selection and explicit CLI bounds do not bypass these constraints.
+All earlier positive names, dotted versions and ISO-bound/source/byte/authority
+assertions remain. Installed bilingual cases cover all three new families.
+The preceding c960ee6 run ended20PASS/4cancelled as real new regressions arrived;
+its805-test and installed Ubuntu PASS do not qualify this new head. Full logs
+are retained. All41findings and latest-head review/required gates remain open.
+The provider558.800441>500ms incident remains unresolved; no main merge,
+local AFTER, complete PM015, HUMAN or Alpha is claimed.

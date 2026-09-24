@@ -37,7 +37,7 @@ def main():
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
         run(dw,'decision','record','clause and please do kindly could you remember memory mémoire billing et veuillez','--id','DEC-COMPOUND',
             '--why','Synthetic all-terms compound fixture')
-        run(dw,'decision','record','adjacent why pourquoi billing what changed in remember please memory',
+        run(dw,'decision','record','adjacent why pourquoi billing what changed in remember please memory qu est ce qui que a changé dans dépend de appelle importe',
             '--id','DEC-ADJACENT','--why','Synthetic adjacent-question fixture')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
@@ -83,8 +83,11 @@ def main():
                           "jusqu'ici",'jusqu’ici','à ce jour','a ce jour',
                           "pour l'instant",'pour le moment','à présent','a present',
                           '09-21-2026','21-09-2026','09-21-26','21-09-26',
+                          '2026-9-21','2026-09-1','2026-9-1','2026-9',
                           'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
                           'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
+                          'Sep 21st','Sep. 21st','Sept21st','Jan 1st','Feb 2nd','Apr 3rd',
+                          'Aug 4th','janv. 1er','févr. 2e',
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
                           '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
         append_project_event(repo=repo,event_type='change.observed',
@@ -307,6 +310,11 @@ def main():
                 ('Pourquoi adjacent.Pourquoi billing ?','multiple-question-clauses'),
                 ('Remember adjacent.Remember billing?','multiple-question-clauses'),
                 ('Why adjacent.What changed in billing?','mixed-question-intents'),
+                ("Pourquoi adjacent.Qu’est-ce qui a changé dans billing ?",'mixed-question-intents'),
+                ("Pourquoi adjacent.Qu'est-ce qui a changé dans billing ?",'mixed-question-intents'),
+                ("Pourquoi adjacent.Qu’est-ce qui dépend de billing ?",'mixed-question-intents'),
+                ("Pourquoi adjacent.Qu'est-ce que billing importe ?",'mixed-question-intents'),
+                ("Pourquoi adjacent.Qu’appelle billing ?",'mixed-question-intents'),
                 ('Why adjacent.Please remember billing?','unsupported-compound-memory-clause'),
             ]:
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--entity','DEC-ADJACENT','--json'))

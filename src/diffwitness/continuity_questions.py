@@ -120,8 +120,9 @@ def _question_intents(question):
     # Remember is an imperative after conjunctions. Bare memory/mémoire
     # remains a noun there; punctuation can introduce the explicit shorthand.
     # Explicit punctuation still separates independently stated clauses.
-    clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:why|pourquoi|what|which|who|"
-                       r"quels?|quelles?|qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\s+))|"
+    clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:(?:why|pourquoi|what|which|who|"
+                       r"quels?|quelles?|qui|de\s+quoi|remember|memory|m[eé]moire)\s+|"
+                       r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
                        r":\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
@@ -214,7 +215,7 @@ def _query(question, kind, since, until, entity):
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
-        r"|(?<![\w./#:+-])\d{4}-(?:\d{2}|W\d{2})(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2})(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{4}W\d{2}(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{1,2}-\d{1,2}-(?:\d{4}|\d{2})(?![\w/#:+-]|\.\w)"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
@@ -240,7 +241,7 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
         r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
         cleaned, re.I) or re.search(
-        rf"(?<![\w./#:+-]){month_word}\.?\s*\d{{1,4}}\b|"
+        rf"(?<![\w./#:+-]){month_word}\.?\s*\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
         rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?\s*{month_word}\.?(?:\s*\d{{2,4}})?\b|"
         rf"\b(?:in|en)\s+{month_word}\.?(?!\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
