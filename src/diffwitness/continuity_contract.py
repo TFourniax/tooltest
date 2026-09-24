@@ -164,35 +164,13 @@ def validate_admission_profile(event: dict[str, Any]) -> None:
     provenance = event["provenance"]
     if PROFILE_PROVENANCE_FIELD not in provenance:
         return
-    if provenance[PROFILE_PROVENANCE_FIELD] == IMPACT_PROFILE:
-        validate_impact(event)
+    profile = provenance[PROFILE_PROVENANCE_FIELD]
+    if profile != DECLARATION_PROFILE:
+        validator = _ADMISSION_VALIDATORS.get(profile) if isinstance(profile, str) else None
+        if validator is None:
+            raise ValueError("unsupported Project Memory admission profile")
+        validator(event)
         return
-    if provenance[PROFILE_PROVENANCE_FIELD] == MEMORY_CODE_PROFILE:
-        validate_memory_code(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == GIT_LINEAGE_PROFILE:
-        validate_git_lineage(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == GIT_HISTORY_PROFILE:
-        validate_git_history(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == MEMORY_LIFECYCLE_PROFILE:
-        validate_memory_lifecycle(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == TASK_PROFILE:
-        validate_task_profile(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == ARTIFACT_PROFILE:
-        _validate_artifact_profile(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == DEBT_LIFECYCLE_PROFILE:
-        _validate_debt_lifecycle_profile(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] == RELATION_PROFILE:
-        _validate_relation_profile(event)
-        return
-    if provenance[PROFILE_PROVENANCE_FIELD] != DECLARATION_PROFILE:
-        raise ValueError("unsupported Project Memory admission profile")
     spec = _DECLARATION_SPECS.get(event["event_type"])
     if spec is None or event["subject"]["kind"] != spec["subject_kind"]:
         raise ValueError("declaration profile event type and subject kind do not match")
@@ -430,6 +408,20 @@ def projection_lifecycle(event_type: str, payload: dict[str, Any]) -> str:
         return "inactive"
     explicit = payload.get("lifecycle")
     return explicit if explicit in PROJECTION_LIFECYCLES else "active"
+
+
+# Dispatch immutable profile names, never cache validation results or event data.
+_ADMISSION_VALIDATORS = {
+    IMPACT_PROFILE: validate_impact,
+    MEMORY_CODE_PROFILE: validate_memory_code,
+    GIT_LINEAGE_PROFILE: validate_git_lineage,
+    GIT_HISTORY_PROFILE: validate_git_history,
+    MEMORY_LIFECYCLE_PROFILE: validate_memory_lifecycle,
+    TASK_PROFILE: validate_task_profile,
+    ARTIFACT_PROFILE: _validate_artifact_profile,
+    DEBT_LIFECYCLE_PROFILE: _validate_debt_lifecycle_profile,
+    RELATION_PROFILE: _validate_relation_profile,
+}
 
 
 def project_memory_contract() -> dict[str, Any]:

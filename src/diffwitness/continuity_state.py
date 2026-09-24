@@ -259,14 +259,20 @@ def _entity_row(event: dict[str, Any], payload_json: str | None = None,
             event["event_id"], int(subject["kind"] == "invariant" and payload.get("critical") is True))
 
 
-def _entity_term_rows(conn: sqlite3.Connection, event: dict[str, Any]) -> Iterable[tuple[str, str]]:
+def _entity_term_rows(conn: sqlite3.Connection, event: dict[str, Any],
+                      payload_json: str | None = None) -> Iterable[tuple[str, str]]:
     subject = event["subject"]
     if subject["kind"] not in SEARCHABLE_KINDS:
         return ()
     entity_id, label = str(subject["id"]), subject.get("label")
     if label is None:
         label = conn.execute("select label from entities where entity_id=?", (entity_id,)).fetchone()[0]
-    values = tokens(memory_text(subject["kind"], entity_id, label, event.get("payload") or {}))
+    # JSON separators are not lexical tokens. Reuse the already encoded payload
+    # for ordinary memory; task intent retains its narrower existing policy.
+    text = (" ".join((str(label or ""), entity_id, payload_json))
+            if payload_json is not None and subject["kind"] != "task"
+            else memory_text(subject["kind"], entity_id, label, event.get("payload") or {}))
+    values = tokens(text)
     return ((entity_id, term) for term in values)
 
 
@@ -505,12 +511,13 @@ def _project_declarations(conn: sqlite3.Connection, entries: list[tuple[int, dic
     conn.executemany(_ENTITY_UPSERT, (_entity_row(event, row[-2], row[-1])
                                     for (_, event), row in zip(entries, rows)))
     latest = {}
-    for _, event in entries:
+    for (_, event), row in zip(entries, rows):
         _upsert_relations(conn, event)
-        latest[str(event["subject"]["id"])] = event
+        latest[str(event["subject"]["id"])] = event, row[-2]
     conn.executemany("delete from entity_terms where entity_id=?", ((key,) for key in latest))
     conn.executemany("insert into entity_terms(entity_id,term) values(?,?)",
-                     (row for event in latest.values() for row in _entity_term_rows(conn, event)))
+                     (row for event, payload in latest.values()
+                      for row in _entity_term_rows(conn, event, payload)))
 
 
 def _project_history(conn: sqlite3.Connection, events: list[dict[str, Any]]) -> None:
@@ -555,6 +562,10 @@ def _rebuild_snapshot(root_repo: Path, paths: ContinuityPaths, events: list[dict
     try:
         conn = _connect(temp)
         try:
+            # A bounded private page cache avoids repeated dirty-page spills
+            # during bulk projection. Journaling and synchronous durability stay
+            # at their defaults; this database is published only after commit.
+            conn.execute("pragma cache_size=-32768")
             _schema(conn, indexes=False)
             _project_history(conn, events)
             _indexes(conn)

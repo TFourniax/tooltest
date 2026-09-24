@@ -1,0 +1,27 @@
+[
+  {
+    "path": "batch-perf-100k.json.gz",
+    "original_sha256": "d9a5688a6b58aa37a7062f2ac13a859f9d5902532e24deb176ebf1a96292d092",
+    "original_bytes": 595
+  },
+  {
+    "path": "batch-perf-100k-decoder.json.gz",
+    "original_sha256": "94cdbbf05d1b203ce8f1006e969b5f76585af75e460d3baef6ca35ddcc6641c7",
+    "original_bytes": 595
+  },
+  {
+    "path": "batch-perf-profile.log.gz",
+    "original_sha256": "edf9c951728a30a58a590d6559d691540c8573befc0fecbeff1fd89c17481484",
+    "original_bytes": 6888
+  },
+  {
+    "path": "batch-perf-full.log.gz",
+    "original_sha256": "bdee5c1c3e097c75be1218eb20a47e39f5ea74ca455f87ea8d4f044d782645a8",
+    "original_bytes": 153980
+  },
+  {
+    "path": "batch-perf-corrected-continuity.log.gz",
+    "original_sha256": "0fe29c177d7613c31efd278ddc8b644a3b540e7e967400e385bbbe4bb333998c",
+    "original_bytes": 49110
+  }
+]

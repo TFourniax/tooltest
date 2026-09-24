@@ -27,9 +27,9 @@ class AppendCacheTests(unittest.TestCase):
     def admitted(self, operation):
         seen = []
         original = journal._ProjectEventValidator.admit
-        def observe(validator, event):
+        def observe(validator, event, **options):
             seen.append(event['subject']['id'])
-            return original(validator, event)
+            return original(validator, event, **options)
         with patch.object(journal._ProjectEventValidator, 'admit', observe):
             operation()
         return seen

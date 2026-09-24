@@ -144,13 +144,13 @@ class ContinuityContextCacheTests(unittest.TestCase):
             # Whitespace and CRLF must be hashed exactly, not canonicalized or newline-translated.
             original = b"\r\n" + path.read_bytes().replace(b"\n", b"\r\n")
             path.write_bytes(original)
-            validate = continuity_events.validate_project_events
+            admit = continuity_events._ProjectEventValidator.admit
 
-            def mutate_after_read(events):
-                validate(events)
+            def mutate_after_read(validator, event, **options):
+                admit(validator, event, **options)
                 path.write_bytes(original.replace(b"Support refunds", b"Forged refunds!"))
 
-            with patch.object(continuity_events, "validate_project_events", side_effect=mutate_after_read):
+            with patch.object(continuity_events._ProjectEventValidator, "admit", mutate_after_read):
                 state = rebuild_state(repo)
             conn = sqlite3.connect(state)
             try:

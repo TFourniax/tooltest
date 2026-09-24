@@ -33,6 +33,8 @@ class ContinuityError(RuntimeError):
 
 _EVENT_TYPE = re.compile(EVENT_TYPE_PATTERN)
 _ENTITY_ID = re.compile(ENTITY_ID_PATTERN)
+_ENTITY_KIND = re.compile(ENTITY_KIND_PATTERN)
+_RELATION_PREDICATE = re.compile(RELATION_PREDICATE_PATTERN)
 _EVENT_ID = re.compile(r"dwev_[0-9a-f]{24}")
 _EVENT_DIGEST = re.compile(r"[0-9a-f]{64}")
 _LOCK_TIMEOUT_SECONDS = 10.0
@@ -50,6 +52,37 @@ def _canonical(value: Any) -> str:
         return _CANONICAL_ENCODER.encode(value)
     except (TypeError, ValueError, RecursionError) as exc:
         raise ContinuityError("project event cannot be represented as finite JSON") from exc
+
+
+_JSON_ATOMIC_TYPES = frozenset((str, int, float, bool, type(None)))
+
+
+def _copy_event_data(value: Any, memo: dict[int, Any] | None = None) -> Any:
+    """Detach ordinary JSON containers without deepcopy's generic dispatch cost.
+
+    Preserve aliases and cycles just as deepcopy does; the finite canonical JSON
+    boundary still rejects cycles. Nonstandard Python inputs retain deepcopy's
+    behavior, rather than being silently coerced into accepted JSON values.
+    """
+    kind = type(value)
+    if kind in _JSON_ATOMIC_TYPES:
+        return value
+    if memo is None:
+        memo = {}
+    identity = id(value)
+    if identity in memo:
+        return memo[identity]
+    if kind is dict and all(type(key) is str for key in value):
+        result = {}
+        memo[identity] = result
+        result.update((key, _copy_event_data(item, memo)) for key, item in value.items())
+        return result
+    if kind is list:
+        result = []
+        memo[identity] = result
+        result.extend(_copy_event_data(item, memo) for item in value)
+        return result
+    return copy.deepcopy(value, memo)
 
 
 def _sha(value: Any) -> str:
@@ -105,7 +138,7 @@ def _event_id(event: dict[str, Any]) -> str:
     return "dwev_" + _sha(stable)[:24]
 
 
-def _event_integrity(event: dict[str, Any]) -> tuple[int, str, str]:
+def _event_integrity(event: dict[str, Any], *, canonical: bytes | None = None) -> tuple[int, str, str]:
     """Derive both digests from freshly encoded, unambiguous canonical members.
 
     The required actor sorts before both identity fields, so each identity member
@@ -120,7 +153,8 @@ def _event_integrity(event: dict[str, Any]) -> tuple[int, str, str]:
             or type(event.get("event_id")) is not str or not _EVENT_ID.fullmatch(event["event_id"])
             or type(event.get("event_hash")) is not str or not _EVENT_DIGEST.fullmatch(event["event_hash"])):
         return len((_canonical(event) + "\n").encode("utf-8")), _event_id(event), _event_hash(event)
-    canonical = _canonical(event).encode("utf-8")
+    if canonical is None:
+        canonical = _canonical(event).encode("utf-8")
     identity_member = b',"event_id":"' + event["event_id"].encode("ascii") + b'"'
     hash_member = b',"event_hash":"' + event["event_hash"].encode("ascii") + b'"'
     if canonical.count(identity_member) != 1 or canonical.count(hash_member) != 1:
@@ -138,7 +172,7 @@ def _validate_subject(subject: Any) -> None:
     kind = subject.get("kind")
     if not isinstance(entity_id, str) or not _ENTITY_ID.fullmatch(entity_id):
         raise ContinuityError(f"invalid project entity id: {entity_id!r}")
-    if not isinstance(kind, str) or not re.fullmatch(ENTITY_KIND_PATTERN, kind):
+    if not isinstance(kind, str) or not _ENTITY_KIND.fullmatch(kind):
         raise ContinuityError(f"invalid project entity kind: {kind!r}")
     label = subject.get("label")
     if label is not None and (not isinstance(label, str) or len(label) > MAX_LABEL_CHARS):
@@ -152,7 +186,7 @@ def _validate_relations(relations: Any) -> None:
         if not isinstance(relation, dict):
             raise ContinuityError("project relation must be an object")
         predicate = relation.get("predicate")
-        if not isinstance(predicate, str) or not re.fullmatch(RELATION_PREDICATE_PATTERN, predicate):
+        if not isinstance(predicate, str) or not _RELATION_PREDICATE.fullmatch(predicate):
             raise ContinuityError(f"invalid project relation predicate: {predicate!r}")
         _validate_subject(relation.get("target"))
         status = relation.get("epistemic_status")
@@ -164,7 +198,8 @@ def _validate_relations(relations: Any) -> None:
 
 
 def _validate_event_shape(event: dict[str, Any], *, line: int | None = None,
-                          compute_integrity: bool = False) -> tuple[str, str] | None:
+                          compute_integrity: bool = False,
+                          canonical: bytes | None = None) -> tuple[str, str] | None:
     where = f" at line {line}" if line is not None else ""
     if event.get("schema_version") != SCHEMA_VERSION:
         raise ContinuityError(f"unsupported project event schema{where}")
@@ -192,7 +227,7 @@ def _validate_event_shape(event: dict[str, Any], *, line: int | None = None,
     dedupe_key = event.get("dedupe_key")
     if dedupe_key is not None and (not isinstance(dedupe_key, str) or not dedupe_key or len(dedupe_key) > 500):
         raise ContinuityError(f"invalid dedupe key{where}")
-    integrity = _event_integrity(event) if compute_integrity else None
+    integrity = _event_integrity(event, canonical=canonical) if compute_integrity else None
     size = integrity[0] if integrity else len((_canonical(event) + "\n").encode("utf-8"))
     if size > _MAX_EVENT_BYTES:
         raise ContinuityError(f"project event{where} exceeds {_MAX_EVENT_BYTES} bytes")
@@ -210,11 +245,12 @@ class _ProjectEventValidator:
         self.memory_history = MemoryHistoryValidator()
         self.count = 0
 
-    def admit(self, event: dict[str, Any]) -> None:
+    def admit(self, event: dict[str, Any], *, canonical: bytes | None = None) -> None:
         index = self.count + 1
         if not isinstance(event, dict):
             raise ContinuityError(f"project event line {index} is not an object")
-        expected_id, expected_hash = _validate_event_shape(event, line=index, compute_integrity=True)
+        expected_id, expected_hash = _validate_event_shape(event, line=index, compute_integrity=True,
+                                                         canonical=canonical)
         if event.get("prev_hash") != self.previous:
             raise ContinuityError(f"project event hash chain broken at line {index}")
         if event.get("event_id") != expected_id:
@@ -260,8 +296,28 @@ def _read_validated_snapshot(path: Path) -> tuple[list[dict[str, Any]], str, _Pr
     if not path.exists():
         return [], digest.hexdigest(), _ProjectEventValidator()
     events: list[dict[str, Any]] = []
-    def parsed_events() -> Iterator[dict[str, Any]]:
+    def decode_chunk(lines: list[str]) -> Iterator[tuple[dict[str, Any], bytes | None]]:
+        # One native decode shares JSON key strings within a bounded batch.
+        # This is NOT an alternate framing or permissive JSON boundary: every
+        # optimized record must equal its freshly encoded canonical physical
+        # line byte for byte. Duplicate keys, spanning/injected records, alternate
+        # spellings and legacy formatting all go through the strict line reader.
         try:
+            values = json.loads('[' + ','.join(lines) + ']')
+        except (ValueError, RecursionError):
+            values = None
+        if not isinstance(values, list) or len(values) != len(lines):
+            values = [None] * len(lines)
+        for line, value in zip(lines, values):
+            canonical = _canonical(value).encode('utf-8') if isinstance(value, dict) else None
+            if canonical is None or canonical != line.strip(' \t\r\n').encode('utf-8'):
+                value = strict_json_loads(line)
+                canonical = None
+            yield value, canonical
+
+    def parsed_events() -> Iterator[tuple[dict[str, Any], bytes | None]]:
+        try:
+            pending, pending_bytes = [], 0
             with path.open("rb") as handle:
                 for number, raw in enumerate(handle, start=1):
                     digest.update(raw)
@@ -269,17 +325,22 @@ def _read_validated_snapshot(path: Path) -> tuple[list[dict[str, Any]], str, _Pr
                     for line in raw.decode("utf-8").split("\r"):
                         if not line.strip():
                             continue
-                        value = strict_json_loads(line)
-                        if not isinstance(value, dict):
-                            raise ContinuityError(f"project event line {number} is not an object")
-                        events.append(value)
-                        yield value
+                        pending.append(line)
+                        pending_bytes += len(line.encode('utf-8'))
+                        if len(pending) >= 2048 or pending_bytes >= 4 * 1024 * 1024:
+                            yield from decode_chunk(pending)
+                            pending, pending_bytes = [], 0
+                if pending:
+                    yield from decode_chunk(pending)
         except (OSError, ValueError, RecursionError) as exc:
             raise ContinuityError(f"cannot read project event log {path}: {exc}") from exc
     # Validate while freshly parsed objects are local; expose no snapshot until
     # the complete stream succeeds. Always close the file if validation rejects.
     with closing(parsed_events()) as stream:
-        validator = validate_project_events(stream)
+        validator = _ProjectEventValidator()
+        for event, canonical in stream:
+            validator.admit(event, canonical=canonical)
+            events.append(event)
     return events, digest.hexdigest(), validator
 
 
@@ -534,7 +595,7 @@ def append_project_events(
     paths = continuity_paths(root_repo)
     # Detach nested caller data before a candidate can enter private validator
     # state. Returned objects are detached again at the public boundary below.
-    candidates = [copy.deepcopy(_candidate_from_spec(spec)) for spec in events]
+    candidates = [_copy_event_data(_candidate_from_spec(spec)) for spec in events]
 
     with _event_lock(paths):
         raw, validator, by_dedupe = _append_history(paths.events)
@@ -576,7 +637,8 @@ def append_project_events(
             validator.admit(event)
         written = _durable_append(paths, appended)
         _remember_append(paths.events, raw + written, validator, by_dedupe)
-        return copy.deepcopy(results)
+        memo: dict[int, Any] = {}
+        return [(_copy_event_data(event, memo), created) for event, created in results]
 
 
 def append_project_event(

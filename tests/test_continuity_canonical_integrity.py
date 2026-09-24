@@ -58,6 +58,49 @@ class CanonicalIntegrityTests(unittest.TestCase):
                 self.assertEqual(len(opened), 1)
                 self.assertTrue(opened[0].closed)
 
+    def test_chunk_reader_preserves_strict_line_framing_and_duplicate_rejection(self):
+        first = signed()
+        second = signed(prev_hash=first['event_hash'])
+        a, b = encoded(first), encoded(second)
+        split = a.index(b',"event_type"')
+        malformed = (
+            a[:split] + b'\n' + a[split + 1:] + b',' + b + b'\n',
+            a.replace(b'"schema_version":', b'"schema_version":"project-event-1","schema_version":') + b'\n',
+            b'\xc2\xa0' + a + b'\n',
+        )
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / 'events.jsonl'
+            for raw in malformed:
+                with self.subTest(raw=raw[:40]):
+                    path.write_bytes(raw)
+                    with self.assertRaises(journal.ContinuityError):
+                        journal.read_project_events(path)
+            for separator in (b'\n', b'\r\n', b'\r'):
+                for canonical in (True, False):
+                    render = encoded if canonical else lambda e: json.dumps(e, ensure_ascii=True).encode()
+                    raw = separator.join((render(first), render(second))) + separator
+                    path.write_bytes(raw)
+                    values, digest = journal.read_project_event_snapshot(path)
+                    self.assertEqual(values, [first, second])
+                    self.assertEqual(digest, hashlib.sha256(raw).hexdigest())
+                    self.assertEqual(path.read_bytes(), raw)
+
+    def test_json_detachment_matches_deepcopy_and_preserves_aliases(self):
+        shared = {'unicode': 'mémoire', 'nested': [None, True, 3, -0.0]}
+        value = {'a': shared, 'b': shared, 'tuple': (1, {'two': 2})}
+        copied = journal._copy_event_data(value)
+        self.assertEqual(copied, copy.deepcopy(value))
+        self.assertIs(copied['a'], copied['b'])
+        self.assertIsNot(copied['a'], shared)
+        copied['a']['nested'].append('detached')
+        self.assertNotIn('detached', shared['nested'])
+        cycle = []
+        cycle.append(cycle)
+        copied_cycle = journal._copy_event_data(cycle)
+        self.assertIs(copied_cycle[0], copied_cycle)
+        with self.assertRaises(journal.ContinuityError):
+            journal._canonical(copied_cycle)
+
     def test_ordinary_validation_needs_one_complete_canonical_encoding(self):
         event = signed({"nested": {"values": list(range(200))}})
         with patch.object(journal, "_canonical", wraps=journal._canonical) as encode:
