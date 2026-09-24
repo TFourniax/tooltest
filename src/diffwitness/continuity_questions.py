@@ -127,7 +127,7 @@ def _question_intents(question):
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:(?:why|pourquoi|what|which|who|"
                        r"quels?|quelles?|qui|de\s+quoi|remember|memory|m[eé]moire)\s+|"
                        r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
-                       r"(?:[:—–/|]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"(?:[:—–/|({\[]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"(?:\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+|&+\s*)"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
@@ -170,9 +170,9 @@ def _query(question, kind, since, until, entity):
     # may introduce that shorthand. Literal --kind memory is not a command.
     if not literal_memory and re.search(
             r"(?:\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b|&+)"
-            r"[^?!;,:—–/|]*\bremember\b|"
-            r"(?:[?!;,:—–/|]|\s+-{1,2}\s+)[^?!;,:—–/|]*\b(?:remember|memory|m[eé]moire)\b|"
-            r"\.(?!\d)[^?!;,:—–/|]*\b(?:remember|memory|m[eé]moire)\s+\S",
+            r"[^?!;,:—–/|(){}\[\]]*\bremember\b|"
+            r"(?:[?!;,:—–/|({\[]|\s+-{1,2}\s+)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\b|"
+            r"\.(?!\d)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\s+\S",
             normalized_question, re.I):
         ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:
@@ -249,8 +249,8 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
         r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
         cleaned, re.I) or re.search(
-        rf"(?<![\w./#:+-]){month_word}\.?\s*\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
-        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?\s*{month_word}\.?(?:\s*\d{{2,4}})?\b|"
+        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
+        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?\b|"
         rf"\b(?:in|en)\s+{month_word}\.?(?!\w)|"
         rf"(?<![\w./#:+-]){month_word}(?![\w/#:+-]|\.\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.

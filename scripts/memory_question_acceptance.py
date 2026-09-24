@@ -56,7 +56,9 @@ def main():
                        'dotted-21.09.2026','build_2026.9.21','dotted-21.09.26','v24.1.10',
                        'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering','plan 12 est stable','plan 13 Est stable','plan 12 cet objet',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
-                       'System.Memory','foo.memory.py','release-2026-264','v2026264','audit/2024366','build_2026-001','v20260921','release-2026W394','build_20260921T120000Z')
+                       'System.Memory','foo.memory.py','release-2026-264','v2026264','audit/2024366','build_2026-001','v20260921','release-2026W394','build_20260921T120000Z',
+                       'sept-sdk','sdk-sep-21','release/21-Sep-2026','sep.service',
+                       'bracketed (v2)','billing [external]','service {adapter}')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -102,6 +104,9 @@ def main():
                           '21.09.2026','9.21.2026','2026.09.21','2026.9.21','21.09.26','09.21.26','1.2.26','Jan','Feb','Mar','Apr','Jun','Jul','Aug','Sep','Sept','Oct','Nov','Dec','janv','févr','avr','juil','déc',
                           'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
                           'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
+                          'Sep-21','21-Sep-2026','Sep/21/2026','21/Sep/26','Sep.21',
+                          '21.Sep.26','21st-Sep-2026','févr.-2','2-févr.-2026',
+                          'Sep - 21','21 / Sep / 26','Ｓｅｐ／２１／２０２６',
                           'Sep 21st','Sep. 21st','Sept21st','Jan 1st','Feb 2nd','Apr 3rd',
                           'Aug 4th','janv. 1er','févr. 2e',
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
@@ -338,7 +343,8 @@ def main():
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']==reason
         for lang in ('fr','en'):
-            for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||'):
+            for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||',
+                              ' (','[',' { ','（','［','｛'):
                 for tail,reason in (
                     ('what changed in billing?','mixed-question-intents'),
                     ('quels changements dans billing ?','mixed-question-intents'),

@@ -839,15 +839,29 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_abbreviated_month_dates_never_become_path_terms(self):
         phrases=('Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
-                 'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21')
+                 'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
+                 'Sep-21','21-Sep-2026','Sep/21/2026','21/Sep/26','Sep.21',
+                 '21.Sep.26','21st-Sep-2026','févr.-2','2-févr.-2026',
+                 'Sep - 21','21 / Sep / 26','Ｓｅｐ／２１／２０２６')
         self.record('MONTH-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        before=self.paths.events.read_bytes()
         for phrase in phrases:
-            with self.subTest(phrase=phrase):
-                result=answer_question(self.repo,'What changed in auth '+phrase+'?')
-                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
-                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+            for prefix in ('What changed in auth ','Quels changements dans auth '):
+                for options in ({},{'until':'2027-01-01'},{'entity':'MONTH-OLD'}):
+                    with self.subTest(phrase=phrase,prefix=prefix,options=options):
+                        result=answer_question(self.repo,prefix+phrase+'?',**options)
+                        self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                        self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        self.assertEqual(before,self.paths.events.read_bytes())
+        for index,label in enumerate(('sept-sdk','sdk-sep-21','release/21-Sep-2026','sep.service')):
+            identity='MONTH-NAME-'+str(index)
+            source=self.record(identity,label,payload={'why':'Attached identifier'})
+            result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+            self.assert_sources(result)
 
     def test_named_zone_clocks_never_become_path_terms(self):
         phrases=('12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
@@ -976,7 +990,8 @@ class MemoryQuestionTests(unittest.TestCase):
         self.record('DEC','auth why pourquoi what changed in billing quels changements dans '
                     'qu est ce qui a changé remember please memory',
                     payload={'why':'Synthetic all-term reason'})
-        for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||'):
+        for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||',
+                          ' (','[',' { ','（','［','｛'):
             for tail,reason in (
                 ('what changed in billing?','mixed-question-intents'),
                 ('quels changements dans billing ?','mixed-question-intents'),
@@ -988,6 +1003,15 @@ class MemoryQuestionTests(unittest.TestCase):
                     result=answer_question(self.repo,'Why auth'+separator+tail,entity='DEC')
                     self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],reason)
+
+    def test_parentheses_in_names_preserve_original_citations(self):
+        for index,label in enumerate(('auth (v2)','billing [external]','service {adapter}')):
+            identity='BRACKET-NAME-'+str(index)
+            source=self.record(identity,label,payload={'why':'Named component reason'})
+            result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+            self.assert_sources(result)
 
     def test_equal_lexical_terms_keep_all_sources_until_identity_is_selected(self):
         labels=('lexicalshape-2026-09-21','lexicalshape-21.09.2026')

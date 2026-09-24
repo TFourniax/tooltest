@@ -634,3 +634,26 @@ remain literal.73 focused tests and817 installed-wheel tests PASS (52skips,
 9ecab60dbda72758f77bad7badb3f55c296bcca0b3b40bd8f835d1b21e1cc81d.
 Journal/state remain unchanged; original sources are opened. Final candidate
 review and hosted gates are still required; no result transfers between SHAs.
+
+## Work continuation — grouped findings 55–56, 2026-09-24
+
+Review comments 4091691319 and 4091691327 on b83719b are addressed together.
+Named-month dates accept numeric hyphen/slash/dot separators for detection,
+including French abbreviations, ordinal days and NFKC forms. Parentheses,
+brackets and braces before recognized questions or prefixed memory commands
+retain compound intent. Ordinary attached identifiers and parenthesized names
+remain positive exact-citation cases.
+
+The two expanded regressions against b83719b reproduce 78 failing subcases.
+The installed corrected wheel passes 74 focused tests and the full suite:
+818 tests, 52 explicit skips, 98.792 seconds. The initial full invocation from
+the parent directory failed one test-module import (`scripts` absent from
+sys.path); its log is retained. Running the documented command from the repo
+root fixes the harness invocation without modifying an assertion or product.
+The real installed CLI journey also passes with original citations opened and
+journal/state bytes unchanged. Local wheel SHA256:
+fcfa0498a495149d2582f141e4315fae8cf471e825d737fb94b2f9bd7ec82fbd.
+
+Latest-head independent review, hosted gates and fresh main remain required.
+This is bounded extractive Q&A, not full semantic PM015 or HUMAN acceptance.
+PM012 provider and 100k incidents remain separate release blockers.
