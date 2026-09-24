@@ -167,3 +167,16 @@ original and files/index/journal remain unchanged. This strengthens rather than
 removes the instruction/data boundary test. The lexical reader still makes no
 claim of full natural-language or semantic coverage. Final hosted gates, review
 and freshmain are required; no local execution is claimed while Work is offline.
+
+Review4089040597 identified a lost edge after resolving an unknown target:
+a relation occurrence with no optional label was re-matched and excluded.
+BEFORE0ef45aca/35944993411/job107461154943 runs766tests with2subcase failures/
+52skips in84.645s. Both French and English queries returned SRC-A only, losing
+SRC-B to the same OPAQUE-TARGET. The original log is retained.
+After unique identity resolution, every active incoming edge to that identity is
+selected without requiring a repeated optional label. The regression also keeps
+an inactive source and unrelated target excluded, checks both original hashes
+and exact coverage counts. The installed journey adds an import-shaped fixture
+through the installed event API, then real CLI questions and source opening in
+both languages. These synthetic fixture declarations are not a native producer
+or HUMAN qualification. Final hosted review/gates and freshmain remain required.

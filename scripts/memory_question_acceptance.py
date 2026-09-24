@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from diffwitness.continuity_events import continuity_paths
+from diffwitness.continuity_events import append_project_event, continuity_paths
 from diffwitness.runtime_executable import resolve_dw_command
 
 
@@ -26,6 +26,18 @@ def main():
         run(dw,'decision','record','Payment service','--id','DEC-PAY','--why','Keep payment records')
         run(dw,'objective','add','Checkout','--id','OBJ-PAY','--why','Keep payment scope')
         run(dw,'relation','add','OBJ-PAY','depends_on','DEC-PAY')
+        # Import-shaped fixture through the installed event API; queries and
+        # exact source opening below still execute the installed CLI.
+        for identity,target in [
+            ('OPA-SRC-A',{'id':'RAW-TARGET','kind':'component','label':'opaque boundary'}),
+            ('OPA-SRC-B',{'id':'RAW-TARGET','kind':'component'}),
+        ]:
+            append_project_event(repo=repo,event_type='component.observed',
+                subject={'id':identity,'kind':'component','label':'Imported source'},
+                epistemic_status='DECLARED',payload={},
+                relations=[{'predicate':'depends_on','target':target,'epistemic_status':'INFERRED'}],
+                provenance={'producer':'question-acceptance','source':'synthetic-unresolved-target'},
+                actor={'kind':'fixture','id':'question-acceptance'})
         paths=continuity_paths(repo);before={p:p.read_bytes() for p in (paths.events,paths.state) if p.exists()}
         cases=[]
         for question in ['Why auth?','Pourquoi auth ?','What depends on auth service?','Qu’est-ce qui dépend de auth service ?',
@@ -104,6 +116,16 @@ def main():
             assert ambiguous['context']['abstention']=='ambiguous-dependency-target'
             exact=json.loads(run(dw,'--language',lang,'ask','What depends on auth?','--entity','DEC-AUTH','--json'))
             assert [f['fields']['to'] for f in exact['context']['facts']]==['DEC-AUTH']
+        for lang in ('fr','en'):
+            for question in ('What depends on opaque boundary?', 'Qu’est-ce qui dépend de opaque boundary ?'):
+                selected=json.loads(run(dw,'--language',lang,'ask',question,'--json'))
+                assert sorted(f['fields']['from'] for f in selected['context']['facts'])==['OPA-SRC-A','OPA-SRC-B']
+                assert selected['context']['coverage']['matches']==2
+                assert selected['context']['coverage']['omitted']==0
+                for part in selected['parts']:
+                    source=part['source']
+                    opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                    assert opened['event']['event_hash']==source['eventHash']
         assert all(p.read_bytes()==b for p,b in before.items())
         run(dw,'decision','retire','DEC-AUTH','--reason','Historic only')
         retired=json.loads(run(dw,'ask','Why?','--entity','DEC-AUTH','--json'));assert retired['status']=='abstained'

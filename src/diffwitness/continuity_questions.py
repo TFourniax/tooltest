@@ -185,9 +185,10 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
         for sequence, event, relation in latest.values():
             if abstention or relation['target']['id'] not in target_ids:
                 continue
-            target = relation['target']; target_state = current.get(target['id'])
-            target_subject = target_state['assertion']['subject'] if target_state else target
-            score = match(target_subject)
+            target = relation['target']
+            # The identity is already resolved. Optional per-occurrence labels
+            # must not erase other edges to that same target.
+            score = 1000 if entity is not None else len(target_terms)
             if score and active(event['subject']['id']) and active(target['id']):
                 revisions = [current[x]['revision'] for x in (event['subject']['id'], target['id'])
                              if x in current and current[x]['action']]
