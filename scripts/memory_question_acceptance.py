@@ -37,7 +37,8 @@ def main():
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
-                      'risk or change retention','risk and call retention')
+                      'risk or change retention','risk and call retention',
+                      'import management','imports management','depend management','depends management')
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21')
@@ -68,7 +69,9 @@ def main():
                           'cette fin de semaine','this fortnight','this decade','cette décennie',
                           'ce siècle','this century','this season','cette saison','this sprint','cette itération',
                           'from launch','during migration','pendant migration','durant migration',
-                          'on 3.14','le 3.12','since 21.09.2026','depuis 21.09.2026')
+                          'on 3.14','le 3.12','since 21.09.2026','depuis 21.09.2026',
+                          'on 2026-09','le 2026-09','2026-09','on 09-21','le 21-09','on 21',
+                          'on Mon','le début','2026W39','2026-W39')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
@@ -216,7 +219,18 @@ def main():
                     citation=part['source']
                     opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))
                     assert opened['event']['event_hash']==citation['eventHash']
-        for flag,bound in [('--since','9999-12-31T23:59:59-23:59'),
+        for lang in ('fr','en'):
+            for question,identity in [
+                ('Why auth. Why billing?','DEC-AUTH'),
+                ('Why auth and why billing?','DEC-AUTH'),
+                ('Pourquoi auth et pourquoi billing ?','DEC-AUTH'),
+                ('Remember auth; Remember billing?','DEC-AUTH'),
+                ('What changed in auth and what changed in billing?','CHANGE-OLD'),
+            ]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--entity',identity,'--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']=='multiple-question-clauses'
+        for flag,bound in [('--since',''),('--until',''),('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],
                                     cwd=repo,encoding='utf-8',capture_output=True,timeout=30)

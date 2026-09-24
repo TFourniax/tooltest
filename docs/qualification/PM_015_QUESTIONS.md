@@ -367,3 +367,23 @@ The unit regressions retain the original review labels in their isolated journal
 The assertion now includes synthetic question/flags/facts for diagnosis; its
 condition is unchanged. Full failing installed log and789-test unit log retained.
 Latest-head review and all hosted gates remain required; no local AFTER claimed.
+
+
+Findings4089850123/4089850128/4089873151/4089873155 bring the total to28.
+The earlier791-test BEFORE is retained. Expanded BEFOREe0d5042 /
+run35955247101 / Ubuntu3.11 job107492183042 executes794tests with49failures,
+52skips,101.145s. The complete original log is retained.
+Partial standalone ISO months/weeks abstain. Unsupported on/le clauses are
+recognized in the parsed target phrase, preserving grammatical depends-on.
+Import/depend words alone remain name data; embedded dependency/question
+clauses remain rejected before target resolution.
+Recognized clause occurrences are counted before deduplicating intent families.
+Repeated why/change/memory clauses abstain even with --entity. Compound
+dependencies retain their existing direction-ambiguity refusal and reason.
+Explicit bounds are tested against None, so empty strings reach normal bounded
+ISO validation rather than silently removing a requested constraint.
+The real installed bilingual journey adds all name/period/repeated-clause cases
+and empty-bound exit2/no-output/no-traceback checks. Original exact source,
+journal/state byte, authority, direction, version and mixed-intent assertions
+remain. Final-head review, all hosted gates and fresh main are mandatory.
+Work remains unavailable; no local AFTER or HUMAN/Alpha claim.

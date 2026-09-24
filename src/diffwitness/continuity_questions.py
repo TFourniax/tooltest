@@ -68,7 +68,8 @@ def _incoming_target(question):
     # clause cannot be swallowed into that name and answered partially.
     if re.search(r"\b(?:because|car|"
                  r"what|which|who|whose|that|quoi|qui|que|dont|does|do|"
-                 r"depends?|d[eé]pend(?:ent)?|imports?|since|before|after|depuis|avant|après)\b",
+                 r"since|before|after|depuis|avant|après)\b|"
+                 r"\b(?:depends?\s+on|d[eé]pend(?:ent)?\s+de)\b",
                  target, re.I):
         return None
     return target
@@ -122,11 +123,11 @@ def _question_intents(question):
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi)\b)",
                        question, flags=re.I)
-    intents = set()
+    intents = []
     for clause in clauses:
         name, _ = _question_form(clause)
         if name is not None:
-            intents.add(name)
+            intents.append(name)
     return intents
 
 
@@ -143,15 +144,20 @@ def _query(question, kind, since, until, entity):
     auto_requested = kind == 'auto'
     literal_memory = kind == 'memory'
     form, search_text = _question_form(normalized_question)
-    intents = set() if literal_memory else _question_intents(normalized_question)
+    clause_intents = [] if literal_memory else _question_intents(normalized_question)
+    intents = set(clause_intents)
     ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
     if auto_requested:
         kind = next(iter(intents)) if len(intents) == 1 else 'memory'
     elif intents and kind not in intents:
         ambiguity = ambiguity or 'question-kind-conflict'
+    if len(clause_intents) > 1 and kind != 'dependencies':
+        ambiguity = ambiguity or 'multiple-question-clauses'
+    # Compound dependencies retain their stricter direction-ambiguity guard.
     if literal_memory or form != kind:
         search_text = normalized_question
-    lower, upper = _instant(since) if since else None, _instant(until) if until else None
+    lower = _instant(since) if since is not None else None
+    upper = _instant(until) if until is not None else None
     # Standalone dates are ambiguous unless introduced by the supported
     # since/depuis clause; embedded release/build identifiers remain data.
     date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w/#:+-]|\.\w)'
@@ -161,6 +167,10 @@ def _query(question, kind, since, until, entity):
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
                           r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",
                           normalized_question, re.I)
+    # Inspect on/le in the target phrase, never the grammatical "depends on".
+    # Unknown dependency forms already reach the stricter direction guard.
+    temporal_phrase = (_incoming_target(normalized_question) or '') if kind == 'dependencies' else search_text
+    temporal += re.findall(r"\b(?:on|le)\b", temporal_phrase, re.I)
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
     relative_period = re.search(
@@ -178,7 +188,8 @@ def _query(question, kind, since, until, entity):
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
         r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
-        r"|\b(?:on|le)\s+\d{1,4}(?:\.\d{1,4})+\b"
+        r"|(?<![\w./#:+-])\d{4}-(?:\d{2}|W\d{2})(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{4}W\d{2}(?![\w/#:+-]|\.\w)"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
