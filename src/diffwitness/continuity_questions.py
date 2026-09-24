@@ -64,9 +64,9 @@ def _incoming_target(question):
     if match is None:
         return None
     target = match.group(1)
-    # An entity phrase must not absorb another question, conjunction or
-    # dependency clause. Unknown compound wording is not a partial answer.
-    if re.search(r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car|"
+    # A conjunction can belong to a name. A new question or dependency
+    # clause cannot be swallowed into that name and answered partially.
+    if re.search(r"\b(?:because|car|"
                  r"what|which|who|whose|that|quoi|qui|que|dont|does|do|"
                  r"depends?|d[eé]pend(?:ent)?|imports?|since|before|after|depuis|avant|après)\b",
                  target, re.I):
@@ -114,9 +114,13 @@ def _question_form(question):
 
 
 def _question_intents(question):
-    # Inspect clause-leading forms, not every word in an entity name.
+    # A conjunction alone does not turn a name suffix ("and memory
+    # management") into another question. Require an interrogative form.
+    # Explicit punctuation still separates independently stated clauses.
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$)|"
-                       r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\b",
+                       r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
+                       r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"qu['’]|qui|de\s+quoi)\b)",
                        question, flags=re.I)
     intents = set()
     for clause in clauses:
@@ -148,8 +152,11 @@ def _query(question, kind, since, until, entity):
     if literal_memory or form != kind:
         search_text = normalized_question
     lower, upper = _instant(since) if since else None, _instant(until) if until else None
-    natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', normalized_question)
-    cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', normalized_question)
+    # Standalone dates are ambiguous unless introduced by the supported
+    # since/depuis clause; embedded release/build identifiers remain data.
+    date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w./#:+-])'
+    natural_dates = re.findall(date_token, normalized_question)
+    cleaned = re.sub(date_token, '', normalized_question)
     temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
                           r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
                           r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",
@@ -170,7 +177,8 @@ def _query(question, kind, since, until, entity):
         r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
-        r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b"
+        r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
+        r"|\b(?:on|le)\s+\d{1,4}(?:\.\d{1,4})+\b"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"

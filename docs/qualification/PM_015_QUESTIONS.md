@@ -327,3 +327,23 @@ exact citation opening. An additional single-letter A control is not claimed in
 the prior BEFORE. All original mixed/time/authority/source/immutability controls
 remain. All21findings, fresh review, every hosted gate and fresh main are required.
 Work remains offline; no local AFTER or HUMAN claim.
+
+
+Review findings4089734559/4089734563/4089734565 bring the tracked total to24.
+Regression-first e2a6918feddc326a7a2697e7a5be816ac72e25c9, tree
+e16efb5aab6945066a4b17e365ef127554fc6f15 / run35954010148 /
+Ubuntu3.11 job107488500201:788tests,26failures,52skips,82.130s.
+Full original BEFORE retained; the explicit dotted-date negative controls already
+passed, as did the underscore-embedded identifier and some conjunction forms.
+Conjunctions now split intents only before an interrogative clause; a bare
+memory/change/call suffix is part of the name. Incoming dependencies also retain
+conjunctions while rejecting embedded question/dependency clauses.
+Dotted software versions are lexical terms without a temporal introducer;
+on/le dotted dates and all existing explicit/relative time guards still abstain.
+ISO-looking substrings attached to identifier punctuation/letters remain data;
+standalone dates retain the original ambiguity policy and since/depuis handling.
+The real installed bilingual journey adds every new name, exact source opening,
+conjunctive dependencies, and misleading old paths for the dotted-date controls.
+All previous mixed-intent/direction/time/source/authority/immutability assertions
+remain. Final-head distinct review, all hosted gates and fresh main required.
+No local AFTER while Work is offline; no HUMAN or full PM015/Alpha claim.

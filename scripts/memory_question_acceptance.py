@@ -35,8 +35,12 @@ def main():
         run(dw,'decision','record','fallback works import calls importe appelle',
             '--id','DEC-QUERY','--why','Explicit lexical record fixture')
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
-        intent_names=('change management','memory management','call management','dependency management')
-        numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha')
+        intent_names=('change management','memory management','call management','dependency management',
+                      'risk and memory management','risque et mémoire management',
+                      'risk or change management','risk and call management')
+        numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
+                       'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
+                       'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -63,7 +67,8 @@ def main():
                           'ce week-end','ce printemps','cet été','cet automne','cet hiver',
                           'cette fin de semaine','this fortnight','this decade','cette décennie',
                           'ce siècle','this century','this season','cette saison','this sprint','cette itération',
-                          'from launch','during migration','pendant migration','durant migration')
+                          'from launch','during migration','pendant migration','durant migration',
+                          'on 3.14','le 3.12','since 21.09.2026','depuis 21.09.2026')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
