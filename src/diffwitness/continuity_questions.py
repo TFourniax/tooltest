@@ -120,7 +120,8 @@ def _question_intents(question):
     # Remember is an imperative after conjunctions. Bare memory/mémoire
     # remains a noun there; punctuation can introduce the explicit shorthand.
     # Explicit punctuation still separates independently stated clauses.
-    clauses = re.split(r"[?!;,]+|\.(?:\s+|$)|"
+    clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:why|pourquoi|what|which|who|"
+                       r"quels?|quelles?|qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\s+))|"
                        r":\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
@@ -165,7 +166,8 @@ def _query(question, kind, since, until, entity):
     if not literal_memory and re.search(
             r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b"
             r"[^?!;,:]*\bremember\b|"
-            r"(?:[?!;,:]|\.(?:\s+|$))[^?!;,:]*\b(?:remember|memory|m[eé]moire)\b",
+            r"[?!;,:][^?!;,:]*\b(?:remember|memory|m[eé]moire)\b|"
+            r"\.(?!\d)[^?!;,:]*\b(?:remember|memory|m[eé]moire)\s+\S",
             normalized_question, re.I):
         ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:
@@ -190,6 +192,10 @@ def _query(question, kind, since, until, entity):
     temporal += re.findall(r"\b(?:on|le)\b", temporal_phrase, re.I)
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
+    month_word = (r"(?:jan(?:uary|v(?:ier)?)?|feb(?:ruary)?|f[eé]v(?:r(?:ier)?)?|"
+                  r"mar(?:ch|s)?|apr(?:il)?|avr(?:il)?|may|mai|jun(?:e)?|juin|jul(?:y)?|"
+                  r"juil(?:l(?:et)?)?|aug(?:ust)?|ao[uû]t|sep(?:t(?:ember|embre)?)?|"
+                  r"oct(?:ober|obre)?|nov(?:ember|embre)?|d[eé]c(?:ember|embre)?)")
     relative_period = re.search(
         r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
         r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
@@ -210,6 +216,7 @@ def _query(question, kind, since, until, entity):
         r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
         r"|(?<![\w./#:+-])\d{4}-(?:\d{2}|W\d{2})(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{4}W\d{2}(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{1,2}-\d{1,2}-(?:\d{4}|\d{2})(?![\w/#:+-]|\.\w)"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
@@ -222,11 +229,20 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
+        r"|(?<![\w./#:+-])\d{1,2}\s*(?:EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
+        r"CET|CEST|BST|IST|JST|KST|HST|AKST|AKDT|AST|ADT|MSK|"
+        r"AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)\b"
+        r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
+        r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
+        r"|(?<![\w./#:+-])\d{1,2}(?::\d{2})?\s*[+-]\d{2}:?\d{2}\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"
         r"|\b[ap]\.?m\.?\b"
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
         r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
-        cleaned, re.I)
+        cleaned, re.I) or re.search(
+        rf"(?<![\w./#:+-]){month_word}\.?\s*\d{{1,4}}\b|"
+        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?\s*{month_word}\.?(?:\s*\d{{2,4}})?\b|"
+        rf"\b(?:in|en)\s+{month_word}\.?(?!\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:

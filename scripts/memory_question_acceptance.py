@@ -37,6 +37,8 @@ def main():
         run(dw,'decision','record','Spring','--id','DEC-SPRING','--why','Compose the application')
         run(dw,'decision','record','clause and please do kindly could you remember memory mémoire billing et veuillez','--id','DEC-COMPOUND',
             '--why','Synthetic all-terms compound fixture')
+        run(dw,'decision','record','adjacent why pourquoi billing what changed in remember please memory',
+            '--id','DEC-ADJACENT','--why','Synthetic adjacent-question fixture')
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
                       'risk or change retention','risk and call retention',
@@ -44,7 +46,8 @@ def main():
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
-                       'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508')
+                       'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
+                       'System.Memory','foo.memory.py')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -78,7 +81,12 @@ def main():
                           'lately','so far','to date','thus far','hitherto','up to now',
                           'YTD','MTD','QTD','WTD','dernièrement','dernierement',
                           "jusqu'ici",'jusqu’ici','à ce jour','a ce jour',
-                          "pour l'instant",'pour le moment','à présent','a present')
+                          "pour l'instant",'pour le moment','à présent','a present',
+                          '09-21-2026','21-09-2026','09-21-26','21-09-26',
+                          'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
+                          'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
+                          '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
+                          '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
@@ -293,6 +301,17 @@ def main():
                 source=part['source']
                 opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
                 assert opened['event']['event_hash']==source['eventHash']
+        for lang in ('fr','en'):
+            for question,reason in [
+                ('Why adjacent.Why billing?','multiple-question-clauses'),
+                ('Pourquoi adjacent.Pourquoi billing ?','multiple-question-clauses'),
+                ('Remember adjacent.Remember billing?','multiple-question-clauses'),
+                ('Why adjacent.What changed in billing?','mixed-question-intents'),
+                ('Why adjacent.Please remember billing?','unsupported-compound-memory-clause'),
+            ]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--entity','DEC-ADJACENT','--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']==reason
         for flag,bound in [('--since',''),('--until',''),('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],

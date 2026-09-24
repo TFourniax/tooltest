@@ -446,3 +446,23 @@ is on9f4a684ebb5764e66286d83aeb00a1d5acc57972. This functional correction does n
 fix or erase that PM012/merge hold. New CI verifies concrete changed behavior.
 All34findings, final review and all gates/fresh main remain mandatory. No local
 AFTER while Work is unavailable; no HUMAN or Alpha claim.
+
+
+Latest distinct review5300041703 raises findings4090127468/4090127475/
+4090127481/4090127489 (38total): non-ISO hyphen dates, abbreviated month dates,
+named-zone clocks and adjacent period-separated question clauses.
+BEFORE48c332459c9ec146df7d2059cd90c65f897eac8d /35958895056 /
+Ubuntu3.11 job107503318258:805tests,36failures,52skips,95.363s.
+The full original BEFORE and preceding801-test Linux AFTER are retained.
+Unsupported hyphenated dates, EN/FR abbreviated/full month-number forms, named
+zone/offset clocks now abstain. Embedded identifier boundaries and all earlier
+date/CLI-bound checks remain. Adjacent periods split only before a supported
+question form with following argument whitespace, preserving System.Memory,
+foo.memory.py and dotted software versions. Prefixed memory commands after
+nonnumeric periods also abstain; decimal version punctuation is preserved.
+The installed bilingual journey repeats the new date/zone/compound cases
+against old matching paths or all-term fixture labels and opens exact sources
+for the dotted-name positives. No prior authority, byte, source or direction
+assertion is removed. All38findings, latest-head review and complete gates remain
+required. The33b1afa provider max558.800441>500ms incident is still unresolved;
+these question changes do not fix it or establish Alpha/HUMAN readiness.
