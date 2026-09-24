@@ -1,0 +1,7 @@
+Processing C:\Users\33672\AppData\Local\Temp\claude\C--Dev-DiffWitness-Claude\948caafb-10a4-4b66-9c80-b4c2d31cc6e7\scratchpad\q59\wheel-fix8\diffwitness-0.4.0a1-py3-none-any.whl
+Installing collected packages: diffwitness
+  Attempting uninstall: diffwitness
+    Found existing installation: diffwitness 0.4.0a1
+    Uninstalling diffwitness-0.4.0a1:
+      Successfully uninstalled diffwitness-0.4.0a1
+Successfully installed diffwitness-0.4.0a1

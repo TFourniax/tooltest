@@ -1,0 +1,18 @@
+E
+======================================================================
+ERROR: test_continuity_questions (unittest.loader._FailedTest.test_continuity_questions)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_continuity_questions
+Traceback (most recent call last):
+  File "C:\Users\33672\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 11, in <module>
+    import test_continuity_kernel as fixtures
+ModuleNotFoundError: No module named 'test_continuity_kernel'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

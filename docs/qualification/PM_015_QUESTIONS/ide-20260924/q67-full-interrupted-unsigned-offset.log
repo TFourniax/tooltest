@@ -1,0 +1,67 @@
+test_acceptance_harnesses_preserve_utf8_subprocess_output (test_acceptance_utf8.AcceptanceEncodingTests.test_acceptance_harnesses_preserve_utf8_subprocess_output) ... ok
+test_advisory_partition_can_spend_tiny_budget_but_public_runner_still_proves_removal (test_adaptive.AdaptiveCoreTests.test_advisory_partition_can_spend_tiny_budget_but_public_runner_still_proves_removal) ... ok
+test_finds_one_hunk_core_without_testing_every_surplus_hunk (test_adaptive.AdaptiveCoreTests.test_finds_one_hunk_core_without_testing_every_surplus_hunk) ... ok
+test_invalid_advisory_plan_fails_before_any_search (test_adaptive.AdaptiveCoreTests.test_invalid_advisory_plan_fails_before_any_search) ... ok
+test_behavior_preserving_refactor_gets_preservation_evidence (test_assurance.AssuranceTests.test_behavior_preserving_refactor_gets_preservation_evidence) ... ok
+test_changed_tests_that_already_pass_on_base_are_non_discriminating (test_assurance.AssuranceTests.test_changed_tests_that_already_pass_on_base_are_non_discriminating) ... DiffWitness Gate rejected: changed tests do not discriminate the production change from base
+ok
+test_gate_balanced_accepts_and_public_verify_understands_assurance (test_assurance.AssuranceTests.test_gate_balanced_accepts_and_public_verify_understands_assurance) ... DiffWitness Gate: non-discriminating-change under balanced policy (dwa1_be3cb2d58164d4e5609c)
+DiffWitness Gate: preservation-evidence under balanced policy (dwa1_25b0bd1cbe7e0304b15f)
+DiffWitness Gate accepted: balanced policy accepts stable preservation assurance
+Project continuity: 2 new change event(s) · dwchg_3e4a943d62967e6d903dd383
+certificate: dwa1_25b0bd1cbe7e0304b15f
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
+certificate: dwa1_25b0bd1cbe7e0304b15f
+integrity:   valid
+freshness:   stale against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     INVALID
+DiffWitness Gate rejected: candidate is not stably green
+ok
+test_noop_certificate_is_fresh_then_stale_after_content_changes (test_attest.AttestationTests.test_noop_certificate_is_fresh_then_stale_after_content_changes) ... DiffWitness Gate: candidate-not-stable-green under strict policy (dwa1_587d058f2c1c1051550a)
+DiffWitness: proof not required (dw0_5ff7a154c10f210b6307); no executable causal mutation detected.
+certificate: dw0_5ff7a154c10f210b6307
+integrity:   valid
+freshness:   fresh against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+artifacts:   ignored proof.json
+verdict:     VALID
+ok
+test_tree_bound_validation_proof_verifies_in_fresh_clone_without_snapshot_commit (test_attest.AttestationTests.test_tree_bound_validation_proof_verifies_in_fresh_clone_without_snapshot_commit) ... certificate: dw0_5ff7a154c10f210b6307
+integrity:   valid
+freshness:   stale against WORKTREE
+candidate:   embedded-tree
+base:        embedded-tree
+artifacts:   ignored proof.json
+verdict:     INVALID
+DiffWitness: validation-only stable-pass (dwv1_cfc50eccb4687f954a67)
+Project continuity: 2 new change event(s) · dwchg_6cd83f6d79d1885e4d3df7f9
+ok
+test_verified_worktree_proof_can_be_attached_after_identical_commit (test_attest.AttestationTests.test_verified_worktree_proof_can_be_attached_after_identical_commit) ... certificate: dwv1_cfc50eccb4687f954a67
+integrity:   valid
+freshness:   fresh against HEAD
+candidate:   embedded-tree
+base:        embedded-tree
+verdict:     VALID
+DiffWitness: proof not required (dw0_5264dcd8a7c0ca452f2c); no executable causal mutation detected.
+ok
+test_detects_pytest_configuration (test_autodetect.AutoDetectTests.test_detects_pytest_configuration) ... ok
+test_falls_back_to_unittest_for_plain_tests_directory (test_autodetect.AutoDetectTests.test_falls_back_to_unittest_for_plain_tests_directory) ... ok
+test_prefers_declared_pnpm_test_script (test_autodetect.AutoDetectTests.test_prefers_declared_pnpm_test_script) ... ok
+test_unified_schema_declares_every_public_certificate_family (test_certificate_schema.CertificateSchemaTests.test_unified_schema_declares_every_public_certificate_family) ... ok
+test_binds_proof_debt_and_idleproof_to_one_exact_change (test_change_envelope.ChangeEnvelopeTests.test_binds_proof_debt_and_idleproof_to_one_exact_change) ... ok
+test_corrupt_evidence_and_empty_envelope_fail_closed (test_change_envelope.ChangeEnvelopeTests.test_corrupt_evidence_and_empty_envelope_fail_closed) ... ok
+test_idleproof_state_and_local_hook_files_do_not_change_diffwitness_worktree_identity (test_change_envelope.ChangeEnvelopeTests.test_idleproof_state_and_local_hook_files_do_not_change_diffwitness_worktree_identity) ... ok
+test_mismatched_debt_candidate_tree_fails_closed (test_change_envelope.ChangeEnvelopeTests.test_mismatched_debt_candidate_tree_fails_closed) ... ok
+test_mismatched_idleproof_change_fails_closed (test_change_envelope.ChangeEnvelopeTests.test_mismatched_idleproof_change_fails_closed) ... ok
+test_init_creates_pinned_workflow_with_explicit_commands (test_cli.CliTests.test_init_creates_pinned_workflow_with_explicit_commands) ... ok
+test_prove_writes_v2_certificate_and_markdown (test_cli.CliTests.test_prove_writes_v2_certificate_and_markdown) ... ok
+test_direct_frontends_also_parse_before_preflight_or_discovery (test_cli_informational_safety.InformationalSafetyTests.test_direct_frontends_also_parse_before_preflight_or_discovery) ... ok
+test_explicit_proof_still_executes_repository_tests (test_cli_informational_safety.InformationalSafetyTests.test_explicit_proof_still_executes_repository_tests) ... ok
+test_help_and_version_preserve_repository_and_historical_evidence (test_cli_informational_safety.InformationalSafetyTests.test_help_and_version_preserve_repository_and_historical_evidence) ... 

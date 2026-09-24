@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\scripts\memory_question_acceptance.py", line 432, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\Dev\DiffWitness-Claude\tooltest\scripts\memory_question_acceptance.py", line 266, in main
+    assert [f['fields']['id'] for f in value['context']['facts']]==['DEC-NUMERIC-'+str(index)], (label, value['status'], value['context']['abstention'], [f['fields']['id'] for f in value['context']['facts']])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('separatorv9/21', 'cited-records', None, ['DEC-NUMERIC-53', 'DEC-NUMERIC-51'])
+exit=1

@@ -1,0 +1,437 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12h30Z', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12hZ', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='3pmZ', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='noonZ', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='midnightZ', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='What changed in auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers (test_continuity_questions.MemoryQuestionTests.test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers) (phrase='12.30 Europe/Paris', prefix='Quels changements dans auth ', options={'entity': 'ATTACHED-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 989, in test_attached_zone_offset_and_zulu_clocks_are_clock_qualifiers
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+----------------------------------------------------------------------
+Ran 1 test in 13.349s
+
+FAILED (failures=36)

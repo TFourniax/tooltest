@@ -1,0 +1,579 @@
+﻿2026-09-24T17:34:54.9973296Z Current runner version: '2.337.0'
+2026-09-24T17:34:54.9995363Z ##[group]Runner Image Provisioner
+2026-09-24T17:34:54.9996124Z Hosted Compute Agent
+2026-09-24T17:34:54.9996616Z Version: 20260828.587
+2026-09-24T17:34:54.9997128Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-24T17:34:54.9997801Z Build Date: 2026-08-28T16:44:25Z
+2026-09-24T17:34:54.9998358Z Worker ID: {54cd0d4b-03e5-4a25-a776-0503f1d2aadc}
+2026-09-24T17:34:54.9999004Z Azure Region: westus3
+2026-09-24T17:34:54.9999658Z ##[endgroup]
+2026-09-24T17:34:55.0000728Z ##[group]Operating System
+2026-09-24T17:34:55.0001333Z Ubuntu
+2026-09-24T17:34:55.0001769Z 24.04.5
+2026-09-24T17:34:55.0002175Z LTS
+2026-09-24T17:34:55.0002661Z ##[endgroup]
+2026-09-24T17:34:55.0003112Z ##[group]Runner Image
+2026-09-24T17:34:55.0003644Z Image: ubuntu-24.04
+2026-09-24T17:34:55.0004124Z Version: 20260920.314.1
+2026-09-24T17:34:55.0005175Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-24T17:34:55.0006389Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-24T17:34:55.0007217Z ##[endgroup]
+2026-09-24T17:34:55.0008152Z ##[group]GITHUB_TOKEN Permissions
+2026-09-24T17:34:55.0009978Z Contents: read
+2026-09-24T17:34:55.0010525Z Metadata: read
+2026-09-24T17:34:55.0011003Z ##[endgroup]
+2026-09-24T17:34:55.0012756Z Secret source: Actions
+2026-09-24T17:34:55.0013504Z Cache mode: write
+2026-09-24T17:34:55.0014149Z Prepare workflow directory
+2026-09-24T17:34:55.0362584Z Prepare all required actions
+2026-09-24T17:34:55.0401674Z Getting action download info
+2026-09-24T17:34:55.3222758Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-24T17:34:55.6402005Z Download action repository 'actions/setup-python@v7' (SHA:5fda3b95a4ea91299a34e894583c3862153e4b97)
+2026-09-24T17:34:55.7941382Z Download action repository 'actions/setup-node@v7' (SHA:820762786026740c76f36085b0efc47a31fe5020)
+2026-09-24T17:34:55.9787619Z Complete job name: installed optional syntax providers (ubuntu-latest)
+2026-09-24T17:34:56.0388923Z ##[group]Run actions/checkout@v7
+2026-09-24T17:34:56.0389755Z with:
+2026-09-24T17:34:56.0390097Z   repository: TFourniax/tooltest
+2026-09-24T17:34:56.0393367Z   token: ***
+2026-09-24T17:34:56.0393711Z   ssh-strict: true
+2026-09-24T17:34:56.0394059Z   ssh-user: git
+2026-09-24T17:34:56.0394408Z   persist-credentials: true
+2026-09-24T17:34:56.0394789Z   clean: true
+2026-09-24T17:34:56.0395147Z   sparse-checkout-cone-mode: true
+2026-09-24T17:34:56.0395547Z   fetch-depth: 1
+2026-09-24T17:34:56.0395883Z   fetch-tags: false
+2026-09-24T17:34:56.0396229Z   show-progress: true
+2026-09-24T17:34:56.0396574Z   lfs: false
+2026-09-24T17:34:56.0396896Z   submodules: false
+2026-09-24T17:34:56.0397241Z   set-safe-directory: true
+2026-09-24T17:34:56.0397631Z   allow-unsafe-pr-checkout: false
+2026-09-24T17:34:56.0398157Z env:
+2026-09-24T17:34:56.0398481Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:34:56.0398871Z ##[endgroup]
+2026-09-24T17:34:56.1184362Z Syncing repository: TFourniax/tooltest
+2026-09-24T17:34:56.1185912Z ##[group]Getting Git version info
+2026-09-24T17:34:56.1186472Z Working directory is '/home/runner/work/tooltest/tooltest'
+2026-09-24T17:34:56.1187298Z [command]/usr/bin/git version
+2026-09-24T17:34:56.1813551Z git version 2.55.0
+2026-09-24T17:34:56.1832303Z ##[endgroup]
+2026-09-24T17:34:56.1842099Z Temporarily overriding HOME='/home/runner/work/_temp/ed60c0cd-a68d-49e6-8751-7284a7983196' before making global git config changes
+2026-09-24T17:34:56.1843238Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T17:34:56.1847411Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T17:34:56.1893825Z Deleting the contents of '/home/runner/work/tooltest/tooltest'
+2026-09-24T17:34:56.1896884Z ##[group]Determining repository object format
+2026-09-24T17:34:56.1898149Z ##[endgroup]
+2026-09-24T17:34:56.1898858Z ##[group]Initializing the repository
+2026-09-24T17:34:56.1902010Z [command]/usr/bin/git init /home/runner/work/tooltest/tooltest
+2026-09-24T17:34:56.1995432Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-24T17:34:56.1996337Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-24T17:34:56.1997056Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-24T17:34:56.1997634Z hint: call:
+2026-09-24T17:34:56.1997951Z hint:
+2026-09-24T17:34:56.1998356Z hint: 	git config --global init.defaultBranch <name>
+2026-09-24T17:34:56.1998844Z hint:
+2026-09-24T17:34:56.1999517Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-24T17:34:56.2000250Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-24T17:34:56.2000811Z hint:
+2026-09-24T17:34:56.2001141Z hint: 	git branch -m <name>
+2026-09-24T17:34:56.2001511Z hint:
+2026-09-24T17:34:56.2002003Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-24T17:34:56.2006215Z Initialized empty Git repository in /home/runner/work/tooltest/tooltest/.git/
+2026-09-24T17:34:56.2014120Z [command]/usr/bin/git remote add origin https://github.com/TFourniax/tooltest
+2026-09-24T17:34:56.2063638Z ##[endgroup]
+2026-09-24T17:34:56.2064285Z ##[group]Disabling automatic garbage collection
+2026-09-24T17:34:56.2066470Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-24T17:34:56.2096789Z ##[endgroup]
+2026-09-24T17:34:56.2097402Z ##[group]Setting up auth
+2026-09-24T17:34:56.2097828Z Removing SSH command configuration
+2026-09-24T17:34:56.2101720Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T17:34:56.2131202Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T17:34:56.2432804Z Removing HTTP extra header
+2026-09-24T17:34:56.2438104Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T17:34:56.2467566Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T17:34:56.2656578Z Removing includeIf entries pointing to credentials config files
+2026-09-24T17:34:56.2661481Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T17:34:56.2691437Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T17:34:56.2878842Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-24T17:34:56.2912648Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git.path /home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:34:56.2945698Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:34:56.2977967Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:34:56.3065023Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:34:56.3066765Z ##[endgroup]
+2026-09-24T17:34:56.3067326Z ##[group]Fetching the repository
+2026-09-24T17:34:56.3068353Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b7fd17bcd28e15f3856f56d0a5c880176bb8f82a:refs/remotes/pull/128/merge
+2026-09-24T17:34:57.4250614Z From https://github.com/TFourniax/tooltest
+2026-09-24T17:34:57.4251875Z  * [new ref]         b7fd17bcd28e15f3856f56d0a5c880176bb8f82a -> pull/128/merge
+2026-09-24T17:34:57.4254447Z ##[endgroup]
+2026-09-24T17:34:57.4255431Z ##[group]Determining the checkout info
+2026-09-24T17:34:57.4256536Z ##[endgroup]
+2026-09-24T17:34:57.4258951Z [command]/usr/bin/git sparse-checkout disable
+2026-09-24T17:34:57.4404034Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-24T17:34:57.4435020Z ##[group]Checking out the ref
+2026-09-24T17:34:57.4438954Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/128/merge
+2026-09-24T17:34:57.4888550Z Note: switching to 'refs/remotes/pull/128/merge'.
+2026-09-24T17:34:57.4889338Z 
+2026-09-24T17:34:57.4889734Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-24T17:34:57.4890582Z changes and commit them, and you can discard any commits you make in this
+2026-09-24T17:34:57.4891394Z state without impacting any branches by switching back to a branch.
+2026-09-24T17:34:57.4891851Z 
+2026-09-24T17:34:57.4892163Z If you want to create a new branch to retain commits you create, you may
+2026-09-24T17:34:57.4892894Z do so (now or later) by using -c with the switch command. Example:
+2026-09-24T17:34:57.4893300Z 
+2026-09-24T17:34:57.4893485Z   git switch -c <new-branch-name>
+2026-09-24T17:34:57.4893777Z 
+2026-09-24T17:34:57.4893968Z Or undo this operation with:
+2026-09-24T17:34:57.4894241Z 
+2026-09-24T17:34:57.4894414Z   git switch -
+2026-09-24T17:34:57.4894662Z 
+2026-09-24T17:34:57.4895055Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-24T17:34:57.4895528Z 
+2026-09-24T17:34:57.4896058Z HEAD is now at b7fd17b Merge 460f540dbbaa279e158be1734e87fe090b27884e into c03164e75e805ff1df976e55cdf6d86073e89b04
+2026-09-24T17:34:57.4903626Z ##[endgroup]
+2026-09-24T17:34:57.4949606Z [command]/usr/bin/git log -1 --format=%H
+2026-09-24T17:34:57.4975496Z b7fd17bcd28e15f3856f56d0a5c880176bb8f82a
+2026-09-24T17:34:57.5282941Z ##[group]Run actions/setup-python@v7
+2026-09-24T17:34:57.5283444Z with:
+2026-09-24T17:34:57.5283806Z   python-version: 3.12
+2026-09-24T17:34:57.5284212Z   check-latest: false
+2026-09-24T17:34:57.5287709Z   token: ***
+2026-09-24T17:34:57.5288093Z   update-environment: true
+2026-09-24T17:34:57.5288523Z   allow-prereleases: false
+2026-09-24T17:34:57.5288959Z   freethreaded: false
+2026-09-24T17:34:57.5289517Z env:
+2026-09-24T17:34:57.5289874Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:34:57.5290303Z ##[endgroup]
+2026-09-24T17:34:57.6241232Z ##[group]Installed versions
+2026-09-24T17:34:57.6312575Z Successfully set up CPython (3.12.14)
+2026-09-24T17:34:57.6313837Z ##[endgroup]
+2026-09-24T17:34:57.6499266Z ##[group]Run python -m pip wheel . --no-deps --wheel-dir syntax-wheel
+2026-09-24T17:34:57.6500148Z [36;1mpython -m pip wheel . --no-deps --wheel-dir syntax-wheel[0m
+2026-09-24T17:34:57.6501532Z [36;1mpython -c "import pathlib,subprocess,sys; wheel=next(pathlib.Path('syntax-wheel').glob('*.whl')); subprocess.check_call([sys.executable,'-m','pip','install',str(wheel)+'[structure]'])"[0m
+2026-09-24T17:34:57.6502814Z [36;1mpython -m pip check[0m
+2026-09-24T17:34:57.8532548Z shell: /usr/bin/bash -e {0}
+2026-09-24T17:34:57.8533104Z env:
+2026-09-24T17:34:57.8533484Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:34:57.8534034Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:34:57.8534766Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:34:57.8535473Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:34:57.8536139Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:34:57.8536850Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:34:57.8537488Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:34:57.8538037Z ##[endgroup]
+2026-09-24T17:35:00.5213054Z Processing ./.
+2026-09-24T17:35:00.5227813Z   Installing build dependencies: started
+2026-09-24T17:35:01.3352878Z   Installing build dependencies: finished with status 'done'
+2026-09-24T17:35:01.3358502Z   Getting requirements to build wheel: started
+2026-09-24T17:35:01.8659258Z   Getting requirements to build wheel: finished with status 'done'
+2026-09-24T17:35:01.8677646Z   Preparing metadata (pyproject.toml): started
+2026-09-24T17:35:02.0388858Z   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-09-24T17:35:02.0436162Z Building wheels for collected packages: diffwitness
+2026-09-24T17:35:02.0445307Z   Building wheel for diffwitness (pyproject.toml): started
+2026-09-24T17:35:02.2989952Z   Building wheel for diffwitness (pyproject.toml): finished with status 'done'
+2026-09-24T17:35:02.2998717Z   Created wheel for diffwitness: filename=diffwitness-0.4.0a1-py3-none-any.whl size=391356 sha256=09619b1f84eda4c6893702d2340c0010d6e6c91573bb10f94c848d9e7921accf
+2026-09-24T17:35:02.3000464Z   Stored in directory: /tmp/pip-ephem-wheel-cache-b71khvim/wheels/69/8a/0a/b2feba549f08f62660887f31dec06709ebc8a4e163670d2c0a
+2026-09-24T17:35:02.3033481Z Successfully built diffwitness
+2026-09-24T17:35:02.6222504Z Processing ./syntax-wheel/diffwitness-0.4.0a1-py3-none-any.whl (from diffwitness==0.4.0a1)
+2026-09-24T17:35:02.7420180Z Collecting tree-sitter==0.25.2 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:02.7784927Z   Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10.0 kB)
+2026-09-24T17:35:02.8797268Z Collecting tree-sitter-javascript==0.25.0 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:02.8825570Z   Downloading tree_sitter_javascript-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.2 kB)
+2026-09-24T17:35:02.8981659Z Collecting tree-sitter-typescript==0.23.2 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:02.9007879Z   Downloading tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.3 kB)
+2026-09-24T17:35:02.9174906Z Collecting tree-sitter-go==0.25.0 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:02.9201416Z   Downloading tree_sitter_go-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (1.7 kB)
+2026-09-24T17:35:02.9365371Z Collecting tree-sitter-rust==0.24.2 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:02.9391808Z   Downloading tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.8 kB)
+2026-09-24T17:35:03.0451192Z Collecting tree-sitter-java==0.23.5 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.0483343Z   Downloading tree_sitter_java-0.23.5-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+2026-09-24T17:35:03.2334951Z Collecting tree-sitter-c-sharp==0.23.5 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.2365738Z   Downloading tree_sitter_c_sharp-0.23.5-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.7 kB)
+2026-09-24T17:35:03.2531922Z Collecting tree-sitter-kotlin==1.1.0 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.2559610Z   Downloading tree_sitter_kotlin-1.1.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.9 kB)
+2026-09-24T17:35:03.3789911Z Collecting tree-sitter-ruby==0.23.1 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.3820055Z   Downloading tree_sitter_ruby-0.23.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.8 kB)
+2026-09-24T17:35:03.4083188Z Collecting tree-sitter-php==0.24.1 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.4109853Z   Downloading tree_sitter_php-0.24.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.7 kB)
+2026-09-24T17:35:03.4307360Z Collecting tree-sitter-sql==0.3.11 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.4342714Z   Downloading tree_sitter_sql-0.3.11-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.0 kB)
+2026-09-24T17:35:03.4529923Z Collecting tree-sitter-json==0.24.8 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.4559447Z   Downloading tree_sitter_json-0.24.8-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+2026-09-24T17:35:03.5266249Z Collecting tree-sitter-toml==0.7.0 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.5304831Z   Downloading tree_sitter_toml-0.7.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.7 kB)
+2026-09-24T17:35:03.5466117Z Collecting tree-sitter-yaml==0.7.2 (from diffwitness==0.4.0a1->diffwitness==0.4.0a1)
+2026-09-24T17:35:03.5504050Z   Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+2026-09-24T17:35:03.6227531Z Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (635 kB)
+2026-09-24T17:35:03.6354059Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 635.4/635.4 kB 66.5 MB/s  0:00:00
+2026-09-24T17:35:03.6384501Z Downloading tree_sitter_c_sharp-0.23.5-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (358 kB)
+2026-09-24T17:35:03.6464598Z Downloading tree_sitter_go-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (66 kB)
+2026-09-24T17:35:03.6512912Z Downloading tree_sitter_java-0.23.5-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (84 kB)
+2026-09-24T17:35:03.6584797Z Downloading tree_sitter_javascript-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (99 kB)
+2026-09-24T17:35:03.6633325Z Downloading tree_sitter_json-0.24.8-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17 kB)
+2026-09-24T17:35:03.6692267Z Downloading tree_sitter_kotlin-1.1.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (339 kB)
+2026-09-24T17:35:03.6746788Z Downloading tree_sitter_php-0.24.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (313 kB)
+2026-09-24T17:35:03.6804328Z Downloading tree_sitter_ruby-0.23.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (214 kB)
+2026-09-24T17:35:03.6861857Z Downloading tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (164 kB)
+2026-09-24T17:35:03.6991656Z Downloading tree_sitter_sql-0.3.11-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (380 kB)
+2026-09-24T17:35:03.7069466Z Downloading tree_sitter_toml-0.7.0-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (29 kB)
+2026-09-24T17:35:03.7149649Z Downloading tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (344 kB)
+2026-09-24T17:35:03.7200813Z Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (91 kB)
+2026-09-24T17:35:03.7607887Z Installing collected packages: tree-sitter-yaml, tree-sitter-typescript, tree-sitter-toml, tree-sitter-sql, tree-sitter-rust, tree-sitter-ruby, tree-sitter-php, tree-sitter-kotlin, tree-sitter-json, tree-sitter-javascript, tree-sitter-java, tree-sitter-go, tree-sitter-c-sharp, tree-sitter, diffwitness
+2026-09-24T17:35:04.4812772Z 
+2026-09-24T17:35:04.4828149Z Successfully installed diffwitness-0.4.0a1 tree-sitter-0.25.2 tree-sitter-c-sharp-0.23.5 tree-sitter-go-0.25.0 tree-sitter-java-0.23.5 tree-sitter-javascript-0.25.0 tree-sitter-json-0.24.8 tree-sitter-kotlin-1.1.0 tree-sitter-php-0.24.1 tree-sitter-ruby-0.23.1 tree-sitter-rust-0.24.2 tree-sitter-sql-0.3.11 tree-sitter-toml-0.7.0 tree-sitter-typescript-0.23.2 tree-sitter-yaml-0.7.2
+2026-09-24T17:35:04.6902727Z No broken requirements found.
+2026-09-24T17:35:04.7164326Z ##[group]Run python -m unittest discover -s tests -p 'test_structure*.py' -v
+2026-09-24T17:35:04.7164769Z [36;1mpython -m unittest discover -s tests -p 'test_structure*.py' -v[0m
+2026-09-24T17:35:04.7223896Z shell: /usr/bin/bash -e {0}
+2026-09-24T17:35:04.7224114Z env:
+2026-09-24T17:35:04.7224299Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:35:04.7224564Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:04.7224910Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:35:04.7225246Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:04.7225543Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:04.7225848Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:04.7226164Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:35:04.7226422Z ##[endgroup]
+2026-09-24T17:35:05.5877085Z test_contract_rejects_path_digest_authority_and_invalid_positions (test_structure_contract.StructureContractTests.test_contract_rejects_path_digest_authority_and_invalid_positions) ... ok
+2026-09-24T17:35:06.0401263Z test_invalid_provider_result_cannot_delete_previous_index (test_structure_contract.StructureContractTests.test_invalid_provider_result_cannot_delete_previous_index) ... ok
+2026-09-24T17:35:06.0403611Z test_line_positions_accept_python_universal_newlines (test_structure_contract.StructureContractTests.test_line_positions_accept_python_universal_newlines) ... ok
+2026-09-24T17:35:06.2805675Z test_missing_extraction_contract_stamp_forces_refresh_at_same_tree (test_structure_contract.StructureContractTests.test_missing_extraction_contract_stamp_forces_refresh_at_same_tree) ... ok
+2026-09-24T17:35:06.2807604Z test_parse_failure_has_no_symbol_or_relation_claims (test_structure_contract.StructureContractTests.test_parse_failure_has_no_symbol_or_relation_claims) ... ok
+2026-09-24T17:35:06.2811500Z test_python_provider_exposes_source_bound_typed_facts_and_existing_names (test_structure_contract.StructureContractTests.test_python_provider_exposes_source_bound_typed_facts_and_existing_names) ... ok
+2026-09-24T17:35:06.2878134Z test_actual_transport_hash_authority_positions_and_no_values (test_structure_data.DataSyntaxTests.test_actual_transport_hash_authority_positions_and_no_values) ... ok
+2026-09-24T17:35:06.2914269Z test_decoded_keys_positions_and_invalid_surrogates (test_structure_data.DataSyntaxTests.test_decoded_keys_positions_and_invalid_surrogates) ... ok
+2026-09-24T17:35:06.2969793Z test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed (test_structure_data.DataSyntaxTests.test_duplicates_invalid_encodings_and_unsupported_sql_form_fail_closed) ... ok
+2026-09-24T17:35:06.5737771Z test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values (test_structure_data.DataSyntaxTests.test_immutable_tree_index_keeps_keys_and_ddl_without_dirty_values) ... ok
+2026-09-24T17:35:06.5748515Z test_json_keys_are_unambiguous_and_array_items_distinct (test_structure_data.DataSyntaxTests.test_json_keys_are_unambiguous_and_array_items_distinct) ... ok
+2026-09-24T17:35:06.5775332Z test_missing_grammars_remain_recognized_empty (test_structure_data.DataSyntaxTests.test_missing_grammars_remain_recognized_empty) ... ok
+2026-09-24T17:35:06.5820646Z test_overflowing_json_values_fail_closed_at_every_nesting_level (test_structure_data.DataSyntaxTests.test_overflowing_json_values_fail_closed_at_every_nesting_level) ... ok
+2026-09-24T17:35:06.5837366Z test_sql_only_top_level_ddl_names_not_query_or_literal_decoys (test_structure_data.DataSyntaxTests.test_sql_only_top_level_ddl_names_not_query_or_literal_decoys) ... ok
+2026-09-24T17:35:06.5850980Z test_toml_tables_and_nested_array_table_scopes (test_structure_data.DataSyntaxTests.test_toml_tables_and_nested_array_table_scopes) ... ok
+2026-09-24T17:35:06.5869362Z test_yaml_document_scopes_without_alias_or_tag_execution (test_structure_data.DataSyntaxTests.test_yaml_document_scopes_without_alias_or_tag_execution) ... ok
+2026-09-24T17:35:06.5902380Z test_absolute_and_sequential_namespaces_and_unresolved_receivers (test_structure_dynamic.DynamicSyntaxTests.test_absolute_and_sequential_namespaces_and_unresolved_receivers) ... ok
+2026-09-24T17:35:06.5922575Z test_actual_transport_source_and_authority (test_structure_dynamic.DynamicSyntaxTests.test_actual_transport_source_and_authority) ... ok
+2026-09-24T17:35:06.5939025Z test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls (test_structure_dynamic.DynamicSyntaxTests.test_heredoc_decoys_dynamic_paths_and_actual_interpolation_calls) ... ok
+2026-09-24T17:35:06.7541068Z test_immutable_git_tree_index_ignores_dirty_sources (test_structure_dynamic.DynamicSyntaxTests.test_immutable_git_tree_index_ignores_dirty_sources) ... ok
+2026-09-24T17:35:06.7565731Z test_invalid_utf8_syntax_and_reopened_identity_fail_closed (test_structure_dynamic.DynamicSyntaxTests.test_invalid_utf8_syntax_and_reopened_identity_fail_closed) ... ok
+2026-09-24T17:35:06.7579449Z test_missing_grammars_are_recognized_empty (test_structure_dynamic.DynamicSyntaxTests.test_missing_grammars_are_recognized_empty) ... ok
+2026-09-24T17:35:07.0296459Z test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_calls_do_not_bind_to_an_arbitrary_same_name) ... ok
+2026-09-24T17:35:07.0311121Z test_php_namespace_types_signatures_and_grouped_use (test_structure_dynamic.DynamicSyntaxTests.test_php_namespace_types_signatures_and_grouped_use) ... ok
+2026-09-24T17:35:07.0321028Z test_php_parenthesized_static_include_paths_keep_edges_without_dynamic_guesses (test_structure_dynamic.DynamicSyntaxTests.test_php_parenthesized_static_include_paths_keep_edges_without_dynamic_guesses) ... ok
+2026-09-24T17:35:07.0330943Z test_ruby_lexical_types_methods_and_literal_require (test_structure_dynamic.DynamicSyntaxTests.test_ruby_lexical_types_methods_and_literal_require) ... ok
+2026-09-24T17:35:07.0346350Z test_comments_parentheses_templates_and_import_options_have_exact_spans (test_structure_import_calls.ImportCallTests.test_comments_parentheses_templates_and_import_options_have_exact_spans) ... ok
+2026-09-24T17:35:07.0356915Z test_decoys_dynamic_and_loader_members_do_not_become_targets (test_structure_import_calls.ImportCallTests.test_decoys_dynamic_and_loader_members_do_not_become_targets) ... ok
+2026-09-24T17:35:07.0381828Z test_escaped_direct_eval_is_an_ambiguity_barrier (test_structure_import_calls.ImportCallTests.test_escaped_direct_eval_is_an_ambiguity_barrier) ... ok
+2026-09-24T17:35:07.0388818Z test_invalid_source_stays_completely_unparsed (test_structure_import_calls.ImportCallTests.test_invalid_source_stays_completely_unparsed) ... ok
+2026-09-24T17:35:07.0404538Z test_nested_literal_keyword_reference_and_transport_authority_are_preserved (test_structure_import_calls.ImportCallTests.test_nested_literal_keyword_reference_and_transport_authority_are_preserved) ... ok
+2026-09-24T17:35:07.0510070Z test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import (test_structure_import_calls.ImportCallTests.test_shadowing_and_writes_suppress_commonjs_candidates_but_keep_keyword_import) ... ok
+2026-09-24T17:35:07.0573772Z test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar (test_structure_import_calls.ImportCallTests.test_static_commonjs_and_import_keyword_reuse_each_js_ts_grammar) ... ok
+2026-09-24T17:35:07.0589507Z test_typescript_function_signatures_are_require_binding_barriers (test_structure_import_calls.ImportCallTests.test_typescript_function_signatures_are_require_binding_barriers) ... ok
+2026-09-24T17:35:07.0668322Z test_actual_syntax_import_positions_reuse_every_adapter (test_structure_import_references.ImportReferenceTests.test_actual_syntax_import_positions_reuse_every_adapter) ... ok
+2026-09-24T17:35:07.2503702Z test_immutable_index_never_picks_ambiguous_or_outside_relative_modules (test_structure_import_references.ImportReferenceTests.test_immutable_index_never_picks_ambiguous_or_outside_relative_modules) ... ok
+2026-09-24T17:35:07.2506339Z test_import_detail_admission_rejects_invalid_positions_and_members (test_structure_import_references.ImportReferenceTests.test_import_detail_admission_rejects_invalid_positions_and_members) ... ok
+2026-09-24T17:35:07.2509301Z test_outside_package_relative_imports_never_become_absolute_names (test_structure_import_references.ImportReferenceTests.test_outside_package_relative_imports_never_become_absolute_names) ... ok
+2026-09-24T17:35:07.2518047Z test_package_initializer_retains_base_members_and_source_positions (test_structure_import_references.ImportReferenceTests.test_package_initializer_retains_base_members_and_source_positions) ... ok
+2026-09-24T17:35:07.2520032Z test_python_aliases_crlf_and_decoys_preserve_only_import_syntax (test_structure_import_references.ImportReferenceTests.test_python_aliases_crlf_and_decoys_preserve_only_import_syntax) ... ok
+2026-09-24T17:35:07.2521930Z test_v1_field_shape_is_preserved_and_v2_is_explicit (test_structure_import_references.ImportReferenceTests.test_v1_field_shape_is_preserved_and_v2_is_explicit) ... ok
+2026-09-24T17:35:07.2558072Z test_actual_transport_source_binding_and_authority (test_structure_managed.ManagedSyntaxTests.test_actual_transport_source_binding_and_authority) ... ok
+2026-09-24T17:35:07.2568643Z test_csharp_file_namespace_nested_members_and_aliases (test_structure_managed.ManagedSyntaxTests.test_csharp_file_namespace_nested_members_and_aliases) ... ok
+2026-09-24T17:35:07.2603901Z test_errors_and_ambiguous_overloads_do_not_supply_partial_facts (test_structure_managed.ManagedSyntaxTests.test_errors_and_ambiguous_overloads_do_not_supply_partial_facts) ... ok
+2026-09-24T17:35:07.4778901Z test_immutable_tree_index_uses_all_three_shared_providers (test_structure_managed.ManagedSyntaxTests.test_immutable_tree_index_uses_all_three_shared_providers) ... ok
+2026-09-24T17:35:07.4789667Z test_java_package_types_nested_members_and_static_imports (test_structure_managed.ManagedSyntaxTests.test_java_package_types_nested_members_and_static_imports) ... ok
+2026-09-24T17:35:07.4800554Z test_kotlin_package_named_objects_aliases_and_decoys (test_structure_managed.ManagedSyntaxTests.test_kotlin_package_named_objects_aliases_and_decoys) ... ok
+2026-09-24T17:35:07.4831183Z test_kotlin_type_kinds_signatures_and_comment_free_import_paths (test_structure_managed.ManagedSyntaxTests.test_kotlin_type_kinds_signatures_and_comment_free_import_paths) ... ok
+2026-09-24T17:35:07.4851112Z test_missing_grammar_remains_recognized_empty (test_structure_managed.ManagedSyntaxTests.test_missing_grammar_remains_recognized_empty) ... ok
+2026-09-24T17:35:07.4874663Z test_raw_strings_do_not_create_declarations_but_interpolation_keeps_real_calls (test_structure_managed.ManagedSyntaxTests.test_raw_strings_do_not_create_declarations_but_interpolation_keeps_real_calls) ... ok
+2026-09-24T17:35:07.4898590Z test_comments_inside_rust_paths_do_not_become_names_or_dependencies (test_structure_native.NativeSyntaxTests.test_comments_inside_rust_paths_do_not_become_names_or_dependencies) ... ok
+2026-09-24T17:35:07.4916077Z test_go_functions_receivers_types_and_grouped_imports (test_structure_native.NativeSyntaxTests.test_go_functions_receivers_types_and_grouped_imports) ... ok
+2026-09-24T17:35:07.6676909Z test_index_binds_go_and_rust_facts_to_captured_tree (test_structure_native.NativeSyntaxTests.test_index_binds_go_and_rust_facts_to_captured_tree) ... ok
+2026-09-24T17:35:07.6715889Z test_malformed_syntax_encoding_and_transport_source_binding (test_structure_native.NativeSyntaxTests.test_malformed_syntax_encoding_and_transport_source_binding) ... ok
+2026-09-24T17:35:07.6730627Z test_missing_grammars_preserve_recognized_empty_unparsed_coverage (test_structure_native.NativeSyntaxTests.test_missing_grammars_preserve_recognized_empty_unparsed_coverage) ... ok
+2026-09-24T17:35:07.6732338Z test_new_suffixes_cannot_forge_javascript_local_import_resolution (test_structure_native.NativeSyntaxTests.test_new_suffixes_cannot_forge_javascript_local_import_resolution) ... ok
+2026-09-24T17:35:07.6767980Z test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types (test_structure_native.NativeSyntaxTests.test_parenthesized_named_receivers_preserve_methods_without_guessing_tuple_types) ... ok
+2026-09-24T17:35:07.6776373Z test_qualified_rust_impl_and_trait_names_preserve_owner_scope (test_structure_native.NativeSyntaxTests.test_qualified_rust_impl_and_trait_names_preserve_owner_scope) ... ok
+2026-09-24T17:35:07.6787120Z test_rust_scopes_import_groups_and_macro_decoys (test_structure_native.NativeSyntaxTests.test_rust_scopes_import_groups_and_macro_decoys) ... ok
+2026-09-24T17:35:07.7698142Z test_bounded_coverage_and_parse_failures_are_visible_in_context (test_structure_snapshot.StructureSnapshotTests.test_bounded_coverage_and_parse_failures_are_visible_in_context) ... ok
+2026-09-24T17:35:07.9193844Z test_corrupt_blob_response_cannot_replace_existing_index (test_structure_snapshot.StructureSnapshotTests.test_corrupt_blob_response_cannot_replace_existing_index) ... ok
+2026-09-24T17:35:08.1290553Z test_dirty_untracked_and_deleted_working_files_cannot_change_head_bound_facts (test_structure_snapshot.StructureSnapshotTests.test_dirty_untracked_and_deleted_working_files_cannot_change_head_bound_facts) ... ok
+2026-09-24T17:35:08.1674674Z test_git_symlink_mode_is_excluded_even_if_worktree_is_a_regular_python_file (test_structure_snapshot.StructureSnapshotTests.test_git_symlink_mode_is_excluded_even_if_worktree_is_a_regular_python_file) ... ok
+2026-09-24T17:35:08.2465660Z test_head_advance_during_refresh_keeps_one_tree_and_next_refresh_updates (test_structure_snapshot.StructureSnapshotTests.test_head_advance_during_refresh_keeps_one_tree_and_next_refresh_updates) ... ok
+2026-09-24T17:35:08.3074417Z test_old_tree_stamp_cannot_preserve_mutable_file_projection (test_structure_snapshot.StructureSnapshotTests.test_old_tree_stamp_cannot_preserve_mutable_file_projection) ... ok
+2026-09-24T17:35:08.3249440Z test_total_byte_budget_omits_whole_blobs_and_reports_partial_coverage (test_structure_snapshot.StructureSnapshotTests.test_total_byte_budget_omits_whole_blobs_and_reports_partial_coverage) ... ok
+2026-09-24T17:35:08.3261012Z test_ambient_typescript_declarations_are_observed_syntax (test_structure_syntax.StructureSyntaxTests.test_ambient_typescript_declarations_are_observed_syntax) ... ok
+2026-09-24T17:35:08.3262623Z test_dotted_basename_import_resolves_only_one_supported_source (test_structure_syntax.StructureSyntaxTests.test_dotted_basename_import_resolves_only_one_supported_source) ... ok
+2026-09-24T17:35:08.7829565Z test_index_uses_immutable_tree_and_refreshes_provider_profile (test_structure_syntax.StructureSyntaxTests.test_index_uses_immutable_tree_and_refreshes_provider_profile) ... ok
+2026-09-24T17:35:08.7843602Z test_javascript_uses_syntax_not_strings_comments_or_template_text (test_structure_syntax.StructureSyntaxTests.test_javascript_uses_syntax_not_strings_comments_or_template_text) ... ok
+2026-09-24T17:35:08.8121348Z test_malformed_encoding_syntax_and_bounds_fail_empty (test_structure_syntax.StructureSyntaxTests.test_malformed_encoding_syntax_and_bounds_fail_empty) ... ok
+2026-09-24T17:35:08.8128043Z test_missing_optional_package_is_unparsed_not_heuristic_facts (test_structure_syntax.StructureSyntaxTests.test_missing_optional_package_is_unparsed_not_heuristic_facts) ... ok
+2026-09-24T17:35:08.8130373Z test_python_and_unknown_fallback_keep_existing_contract (test_structure_syntax.StructureSyntaxTests.test_python_and_unknown_fallback_keep_existing_contract) ... ok
+2026-09-24T17:35:08.8140634Z test_syntax_authority_admission_and_ambiguous_import_resolution (test_structure_syntax.StructureSyntaxTests.test_syntax_authority_admission_and_ambiguous_import_resolution) ... ok
+2026-09-24T17:35:08.8165831Z test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage (test_structure_syntax.StructureSyntaxTests.test_typescript_declarations_and_jsx_tsx_have_real_syntax_coverage) ... ok
+2026-09-24T17:35:09.1186910Z test_extraction_stays_independent_of_journal_proof_and_debt_services (test_structure_transport.StructureTransportTests.test_extraction_stays_independent_of_journal_proof_and_debt_services) ... ok
+2026-09-24T17:35:09.9334888Z test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically (test_structure_transport.StructureTransportTests.test_malformed_json_path_base64_schema_and_duplicate_paths_fail_atomically) ... ok
+2026-09-24T17:35:10.1820818Z test_nonpython_extraction_loads_only_selected_provider_implementation (test_structure_transport.StructureTransportTests.test_nonpython_extraction_loads_only_selected_provider_implementation) ... ok
+2026-09-24T17:35:10.1846141Z test_public_entry_never_discovers_repository_or_reads_language_preferences (test_structure_transport.StructureTransportTests.test_public_entry_never_discovers_repository_or_reads_language_preferences) ... ok
+2026-09-24T17:35:10.2813513Z test_python_only_extraction_does_not_initialize_optional_distribution_metadata (test_structure_transport.StructureTransportTests.test_python_only_extraction_does_not_initialize_optional_distribution_metadata) ... ok
+2026-09-24T17:35:10.3804531Z test_real_cli_outside_git_preserves_python_provider_and_french_json (test_structure_transport.StructureTransportTests.test_real_cli_outside_git_preserves_python_provider_and_french_json) ... ok
+2026-09-24T17:35:10.3806347Z test_results_are_detached_and_empty_batch_is_valid (test_structure_transport.StructureTransportTests.test_results_are_detached_and_empty_batch_is_valid) ... ok
+2026-09-24T17:35:10.5228182Z test_selected_extraction_parser_preserves_argument_rejections_and_help (test_structure_transport.StructureTransportTests.test_selected_extraction_parser_preserves_argument_rejections_and_help) ... ok
+2026-09-24T17:35:10.5583909Z test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage (test_structure_transport.StructureTransportTests.test_transport_limits_and_binary_or_invalid_python_have_explicit_coverage) ... ok
+2026-09-24T17:35:10.5585611Z test_wire_bounds_reject_before_emitting_any_partial_response (test_structure_transport.StructureTransportTests.test_wire_bounds_reject_before_emitting_any_partial_response) ... ok
+2026-09-24T17:35:10.5586438Z 
+2026-09-24T17:35:10.5586653Z ----------------------------------------------------------------------
+2026-09-24T17:35:10.5586996Z Ran 85 tests in 4.972s
+2026-09-24T17:35:10.5587112Z 
+2026-09-24T17:35:10.5587189Z OK
+2026-09-24T17:35:10.5805810Z ##[group]Run python scripts/structure_syntax_acceptance.py
+2026-09-24T17:35:10.5806170Z [36;1mpython scripts/structure_syntax_acceptance.py[0m
+2026-09-24T17:35:10.5861828Z shell: /usr/bin/bash -e {0}
+2026-09-24T17:35:10.5862029Z env:
+2026-09-24T17:35:10.5862202Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:35:10.5862463Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:10.5862806Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:35:10.5863153Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:10.5863452Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:10.5882411Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:10.5882768Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:35:10.5883034Z ##[endgroup]
+2026-09-24T17:35:11.1520518Z INSTALLED SYNTAX ACCEPTANCE PASS: actual pinned code/SQL/config providers, source hashes, FR/EN, unparsed and unsupported coverage; MACHINE
+2026-09-24T17:35:11.1660590Z ##[group]Run actions/checkout@v7
+2026-09-24T17:35:11.1660806Z with:
+2026-09-24T17:35:11.1660976Z   repository: TFourniax/tooltest-2
+2026-09-24T17:35:11.1661209Z   ref: 2b919f7dddeaf3488091017a46f079d8c9718056
+2026-09-24T17:35:11.1661456Z   path: idleproof-extraction-consumer
+2026-09-24T17:35:11.1661680Z   persist-credentials: false
+2026-09-24T17:35:11.1663787Z   token: ***
+2026-09-24T17:35:11.1663954Z   ssh-strict: true
+2026-09-24T17:35:11.1664279Z   ssh-user: git
+2026-09-24T17:35:11.1664435Z   clean: true
+2026-09-24T17:35:11.1664626Z   sparse-checkout-cone-mode: true
+2026-09-24T17:35:11.1664834Z   fetch-depth: 1
+2026-09-24T17:35:11.1664995Z   fetch-tags: false
+2026-09-24T17:35:11.1665171Z   show-progress: true
+2026-09-24T17:35:11.1665343Z   lfs: false
+2026-09-24T17:35:11.1665494Z   submodules: false
+2026-09-24T17:35:11.1665674Z   set-safe-directory: true
+2026-09-24T17:35:11.1665880Z   allow-unsafe-pr-checkout: false
+2026-09-24T17:35:11.1666079Z env:
+2026-09-24T17:35:11.1666277Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:35:11.1666532Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:11.1666872Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:35:11.1667199Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:11.1667500Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:11.1667795Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:11.1668101Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:35:11.1668356Z ##[endgroup]
+2026-09-24T17:35:11.2375493Z Syncing repository: TFourniax/tooltest-2
+2026-09-24T17:35:11.2376042Z ##[group]Getting Git version info
+2026-09-24T17:35:11.2376512Z Working directory is '/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer'
+2026-09-24T17:35:11.2431638Z [command]/usr/bin/git version
+2026-09-24T17:35:11.2466720Z git version 2.55.0
+2026-09-24T17:35:11.2482644Z ##[endgroup]
+2026-09-24T17:35:11.2490056Z Temporarily overriding HOME='/home/runner/work/_temp/8ab4ed9a-e716-4a69-b47b-b424f595ae16' before making global git config changes
+2026-09-24T17:35:11.2491108Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T17:35:11.2494306Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest/idleproof-extraction-consumer
+2026-09-24T17:35:11.2523883Z ##[group]Determining repository object format
+2026-09-24T17:35:11.2525251Z ##[endgroup]
+2026-09-24T17:35:11.2525892Z ##[group]Initializing the repository
+2026-09-24T17:35:11.2528897Z [command]/usr/bin/git init /home/runner/work/tooltest/tooltest/idleproof-extraction-consumer
+2026-09-24T17:35:11.2566570Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-24T17:35:11.2567404Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-24T17:35:11.2568271Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-24T17:35:11.2568917Z hint: call:
+2026-09-24T17:35:11.2569458Z hint:
+2026-09-24T17:35:11.2569900Z hint: 	git config --global init.defaultBranch <name>
+2026-09-24T17:35:11.2570416Z hint:
+2026-09-24T17:35:11.2570925Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-24T17:35:11.2571716Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-24T17:35:11.2572335Z hint:
+2026-09-24T17:35:11.2572717Z hint: 	git branch -m <name>
+2026-09-24T17:35:11.2573133Z hint:
+2026-09-24T17:35:11.2573693Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-24T17:35:11.2574671Z Initialized empty Git repository in /home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git/
+2026-09-24T17:35:11.2576480Z [command]/usr/bin/git remote add origin https://github.com/TFourniax/tooltest-2
+2026-09-24T17:35:11.2606758Z ##[endgroup]
+2026-09-24T17:35:11.2607485Z ##[group]Disabling automatic garbage collection
+2026-09-24T17:35:11.2610862Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-24T17:35:11.2637110Z ##[endgroup]
+2026-09-24T17:35:11.2637565Z ##[group]Setting up auth
+2026-09-24T17:35:11.2637905Z Removing SSH command configuration
+2026-09-24T17:35:11.2642072Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T17:35:11.2669805Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T17:35:11.2874514Z Removing HTTP extra header
+2026-09-24T17:35:11.2880580Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T17:35:11.2913721Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T17:35:11.3154917Z Removing includeIf entries pointing to credentials config files
+2026-09-24T17:35:11.3161063Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T17:35:11.3196442Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T17:35:11.3396022Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-24T17:35:11.3431776Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git.path /home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:11.3461706Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:11.3491162Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/idleproof-extraction-consumer/.git.path /github/runner_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:11.3520937Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/idleproof-extraction-consumer/.git/worktrees/*.path /github/runner_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:11.3547717Z ##[endgroup]
+2026-09-24T17:35:11.3548017Z ##[group]Fetching the repository
+2026-09-24T17:35:11.3552940Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 2b919f7dddeaf3488091017a46f079d8c9718056
+2026-09-24T17:35:12.1655791Z From https://github.com/TFourniax/tooltest-2
+2026-09-24T17:35:12.1658348Z  * branch            2b919f7dddeaf3488091017a46f079d8c9718056 -> FETCH_HEAD
+2026-09-24T17:35:12.1664394Z [command]/usr/bin/git rev-parse --verify --quiet 2b919f7dddeaf3488091017a46f079d8c9718056^{object}
+2026-09-24T17:35:12.1691139Z 2b919f7dddeaf3488091017a46f079d8c9718056
+2026-09-24T17:35:12.1695548Z ##[endgroup]
+2026-09-24T17:35:12.1696048Z ##[group]Determining the checkout info
+2026-09-24T17:35:12.1696633Z ##[endgroup]
+2026-09-24T17:35:12.1700372Z [command]/usr/bin/git sparse-checkout disable
+2026-09-24T17:35:12.1740826Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-24T17:35:12.1770158Z ##[group]Checking out the ref
+2026-09-24T17:35:12.1772870Z [command]/usr/bin/git checkout --progress --force 2b919f7dddeaf3488091017a46f079d8c9718056
+2026-09-24T17:35:12.1938926Z Note: switching to '2b919f7dddeaf3488091017a46f079d8c9718056'.
+2026-09-24T17:35:12.1939410Z 
+2026-09-24T17:35:12.1939656Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-24T17:35:12.1940273Z changes and commit them, and you can discard any commits you make in this
+2026-09-24T17:35:12.1941110Z state without impacting any branches by switching back to a branch.
+2026-09-24T17:35:12.1941459Z 
+2026-09-24T17:35:12.1941682Z If you want to create a new branch to retain commits you create, you may
+2026-09-24T17:35:12.1942259Z do so (now or later) by using -c with the switch command. Example:
+2026-09-24T17:35:12.1942561Z 
+2026-09-24T17:35:12.1942697Z   git switch -c <new-branch-name>
+2026-09-24T17:35:12.1942884Z 
+2026-09-24T17:35:12.1942972Z Or undo this operation with:
+2026-09-24T17:35:12.1943100Z 
+2026-09-24T17:35:12.1943321Z   git switch -
+2026-09-24T17:35:12.1943429Z 
+2026-09-24T17:35:12.1943599Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-24T17:35:12.1943837Z 
+2026-09-24T17:35:12.1944069Z HEAD is now at 2b919f7 feat(idleproof): retain complete continuity citations in bounded agent context (#15)
+2026-09-24T17:35:12.1945726Z ##[endgroup]
+2026-09-24T17:35:12.1983979Z [command]/usr/bin/git log -1 --format=%H
+2026-09-24T17:35:12.2008717Z 2b919f7dddeaf3488091017a46f079d8c9718056
+2026-09-24T17:35:12.2017178Z ##[group]Removing auth
+2026-09-24T17:35:12.2017524Z Removing SSH command configuration
+2026-09-24T17:35:12.2020192Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T17:35:12.2065253Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T17:35:12.2248095Z Removing HTTP extra header
+2026-09-24T17:35:12.2251558Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T17:35:12.2287616Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T17:35:12.2478532Z Removing includeIf entries pointing to credentials config files
+2026-09-24T17:35:12.2482468Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T17:35:12.2505916Z includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git.path
+2026-09-24T17:35:12.2506916Z includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git/worktrees/*.path
+2026-09-24T17:35:12.2507762Z includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git.path
+2026-09-24T17:35:12.2508390Z includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git/worktrees/*.path
+2026-09-24T17:35:12.2520538Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git.path
+2026-09-24T17:35:12.2542198Z /home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:12.2549005Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-567edcba\-4617\-4d78\-8d44\-3adf58fc31a8\.config
+2026-09-24T17:35:12.2580496Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git/worktrees/*.path
+2026-09-24T17:35:12.2605403Z /home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:12.2631270Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-567edcba\-4617\-4d78\-8d44\-3adf58fc31a8\.config
+2026-09-24T17:35:12.2645175Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git.path
+2026-09-24T17:35:12.2667966Z /github/runner_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:12.2675085Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git.path \/github\/runner_temp\/git\-credentials\-567edcba\-4617\-4d78\-8d44\-3adf58fc31a8\.config
+2026-09-24T17:35:12.2710592Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git/worktrees/*.path
+2026-09-24T17:35:12.2732915Z /github/runner_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config
+2026-09-24T17:35:12.2738924Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/idleproof-extraction-consumer/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-567edcba\-4617\-4d78\-8d44\-3adf58fc31a8\.config
+2026-09-24T17:35:12.2771924Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T17:35:12.2962327Z Removing credentials config '/home/runner/work/_temp/git-credentials-567edcba-4617-4d78-8d44-3adf58fc31a8.config'
+2026-09-24T17:35:12.2972235Z ##[endgroup]
+2026-09-24T17:35:12.3097981Z ##[group]Run actions/setup-node@v7
+2026-09-24T17:35:12.3098215Z with:
+2026-09-24T17:35:12.3098383Z   node-version: 22
+2026-09-24T17:35:12.3098571Z   package-manager-cache: false
+2026-09-24T17:35:12.3098777Z   check-latest: false
+2026-09-24T17:35:12.3101071Z   token: ***
+2026-09-24T17:35:12.3101246Z env:
+2026-09-24T17:35:12.3101412Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:35:12.3101674Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:12.3102022Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:35:12.3102387Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:12.3102700Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:12.3102999Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:12.3103298Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:35:12.3103552Z ##[endgroup]
+2026-09-24T17:35:12.4457844Z Found in cache @ /opt/hostedtoolcache/node/22.23.2/x64
+2026-09-24T17:35:12.4460577Z ##[group]Environment details
+2026-09-24T17:35:14.1979514Z node: v22.23.2
+2026-09-24T17:35:14.1979765Z npm: 10.9.8
+2026-09-24T17:35:14.1979926Z yarn: 1.22.22
+2026-09-24T17:35:14.1980356Z ##[endgroup]
+2026-09-24T17:35:14.2079623Z ##[group]Run node scripts/feature-canonical-smoke.mjs
+2026-09-24T17:35:14.2079955Z [36;1mnode scripts/feature-canonical-smoke.mjs[0m
+2026-09-24T17:35:14.2080233Z [36;1mnode scripts/perf-gate.mjs --python-core[0m
+2026-09-24T17:35:14.2080484Z [36;1mnode scripts/perf-gate.mjs --syntax-core[0m
+2026-09-24T17:35:14.2080747Z [36;1mnode scripts/perf-gate.mjs --data-core[0m
+2026-09-24T17:35:14.2141184Z shell: /usr/bin/bash -e {0}
+2026-09-24T17:35:14.2141406Z env:
+2026-09-24T17:35:14.2141586Z   DIFFWITNESS_REQUIRE_SYNTAX: 1
+2026-09-24T17:35:14.2141854Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:14.2142204Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-09-24T17:35:14.2142630Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:14.2143033Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:14.2143431Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-09-24T17:35:14.2144061Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-09-24T17:35:14.2144420Z ##[endgroup]
+2026-09-24T17:35:15.9951074Z {"schema":"idleproof-feature-canonical-smoke-1","passed":true,"actual_optional_grammars":true,"classification":"MACHINE"}
+2026-09-24T17:35:20.4499710Z {"schema":"idleproof-hook-latency-samples-1","provider":"python-ast","node":"v22.23.2","platform":"linux","arch":"x64","cpus":4,"p95Ms":202.15886299999966,"maxMs":380.8392640000002,"budgets":{"p95Ms":150,"maxMs":500},"samples":[{"event":"PreToolUse","ms":5.339552000000026},{"event":"PostToolUse","ms":56.64371300000005},{"event":"PreToolUse","ms":2.255174000000011},{"event":"PostToolUse","ms":60.76894800000002},{"event":"PreToolUse","ms":87.37327999999991},{"event":"PostToolUse","ms":57.25365999999997},{"event":"PreToolUse","ms":2.010460999999964},{"event":"PostToolUse","ms":53.30955300000005},{"event":"PreToolUse","ms":33.88829599999997},{"event":"PostToolUse","ms":182.6261189999999},{"event":"PreToolUse","ms":2.286350999999968},{"event":"PostToolUse","ms":53.248873},{"event":"PreToolUse","ms":1.6732690000001185},{"event":"PostToolUse","ms":52.890169000000014},{"event":"PreToolUse","ms":1.6966939999999795},{"event":"PostToolUse","ms":52.630914000000075},{"event":"PreToolUse","ms":2.117909999999938},{"event":"PostToolUse","ms":124.58809399999996},{"event":"PreToolUse","ms":1.731715000000122},{"event":"PostToolUse","ms":51.586726},{"event":"PreToolUse","ms":1.6333700000000135},{"event":"PostToolUse","ms":52.36144300000001},{"event":"PreToolUse","ms":2.0815860000000157},{"event":"PostToolUse","ms":52.984419000000116},{"event":"PreToolUse","ms":14.00935800000002},{"event":"PostToolUse","ms":53.011510000000044},{"event":"PreToolUse","ms":1.710704000000078},{"event":"PostToolUse","ms":52.35029600000007},{"event":"PreToolUse","ms":1.654561000000058},{"event":"PostToolUse","ms":52.915647000000035},{"event":"PreToolUse","ms":1.712677999999869},{"event":"PostToolUse","ms":310.15446699999984},{"event":"PreToolUse","ms":1.9364700000000994},{"event":"PostToolUse","ms":51.86397299999999},{"event":"PreToolUse","ms":1.70857100000012},{"event":"PostToolUse","ms":53.124467000000095},{"event":"PreToolUse","ms":1.784324000000197},{"event":"PostToolUse","ms":380.8392640000002},{"event":"PreToolUse","ms":1.9727350000002843},{"event":"PostToolUse","ms":53.00056300000006},{"event":"PreToolUse","ms":43.49782899999991},{"event":"PostToolUse","ms":54.609136000000035},{"event":"PreToolUse","ms":1.7553510000002461},{"event":"PostToolUse","ms":54.29732300000023},{"event":"PreToolUse","ms":1.756703000000016},{"event":"PostToolUse","ms":302.8638820000001},{"event":"PreToolUse","ms":1.6935089999997217},{"event":"PostToolUse","ms":50.63846999999987},{"event":"PreToolUse","ms":1.9782319999999345},{"event":"PostToolUse","ms":210.08829700000024},{"event":"PreToolUse","ms":1.8634320000001026},{"event":"PostToolUse","ms":53.10408700000016},{"event":"PreToolUse","ms":1.7985250000001543},{"event":"PostToolUse","ms":53.6766090000001},{"event":"PreToolUse","ms":1.9221990000000915},{"event":"PostToolUse","ms":53.24743099999978},{"event":"PreToolUse","ms":1.8341580000001159},{"event":"PostToolUse","ms":54.24464399999988},{"event":"PreToolUse","ms":60.16143600000032},{"event":"PostToolUse","ms":52.62636499999962},{"event":"PreToolUse","ms":1.786757999999736},{"event":"PostToolUse","ms":51.92147799999975},{"event":"PreToolUse","ms":2.063239000000067},{"event":"PostToolUse","ms":54.19785400000001},{"event":"PreToolUse","ms":9.231980999999905},{"event":"PostToolUse","ms":51.898885000000064},{"event":"PreToolUse","ms":2.2408329999998386},{"event":"PostToolUse","ms":52.23260600000003},{"event":"PreToolUse","ms":202.15886299999966},{"event":"PostToolUse","ms":52.71653100000003},{"event":"PreToolUse","ms":2.407470999999532},{"event":"PostToolUse","ms":61.17601300000024},{"event":"PreToolUse","ms":1.8111539999999877},{"event":"PostToolUse","ms":53.89861999999994},{"event":"PreToolUse","ms":2.177118999999948},{"event":"PostToolUse","ms":52.504149999999754},{"event":"PreToolUse","ms":1.9316829999997935},{"event":"PostToolUse","ms":54.0294729999996},{"event":"PreToolUse","ms":2.252559999999903},{"event":"PostToolUse","ms":55.73972800000047}]}
+2026-09-24T17:35:20.4555298Z node:internal/modules/run_main:123
+2026-09-24T17:35:20.4555741Z     triggerUncaughtException(
+2026-09-24T17:35:20.4556077Z     ^
+2026-09-24T17:35:20.4556213Z 
+2026-09-24T17:35:20.4556628Z AssertionError [ERR_ASSERTION]: hook p95 202.2ms exceeds 150ms
+2026-09-24T17:35:20.4557402Z     at file:///home/runner/work/tooltest/tooltest/idleproof-extraction-consumer/scripts/perf-gate.mjs:63:10
+2026-09-24T17:35:20.4558183Z     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+2026-09-24T17:35:20.4558636Z     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+2026-09-24T17:35:20.4559383Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+2026-09-24T17:35:20.4560061Z   generatedMessage: false,
+2026-09-24T17:35:20.4560409Z   code: 'ERR_ASSERTION',
+2026-09-24T17:35:20.4560724Z   actual: false,
+2026-09-24T17:35:20.4560994Z   expected: true,
+2026-09-24T17:35:20.4561258Z   operator: '==',
+2026-09-24T17:35:20.4561517Z   diff: 'simple'
+2026-09-24T17:35:20.4561778Z }
+2026-09-24T17:35:20.4561907Z 
+2026-09-24T17:35:20.4562052Z Node.js v22.23.2
+2026-09-24T17:35:20.4611920Z ##[error]Process completed with exit code 1.
+2026-09-24T17:35:20.4707928Z Post job cleanup.
+2026-09-24T17:35:20.5426108Z [command]/usr/bin/git version
+2026-09-24T17:35:20.5466100Z git version 2.55.0
+2026-09-24T17:35:20.5494996Z Temporarily overriding HOME='/home/runner/work/_temp/07a2725d-fdb7-4be5-845b-d05bed5a520d' before making global git config changes
+2026-09-24T17:35:20.5496242Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T17:35:20.5499895Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest/idleproof-extraction-consumer
+2026-09-24T17:35:20.5531553Z Removing SSH command configuration
+2026-09-24T17:35:20.5537546Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T17:35:20.5575669Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T17:35:20.5787481Z Removing HTTP extra header
+2026-09-24T17:35:20.5793098Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T17:35:20.5825862Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T17:35:20.6028861Z Removing includeIf entries pointing to credentials config files
+2026-09-24T17:35:20.6034912Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T17:35:20.6069249Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T17:35:20.6413004Z Post job cleanup.
+2026-09-24T17:35:20.7189981Z [command]/usr/bin/git version
+2026-09-24T17:35:20.7214999Z git version 2.55.0
+2026-09-24T17:35:20.7252457Z Temporarily overriding HOME='/home/runner/work/_temp/e59c6857-7898-4fb1-9662-8c892f72cb13' before making global git config changes
+2026-09-24T17:35:20.7253822Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-24T17:35:20.7257492Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/tooltest/tooltest
+2026-09-24T17:35:20.7295476Z Removing SSH command configuration
+2026-09-24T17:35:20.7301808Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-24T17:35:20.7347166Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-24T17:35:20.7600623Z Removing HTTP extra header
+2026-09-24T17:35:20.7607329Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-24T17:35:20.7647876Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-24T17:35:20.7888182Z Removing includeIf entries pointing to credentials config files
+2026-09-24T17:35:20.7891817Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-24T17:35:20.7924194Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T17:35:20.7925130Z includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T17:35:20.7925982Z includeif.gitdir:/github/workspace/.git.path
+2026-09-24T17:35:20.7926809Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T17:35:20.7932038Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path
+2026-09-24T17:35:20.7956316Z /home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:35:20.7964644Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-d2290795\-0e6b\-4da5\-be01\-42bd028a2284\.config
+2026-09-24T17:35:20.8009457Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path
+2026-09-24T17:35:20.8036983Z /home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:35:20.8043735Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/tooltest/tooltest/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-d2290795\-0e6b\-4da5\-be01\-42bd028a2284\.config
+2026-09-24T17:35:20.8075818Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-24T17:35:20.8098879Z /github/runner_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:35:20.8105530Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-d2290795\-0e6b\-4da5\-be01\-42bd028a2284\.config
+2026-09-24T17:35:20.8137106Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-24T17:35:20.8160419Z /github/runner_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config
+2026-09-24T17:35:20.8168231Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-d2290795\-0e6b\-4da5\-be01\-42bd028a2284\.config
+2026-09-24T17:35:20.8202220Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-24T17:35:20.8397988Z Removing credentials config '/home/runner/work/_temp/git-credentials-d2290795-0e6b-4da5-be01-42bd028a2284.config'
+2026-09-24T17:35:20.8527513Z Cleaning up orphan processes

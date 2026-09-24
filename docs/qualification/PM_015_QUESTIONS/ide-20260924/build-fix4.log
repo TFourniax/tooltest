@@ -1,0 +1,9 @@
+Processing .\.
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: diffwitness
+  Building wheel for diffwitness (pyproject.toml): started
+  Building wheel for diffwitness (pyproject.toml): finished with status 'done'
+  Created wheel for diffwitness: filename=diffwitness-0.4.0a1-py3-none-any.whl size=393208 sha256=b2aba5ba439087caad6c878a12a2038369be29c156bf219b6f8a989a28e5b428
+  Stored in directory: C:\Users\33672\AppData\Local\Temp\pip-ephem-wheel-cache-9oqf2s5l\wheels\fb\76\9c\08c7160254525e67167bc434cf029e5107269490a6ddbdf513
+Successfully built diffwitness

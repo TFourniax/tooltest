@@ -1,0 +1,1493 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF..
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 ADDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 ADDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 APT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 APT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AWDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AWDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 BDST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 BDST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 BMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 BMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CAST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CAST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CEMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CEMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 CWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 DMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 DMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 EWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 FFMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 FFMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 FMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 FMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 GDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 GDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HKST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HKST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HKWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HKWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 HWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 IDDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 IDDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 IMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 IMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 JDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 JDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 JMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 JMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 KDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 KDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 KMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 KMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 LMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 LMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 LST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 LST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MDST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MDST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 MWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NDDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NDDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NZMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 NZMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PKST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PKST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PLMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PLMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PMMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PMMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PPMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PPMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 PPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 QMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 QMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 RMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 RMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SDMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SDMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SJMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SJMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 SMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 TBMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 TBMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 WEMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 WEMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 WMT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 WMT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YDDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YDDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YPT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YPT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YWT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 YWT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 +03', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 +03', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 +00', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 +00', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHST', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12 AHST', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12AHDT', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_every_tz_database_abbreviation_is_a_clock_qualifier (test_continuity_questions.MemoryQuestionTests.test_every_tz_database_abbreviation_is_a_clock_qualifier) (phrase='12AHDT', options={'entity': 'TZ-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 971, in test_every_tz_database_abbreviation_is_a_clock_qualifier
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 29.960s
+
+FAILED (failures=124)

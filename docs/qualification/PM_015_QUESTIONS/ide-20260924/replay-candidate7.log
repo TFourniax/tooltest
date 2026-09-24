@@ -1,0 +1,67 @@
+1 4088785920 PASS ['dependency-direction-ambiguous', 'dependency-direction-ambiguous']
+2 4088785929 PASS ['ambiguous-time-filter', 'ambiguous-time-filter']
+3 4088833583 PASS dependency-direction-ambiguous
+4 4088833589 PASS ['ambiguous-time-filter', 'ambiguous-time-filter']
+5 4088878860 PASS ['mixed-question-intents', 'mixed-question-intents']
+6 4088878864 PASS ['ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter']
+7 4088878867 PASS exit 2, no traceback
+8 4088930520 PASS ['ambiguous-time-filter', 'ambiguous-time-filter']
+9 4088979861 PASS ['ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter']
+10 4088979869 PASS cited SRC-AUTH
+11 4089040597 PASS cited SRC-A,SRC-B
+12 4089081719 PASS insufficient-cited-records
+13 4089181415 PASS ambiguous-time-filter
+14 4089288605 PASS insufficient-cited-records
+15 4089288609 PASS ['ambiguous-time-filter', 'ambiguous-time-filter']
+16 4089335578 PASS dependency-direction-ambiguous
+17 4089335580 PASS ['ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter']
+18 4089390630 PASS ambiguous-time-filter
+19 4089471249 PASS ['ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter']
+20 4089587924 PASS ['cited CM', 'cited CM']
+21 4089587933 PASS cited ISO
+22 4089734559 PASS cited RISK
+23 4089734563 PASS cited PY
+24 4089734565 PASS cited REL
+25 4089850123 PASS ambiguous-time-filter
+26 4089850128 PASS ['cited SRC', 'cited SRC']
+27 4089873151 PASS ['multiple-question-clauses', 'multiple-question-clauses']
+28 4089873155 PASS exit 2 for empty --since/--until
+29 4089948783 PASS ['ambiguous-time-filter', 'ambiguous-time-filter', 'ambiguous-time-filter']
+30 4089948792 PASS ['multiple-question-clauses', 'mixed-question-intents']
+31 4090002819 PASS mixed-question-intents
+32 4090002822 PASS cited SRC
+33 4090002828 PASS cited RFC
+34 4090063735 PASS unsupported-compound-memory-clause
+35 4090127468 PASS 12 abstentions ambiguous-time-filter
+36 4090127475 PASS 6 abstentions ambiguous-time-filter
+37 4090127481 PASS 12 abstentions ambiguous-time-filter
+38 4090127489 PASS multiple-question-clauses
+39 4090220923 PASS mixed-question-intents
+40 4090220930 PASS 6 abstentions ambiguous-time-filter
+41 4090220934 PASS 6 abstentions ambiguous-time-filter
+42 4090301777 PASS 6 abstentions ambiguous-time-filter
+43 4090360930 PASS 6 abstentions ambiguous-time-filter
+44 4090360937 PASS 6 abstentions ambiguous-time-filter
+45 4090360945 PASS ['mixed-question-intents', 'mixed-question-intents']
+46 4090442851 PASS ['cited PLAN', 'cited TYPO']
+47 4090514176 PASS 12 abstentions ambiguous-time-filter
+48 4091207915 PASS 6 abstentions ambiguous-time-filter
+49 4091207921 PASS cited PLAN
+50 4091207928 PASS cited SRC
+51 4091207932 PASS mixed-question-intents
+52 4091385402 PASS mixed-question-intents
+53 4091385410 PASS ['cited SRC', 'cited SRC']
+54 4091527848 PASS 12 abstentions ambiguous-time-filter
+55 4091691319 PASS ['18 abstentions ambiguous-time-filter', 'cited SDK']
+56 4091691327 PASS mixed-question-intents
+57 4092623217 PASS mixed-question-intents
+58 4092727135 PASS 6 abstentions ambiguous-time-filter
+59 4092842170 PASS 6 abstentions ambiguous-time-filter
+60 4093864173 PASS 12 abstentions ambiguous-time-filter
+61 4093864180 PASS ['cited REL0', 'cited REL1']
+62 4094207977 PASS 24 abstentions ambiguous-time-filter
+63 4094642025 PASS 30 abstentions ambiguous-time-filter
+64 4095024653 PASS 6 abstentions ambiguous-time-filter
+65 4095330252 PASS cited ID65
+66 4095630671 PASS 6 abstentions ambiguous-time-filter
+{"schema": "pr128-finding-replay-1", "classification": "MACHINE", "human_executed": false, "package": "C:\\Users\\33672\\AppData\\Local\\Temp\\claude\\C--Dev-DiffWitness-Claude\\948caafb-10a4-4b66-9c80-b4c2d31cc6e7\\scratchpad\\q59\\venv312\\Lib\\site-packages\\diffwitness\\__init__.py", "total": 66, "passed": 66, "results": [{"finding": 1, "comment": 4088785920, "pass": true, "detail": ["dependency-direction-ambiguous", "dependency-direction-ambiguous"]}, {"finding": 2, "comment": 4088785929, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 3, "comment": 4088833583, "pass": true, "detail": "dependency-direction-ambiguous"}, {"finding": 4, "comment": 4088833589, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 5, "comment": 4088878860, "pass": true, "detail": ["mixed-question-intents", "mixed-question-intents"]}, {"finding": 6, "comment": 4088878864, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 7, "comment": 4088878867, "pass": true, "detail": "exit 2, no traceback"}, {"finding": 8, "comment": 4088930520, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 9, "comment": 4088979861, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 10, "comment": 4088979869, "pass": true, "detail": "cited SRC-AUTH"}, {"finding": 11, "comment": 4089040597, "pass": true, "detail": "cited SRC-A,SRC-B"}, {"finding": 12, "comment": 4089081719, "pass": true, "detail": "insufficient-cited-records"}, {"finding": 13, "comment": 4089181415, "pass": true, "detail": "ambiguous-time-filter"}, {"finding": 14, "comment": 4089288605, "pass": true, "detail": "insufficient-cited-records"}, {"finding": 15, "comment": 4089288609, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 16, "comment": 4089335578, "pass": true, "detail": "dependency-direction-ambiguous"}, {"finding": 17, "comment": 4089335580, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 18, "comment": 4089390630, "pass": true, "detail": "ambiguous-time-filter"}, {"finding": 19, "comment": 4089471249, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 20, "comment": 4089587924, "pass": true, "detail": ["cited CM", "cited CM"]}, {"finding": 21, "comment": 4089587933, "pass": true, "detail": "cited ISO"}, {"finding": 22, "comment": 4089734559, "pass": true, "detail": "cited RISK"}, {"finding": 23, "comment": 4089734563, "pass": true, "detail": "cited PY"}, {"finding": 24, "comment": 4089734565, "pass": true, "detail": "cited REL"}, {"finding": 25, "comment": 4089850123, "pass": true, "detail": "ambiguous-time-filter"}, {"finding": 26, "comment": 4089850128, "pass": true, "detail": ["cited SRC", "cited SRC"]}, {"finding": 27, "comment": 4089873151, "pass": true, "detail": ["multiple-question-clauses", "multiple-question-clauses"]}, {"finding": 28, "comment": 4089873155, "pass": true, "detail": "exit 2 for empty --since/--until"}, {"finding": 29, "comment": 4089948783, "pass": true, "detail": ["ambiguous-time-filter", "ambiguous-time-filter", "ambiguous-time-filter"]}, {"finding": 30, "comment": 4089948792, "pass": true, "detail": ["multiple-question-clauses", "mixed-question-intents"]}, {"finding": 31, "comment": 4090002819, "pass": true, "detail": "mixed-question-intents"}, {"finding": 32, "comment": 4090002822, "pass": true, "detail": "cited SRC"}, {"finding": 33, "comment": 4090002828, "pass": true, "detail": "cited RFC"}, {"finding": 34, "comment": 4090063735, "pass": true, "detail": "unsupported-compound-memory-clause"}, {"finding": 35, "comment": 4090127468, "pass": true, "detail": "12 abstentions ambiguous-time-filter"}, {"finding": 36, "comment": 4090127475, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 37, "comment": 4090127481, "pass": true, "detail": "12 abstentions ambiguous-time-filter"}, {"finding": 38, "comment": 4090127489, "pass": true, "detail": "multiple-question-clauses"}, {"finding": 39, "comment": 4090220923, "pass": true, "detail": "mixed-question-intents"}, {"finding": 40, "comment": 4090220930, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 41, "comment": 4090220934, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 42, "comment": 4090301777, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 43, "comment": 4090360930, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 44, "comment": 4090360937, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 45, "comment": 4090360945, "pass": true, "detail": ["mixed-question-intents", "mixed-question-intents"]}, {"finding": 46, "comment": 4090442851, "pass": true, "detail": ["cited PLAN", "cited TYPO"]}, {"finding": 47, "comment": 4090514176, "pass": true, "detail": "12 abstentions ambiguous-time-filter"}, {"finding": 48, "comment": 4091207915, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 49, "comment": 4091207921, "pass": true, "detail": "cited PLAN"}, {"finding": 50, "comment": 4091207928, "pass": true, "detail": "cited SRC"}, {"finding": 51, "comment": 4091207932, "pass": true, "detail": "mixed-question-intents"}, {"finding": 52, "comment": 4091385402, "pass": true, "detail": "mixed-question-intents"}, {"finding": 53, "comment": 4091385410, "pass": true, "detail": ["cited SRC", "cited SRC"]}, {"finding": 54, "comment": 4091527848, "pass": true, "detail": "12 abstentions ambiguous-time-filter"}, {"finding": 55, "comment": 4091691319, "pass": true, "detail": ["18 abstentions ambiguous-time-filter", "cited SDK"]}, {"finding": 56, "comment": 4091691327, "pass": true, "detail": "mixed-question-intents"}, {"finding": 57, "comment": 4092623217, "pass": true, "detail": "mixed-question-intents"}, {"finding": 58, "comment": 4092727135, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 59, "comment": 4092842170, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 60, "comment": 4093864173, "pass": true, "detail": "12 abstentions ambiguous-time-filter"}, {"finding": 61, "comment": 4093864180, "pass": true, "detail": ["cited REL0", "cited REL1"]}, {"finding": 62, "comment": 4094207977, "pass": true, "detail": "24 abstentions ambiguous-time-filter"}, {"finding": 63, "comment": 4094642025, "pass": true, "detail": "30 abstentions ambiguous-time-filter"}, {"finding": 64, "comment": 4095024653, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}, {"finding": 65, "comment": 4095330252, "pass": true, "detail": "cited ID65"}, {"finding": 66, "comment": 4095630671, "pass": true, "detail": "6 abstentions ambiguous-time-filter"}]}

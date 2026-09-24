@@ -1,0 +1,941 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 / 21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09 /21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/ 21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09∕21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09⁄21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09/21T120000Z', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21 / 09T12:00', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‐21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09‑21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09–21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='09−21', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.2026T12:00', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='What changed in auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='What changed in auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='What changed in auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='Quels changements dans auth ', options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='Quels changements dans auth ', options={'until': '2027-01-01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+======================================================================
+FAIL: test_numeric_date_separator_variants_never_become_path_terms (test_continuity_questions.MemoryQuestionTests.test_numeric_date_separator_variants_never_become_path_terms) (phrase='21.09.26T120000Z', prefix='Quels changements dans auth ', options={'entity': 'SEPARATOR-OLD'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Dev\DiffWitness-Claude\tooltest\tests\test_continuity_questions.py", line 874, in test_numeric_date_separator_variants_never_become_path_terms
+    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cited-records' != 'abstained'
+- cited-records
++ abstained
+
+
+----------------------------------------------------------------------
+Ran 1 test in 12.861s
+
+FAILED (failures=78)

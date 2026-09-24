@@ -1,0 +1,11 @@
+f144d2b findings=3 :: 3=FAIL 
+80d3ef7 findings=12 :: 12=FAIL 
+ef0b937 findings=14 :: 14=FAIL 
+998acd4 findings=20,21 :: 20=FAIL 21=FAIL 
+fd24c18 findings=22,23,24 :: 22=FAIL 23=FAIL 24=FAIL 
+c1a6948 findings=26 :: 26=FAIL 
+6d35bc2 findings=32,33 :: 32=FAIL 33=FAIL 
+855a850 findings=46 :: 46=FAIL 
+d861ec8 findings=49,50 :: 49=FAIL 50=FAIL 
+289ea90 findings=53 :: 53=FAIL 
+exit=0
