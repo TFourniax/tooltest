@@ -109,7 +109,7 @@ def _query(question, kind, since, until, entity):
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant)\s+\d{4}\b"
         r"|\b\d{1,4}[/\.]\d{1,2}(?:[/\.]\d{1,4})?\b",
-        question, re.I) if kind == 'changes' or natural_dates or temporal else None
+        question, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:

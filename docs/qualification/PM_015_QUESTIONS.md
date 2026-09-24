@@ -139,3 +139,12 @@ conservatively abstain. Datetime UTC overflow becomes a bounded ValueError and
 normal CLI status2, with no traceback. Installed FR/EN journey exercises these
 cases. Final hosted AFTER gates and review remain required; no local after-run
 is claimed while Work is offline.
+
+Review4088930520 identified relative-time qualifiers outside changes. The earlier
+condition inspected the vocabulary only for changes or explicit date markers.
+Regression-first0256d8f/35943477282/job107456578069 (Ubuntu/Python3.13)
+runs761tests with5subcase failures/52skips in89.567s. Its original log is retained.
+The condition is removed so the same temporal policy applies to why, incoming
+dependencies and memory queries too. Five corresponding installed FR/EN cases
+are added. The prior760-test Linux after-result is retained separately and does
+not qualify this final change. Final hosted gates/review and freshmain required.

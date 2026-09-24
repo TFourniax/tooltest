@@ -64,6 +64,11 @@ def main():
                 assert ambiguous['context']['abstention']=='ambiguous-time-filter'
                 assert ambiguous['parts']==[]
         for question,reason in [
+            ('Why auth recently?', 'ambiguous-time-filter'),
+            ('Pourquoi auth récemment ?', 'ambiguous-time-filter'),
+            ('What depends on auth this week?', 'ambiguous-time-filter'),
+            ('Qu’est-ce qui dépend de auth cette semaine ?', 'ambiguous-time-filter'),
+            ('Remember auth as of Monday?', 'ambiguous-time-filter'),
             ('Why auth and what changed in billing?', 'mixed-question-intents'),
             ('Pourquoi auth et quels changements dans billing ?', 'mixed-question-intents'),
             ('What changed in auth two days ago?', 'ambiguous-time-filter'),
