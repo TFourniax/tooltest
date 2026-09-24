@@ -697,3 +697,29 @@ state bytes remain unchanged. Wheel SHA256:
 Journal SHA256: 5cfdbe935028a7b2d272258bf6fd1c65ed015754148af62c2da8591f647721c0.
 This local wheel precedes this documentation update; it is not a published
 release. Fresh exact-head review/CI and post-merge main remain required.
+
+## IDE continuation — finding 59, 2026-09-24
+
+Review 4092842170 on 7af22d6 exposed spaced two-component slash dates such as
+`09 / 21`. The numeric date separator family is now corrected together: slash
+dates accept separator spacing, attached compact/extended clocks and the
+U+2215/U+2044 slash forms that NFKC keeps distinct; hyphen dates and named-month
+dates accept the U+2010–U+2014 dash and U+2212 minus forms; three-component
+dotted dates accept separator spacing and attached clocks. Two-component dotted
+versions and attached release, path, underscore and version identifiers remain
+positive exact-source cases. Lookbehind guards are unchanged, so no previously
+abstaining question becomes answerable.
+
+The regression against the installed 7af22d6 wheel reproduces 78 failing
+subcases (13 forms, EN/FR, three option sets). After correction on Windows with
+Python 3.12.10: 76 focused tests PASS; 820 installed-wheel tests PASS with 49
+explicit skips (absent optional grammars and the POSIX pipx contract) in 1020.172
+seconds; the real installed CLI journey PASS, opens original citations and
+preserves journal/state bytes. A first journey attempt failed because two new
+fixture names produced identical query terms; it was a fixture overlap, kept in
+the local log, and one name was made distinct without changing assertions.
+Local wheel SHA256:
+bda2ceaafacca96aa87d66799c9ac3c9aba8cc2380b783d0fefe9511c9d87b22.
+Journal SHA256: 430990e17dd6c82137305acbdb079f09b3fc17eb0ef76b4d6401829ad3787124.
+These are MACHINE results. Independent review and hosted gates must bind the new
+commit before merge; fresh main must then be checked.

@@ -1,9 +1,11 @@
 from __future__ import annotations
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import unittest
 
 import test_continuity_kernel as fixtures
@@ -844,6 +846,37 @@ class MemoryQuestionTests(unittest.TestCase):
         self.assertEqual(before,self.paths.events.read_bytes())
         for index,label in enumerate(('v9-21','release-09-21','api/09-21','build_21-09','release-09-21T120000Z')):
             identity='PARTIAL-DATE-NAME-'+str(index)
+            source=self.record(identity,label,payload={'why':'Attached numeric identifier'})
+            result=answer_question(self.repo,'Why '+label+'?',entity=identity)
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
+            self.assert_sources(result)
+
+    def test_numeric_date_separator_variants_never_become_path_terms(self):
+        # One separator family: spacing, attached clocks and Unicode dash/slash
+        # forms that NFKC leaves distinct, for slash, hyphen and dotted dates.
+        phrases=('09/21','21/09','9/21','09 / 21','09 /21','09/ 21','21 / 09 / 2026',
+                 '2026 / 09 / 21','０９／２１','09∕21','09⁄21','09/21T120000Z',
+                 '21/09T12:00:00+02:00','09/21/2026T120000Z','21 / 09T12:00',
+                 '09‐21','09‑21','09–21','09−21','21 ‒ 09 ‒ 2026',
+                 '21. 09. 2026','21 . 09 . 2026','2026 . 09 . 21',
+                 '21.09.2026T12:00','21.09.26T120000Z','Sep‐21','21–Sep–2026','Sep∕21')
+        self.record('SEPARATOR-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+'/'.join(re.findall(r'[^\W_]+',unicodedata.normalize('NFKC',p)))
+                                              +'/service.py' for p in phrases]})
+        before=self.paths.events.read_bytes()
+        for phrase in phrases:
+            for prefix in ('What changed in auth ','Quels changements dans auth '):
+                for options in ({},{'until':'2027-01-01'},{'entity':'SEPARATOR-OLD'}):
+                    with self.subTest(phrase=phrase,prefix=prefix,options=options):
+                        result=answer_question(self.repo,prefix+phrase+'?',**options)
+                        self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                        self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        self.assertEqual(before,self.paths.events.read_bytes())
+        for index,label in enumerate(('v9/21','build_09/21','v9‐21','api/09-21','Node 24.1.0',
+                                      'runtime 24.1.10.2','release-21.09.2026')):
+            identity='SEPARATOR-NAME-'+str(index)
             source=self.record(identity,label,payload={'why':'Attached numeric identifier'})
             result=answer_question(self.repo,'Why '+label+'?',entity=identity)
             self.assertEqual(result['status'],'cited-records')

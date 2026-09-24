@@ -238,15 +238,19 @@ def _query(question, kind, since, until, entity):
         r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
         r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
         r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
-        r"|\b\d{1,4}/\d{1,2}(?:/\d{1,4})?\b"
+        # NFKC keeps dash/slash variants such as U+2010, U+2212 and U+2215
+        # distinct, so numeric date separators name them explicitly.
+        r"|\b\d{1,4}\s*[/∕⁄]\s*\d{1,2}(?:\s*[/∕⁄]\s*\d{1,4})?"
+        r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?\b"
         r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2}(?:-\d)?)(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{4}W\d{2}\d?(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])(?:\d{4}-?\d{3,4}|\d{4}-\d{1,2}-\d{1,2}|"
         r"\d{4}-?W\d{2}(?:-?\d)?)(?:T\d{2}(?::?\d{2}){0,2}"
         r"(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
-        r"|(?<![\w./#:+-])\d{1,2}\s*-\s*\d{1,2}(?:\s*-\s*(?:\d{4}|\d{2}))?"
+        r"|(?<![\w./#:+-])\d{1,2}\s*[-‐‑‒–—−]\s*\d{1,2}(?:\s*[-‐‑‒–—−]\s*(?:\d{4}|\d{2}))?"
         r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
-        r"|(?<![\w./#:+-])(?:\d{1,2}\.\d{1,2}\.(?:\d{4}|\d{2})|\d{4}\.\d{1,2}\.\d{1,2})(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])(?:\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*(?:\d{4}|\d{2})|\d{4}\s*\.\s*\d{1,2}\s*\.\s*\d{1,2})"
+        r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
         r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
         r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
         r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
@@ -270,8 +274,8 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
         r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
         cleaned, re.I) or re.search(
-        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
-        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?\b|"
+        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.‐‑‒–—−∕⁄]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
+        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.‐‑‒–—−∕⁄]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?\b|"
         rf"\b(?:in|en)\s+{month_word}\.?(?!\w)|"
         rf"(?<![\w./#:+-]){month_word}(?![\w/#:+-]|\.\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
