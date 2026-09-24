@@ -46,7 +46,7 @@ def main():
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
-                       'release-21.09.2026','build_2026.9.21',
+                       'dotted-21.09.2026','build_2026.9.21',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
                        'System.Memory','foo.memory.py')
         for index,label in enumerate(intent_names):
@@ -234,7 +234,7 @@ def main():
             for index,label in enumerate(numeric_names):
                 value=json.loads(run(dw,'--language',lang,'ask','Why '+label+'?','--json'))
                 assert value['status']=='cited-records'
-                assert [f['fields']['id'] for f in value['context']['facts']]==['DEC-NUMERIC-'+str(index)]
+                assert [f['fields']['id'] for f in value['context']['facts']]==['DEC-NUMERIC-'+str(index)], (label, value['status'], value['context']['abstention'], [f['fields']['id'] for f in value['context']['facts']])
                 for part in value['parts']:
                     citation=part['source']
                     opened=json.loads(run(dw,'state','event',citation['eventId'],'--hash',citation['eventHash'],'--json'))

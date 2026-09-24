@@ -944,3 +944,45 @@ class MemoryQuestionTests(unittest.TestCase):
             self.assertEqual(result['status'],'cited-records')
             self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[identity])
             self.assert_sources(result)
+
+
+    def test_iso_weekday_dates_never_become_path_terms(self):
+        phrases=('2026-W39-4','2026-W39-7','2026W394','2026W397')
+        self.record('WEEKDAY-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace('-','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'},{'entity':'WEEKDAY-OLD'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_generic_time_zone_clocks_never_become_path_terms(self):
+        phrases=('12 ET','12 CT','12 MT','12 PT','12ET','12PT')
+        self.record('GENERIC-ZONE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_dash_separated_question_clauses_never_become_name_terms(self):
+        self.record('DEC','auth why pourquoi what changed in billing quels changements dans '
+                    'qu est ce qui a changé remember please memory',
+                    payload={'why':'Synthetic all-term reason'})
+        for separator in (' — ',' – ',' - ',' -- ','—','–'):
+            for tail,reason in (
+                ('what changed in billing?','mixed-question-intents'),
+                ('quels changements dans billing ?','mixed-question-intents'),
+                ('Qu’est-ce qui a changé dans billing ?','mixed-question-intents'),
+                ('why billing?','multiple-question-clauses'),
+                ('please remember billing?','unsupported-compound-memory-clause'),
+            ):
+                with self.subTest(separator=separator,tail=tail):
+                    result=answer_question(self.repo,'Why auth'+separator+tail,entity='DEC')
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],reason)
