@@ -254,6 +254,10 @@ def _query(question, kind, since, until, entity):
     # all apply to the same shapes.
     clock_shape = (r"(?:(?:\d{1,2}(?:[:.]?\d{2}){0,2}|\d{1,2}h(?:\d{2})?)(?:\s*[ap]\.?m\.?)?|"
                    r"noon|midi|midnight|minuit)")
+    # A zone (optionally with a POSIX offset such as EST-5), an offset or an
+    # uppercase Zulu Z; a lowercase z stays a unit such as 60hz.
+    clock_suffix = (rf"(?:(?-i:{_ZONE_ABBREVIATIONS})(?:[+-]\d{{1,2}}(?::?\d{{2}})?)?|(?-i:Z)|"
+                    rf"[+-]\d{{2}}(?::?\d{{2}})?)")
     relative_period = re.search(
         r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
         r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
@@ -294,13 +298,11 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        # A clock shape followed, with or without a space, by a zone, an offset
-        # or an uppercase Zulu Z (lowercase z stays a unit such as 60hz), or by
-        # an IANA zone name after a space.
-        rf"|(?<![\w./#:+-])T?{clock_shape}\s*(?:(?-i:{_ZONE_ABBREVIATIONS}|Z)\b|"
-        rf"[+-]\d{{2}}(?::?\d{{2}})?\b)"
-        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?Z\b"
-        r"|(?<![\w./#:+-])\d{1,4}\s*(?:hrs?|hours?|heures?)\b"
+        # After a space the suffix qualifies the clock. Attached without a space
+        # it takes the date patterns' right guard, so 12h30Z-service stays a name.
+        rf"|(?<![\w./#:+-])T?{clock_shape}(?:\s+{clock_suffix}\b|{clock_suffix}(?![\w/#:+-]|\.\w))"
+        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?Z(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{1,4}\s*(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w)"
         rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
         r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
         r"|\b(?:at|vers|à)\s+\d{1,2}\b"

@@ -860,3 +860,34 @@ The replay of every review scenario gives 64/64 PASS on this candidate; the
 finding-64 scenario fails on 716910a. 716910a passed its 27 hosted checks
 (test 36015591600, ProofBench 36015591620, ContinuityBench 36015591536,
 integrated 36015591543), which do not qualify this new commit.
+
+## IDE continuation — finding 65, 2026-09-24
+
+Review 5306494614 on eacd74f (4095330252, P2): the shared clock suffix ended at
+a word boundary, so an attached identifier such as `12h30Z-service` abstained
+although 716910a treated it as data. A suffix separated by a space still
+qualifies the clock unchanged (`12 EST`, `12 EST/PST`, `12 EST-service`, `12 +03`).
+A suffix attached without a space now takes the date patterns' right guard,
+so hyphen-, slash- or plus-suffixed tokens (`12h30Z-service`, `1200EST-api`,
+`3pmZ-build`, `1200Z-service`, `12h30Z/api`, `12h30Z+plugin`) are names. The same
+guard applies to the numeric Zulu and attached hour-unit branches introduced in
+this lot (`1200hrs-report`). A zone may carry a POSIX offset (`12EST-5`,
+`12 EST+5`), which still abstains.
+
+One deliberate relaxation follows the uniform rule: the attached form
+`12EST-service` abstained on 7af22d6 through the former zone branch and is
+now an exact-source name like the other attached identifiers. Spaced forms and
+every attached clock followed by punctuation or the end of the question still
+abstain. The regression against the installed eacd74f wheel reproduces 8
+failing subcases (the eight attached identifiers).
+
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1137.370 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+f597173069d5c9261f87d2dd3e1177aeb752cd8f17228c639fd581c8ec0a5b57.
+Journal SHA256: 361928ce899cc1582f6a6a94b56379fc0866a79c760bee5cc4a803d98dc3ac3d.
+The replay of every review scenario gives 65/65 PASS on this candidate; the
+finding-65 scenario fails on eacd74f. eacd74f passed its 27 hosted checks
+(test 36019272770, ProofBench 36019272714, ContinuityBench 36019273046,
+integrated 36019272746), which do not qualify this new commit.

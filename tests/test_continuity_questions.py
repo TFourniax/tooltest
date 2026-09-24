@@ -976,7 +976,8 @@ class MemoryQuestionTests(unittest.TestCase):
         phrases=('1200Z','0930Z','T1200Z','120000Z','12:00EST','1200EST','3pmEST','3PMEST','12hEET',
                  '12h30EET','12.30 EET','noonEST','midnightUTC','minuitCET','1200+03','12:30+0530',
                  '1200hrs','12 hrs','9 heures','12h30Z','12hZ','12.30Z','3pmZ','noonZ','midnightZ',
-                 '12h30+02','3pm+02','noon-05','12h30 +0530','12.30 Europe/Paris')
+                 '12h30+02','3pm+02','noon-05','12h30 +0530','12.30 Europe/Paris','12 EST/PST',
+                 '12EST-5','12 EST+5','12 EST-service')
         self.record('ATTACHED-OLD','auth change',kind='change',event_type='change.observed',
                     timestamp='2025-09-21T08:00:00Z',
                     payload={'changed_files':['auth/'+'/'.join(re.findall(r'[^\W_]+',p.lower()))+'/service.py' for p in phrases]})
@@ -991,7 +992,9 @@ class MemoryQuestionTests(unittest.TestCase):
         self.assertEqual(before,self.paths.events.read_bytes())
         for index,label in enumerate(('v1200Z','build_1200EST','release-09-21T120000Z','rev12hEET',
                                       'Python 3.14','Node 24.1.0','plan 12 est stable','rev12h30Z',
-                                      '60hz filter','1.2+34 build')):
+                                      '60hz filter','1.2+34 build','12h30Z-service','1200EST-api',
+                                      '3pmZ-build','1200Z-service','1200hrs-report','12h30Z/api',
+                                      '12h30Z+plugin','12EST-service')):
             with self.subTest(label=label):
                 identity='ATTACHED-NAME-'+str(index)
                 source=self.record(identity,label,payload={'why':'Attached clock-like identifier'})

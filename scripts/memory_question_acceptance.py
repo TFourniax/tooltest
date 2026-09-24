@@ -62,7 +62,8 @@ def main():
                        'bracketed (v2)','billing [external]','service {adapter}',
                        'v9-21','partialrelease-09-21','partialapi/09-21','partialbuild_21-09','release-09-21T120000Z',
                        'separatorv9/21','separatorbuild_09/21','unicodev9‐21',
-                       'unicoderelease‐2026‐09‐21','unicodedate‐09‐21','unicodesdk‐sep‐21')
+                       'unicoderelease‐2026‐09‐21','unicodedate‐09‐21','unicodesdk‐sep‐21',
+                       '12h30Z-service','1200EST-api')
         for index,label in enumerate(intent_names):
             identity='DEC-NAME-'+str(index);source_identity='OBJ-NAME-'+str(index)
             run(dw,'decision','record',label,'--id',identity,'--why','Original reason for '+label)
@@ -123,7 +124,7 @@ def main():
                           '12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
                           '12 ET','12 CT','12 MT','12 PT','12ET','12PT',
                           '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200',
-                          '12 EET','12 EEST','12 WET','12 WEST','12 SAST','12 HKT','12 WIB','12 ChST','12 AHST','12 HKST','12 YST','12 YDT','12 +03','9 -0330','1200Z','12:00EST','3pmEST','noonEST','1200hrs','1200+03','12h30Z','3pmZ','12h30+02')
+                          '12 EET','12 EEST','12 WET','12 WEST','12 SAST','12 HKT','12 WIB','12 ChST','12 AHST','12 HKST','12 YST','12 YDT','12 +03','9 -0330','1200Z','12:00EST','3pmEST','noonEST','1200hrs','1200+03','12h30Z','3pmZ','12h30+02','12 EST/PST','12EST-5')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
