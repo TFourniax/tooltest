@@ -66,9 +66,13 @@ def _incoming_target(question):
     target = match.group(1)
     # A conjunction can belong to a name. A new question or dependency
     # clause cannot be swallowed into that name and answered partially.
-    if re.search(r"\b(?:because|"
-                 r"what|which|who|whose|that|quoi|qui|que|dont|does|do|"
-                 r"since|before|after|depuis|avant|après)\b|"
+    if re.search(r"\b(?:because|since|before|after|depuis|avant|après)\b|"
+                 r"\b(?:what|which)\s+(?:has\s+)?(?:changes?|changed)\b|"
+                 r"\b(?:what|who)\s+(?:depends?\s+on|imports?|calls?)\b|"
+                 r"\b(?:does|do)\s+.+\s+(?:depend|import|call)\b|"
+                 r"\b(?:that|which|who|whose|qui|que|dont)\s+(?:\w+\s+)?"
+                 r"(?:depends?|imports?|calls?|d[eé]pend(?:ent)?|importe(?:nt)?|appelle(?:nt)?)\b|"
+                 r"\b(?:de\s+quoi|qu['’](?:est-ce\s+(?:qui|que)|appelle))\b|"
                  r"\b(?:depends?\s+on|d[eé]pend(?:ent)?\s+de)\b",
                  target, re.I):
         return None
@@ -125,7 +129,7 @@ def _question_intents(question):
                        r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
                        r"(?:[:—–]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
-                       r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
+                       r"(?:\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+|&+\s*)"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember)\b)",
                        question, flags=re.I)
@@ -165,7 +169,7 @@ def _query(question, kind, since, until, entity):
     # Noun memory/mémoire stays valid after a conjunction; explicit punctuation
     # may introduce that shorthand. Literal --kind memory is not a command.
     if not literal_memory and re.search(
-            r"\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b"
+            r"(?:\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b|&+)"
             r"[^?!;,:—–]*\bremember\b|"
             r"(?:[?!;,:—–]|\s+-{1,2}\s+)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\b|"
             r"\.(?!\d)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\s+\S",
@@ -231,7 +235,7 @@ def _query(question, kind, since, until, entity):
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
         r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
-        r"|(?<![\w./#:+-])\d{1,2}\s*(?:(?-i:ET|CT|MT|PT)|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
+        r"|(?<![\w./#:+-])\d{1,2}\s*(?-i:ET|CT|MT|PT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|"
         r"CET|CEST|BST|IST|JST|KST|HST|AKST|AKDT|AST|ADT|MSK|"
         r"AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)\b"
         r"|(?<![\w./#:+-])\d{1,2}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
@@ -244,7 +248,8 @@ def _query(question, kind, since, until, entity):
         cleaned, re.I) or re.search(
         rf"(?<![\w./#:+-]){month_word}\.?\s*\d{{1,4}}(?:st|nd|rd|th|er|e)?\b|"
         rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?\s*{month_word}\.?(?:\s*\d{{2,4}})?\b|"
-        rf"\b(?:in|en)\s+{month_word}\.?(?!\w)", cleaned, re.I)
+        rf"\b(?:in|en)\s+{month_word}\.?(?!\w)|"
+        rf"(?<![\w./#:+-]){month_word}(?![\w/#:+-]|\.\w)", cleaned, re.I)
     # Question-side constraints are inspected even when CLI bounds exist.
     # Only a single bare terminal since/depuis date has an unambiguous meaning.
     if natural_dates or temporal or relative_period:

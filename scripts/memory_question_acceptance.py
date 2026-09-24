@@ -47,12 +47,13 @@ def main():
         intent_names=('change management','memory management','call management','dependency management',
                       'risk and memory retention','risque et mémoire retention',
                       'risk or change retention','risk and call retention',
-                      'import management','imports management','depend management','depends management','car service')
+                      'import management','imports management','depend management','depends management','car service','Doctor Who service','what platform',
+                      'which platform','ce qui fonctionne','Who Does It service','risk & memory conservation')
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
                        'dotted-21.09.2026','build_2026.9.21','dotted-21.09.26','v24.1.10',
-                       'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering',
+                       'plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering','plan 12 est stable','plan 13 Est stable','plan 12 cet objet',
                        'RFC 9110','RFC 9111','RFC 2026','ISO 9001','IEEE 8023','IEC 61508',
                        'System.Memory','foo.memory.py')
         for index,label in enumerate(intent_names):
@@ -92,7 +93,7 @@ def main():
                           '09-21-2026','21-09-2026','09-21-26','21-09-26',
                           '2026-9-21','2026-09-1','2026-9-1','2026-9',
                           '2026-W39-4','2026-W39-7','2026W394','2026W397',
-                          '21.09.2026','9.21.2026','2026.09.21','2026.9.21','21.09.26','09.21.26','1.2.26',
+                          '21.09.2026','9.21.2026','2026.09.21','2026.9.21','21.09.26','09.21.26','1.2.26','Jan','Feb','Mar','Apr','Jun','Jul','Aug','Sep','Sept','Oct','Nov','Dec','janv','févr','avr','juil','déc',
                           'Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
                           'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21',
                           'Sep 21st','Sep. 21st','Sept21st','Jan 1st','Feb 2nd','Apr 3rd',
@@ -331,7 +332,7 @@ def main():
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']==reason
         for lang in ('fr','en'):
-            for separator in (' — ',' – ',' - ',' -- ','—','–'):
+            for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ '):
                 for tail,reason in (
                     ('what changed in billing?','mixed-question-intents'),
                     ('quels changements dans billing ?','mixed-question-intents'),

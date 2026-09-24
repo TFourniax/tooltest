@@ -976,7 +976,7 @@ class MemoryQuestionTests(unittest.TestCase):
         self.record('DEC','auth why pourquoi what changed in billing quels changements dans '
                     'qu est ce qui a changé remember please memory',
                     payload={'why':'Synthetic all-term reason'})
-        for separator in (' — ',' – ',' - ',' -- ','—','–'):
+        for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ '):
             for tail,reason in (
                 ('what changed in billing?','mixed-question-intents'),
                 ('quels changements dans billing ?','mixed-question-intents'),
@@ -1006,8 +1006,42 @@ class MemoryQuestionTests(unittest.TestCase):
         self.assertEqual(self.paths.events.read_bytes(),before)
 
 
+    def test_standalone_month_abbreviations_are_not_unbounded_path_queries(self):
+        phrases = ('Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Sept',
+                   'Oct', 'Nov', 'Dec', 'janv', 'févr', 'avr', 'juil', 'déc')
+        self.record('ABBR-OLD', 'auth change', kind='change', event_type='change.observed',
+                    timestamp='2025-01-01T00:00:00Z',
+                    payload={'changed_files':['auth/'+p.lower()+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for question in ('What changed in auth '+phrase+'?', 'Quels changements dans auth '+phrase+'. ?'):
+                for options in ({}, {'until':'2027-01-01'}, {'entity':'ABBR-OLD'}):
+                    with self.subTest(question=question, options=options):
+                        result = answer_question(self.repo, question, **options)
+                        self.assertEqual(result['status'], 'abstained')
+                        self.assertEqual(result['parts'], [])
+                        self.assertEqual(result['context']['abstention'], 'ambiguous-time-filter')
+        self.record('ABBR-NAME', 'sept-sdk', payload={'why':'An attached identifier'})
+        self.assertEqual(answer_question(self.repo, 'Why sept-sdk?')['status'], 'cited-records')
+
+    def test_interrogative_words_in_dependency_names_keep_exact_incoming_edges(self):
+        for index, label in enumerate(('Doctor Who service', 'what platform', 'which platform',
+                                      'ce qui fonctionne', 'Who Does It service', 'risk & memory retention')):
+            identity = 'NAMED-TARGET-' + str(index)
+            self.record(identity, label, kind='component', event_type='component.observed')
+            source = self.record('NAMED-SOURCE-' + str(index), 'Source', kind='component',
+                                 event_type='component.observed', relations=[{'predicate':'depends_on',
+                                 'target':{'id':identity,'kind':'component'},'epistemic_status':'INFERRED'}])
+            for question in ('What depends on '+label+'?', 'Qu’est-ce qui dépend de '+label+' ?'):
+                for options in ({}, {'entity':identity}):
+                    with self.subTest(question=question, options=options):
+                        result = answer_question(self.repo, question, **options)
+                        self.assertEqual(result['status'], 'cited-records')
+                        self.assertEqual([f['source']['eventId'] for f in result['context']['facts']], [source['event_id']])
+                        self.assert_sources(result)
+
     def test_generic_zone_homographs_remain_literal_lowercase_name_terms(self):
-        labels=('plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering')
+        labels=('plan 9 et migration','12 pt typography','12pt typeface','12 Pt lettering',
+                                     'plan 12 est stable','plan 13 Est stable','plan 12 cet objet')
         for index,label in enumerate(labels):
             self.record('ZONE-NAME-'+str(index),label,payload={'why':'Reason for '+label})
         for index,label in enumerate(labels):

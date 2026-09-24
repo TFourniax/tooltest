@@ -560,3 +560,32 @@ The provider latency incident remains OPEN under PM012. The Q&A diff against
 main adds a lazy `ask` dispatch, its reader and acceptance workflow step; it does
 not modify extraction, providers or their budgets. A final review and fresh
 full candidate CI are still required. No global MACHINE/Alpha claim follows.
+
+
+Grouped latest-head review corrections48–51 (2026-09-24): standalone EN/FR
+abbreviated month tokens abstain as ambiguous time, including explicit CLI bounds
+or an entity constraint. Attached names such as sept-sdk remain lexical names.
+Uppercase conventional time-zone codes remain time constraints; lowercase/title
+case French est/cet and existing et/pt name homographs remain literal terms.
+Incoming dependency grammar admits Doctor Who, what/which platform and French
+relative-pronoun names without treating every interrogative token as a new clause.
+Actual direction/compound clauses still abstain. Ampersand-separated question
+intents are inspected before answering, including NFKC full-width ampersands;
+ampersands inside names followed by ordinary nouns remain literal.
+
+The grouped product patch passes72 focused tests and816 installed-package tests
+(52 explicit skips,90.053s). Wheel389172bytes:
+450734fda5bbf17cfa98f3b15acd769b038d79ab9d5df0a3503816a68bf9a82e.
+The expanded installed CLI acceptance initially found a fixture collision:
+'risk & memory retention' and 'risk and memory retention' share all significant
+lexical terms, so expecting one result without --entity was incorrect. The new
+ampersand fixture now uses 'risk & memory conservation'; exact-ID/source and
+abstention assertions remain unchanged. Only that failed acceptance journey was
+rerun; product code and the already passing816-test suite did not change.
+Final installed CLI journey passes with every source opened and journal/state
+bytes preserved. No additional CI was pushed per individual finding.
+
+Prior d861ec8 has test35971656258 all24jobs PASS plus three specialists PASS;
+that result does not qualify this new patch. Latest-head distinct review, fresh
+hosted gates and post-merge main remain required. PM015 and PM001–018 remain
+partial/open; provider latency incidents and PM012100k failures remain open.
