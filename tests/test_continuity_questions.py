@@ -882,3 +882,45 @@ class MemoryQuestionTests(unittest.TestCase):
             self.assertEqual(result['status'],'cited-records')
             self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[identity])
             self.assert_sources(result)
+
+
+    def test_adjacent_french_elided_forms_never_disappear_into_names(self):
+        self.record('DEC','auth qu est ce qui que a changé dans billing dépend de appelle importe',
+                    payload={'why':'Synthetic all-term reason'})
+        for question in (
+            "Pourquoi auth.Qu’est-ce qui a changé dans billing ?",
+            "Pourquoi auth.Qu'est-ce qui a changé dans billing ?",
+            "Pourquoi auth.Qu’est-ce qui dépend de billing ?",
+            "Pourquoi auth.Qu'est-ce que billing importe ?",
+            "Pourquoi auth.Qu’appelle billing ?",
+        ):
+            for options in ({},{'entity':'DEC'}):
+                with self.subTest(question=question,options=options):
+                    result=answer_question(self.repo,question,**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'mixed-question-intents')
+
+    def test_abbreviated_month_ordinal_dates_never_become_path_terms(self):
+        phrases=('Sep 21st','Sep. 21st','Sept21st','Jan 1st','Feb 2nd','Apr 3rd',
+                 'Aug 4th','janv. 1er','févr. 2e')
+        self.record('ORDINAL-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'},{'entity':'ORDINAL-OLD'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_variable_width_year_first_dates_never_become_path_terms(self):
+        phrases=('2026-9-21','2026-09-1','2026-9-1','2026-9')
+        self.record('VARIABLE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace('-','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'},{'entity':'VARIABLE-OLD'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
