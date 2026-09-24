@@ -198,3 +198,44 @@ class MemoryQuestionTests(unittest.TestCase):
                 self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
         same=answer_question(self.repo,'What changed in auth since 2026-09-21?',since='2026-09-21T00:00:00Z')
         self.assertEqual(same['status'],'cited-records')
+
+    def test_mixed_intents_never_choose_one_partial_answer(self):
+        self.record('DEC-AUTH','auth',payload={'why':'Recorded reason'})
+        self.record('CHANGE-BILLING','billing change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['billing.py']})
+        for question in ('Why auth and what changed in billing?',
+                         'What changed in billing and why auth?',
+                         'Pourquoi auth et quels changements dans billing ?',
+                         'Why auth and what depends on auth?'):
+            for kind in ('auto','why','changes'):
+                with self.subTest(question=question,kind=kind):
+                    result=answer_question(self.repo,question,kind=kind)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'mixed-question-intents')
+
+    def test_relative_time_phrases_do_not_return_all_changes(self):
+        self.record('CHANGE-AUTH','auth change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['auth.py']})
+        for phrase in ('two days ago','this week','recently','as of Monday','earlier',
+                       'il y a deux jours','cette semaine','récemment','lundi dernier',
+                       '2026/09/21','on Monday','between September and October'):
+            with self.subTest(phrase=phrase):
+                result=answer_question(self.repo,'What changed in auth '+phrase+'?')
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_extreme_timezone_bounds_have_bounded_cli_rejection(self):
+        before=self.paths.events.read_bytes() if self.paths.events.exists() else None
+        for bound in ('9999-12-31T23:59:59-23:59','0001-01-01T00:00:00+23:59'):
+            for flag in ('--since','--until'):
+                with self.subTest(bound=bound,flag=flag):
+                    run=subprocess.run([sys.executable,'-m','diffwitness.entry','ask',
+                        'What changed in auth?','--repo',str(self.repo),flag,bound],
+                        capture_output=True,encoding='utf-8',timeout=15)
+                    self.assertEqual(run.returncode,2,run.stderr)
+                    self.assertNotIn('Traceback',run.stderr)
+                    self.assertEqual(run.stdout,'')
+        self.assertEqual(self.paths.events.read_bytes() if self.paths.events.exists() else None,before)
+        self.assertFalse(self.paths.state.exists())
