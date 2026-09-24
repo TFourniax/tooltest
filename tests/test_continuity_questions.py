@@ -521,3 +521,44 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(result['status'],'abstained')
                     self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_entity_intent_words_are_preserved_in_why_and_explicit_memory(self):
+        labels=('change management','memory management','call management','dependency management')
+        for index,label in enumerate(labels):
+            self.record('DEC-NAME-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question,options in [('Why '+label+'?',{}),
+                                      ('Pourquoi utilisons-nous '+label+' ici ?',{}),
+                                      (label,{'kind':'memory'}),('Remember '+label+'?',{})]:
+                with self.subTest(question=question,options=options):
+                    result=answer_question(self.repo,question,**options)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-NAME-'+str(index)])
+                    self.assert_sources(result)
+
+    def test_dependency_entity_names_do_not_become_other_intents(self):
+        labels=('change management','memory management','call management','dependency management')
+        for index,label in enumerate(labels):
+            identity='MOD-NAME-'+str(index)
+            self.record(identity,label,kind='component',event_type='component.observed')
+            self.record('SRC-NAME-'+str(index),'source',kind='component',event_type='component.observed',
+                        relations=[{'predicate':'depends_on','target':{'id':identity,'kind':'component'}}])
+        for index,label in enumerate(labels):
+            for question in ('What depends on '+label+'?', 'Qu’est-ce qui dépend de '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['to'] for f in result['context']['facts']],['MOD-NAME-'+str(index)])
+                    self.assert_sources(result)
+
+    def test_numeric_technology_and_compound_identifiers_are_not_year_filters(self):
+        labels=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha')
+        for index,label in enumerate(labels):
+            self.record('DEC-NUMERIC-'+str(index),label,payload={'why':'Reason for '+label})
+        for index,label in enumerate(labels):
+            for question in ('Why '+label+'?', 'Pourquoi '+label+' ?'):
+                with self.subTest(question=question):
+                    result=answer_question(self.repo,question)
+                    self.assertEqual(result['status'],'cited-records')
+                    self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['DEC-NUMERIC-'+str(index)])
+                    self.assert_sources(result)

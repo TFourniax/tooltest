@@ -301,3 +301,10 @@ BEFORE run. The installed CLI uses old matching-path fixtures for every relative
 period and preserves every source/authority/journal/state assertion. All19review
 findings, final-head review, hosted gates and fresh main remain required. No
 local AFTER while Work is offline and no HUMAN execution is claimed.
+
+Latest review adds findings4089587924/4089587933 (21total): grammatical intent
+must not be inferred from entity-name tokens, and numeric technology/compound
+identifiers must not be interpreted as year substrings. Three regression-first
+tests cover why, explicit memory and incoming dependency queries with competing
+intent-word names, plus ISO/RFC/CVE/version identifiers. The correction must
+retain all earlier mixed-intent, period and compact-year refusal guarantees.
