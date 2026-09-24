@@ -483,3 +483,17 @@ its805-test and installed Ubuntu PASS do not qualify this new head. Full logs
 are retained. All41findings and latest-head review/required gates remain open.
 The provider558.800441>500ms incident remains unresolved; no main merge,
 local AFTER, complete PM015, HUMAN or Alpha is claimed.
+
+
+Finding4090301777 is tracked as42. BEFORE2a01805ab0dde1d54699266f96f62b03c136797a /
+35961005325 / Ubuntu3.11 job107509667542:809 tests,12 failures,52 skips,106.582s.
+The full BEFORE and preceding808-test/installed Ubuntu AFTER logs are retained.
+Standalone three-component dotted dates with a four-digit year now abstain,
+independently of identity selection and CLI bounds. Two-component versions and
+three-component software versions without a four-digit year remain data;
+embedded dotted release/build identifiers retain their boundary protection.
+Both new positive identities and date negatives run through the installed
+bilingual CLI with the original exact sources and byte/authority checks.
+All42 findings, latest-head review and full gates remain required. This does
+not resolve the preserved provider558.800441>500ms incident or PM012100k.
+No local AFTER, merge, full semantic PM015, HUMAN or Alpha claim.
