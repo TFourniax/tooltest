@@ -534,3 +534,29 @@ The preceding855a850 run ended13PASS/11cancelled when this concrete regression
 was pushed, not a full matrix PASS. Its813-test/installed Linux results and
 this original BEFORE are retained. Latest-head review and full gates remain
 required. Provider incident, full PM015/PM001-018 and HUMAN/Alpha remain open.
+
+
+## Batched correction, Work restored, 2026-09-24
+
+Review finding 47 (4090514176): standalone dotted dates with two-digit years
+now abstain under the same temporal boundary as the existing four-digit forms.
+The corpus covers day/month and month/day forms, leading zeros, CLI bounds and
+entity narrowing. Two-component versions, Node 24.1.0, explicitly attached
+identifiers (`v24.1.10`, `release-21.09.26`) and four-component versions remain
+literal names. Ambiguous bare date-shaped tokens still abstain; no source or
+bound is fabricated.
+
+Per the user's current instruction, code and coverage were grouped locally,
+then tested; no regression-only commit or per-case CI run was created.
+70 Q&A tests pass. The complete installed-wheel suite passes 814 tests with
+52 explicit skips. The installed CLI acceptance passes, opens original sources,
+and preserves journal/state bytes; journal SHA-256
+`d24c053b7069d52b743f85b2f31926d97344a15267429799ead6ff38cd3b0a84`.
+An initial source invocation used a relative PYTHONPATH that did not survive
+fixture cwd changes; its subprocess import failure was fixed in the environment,
+without changing an assertion. No HUMAN execution is claimed.
+
+The provider latency incident remains OPEN under PM012. The Q&A diff against
+main adds a lazy `ask` dispatch, its reader and acceptance workflow step; it does
+not modify extraction, providers or their budgets. A final review and fresh
+full candidate CI are still required. No global MACHINE/Alpha claim follows.
