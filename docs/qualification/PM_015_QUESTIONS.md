@@ -92,3 +92,23 @@ Initial schema tooling/path failures are retained. The earlier742test run is
 provisional; only the later753test integrated run qualifies this source tuple.
 Wheel/log hashes are retained; adding schema/docs requires fresh CI artifact IDs.
 Final-head review, hosted gates and fresh main remain required.
+
+Review4088785920/4088785929 exposed two unsafe interpretations. Incoming
+questions now require an explicitly recognized incoming phrase in FR/EN; other
+dependency wording abstains. A natural-language date is accepted only as a bare
+terminal ISO date (optionally followed by punctuation). Attached times, including
+ISO timestamps or “at noon”, abstain instead of becoming midnight. Explicit
+--since/--until still accept complete ISO timestamps with timezone.
+
+Regression-first head b21800c adds two journal-backed tests covering four outgoing
+forms and four time-qualified date forms; existing hosted CI supplies before/after
+execution because the Work cloud executor is offline. The installed-wheel journey
+also exercises both errors in FR/EN. No assertion, source integrity rule or budget
+is weakened. The original753local result applies only to the previous candidate;
+this corrected candidate requires fresh hosted review/gates and fresh main.
+
+Hosted BEFORE: run35941138786/job107449326048,755tests,7failures,52skips,
+77.168s. Four outgoing forms and three time qualifiers return cited records when
+abstention is required; the ISO-T form already abstains and remains covered.
+Separate optional-provider job107449326392 fails hookp95166.7ms>150ms; retained
+as a PM012 incident, not attributed to these question parsing changes.

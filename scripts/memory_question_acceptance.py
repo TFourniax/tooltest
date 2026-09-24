@@ -26,7 +26,10 @@ def main():
         paths=continuity_paths(repo);before={p:p.read_bytes() for p in (paths.events,paths.state) if p.exists()}
         cases=[]
         for question in ['Why auth?','Pourquoi auth ?','What depends on auth?','Qu’est-ce qui dépend de auth ?',
-                         'Why unrecorded_lunar_module?','What changed in auth since yesterday?']:
+                         'Why unrecorded_lunar_module?','What changed in auth since yesterday?',
+                         'auth depends on what?', 'de quoi auth dépend-il ?',
+                         'What changed in auth since 2026-09-21T12:00:00Z?',
+                         'Qu’est-ce qui a changé dans auth depuis 2026-09-21 à midi ?']:
             values=[]
             for lang in ('fr','en'):
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--json'));values.append(value)
@@ -38,8 +41,12 @@ def main():
                 readable=run(dw,'--language',lang,'ask',question)
                 assert ('Mémoire' if lang=='fr' else 'Recorded') in readable
             assert values[0]==values[1]
-            expected='abstained' if 'unrecorded_' in question or 'yesterday' in question else 'cited-records'
+            ambiguous_direction=question in ('auth depends on what?', 'de quoi auth dépend-il ?')
+            ambiguous_time='yesterday' in question or '2026-09-21' in question
+            expected='abstained' if 'unrecorded_' in question or ambiguous_direction or ambiguous_time else 'cited-records'
             assert values[0]['status']==expected
+            if ambiguous_direction:assert values[0]['context']['abstention']=='dependency-direction-ambiguous'
+            if ambiguous_time:assert values[0]['context']['abstention']=='ambiguous-time-filter'
             cases.append({'question':question,'status':expected,'citations':len(values[0]['parts'])})
         assert all(p.read_bytes()==b for p,b in before.items())
         run(dw,'decision','retire','DEC-AUTH','--reason','Historic only')

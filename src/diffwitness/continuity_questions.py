@@ -66,8 +66,10 @@ def _query(question, kind, since, until, entity):
     # "before/as of" questions must not silently become a current-state answer.
     natural_dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', question)
     if since is None and natural_dates:
-        if len(natural_dates) == 1 and query_tokens & {'since', 'depuis', 'after', 'apres'}:
-            since = natural_dates[0]
+        bare_bound = re.search(r"\b(?:since|depuis|after|après)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$",
+                               question, re.I)
+        if len(natural_dates) == 1 and bare_bound is not None:
+            since = bare_bound.group(1)
         else:
             ambiguity = 'ambiguous-time-filter'
     elif since is None and until is None and query_tokens & {'since', 'depuis', 'after', 'apres', 'before', 'avant', 'yesterday', 'hier'}:
@@ -78,8 +80,12 @@ def _query(question, kind, since, until, entity):
     if (lower or upper) and kind != 'changes':
         ambiguity = 'temporal-filter-requires-changes'
     # An incoming recorded dependency question has one supported direction.
-    if kind == 'dependencies' and re.search(r'\b(?:does|do)\b', question, re.I):
-        ambiguity = 'dependency-direction-ambiguous'
+    if kind == 'dependencies':
+        incoming = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+.+?[?!.]*\s*", question, re.I)
+                    or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+.+?[?!.]*\s*",
+                                    question, re.I))
+        if incoming is None:
+            ambiguity = 'dependency-direction-ambiguous'
     cleaned = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', question)
     terms = tokens(cleaned) - _STOP
     if not terms and entity is None:
