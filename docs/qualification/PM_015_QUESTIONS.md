@@ -911,3 +911,37 @@ The replay of every review scenario gives 66/66 PASS on this candidate; the
 finding-66 scenario fails on 5c3d529. 5c3d529 passed its 27 hosted checks
 (test 36023359779, ProofBench 36023359655, ContinuityBench 36023359831,
 integrated 36023359856), which do not qualify this new commit.
+
+## IDE continuation — findings 67–68, 2026-09-24
+
+Review 5307199747 on 935b183 reported two findings, corrected together.
+
+Finding 67 (4095927154, P2): zone names in POSIX form (`EST5EDT`, `CST6CDT`,
+`MST7MDT`, `PST8PDT`) after an hour were lexical terms. A zone suffix now
+accepts the POSIX shape `STD[offset][DST[offset]]` (`EST5EDT`, `CET-1CEST`,
+`EST-5`, `EST-0500`, `EST5`, `UTC0`, with or without a trailing rule such as
+`,M3.2.0,M11.1.0`). Minutes of an unsigned offset require a colon, so sensor or
+product names such as `12 PT100 probe` and `12 PT1000 probe` stay names; a
+first local draft without that rule made `PT100` abstain, was caught by a
+neighbouring-form probe before any push, and its interrupted run logs are kept.
+
+Finding 68 (4095927165, P2): the bare clock branch evaluated `Z` under the
+outer case-insensitive flag, so `12z compression` abstained. Zulu `Z` is now
+case-sensitive in that branch and in the numeric Zulu branch added in this lot
+(which also made `1200z router` abstain, a regression of this lot relative to
+7af22d6). Lowercase `z` after a number is a unit or name; `UTC`/`GMT` remain
+case-insensitive. This is a deliberate, documented relaxation for `12z`, which
+abstained on 7af22d6.
+
+The regression against the installed 935b183 wheel reproduces 50 failing
+subcases (8 POSIX forms, EN/FR, three option sets, and the two `z` names).
+After correction on Windows with Python 3.12.10: 78 focused tests PASS; 822
+installed-wheel tests PASS with 49 explicit skips in 1088.409 seconds; the real
+installed CLI journey PASS with citations opened and journal/state bytes
+unchanged. Local wheel SHA256:
+c8f284b41dea6d5771c6b6e5184255582dc6d133b5ea831add8cf837010c61bb.
+Journal SHA256: 0bf26689d89e31f48816d0bf79bee04fdd958e3434fdb42a9cc717ca7e4537b8.
+The replay of every review scenario gives 68/68 PASS on this candidate; the
+finding-67 and finding-68 scenarios fail on 935b183. 935b183 passed its 27
+hosted checks (test 36026705588, ProofBench 36026705564, ContinuityBench
+36026705707, integrated 36026705593), which do not qualify this new commit.

@@ -254,10 +254,12 @@ def _query(question, kind, since, until, entity):
     # all apply to the same shapes.
     clock_shape = (r"(?:(?:\d{1,2}(?:[:.]?\d{2}){0,2}|\d{1,2}h(?:\d{2})?)(?:\s*[ap]\.?m\.?)?|"
                    r"noon|midi|midnight|minuit)")
-    # A zone (optionally with a POSIX offset such as EST-5), an offset or an
-    # uppercase Zulu Z; a lowercase z stays a unit such as 60hz.
-    clock_suffix = (rf"(?:(?-i:{_ZONE_ABBREVIATIONS})(?:[+-]\d{{1,2}}(?::?\d{{2}})?)?|(?-i:Z)|"
-                    rf"[+-]\d{{2}}(?::?\d{{2}})?)")
+    # A zone in POSIX form (EST, EST-5, EST5EDT, CET-1CEST), an offset or an
+    # uppercase Zulu Z; a lowercase z stays a unit such as 60hz or 12z. Minutes
+    # of an unsigned POSIX offset need a colon, so PT100 or PT1000 stay names.
+    dst_zone = rf"(?-i:{_ZONE_ABBREVIATIONS})(?:[+-]?\d{{1,2}}(?::\d{{2}}){{0,2}})?"
+    clock_suffix = (rf"(?:(?-i:{_ZONE_ABBREVIATIONS})(?:(?:[+-]\d{{1,2}}(?::?\d{{2}}){{0,2}}|"
+                    rf"\d{{1,2}}(?::\d{{2}}){{0,2}})(?:{dst_zone})?)?|(?-i:Z)|[+-]\d{{2}}(?::?\d{{2}})?)")
     relative_period = re.search(
         r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
         r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
@@ -297,11 +299,11 @@ def _query(question, kind, since, until, entity):
         r"|\b(?:this|these|current|ce|cet|cette|ces)\s+"
         r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
         r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
-        r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|Z)\b"
+        r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|(?-i:Z))\b"
         # After a space the suffix qualifies the clock. Attached without a space
         # it takes the date patterns' right guard, so 12h30Z-service stays a name.
         rf"|(?<![\w./#:+-])T?{clock_shape}(?:\s+{clock_suffix}\b|{clock_suffix}(?![\w/#:+-]|\.\w))"
-        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?Z(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?(?-i:Z)(?![\w/#:+-]|\.\w)"
         r"|(?<![\w./#:+-])\d{1,4}(?:\s+(?:hrs?|hours?|heures?)\b|(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w))"
         rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|"
         r"Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z_+-]+(?:/[A-Za-z_+-]+)?\b"
