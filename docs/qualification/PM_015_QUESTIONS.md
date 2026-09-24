@@ -387,3 +387,24 @@ and empty-bound exit2/no-output/no-traceback checks. Original exact source,
 journal/state byte, authority, direction, version and mixed-intent assertions
 remain. Final-head review, all hosted gates and fresh main are mandatory.
 Work remains unavailable; no local AFTER or HUMAN/Alpha claim.
+
+
+Findings4089948783/4089948792 bring the tracked total to30: omitted relative
+phrases and colon-separated supported clauses. A separate root-cause regression
+also prevents literal identity selection from discarding unmatched query terms.
+BEFORE3fb8ddbe6706380c5e88a16395483ec9fc45616c /35956039183 /
+Ubuntu3.11 job107494729797: 797tests,44failures,52skips,96.844s.
+The complete BEFORE and preceding installed AFTER log are retained.
+The temporal guard includes the tested EN/FR relative expressions and compact
+to-date abbreviations. A colon separates clauses only before a recognized
+question/explicit memory form; numeric clock punctuation remains data for the
+independent temporal guard.
+For why/change/memory, --entity now narrows identity AND preserves every query
+term. It cannot erase an unrecognized qualifier or another entity name.
+Generic Why? --entity ID and matching names remain positive controls; dependency
+identity resolution is unchanged. Public README and bilingual CLI help state
+the distinction. Installed bilingual assertions cover relative periods, colon
+clauses, mismatching identity-bound terms, and exact generic-identity sources.
+All original authority/source/byte-invariance assertions remain. All30findings,
+latest-head review, complete hosted gates and fresh main remain mandatory.
+No local AFTER while Work is unavailable; no HUMAN or complete PM015/Alpha claim.

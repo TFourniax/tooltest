@@ -71,7 +71,11 @@ def main():
                           'from launch','during migration','pendant migration','durant migration',
                           'on 3.14','le 3.12','since 21.09.2026','depuis 21.09.2026',
                           'on 2026-09','le 2026-09','2026-09','on 09-21','le 21-09','on 21',
-                          'on Mon','le début','2026W39','2026-W39')
+                          'on Mon','le début','2026W39','2026-W39',
+                          'lately','so far','to date','thus far','hitherto','up to now',
+                          'YTD','MTD','QTD','WTD','dernièrement','dernierement',
+                          "jusqu'ici",'jusqu’ici','à ce jour','a ce jour',
+                          "pour l'instant",'pour le moment','à présent','a present')
         append_project_event(repo=repo,event_type='change.observed',
             subject={'id':'CHANGE-OLD','kind':'change','label':'auth change'},
             epistemic_status='DECLARED',payload={'changed_files':['auth/2026/service.py','auth/at/12/30/3pm/pm/12h30/vers/utc/service.py',
@@ -230,6 +234,35 @@ def main():
                 value=json.loads(run(dw,'--language',lang,'ask',question,'--entity',identity,'--json'))
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']=='multiple-question-clauses'
+        for lang in ('fr','en'):
+            for question,reason in [
+                ('Why auth: why billing?','multiple-question-clauses'),
+                ('Pourquoi auth : pourquoi billing ?','multiple-question-clauses'),
+                ('Remember auth: Remember billing?','multiple-question-clauses'),
+                ('Why auth: what changed in billing?','mixed-question-intents'),
+                ('Pourquoi auth : quels changements dans billing ?','mixed-question-intents'),
+                ('Why auth: Memory billing?','mixed-question-intents'),
+            ]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--entity','DEC-AUTH','--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+                assert value['context']['abstention']==reason
+            for question,identity,flags in [
+                ('Why billing?','DEC-AUTH',()),
+                ('Why auth unrecordedqualifier?','DEC-AUTH',()),
+                ('What changed in billing?','CHANGE-OLD',()),
+                ('What changed in auth unrecordedqualifier?','CHANGE-OLD',()),
+                ('Remember billing?','DEC-AUTH',()),
+                ('billing','DEC-AUTH',('--kind','memory')),
+            ]:
+                value=json.loads(run(dw,'--language',lang,'ask',question,'--entity',identity,*flags,'--json'))
+                assert value['status']=='abstained' and value['parts']==[]
+            exact=json.loads(run(dw,'--language',lang,'ask','Why?','--entity','DEC-AUTH','--json'))
+            assert exact['status']=='cited-records'
+            assert [f['fields']['id'] for f in exact['context']['facts']]==['DEC-AUTH']
+            for part in exact['parts']:
+                source=part['source']
+                opened=json.loads(run(dw,'state','event',source['eventId'],'--hash',source['eventHash'],'--json'))
+                assert opened['event']['event_hash']==source['eventHash']
         for flag,bound in [('--since',''),('--until',''),('--since','9999-12-31T23:59:59-23:59'),
                            ('--until','0001-01-01T00:00:00+23:59')]:
             rejected=subprocess.run([dw,'ask','What changed in auth?',flag,bound],

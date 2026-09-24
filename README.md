@@ -671,7 +671,9 @@ ContextPack. Auto mode abstains when it cannot recognize the question's intent.
 Use `dw ask "auth" --kind memory` for explicit lexical lookup of recorded labels,
 or `dw ask "Remember auth?"`. Explicit `--kind memory` retains every word of the
 label query. Conjunctive names, dotted software versions and embedded ISO-date
-identifiers remain query terms. Unsupported temporal or dependency wording abstains.
+identifiers remain query terms. An entity ID narrows reason/change/memory selection
+without discarding the other query terms; use `dw ask "Why?" --entity ID` to
+look up that identity alone. Unsupported temporal or dependency wording abstains.
 Open each original citation with `dw state event EVENT --hash SHA`.
 The question is never executed or stored, and no new Proof is inferred. See the
 [question scope and contract](docs/qualification/PM_015_QUESTIONS.md).

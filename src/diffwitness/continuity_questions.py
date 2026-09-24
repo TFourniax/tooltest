@@ -119,6 +119,8 @@ def _question_intents(question):
     # management") into another question. Require an interrogative form.
     # Explicit punctuation still separates independently stated clauses.
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$)|"
+                       r":\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi)\b)",
@@ -174,7 +176,10 @@ def _query(question, kind, since, until, entity):
     # Reject unsupported time vocabulary independently of any CLI bounds.
     # This deliberately prefers abstention when a time word is also a name.
     relative_period = re.search(
-        r"\b(?:ago|recently|recent|earlier|later|currently|now|then|"
+        r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
+        r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
+        r"derni[eè]rement|jusqu['’]ici|[aà]\s+ce\s+jour|"
+        r"pour\s+l['’]instant|pour\s+le\s+moment|[aà]\s+pr[eé]sent|"
         r"previous|next|latest|past|future|between|as\s+of|"
         r"seconds?|minutes?|hours?|days?|weeks?|months?|years?|"
         r"evening|tonight|afternoon|midnight|"
@@ -246,9 +251,13 @@ def question_context(repo, question, *, kind='auto', since=None, until=None, ent
     current = validator.memory_history.current
     terms = set(query['terms'])
     def match(subject, extra=''):
-        if entity is not None:
-            return 1000 if subject['id'] == entity else 0
+        if entity is not None and subject['id'] != entity:
+            return 0
         subject_terms = _terms(' '.join((subject['id'], subject.get('label') or '', extra)))
+        if entity is not None:
+            # Identity narrows selection; it must not erase unknown qualifiers.
+            # A generic Why? --entity ID remains an exact-identity lookup.
+            return 1000 if not terms or terms <= subject_terms else 0
         return len(terms) if terms and terms <= subject_terms else 0
     def active(identity):
         return identity not in current or current[identity]['active']
@@ -398,7 +407,9 @@ def question_cli(argv):
     parser.add_argument('--kind', choices=('auto','why','dependencies','changes','memory'), default='auto',
                         help=tr('Auto abstains on unknown forms; memory retains every label word for lexical lookup.',
                                 'Auto refuse les formes inconnues ; memory conserve tous les mots du libellé recherché.'))
-    parser.add_argument('--entity')
+    parser.add_argument('--entity', help=tr(
+        'Select an identity; reason/change/memory queries still match every term. Use Why? for identity alone.',
+        'Choisir une identité ; raison/changement/mémoire conservent tous les termes. Utiliser Pourquoi ? pour l’identité seule.'))
     parser.add_argument('--since')
     parser.add_argument('--until')
     parser.add_argument('--limit', type=int, default=12)
