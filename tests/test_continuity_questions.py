@@ -924,3 +924,23 @@ class MemoryQuestionTests(unittest.TestCase):
                     result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
                     self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
                     self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+
+    def test_standalone_three_component_dotted_dates_preserve_versions(self):
+        phrases=('21.09.2026','9.21.2026','2026.09.21','2026.9.21')
+        self.record('DOTTED-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace('.','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'},{'entity':'DOTTED-OLD'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+        for index,label in enumerate(('Python 3.14','Node 24.1.0','release-21.09.2026','build_2026.9.21')):
+            identity='DOTTED-NAME-'+str(index)
+            self.record(identity,label,payload={'why':'Exact dotted-name reason'})
+            result=answer_question(self.repo,'Why '+label+'?')
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[identity])
+            self.assert_sources(result)
