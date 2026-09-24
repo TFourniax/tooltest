@@ -133,12 +133,32 @@ def _question_intents(question):
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember)\b)",
                        question, flags=re.I)
-    intents = []
+    # Track positions so a direct clause detected by both scans counts once.
+    intents = {}
+    cursor = 0
     for clause in clauses:
+        start = question.find(clause, cursor)
+        cursor = start + len(clause)
         name, _ = _question_form(clause)
         if name is not None:
-            intents.append(name)
-    return intents
+            intents[start + len(clause) - len(clause.lstrip())] = name
+    # A conversational prefix is not an entity qualifier. Look for a supported
+    # interrogative anywhere within a separated clause, instead of maintaining
+    # an incomplete allowlist of 'please tell me', 'could you', etc. Bare memory
+    # remains a noun here, and words like 'what platform' are not questions.
+    boundaries = list(re.finditer(
+        r"[?!;,:.—–/|(){}\[\]]|\s+-{1,2}\s+|&+|"
+        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\b", question, re.I))
+    for index, boundary in enumerate(boundaries):
+        start = boundary.end()
+        end = boundaries[index + 1].start() if index + 1 < len(boundaries) else len(question)
+        clause = question[start:end]
+        for match in re.finditer(r"\b(?:why|pourquoi|what|which|who|quels?|quelles?|qui|de\s+quoi|qu['’])", clause, re.I):
+            name, _ = _question_form(clause[match.start():])
+            if name in {'why', 'changes', 'dependencies'}:
+                intents[start + match.start()] = name
+                break
+    return list(intents.values())
 
 
 def _query(question, kind, since, until, entity):

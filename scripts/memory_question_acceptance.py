@@ -40,7 +40,8 @@ def main():
         run(dw,'decision','record','adjacent why pourquoi billing what changed in remember please memory qu est ce qui que a changé dans dépend de appelle importe',
             '--id','DEC-ADJACENT','--why','Synthetic adjacent-question fixture')
         run(dw,'decision','record','dashed why pourquoi what changed in billing quels changements dans '
-            'qu est ce qui a changé remember please memory','--id','DEC-DASH','--why','Synthetic dash-clause fixture')
+            'qu est ce qui a changé remember please memory tell me could you explain '
+            'merci de préciser veuillez dire','--id','DEC-DASH','--why','Synthetic dash-clause fixture')
         lexical_shapes=('lexicalshape-2026-09-21','lexicalshape-21.09.2026')
         for index,label in enumerate(lexical_shapes):
             run(dw,'decision','record',label,'--id','DEC-LEXICAL-'+str(index),'--why','Exact lexical-shape reason')
@@ -355,6 +356,12 @@ def main():
                     value=json.loads(run(dw,'--language',lang,'ask','Why dashed'+separator+tail,'--entity','DEC-DASH','--json'))
                     assert value['status']=='abstained' and value['parts']==[]
                     assert value['context']['abstention']==reason
+            for separator in (' (',' [',' : ',' / ',' and ',' et '):
+                for prefix in ('please tell me ', 'could you explain ', 'merci de préciser ', 'veuillez dire '):
+                    value=json.loads(run(dw,'--language',lang,'ask',
+                        'Why dashed'+separator+prefix+'what changed in billing?','--entity','DEC-DASH','--json'))
+                    assert value['status']=='abstained' and value['parts']==[]
+                    assert value['context']['abstention']=='mixed-question-intents'
             for label in lexical_shapes:
                 for identity in (None,'DEC-LEXICAL-0','DEC-LEXICAL-1'):
                     flags=() if identity is None else ('--entity',identity)

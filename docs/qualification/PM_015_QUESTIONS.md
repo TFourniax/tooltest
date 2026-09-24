@@ -657,3 +657,23 @@ fcfa0498a495149d2582f141e4315fae8cf471e825d737fb94b2f9bd7ec82fbd.
 Latest-head independent review, hosted gates and fresh main remain required.
 This is bounded extractive Q&A, not full semantic PM015 or HUMAN acceptance.
 PM012 provider and 100k incidents remain separate release blockers.
+
+## Work continuation — finding 57, 2026-09-24
+
+Review 4092623217 on 5cc6ed9 exposed conversational prefixes hiding a second
+supported question inside a separated clause. Intent detection now scans those
+clauses for recognized interrogatives after arbitrary prefix words, rather than
+enumerating polite phrases. It deduplicates matches by their original position;
+ordinary names and unsupported interrogative-like tokens remain covered.
+
+The regression against 5cc6ed9 reproduces 352 failing subcases across eight
+prefixes, eleven boundaries and four supported EN/FR question tails. The fixed
+candidate passes 75 focused tests and 819 installed-wheel tests, with 52 explicit
+skips, in 93.235 seconds. The actual installed CLI journey passes, opens original
+citations and preserves journal/state bytes. Local wheel SHA256:
+ea4559ce8f35db35b2f799d818d062aec82e0f56b5d255123057e22c2db82539.
+Journal SHA256: 5348376fb373fe401330f7f253cdb08b2b7f7fbe08f3c777a73ec6835c464596.
+
+These are MACHINE results. Independent review and hosted gates must bind this
+new commit before merge; fresh main must then be checked. Full PM015, PM012 and
+all other uncompleted PM requirements remain outside this closing slice.

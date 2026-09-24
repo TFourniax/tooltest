@@ -1013,6 +1013,26 @@ class MemoryQuestionTests(unittest.TestCase):
             self.assertEqual(result['parts'][0]['source']['eventId'],source['event_id'])
             self.assert_sources(result)
 
+    def test_conversational_prefixes_cannot_hide_a_separated_question(self):
+        prefixes=('please tell me ', 'could you explain ', 'would you also say ',
+                  'kindly check ', 'peux-tu expliquer ', 'merci de préciser ',
+                  'veuillez me dire ', 'indique moi ')
+        tails=('what changed in billing', 'quels changements dans billing',
+               'why billing', 'pourquoi billing')
+        label='auth '+ ' '.join(prefixes) + ' '.join(tails)
+        self.record('PREFIXED',label,payload={'why':'Synthetic all-term reason'})
+        before=self.paths.events.read_bytes()
+        for separator in (' (',' [',' {',' : ',' / ','; ',' and ',' et ',' — ',' & ','. '):
+            for prefix in prefixes:
+                for tail in tails:
+                    with self.subTest(separator=separator,prefix=prefix,tail=tail):
+                        result=answer_question(self.repo,'Why auth'+separator+prefix+tail+'?',entity='PREFIXED')
+                        self.assertEqual(result['status'],'abstained')
+                        self.assertEqual(result['parts'],[])
+                        self.assertIn(result['context']['abstention'],
+                                      ('mixed-question-intents','multiple-question-clauses'))
+        self.assertEqual(before,self.paths.events.read_bytes())
+
     def test_equal_lexical_terms_keep_all_sources_until_identity_is_selected(self):
         labels=('lexicalshape-2026-09-21','lexicalshape-21.09.2026')
         for index,label in enumerate(labels):
