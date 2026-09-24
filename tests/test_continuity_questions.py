@@ -706,3 +706,57 @@ class MemoryQuestionTests(unittest.TestCase):
                 self.assertEqual(run.returncode,2,run.stderr)
                 self.assertEqual(run.stdout,'');self.assertNotIn('Traceback',run.stderr)
         self.assertEqual(self.paths.events.read_bytes(),before)
+
+    def test_remaining_relative_phrases_abstain_with_or_without_entity(self):
+        phrases=('lately','so far','to date','thus far','hitherto','up to now',
+                 'YTD','MTD','QTD','WTD','dernièrement','dernierement',
+                 "jusqu'ici",'jusqu’ici','à ce jour','a ce jour',
+                 "pour l'instant",'pour le moment','à présent','a present')
+        self.record('CHANGE-RELATIVE','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'entity':'CHANGE-RELATIVE'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained')
+                    self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_colon_separated_question_forms_abstain_with_literal_entity(self):
+        self.record('AUTH','auth',payload={'why':'Auth reason'})
+        for question,reason in [
+            ('Why auth: why billing?','multiple-question-clauses'),
+            ('Pourquoi auth : pourquoi billing ?','multiple-question-clauses'),
+            ('Remember auth: Remember billing?','multiple-question-clauses'),
+            ('Why auth: what changed in billing?','mixed-question-intents'),
+            ('Pourquoi auth : quels changements dans billing ?','mixed-question-intents'),
+            ('Why auth: Memory billing?','mixed-question-intents'),
+        ]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question,entity='AUTH')
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],reason)
+
+    def test_literal_entity_does_not_erase_unmatched_question_terms(self):
+        self.record('AUTH','auth',payload={'why':'Auth reason'})
+        self.record('CHANGE-AUTH','auth change',kind='change',event_type='change.observed',
+                    payload={'changed_files':['auth/service.py']})
+        for question,options in [
+            ('Why billing?',{'entity':'AUTH'}),
+            ('Why auth unrecordedqualifier?',{'entity':'AUTH'}),
+            ('What changed in billing?',{'entity':'CHANGE-AUTH'}),
+            ('What changed in auth unrecordedqualifier?',{'entity':'CHANGE-AUTH'}),
+            ('Remember billing?',{'entity':'AUTH'}),
+            ('billing',{'entity':'AUTH','kind':'memory'}),
+        ]:
+            with self.subTest(question=question,options=options):
+                result=answer_question(self.repo,question,**options)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+        for question in ('Why auth?','Why?'):
+            result=answer_question(self.repo,question,entity='AUTH')
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual([f['fields']['id'] for f in result['context']['facts']],['AUTH'])
+            self.assert_sources(result)
