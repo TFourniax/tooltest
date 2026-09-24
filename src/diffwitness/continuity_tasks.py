@@ -122,6 +122,9 @@ def show_task(repo: Path, identity: str) -> dict[str, Any]:
 
 
 def task_cli(argv: list[str]) -> int:
+    if argv and argv[0] == "impact":
+        from .continuity_impact import impact_cli
+        return impact_cli(argv[1:])
     parser = argparse.ArgumentParser(prog="dw task", description=tr(
         "Save task intent and inspect its durable change history.", "Enregistrer une tâche et retrouver l’historique de ses changements."))
     commands = parser.add_subparsers(dest="command", required=True)
@@ -137,6 +140,7 @@ def task_cli(argv: list[str]) -> int:
     link.add_argument("identity")
     link.add_argument("change_id")
     link.add_argument("--why")
+    commands.add_parser("impact", help=tr("Record and compare anticipated scope", "Enregistrer et comparer le périmètre anticipé"))
     show = commands.add_parser("show", help=tr("Inspect task history and linked changes", "Consulter l’historique de la tâche et les changements liés"))
     show.add_argument("identity")
     for command in (add, describe, link, show):

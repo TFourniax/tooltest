@@ -256,6 +256,8 @@ jobs:
         run: python scripts/memory_code_acceptance.py
       - name: Installed cited history and bidirectional memory navigation
         run: python scripts/memory_navigation_acceptance.py
+      - name: Installed task impact plan and actual public Gate comparison
+        run: python scripts/impact_plan_acceptance.py
       - name: Qualify installed doctor exact-tree truthfulness
         run: python tests/test_doctor_proof_truthfulness.py -v
       - name: Qualify deterministic installed language selection
