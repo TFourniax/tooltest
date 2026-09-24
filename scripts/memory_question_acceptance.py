@@ -48,7 +48,8 @@ def main():
                       'risk and memory retention','risque et mémoire retention',
                       'risk or change retention','risk and call retention',
                       'import management','imports management','depend management','depends management','car service','Doctor Who service','what platform',
-                      'which platform','ce qui fonctionne','Who Does It service','risk & memory conservation')
+                      'which platform','ce qui fonctionne','Who Does It service','risk & memory conservation','Yahoo! service','status? probe','alpha; boundary',
+                      'comma, separated platform','paths/what gateway','pipe|named platform')
         numeric_names=('ISO27001','ISO27002','CVE-2026-12345','RFC9110','v2026alpha',
                        'Python 3.14','Python 3.12','Node 24.1.0','Deno 2.3',
                        'release-2026-09-21','release-2026-09-22','build_2026-09-21','api/2026-09-21',
@@ -332,7 +333,7 @@ def main():
                 assert value['status']=='abstained' and value['parts']==[]
                 assert value['context']['abstention']==reason
         for lang in ('fr','en'):
-            for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ '):
+            for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||'):
                 for tail,reason in (
                     ('what changed in billing?','mixed-question-intents'),
                     ('quels changements dans billing ?','mixed-question-intents'),

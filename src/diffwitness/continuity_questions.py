@@ -58,8 +58,8 @@ def _instant(value):
 
 def _incoming_target(question):
     question = unicodedata.normalize('NFKC', question)
-    match = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+([^?!;]+?)\s*[?!.]*\s*", question, re.I)
-             or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+([^?!;]+?)\s*[?!.]*\s*",
+    match = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+(.+?)\s*[?!.]*\s*", question, re.I)
+             or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+(.+?)\s*[?!.]*\s*",
                              question, re.I))
     if match is None:
         return None
@@ -127,7 +127,7 @@ def _question_intents(question):
     clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:(?:why|pourquoi|what|which|who|"
                        r"quels?|quelles?|qui|de\s+quoi|remember|memory|m[eé]moire)\s+|"
                        r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
-                       r"(?:[:—–]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"(?:[:—–/|]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
                        r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
                        r"(?:\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+|&+\s*)"
                        r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
@@ -170,9 +170,9 @@ def _query(question, kind, since, until, entity):
     # may introduce that shorthand. Literal --kind memory is not a command.
     if not literal_memory and re.search(
             r"(?:\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b|&+)"
-            r"[^?!;,:—–]*\bremember\b|"
-            r"(?:[?!;,:—–]|\s+-{1,2}\s+)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\b|"
-            r"\.(?!\d)[^?!;,:—–]*\b(?:remember|memory|m[eé]moire)\s+\S",
+            r"[^?!;,:—–/|]*\bremember\b|"
+            r"(?:[?!;,:—–/|]|\s+-{1,2}\s+)[^?!;,:—–/|]*\b(?:remember|memory|m[eé]moire)\b|"
+            r"\.(?!\d)[^?!;,:—–/|]*\b(?:remember|memory|m[eé]moire)\s+\S",
             normalized_question, re.I):
         ambiguity = ambiguity or 'unsupported-compound-memory-clause'
     if literal_memory or form != kind:

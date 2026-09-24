@@ -589,3 +589,18 @@ Prior d861ec8 has test35971656258 all24jobs PASS plus three specialists PASS;
 that result does not qualify this new patch. Latest-head distinct review, fresh
 hosted gates and post-merge main remain required. PM015 and PM001–018 remain
 partial/open; provider latency incidents and PM012100k failures remain open.
+
+
+Grouped findings52–53: slash/pipe separators before recognized questions no
+longer disappear into lexical terms; prefixed memory commands are checked at
+those boundaries too. Incoming dependency targets may contain internal !/?/;
+punctuation and ordinary slash/pipe names; recognized second clauses still
+abstain. Positive cases include Yahoo! service, status? probe, alpha; boundary,
+comma-separated names and paths/what gateway. EN/FR and exact entity selection
+remain covered.72 focused tests and816 installed-wheel tests PASS (52skips,
+87.471s). Actual installed CLI journey PASS after fixing an overlapping fixture
+name; original failure preserved and all fixture label term sets checked for
+containment. Only the failed journey was rerun, without product-code changes.
+Wheel389171bytes SHA25614677cd60dcf39b6605370bf2ab6c1e88440ac5c497e5410b48b143b29d3f5fd.
+Sources opened; journal SHA6046d641f112bf5c47eb4d1d4978f1aeac2897aa8904696b02116444a55506b7
+unchanged. No HUMAN or full semantic PM015 completion is claimed.

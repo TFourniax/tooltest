@@ -976,7 +976,7 @@ class MemoryQuestionTests(unittest.TestCase):
         self.record('DEC','auth why pourquoi what changed in billing quels changements dans '
                     'qu est ce qui a changé remember please memory',
                     payload={'why':'Synthetic all-term reason'})
-        for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ '):
+        for separator in (' — ',' – ',' - ',' -- ','—','–',' & ','&&',' ＆ ',' / ','/',' ／ ',' | ','||'):
             for tail,reason in (
                 ('what changed in billing?','mixed-question-intents'),
                 ('quels changements dans billing ?','mixed-question-intents'),
@@ -1025,7 +1025,9 @@ class MemoryQuestionTests(unittest.TestCase):
 
     def test_interrogative_words_in_dependency_names_keep_exact_incoming_edges(self):
         for index, label in enumerate(('Doctor Who service', 'what platform', 'which platform',
-                                      'ce qui fonctionne', 'Who Does It service', 'risk & memory retention')):
+                                      'ce qui fonctionne', 'Who Does It service', 'risk & memory retention',
+                                      'Yahoo! service', 'status? probe', 'alpha; boundary',
+                                      'comma, separated platform', 'paths/what gateway', 'pipe|named platform')):
             identity = 'NAMED-TARGET-' + str(index)
             self.record(identity, label, kind='component', event_type='component.observed')
             source = self.record('NAMED-SOURCE-' + str(index), 'Source', kind='component',
