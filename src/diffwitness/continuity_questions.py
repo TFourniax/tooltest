@@ -1,0 +1,539 @@
+"""Deterministic, extractive answers from one strictly validated local journal.
+
+The question is a query, never an instruction. No model, command execution,
+network, journal append or derived-state write is part of this reader.
+"""
+from __future__ import annotations
+
+import argparse
+import copy
+from datetime import date, datetime, timezone
+import hashlib
+import json
+import re
+import sys
+import unicodedata
+
+from .continuity_events import ContinuityError, _read_validated_snapshot, continuity_paths
+from .continuity_history import _display, _source, _wire
+from .gitops import repo_root
+from .language import tr
+
+MAX_PACKET_BYTES = 1024 * 1024
+_QUERY_WORD = re.compile(r"[^\W_]+(?:[+#]+[^\W_]+)*[+#]*")
+# Every alphabetic abbreviation in the IANA tz database 2026d TZif files plus
+# customary forms (ET, CT, IRKT, ...). They match case-sensitively after an hour,
+# so words such as est, cet, wet or West stay names.
+_ZONE_ABBREVIATIONS = '|'.join(sorted(set('''
+    ACDT ACST ACT ACWST ADDT ADT AEDT AEST AFT AHDT AHST AKDT AKST ALMT AMST AMT ANAT
+    APT AQTT ART AST AWDT AWST AWT AZOST AZOT AZT BDST BDT BMT BNT BOT BRST BRT BST BTT
+    CAST CAT CCT CDT CEMT CEST CET CHADT CHAST CHOST CHOT CHST CHUT CIST CKT CLST CLT
+    CMT COST COT CPT CST CT CVT CWST CWT CXT ChST DAVT DDUT DMT EASST EAST EAT ECT EDT
+    EEST EET EGST EGT EMT EPT EST ET EWT FET FFMT FJST FJT FKST FKT FMT FNT GALT GAMT
+    GDT GET GFT GILT GMT GST GYT HADT HAST HDT HKST HKT HKWT HMT HOVST HOVT HPT HST HWT
+    ICT IDDT IDT IMT IOT IRDT IRKT IRST IST JDT JMT JST KDT KGT KMT KOST KRAT KST LHDT
+    LHST LINT LMT LST MAGT MART MAWT MDST MDT MEST MET MHT MIST MMT MPT MSD MSK MST MT
+    MUT MVT MWT MYT NCT NDDT NDT NFT NOVT NPT NRT NST NT NUT NWT NZDT NZMT NZST OMST
+    ORAT PDT PET PETT PGT PHOT PHT PKST PKT PLMT PMDT PMMT PMST PMT PONT PPMT PPT PST PT
+    PWT PYST PYT QMT RET RMT ROTT SAKT SAMT SAST SBT SCT SDMT SGT SJMT SLST SMT SRET SRT
+    SST SYOT TAHT TBMT TFT TJT TKT TLT TMT TOT TRT TVT ULAST ULAT UT UTC UYST UYT UZT
+    VET VLAT VOLT VOST VUT WAKT WAST WAT WEMT WEST WET WFT WGST WGT WIB WIT WITA WMT WST
+    YAKT YDDT YDT YEKT YPT YST YWT'''.split()), key=lambda zone: (-len(zone), zone)))
+# Every top-level zone ID of the IANA tz database 2026d (Japan, NZ-CHAT, W-SU,
+# ...) except GB, a common unit after a number, and the Factory placeholder.
+_ZONE_LINK_NAMES = '|'.join(re.escape(zone) for zone in sorted('''
+    CET CST6CDT Cuba EET EST EST5EDT Egypt Eire GB-Eire GMT GMT+0 GMT-0 GMT0 Greenwich
+    HST Hongkong Iceland Iran Israel Jamaica Japan Kwajalein Libya MET MST MST7MDT NZ
+    NZ-CHAT Navajo PRC PST8PDT Poland Portugal ROC ROK Singapore Turkey UCT UTC
+    Universal W-SU WET Zulu'''.split(), key=lambda zone: (-len(zone), zone)))
+# NFKC keeps these hyphen, minus and slash forms distinct. Clause and temporal
+# scans treat them exactly as ASCII, including as identifier attachments; en
+# and em dashes stay punctuation. The mapping is one-to-one, so offsets hold.
+_ASCII_SEPARATORS =str.maketrans({'\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-',
+                                   '\u2215': '/', '\u2044': '/'})
+
+
+def _terms(value):
+    # Keep technology qualifiers such as C++, C# and F# distinct as well as
+    # short/version and non-Latin terms. Strict question matching and
+    # the general context index intentionally use different recall policies.
+    text = value or ""
+    if not text.isascii():
+        text = unicodedata.normalize("NFKD", text.casefold().replace("œ", "oe").replace("æ", "ae"))
+        text = "".join(char for char in text if not unicodedata.combining(char))
+    return {word.lower() for word in _QUERY_WORD.findall(text)}
+
+
+_AUTHORITY = ('Extracts describe recorded assertions, not authenticated authors, current code '
+              'applicability, complete semantic coverage or new causal Proof.')
+
+
+def _digest(value):
+    return hashlib.sha256(_wire(value)).hexdigest()
+
+
+def _instant(value):
+    if not isinstance(value, str):
+        raise ValueError('timestamp must be an ISO date or timestamp with a timezone')
+    if re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        return datetime.combine(date.fromisoformat(value), datetime.min.time(), timezone.utc)
+    result = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    if result.tzinfo is None:
+        raise ValueError('timestamp requires an explicit timezone')
+    try:
+        return result.astimezone(timezone.utc)
+    except OverflowError as exc:
+        raise ValueError('timestamp is outside the supported UTC range') from exc
+
+
+def _incoming_target(question):
+    question = unicodedata.normalize('NFKC', question)
+    match = (re.fullmatch(r"\s*(?:what|who)\s+depends?\s+on\s+(.+?)\s*[?!.]*\s*", question, re.I)
+             or re.fullmatch(r"\s*(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\s+(.+?)\s*[?!.]*\s*",
+                             question, re.I))
+    if match is None:
+        return None
+    target = match.group(1)
+    # A conjunction can belong to a name. A new question or dependency
+    # clause cannot be swallowed into that name and answered partially.
+    if re.search(r"\b(?:because|since|before|after|depuis|avant|après)\b|"
+                 r"\b(?:what|which)\s+(?:has\s+)?(?:changes?|changed)\b|"
+                 r"\b(?:what|who)\s+(?:depends?\s+on|imports?|calls?)\b|"
+                 r"\b(?:does|do)\s+.+\s+(?:depend|import|call)\b|"
+                 r"\b(?:that|which|who|whose|qui|que|dont)\s+(?:\w+\s+)?"
+                 r"(?:depends?|imports?|calls?|d[eé]pend(?:ent)?|importe(?:nt)?|appelle(?:nt)?)\b|"
+                 r"\b(?:de\s+quoi|qu['’](?:est-ce\s+(?:qui|que)|appelle))\b|"
+                 r"\b(?:depends?\s+on|d[eé]pend(?:ent)?\s+de)\b",
+                 target, re.I):
+        return None
+    return target
+
+
+def _question_form(question):
+    """Parse a supported leading form, retaining the complete entity phrase."""
+    text = question.strip()
+    for name, pattern in (
+        ('why', r"^(?:why|pourquoi)\b\s*"),
+        ('changes', r"^(?:what(?:\s+has)?\s+changed|(?:what|which)\s+changes|"
+                    r"quels?\s+changements|quelles?\s+modifications|"
+                    r"qu['’]est-ce\s+qui\s+a\s+chang[eé])\b\s*"),
+        ('memory', r"^(?:memory|m[eé]moire|remember)\b\s*"),
+    ):
+        match = re.match(pattern, text, re.I)
+        if match is None:
+            continue
+        target = text[match.end():].strip()
+        if name == 'why':
+            target = re.sub(r"^(?:do\s+we\s+(?:use|have)|are\s+we\s+using|"
+                            r"utilisons[- ]nous|nous\s+utilisons|utiliser|utilise|utilisons)\s+",
+                            '', target, flags=re.I)
+            target = re.sub(r"\s+(?:here|ici)\s*[?!.]*\s*$", '', target, flags=re.I)
+        elif name == 'changes':
+            target = re.sub(r"^(?:in|dans)\s+", '', target, flags=re.I)
+        return name, target
+    target = _incoming_target(text)
+    if target is not None:
+        return 'dependencies', target
+    # Recognize unsupported dependency questions by grammatical form so they
+    # reach the direction guard; a bare label like "call management" is data.
+    if (re.match(r"^(?:(?:what|who)\s+(?:depends?\s+on\b|imports?\b|calls?\b)|"
+                 r"what\s+(?:does|do)\s+.+\s+(?:depend(?:\s+on)?|import|call)\b|"
+                 r"(?:qu['’]est-ce\s+qui|qui)\s+d[eé]pend(?:ent)?\s+de\b|"
+                 r"qu['’]est-ce\s+que\s+.+\s+import(?:e|ent)\b|"
+                 r"qu['’]appelle\b|de\s+quoi\b)", text, re.I)
+            or re.search(r"\b(?:depends?\s+on|imports?|calls?)\s+(?:what|who)[\s?!.]*$|"
+                         r"\bd[eé]pend(?:ent)?(?:-il)?\s+de\s+(?:quoi|qui)[\s?!.]*$",
+                         text, re.I)):
+        return 'dependencies', text
+    return None, text
+
+
+def _question_intents(question):
+    # A conjunction alone does not turn a name suffix ("and memory
+    # management") into another question. Require an interrogative form.
+    # Remember is an imperative after conjunctions. Bare memory/mémoire
+    # remains a noun there; punctuation can introduce the explicit shorthand.
+    # Explicit punctuation still separates independently stated clauses.
+    clauses = re.split(r"[?!;,]+|\.(?:\s+|$|(?=(?:(?:why|pourquoi|what|which|who|"
+                       r"quels?|quelles?|qui|de\s+quoi|remember|memory|m[eé]moire)\s+|"
+                       r"qu['’](?:est-ce\s+(?:qui|que)|appelle)\b)))|"
+                       r"(?:[:—–/|({\[]|\s+-{1,2}\s+)\s*(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"qu['’]|qui|de\s+quoi|remember|memory|m[eé]moire)\b)|"
+                       r"(?:\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\s+|&+\s*)"
+                       r"(?=(?:why|pourquoi|what|which|who|quels?|quelles?|"
+                       r"qu['’]|qui|de\s+quoi|remember)\b)",
+                       question, flags=re.I)
+    # Track positions so a direct clause detected by both scans counts once.
+    intents = {}
+    cursor = 0
+    for clause in clauses:
+        start = question.find(clause, cursor)
+        cursor = start + len(clause)
+        name, _ = _question_form(clause)
+        if name is not None:
+            intents[start + len(clause) - len(clause.lstrip())] = name
+    # A conversational prefix is not an entity qualifier. Look for a supported
+    # interrogative anywhere within a separated clause, instead of maintaining
+    # an incomplete allowlist of 'please tell me', 'could you', etc. Bare memory
+    # remains a noun here, and words like 'what platform' are not questions.
+    boundaries = list(re.finditer(
+        r"[?!;,:.—–/|(){}\[\]]|\s+-{1,2}\s+|&+|"
+        r"\b(?:and|or|but|then|also|et|ou|mais|puis|aussi)\b", question, re.I))
+    for index, boundary in enumerate(boundaries):
+        start = boundary.end()
+        end = boundaries[index + 1].start() if index + 1 < len(boundaries) else len(question)
+        clause = question[start:end]
+        for match in re.finditer(r"\b(?:why|pourquoi|what|which|who|quels?|quelles?|qui|de\s+quoi|qu['’])", clause, re.I):
+            name, _ = _question_form(clause[match.start():])
+            if name in {'why', 'changes', 'dependencies'}:
+                intents[start + match.start()] = name
+                break
+    return list(intents.values())
+
+
+def _query(question, kind, since, until, entity):
+    if (not isinstance(question, str) or not question.strip() or len(question) > 2000
+            or any(ord(c) < 32 or ord(c) == 127 for c in question)):
+        raise ValueError('question must be nonempty text of at most 2000 characters without controls')
+    if kind not in ('auto', 'why', 'dependencies', 'changes', 'memory'):
+        raise ValueError('unsupported question kind')
+    if entity is not None:
+        from .continuity_history import _identity
+        _identity(entity)
+    normalized_question = unicodedata.normalize('NFKC', question)
+    auto_requested = kind == 'auto'
+    literal_memory = kind == 'memory'
+    separated_question = normalized_question.translate(_ASCII_SEPARATORS)
+    form, search_text = _question_form(normalized_question)
+    clause_intents = [] if literal_memory else _question_intents(separated_question)
+    intents = set(clause_intents)
+    ambiguity = 'mixed-question-intents' if len(intents) > 1 else None
+    if auto_requested:
+        kind = next(iter(intents)) if len(intents) == 1 else 'memory'
+    elif intents and kind not in intents:
+        ambiguity = ambiguity or 'question-kind-conflict'
+    if len(clause_intents) > 1 and kind != 'dependencies':
+        ambiguity = ambiguity or 'multiple-question-clauses'
+    # Compound dependencies retain their stricter direction-ambiguity guard.
+    # A prefixed command after a separator is still a compound request. Do not
+    # reinterpret "please/could you/... remember" as extra entity-name words.
+    # Noun memory/mémoire stays valid after a conjunction; explicit punctuation
+    # may introduce that shorthand. Literal --kind memory is not a command.
+    if not literal_memory and re.search(
+            r"(?:\b(?:and|or|but|then|also|because|et|ou|mais|puis|aussi|car)\b|&+)"
+            r"[^?!;,:—–/|(){}\[\]]*\bremember\b|"
+            r"(?:[?!;,:—–/|({\[]|\s+-{1,2}\s+)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\b|"
+            r"\.(?!\d)[^?!;,:—–/|(){}\[\]]*\b(?:remember|memory|m[eé]moire)\s+\S",
+            separated_question, re.I):
+        ambiguity = ambiguity or 'unsupported-compound-memory-clause'
+    if literal_memory or form != kind:
+        search_text = normalized_question
+    lower = _instant(since) if since is not None else None
+    upper = _instant(until) if until is not None else None
+    # Standalone dates are ambiguous unless introduced by the supported
+    # since/depuis clause; embedded release/build identifiers remain data.
+    date_token = r'(?<![\w./#:+-])\d{4}-\d{2}-\d{2}(?![\w/#:+-]|\.\w)'
+    natural_dates = re.findall(date_token, normalized_question)
+    cleaned = re.sub(date_token, '', normalized_question)
+    # Explicit standard-number prefixes identify data, not standalone years.
+    # Preserve their original query terms; mask only the temporal scan.
+    cleaned = re.sub(r'\b(?:RFC|ISO|IEC|IEEE)\s+\d{4,6}\b', '', cleaned, flags=re.I)
+    # Only an ASCII ISO date can be a supported bound; variants reach the scan.
+    cleaned = cleaned.translate(_ASCII_SEPARATORS)
+    temporal = re.findall(r"\b(?:since|depuis|after|après|before|avant|until|"
+                          r"yesterday|hier|today|aujourd['’]hui|tomorrow|demain|"
+                          r"last|dernier|dernière|morning|matin|noon|midi|at|vers|from|during|pendant|durant|o['’]clock)\b",
+                          normalized_question, re.I)
+    # Inspect on/le in the target phrase, never the grammatical "depends on".
+    # Unknown dependency forms already reach the stricter direction guard.
+    temporal_phrase = (_incoming_target(normalized_question) or '') if kind == 'dependencies' else search_text
+    temporal += re.findall(r"\b(?:on|le)\b", temporal_phrase, re.I)
+    # Reject unsupported time vocabulary independently of any CLI bounds.
+    # This deliberately prefers abstention when a time word is also a name.
+    month_word = (r"(?:jan(?:uary|v(?:ier)?)?|feb(?:ruary)?|f[eé]v(?:r(?:ier)?)?|"
+                  r"mar(?:ch|s)?|apr(?:il)?|avr(?:il)?|may|mai|jun(?:e)?|juin|jul(?:y)?|"
+                  r"juil(?:l(?:et)?)?|aug(?:ust)?|ao[uû]t|sep(?:t(?:ember|embre)?)?|"
+                  r"oct(?:ober|obre)?|nov(?:ember|embre)?|d[eé]c(?:ember|embre)?)")
+    # A compact or extended clock attached to a date, e.g. T120000Z or T12:00+02:00.
+    clock = r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?"
+    # Every accepted clock shape: H, HHMM, HH:MM[:SS], HH.MM or HHh[MM], with
+    # optional am/pm, or a noon/midnight word. Zone, offset and Zulu suffixes
+    # all apply to the same shapes.
+    clock_shape = (r"(?:(?:\d{1,2}(?:[:.]?\d{2}){0,2}|\d{1,2}h(?:\d{2})?)(?:\s*[ap]\.?m\.?)?|"
+                   r"noon|midi|midnight|minuit)")
+    # A zone in POSIX form (EST, EST-5, EST5EDT, CET-1CEST), an offset or an
+    # uppercase Zulu Z; a lowercase z stays a unit such as 60hz or 12z. Minutes
+    # of an unsigned POSIX offset need a colon, so PT100 or PT1000 stay names.
+    dst_zone = rf"(?-i:{_ZONE_ABBREVIATIONS})(?:[+-]?\d{{1,2}}(?::\d{{2}}){{0,2}})?"
+    clock_suffix = (rf"(?:(?-i:{_ZONE_LINK_NAMES})|(?-i:{_ZONE_ABBREVIATIONS})(?:(?:[+-]\d{{1,2}}(?::?\d{{2}}){{0,2}}|"
+                    rf"\d{{1,2}}(?::\d{{2}}){{0,2}})(?:{dst_zone})?)?|(?-i:Z)|[+-]\d{{2}}(?::?\d{{2}})?)")
+    relative_period = re.search(
+        r"\b(?:ago|recently|recent|earlier|later|currently|now|then|lately|latterly|hitherto|"
+        r"(?:so|thus)[\s-]+far|to[\s-]+date|[YMQW]TD|"
+        r"derni[eè]rement|jusqu['’]ici|[aà]\s+ce\s+jour|"
+        r"pour\s+l['’]instant|pour\s+le\s+moment|[aà]\s+pr[eé]sent|"
+        r"previous|next|latest|past|future|between|as\s+of|"
+        r"seconds?|minutes?|hours?|days?|weeks?|months?|years?|"
+        r"evening|tonight|afternoon|midnight|"
+        r"monday|tuesday|wednesday|thursday|friday|saturday|sunday|"
+        r"january|february|march|april|may|june|july|august|september|october|november|december|"
+        r"récemment|récent|récente|actuellement|maintenant|auparavant|ensuite|"
+        r"précédent|prochain|prochaine|passé|passée|entre|"
+        r"il\s+y\s+a|à\s+partir|à\s+la\s+date|"
+        r"secondes?|heures?|jours?|semaines?|mois|années?|ans?|"
+        r"soir|nuit|minuit|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|"
+        r"janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
+        r"|\b(?:in|en|during|pendant|from)\s+\d{4}\b"
+        r"|\b\d{1,4}\s*/\s*\d{1,2}(?:\s*/\s*\d{1,4})?"
+        r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?\b"
+        r"|(?<![\w./#:+-])\d{4}-(?:\d{1,2}(?:-\d{1,2})?|W\d{2}(?:-\d)?)(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{4}W\d{2}\d?(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])(?:\d{4}-?\d{3,4}|\d{4}-\d{1,2}-\d{1,2}|"
+        r"\d{4}-?W\d{2}(?:-?\d)?)(?:T\d{2}(?::?\d{2}){0,2}"
+        r"(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{1,2}\s*[-–—]\s*\d{1,2}(?:\s*[-–—]\s*(?:\d{4}|\d{2}))?"
+        r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])(?:\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*(?:\d{4}|\d{2})|\d{4}\s*\.\s*\d{1,2}\s*\.\s*\d{1,2})"
+        r"(?:T\d{2}(?::?\d{2}){0,2}(?:[.,]\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)?)?(?![\w/#:+-]|\.\w)"
+        r"|\b(?:[QT][1-4]|[HS][12])(?:\d{2}|\d{4})?\b"
+        r"|\b(?:\d{2}|\d{4})(?:[QT][1-4]|[HS][12])\b"
+        r"|\b(?:quarters?|trimestres?|semestres?|fiscal|fiscale|fiscaux)\b"
+        r"|\b(?:FY|AF)[\s'’\-]*\d{2,4}\b|(?<![\w./#:+-])\d{4}(?![\w./#:+-])"
+        r"|\b(?:week[\s-]?ends?|fortnights?|decades?|centur(?:y|ies)|seasons?|"
+        r"quinzaines?|décennies?|siècles?|saisons?)\b"
+        r"|\b(?:this|these|current|ce|cet|cette|ces|in|en|au|aux|over|through|throughout)\s+"
+        r"(?:(?:the|le|la)\s+)?(?:spring|summer|autumn|fall|winter|printemps|étés?|automnes?|hivers?)\b"
+        r"|\b(?:this|these|current|ce|cet|cette|ces)\s+"
+        r"(?:sprints?|it[eé]rations?|releases?|versions?|cycles?|phases?|milestones?|jalons?)\b"
+        r"|\b\d{1,2}:\d{2}(?::\d{2})?\b"
+        r"|\b\d{1,2}\s*(?:[ap]\.?m\.?|h(?:\d{2})?|UTC|GMT|(?-i:Z))\b"
+        # After a space the suffix qualifies the clock. Attached without a space
+        # it takes the date patterns' right guard, so 12h30Z-service stays a name.
+        rf"|(?<![\w./#:+-])T?{clock_shape}(?:\s+{clock_suffix}\b|{clock_suffix}(?![\w/#:+-]|\.\w))"
+        r"|(?<![\w./#:+-])T?\d{2}(?::?\d{2}){1,2}(?:[.,]\d+)?(?-i:Z)(?![\w/#:+-]|\.\w)"
+        r"|(?<![\w./#:+-])\d{1,4}(?:\s+(?:hrs?|hours?|heures?)\b|(?:hrs?|hours?|heures?)(?![\w/#:+-]|\.\w))"
+        # Every zone-ID namespace of the IANA tz database 2026d, including the
+        # backward links (Brazil, Canada, Chile, Mexico, US), plus historic SystemV.
+        rf"|(?<![\w./#:+-]){clock_shape}\s+(?:Africa|America|Antarctica|Arctic|Asia|Atlantic|"
+        r"Australia|Brazil|Canada|Chile|Etc|Europe|Indian|Mexico|Pacific|US|SystemV)"
+        r"/[A-Za-z0-9_+-]+(?:/[A-Za-z0-9_+-]+)?\b"
+        r"|\b(?:at|vers|à)\s+\d{1,2}\b"
+        r"|\b[ap]\.?m\.?\b"
+        r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+        r"zéro|un|une|deux|trois|quatre|cinq|sept|huit|neuf|dix|onze|douze)[ap]\.?m\.?\b",
+        cleaned, re.I) or re.search(
+        rf"(?<![\w./#:+-]){month_word}\.?(?:\s*[-/.–—]\s*|\s*)\d{{1,4}}(?:st|nd|rd|th|er|e)?{clock}\b|"
+        rf"(?<![\w./#:+-])\d{{1,2}}(?:st|nd|rd|th|er|e)?(?:\s*[-/.–—]\s*|\s*){month_word}\.?(?:\s*\d{{2,4}})?{clock}\b|"
+        rf"\b(?:in|en)\s+{month_word}\.?(?!\w)|"
+        rf"(?<![\w./#:+-]){month_word}{clock}(?![\w/#:+-]|\.\w)", cleaned, re.I)
+    # Question-side constraints are inspected even when CLI bounds exist.
+    # Only a single bare terminal since/depuis date has an unambiguous meaning.
+    if natural_dates or temporal or relative_period:
+        bare_bound = re.search(r"\b(?:since|depuis)\s+(\d{4}-\d{2}-\d{2})\s*[?!.]*\s*$", normalized_question, re.I)
+        if len(natural_dates) == 1 and len(temporal) == 1 and bare_bound is not None and relative_period is None:
+            natural_lower = _instant(bare_bound.group(1))
+            if lower is not None and lower != natural_lower:
+                ambiguity = ambiguity or 'ambiguous-time-filter'
+            else:
+                lower = natural_lower
+        else:
+            ambiguity = ambiguity or 'ambiguous-time-filter'
+    if lower and upper and lower > upper:
+        raise ValueError('since must not be later than until')
+    if (lower or upper) and kind != 'changes':
+        ambiguity = ambiguity or 'temporal-filter-requires-changes'
+    if kind == 'dependencies' and _incoming_target(question) is None:
+        ambiguity = ambiguity or 'dependency-direction-ambiguous'
+    if auto_requested and not intents:
+        ambiguity = ambiguity or 'unrecognized-question-intent'
+    if not literal_memory:
+        search_text = re.sub(r"\b(?:since|depuis)\s+\d{4}-\d{2}-\d{2}\s*[?!.]*\s*$",
+                             '', search_text, flags=re.I)
+    terms = _terms(search_text)
+    if not terms and entity is None:
+        ambiguity = ambiguity or 'no-specific-search-term'
+    return {'text': question, 'kind': kind, 'entity': entity, 'terms': sorted(terms),
+            'since': lower.isoformat() if lower else None, 'until': upper.isoformat() if upper else None,
+            'timeBasis': 'inclusive recorded timestamps; not authenticated wall-clock',
+            'dependencyDirection': 'incoming recorded edges' if kind == 'dependencies' else None}, ambiguity
+
+def question_context(repo, question, *, kind='auto', since=None, until=None, entity=None, limit=12):
+    if type(limit) is not int or not 1 <= limit <= 50:
+        raise ValueError('limit must be an integer from 1 to 50')
+    query, abstention = _query(question, kind, since, until, entity)
+    events, journal_digest, validator = _read_validated_snapshot(continuity_paths(repo_root(repo)).events)
+    current = validator.memory_history.current
+    terms = set(query['terms'])
+    def match(subject, extra=''):
+        if entity is not None and subject['id'] != entity:
+            return 0
+        subject_terms = _terms(' '.join((subject['id'], subject.get('label') or '', extra)))
+        if entity is not None:
+            # Identity narrows selection; it must not erase unknown qualifiers.
+            # A generic Why? --entity ID remains an exact-identity lookup.
+            return 1000 if not terms or terms <= subject_terms else 0
+        return len(terms) if terms and terms <= subject_terms else 0
+    def active(identity):
+        return identity not in current or current[identity]['active']
+    def fact(sequence, event, category, fields, score, *, status=None, revisions=()):
+        return {'category': category, 'fields': fields, 'epistemicStatus': status or event['epistemic_status'],
+                'source': _source(event), 'sequence': sequence, 'recordedAt': event['timestamp'],
+                'applicabilitySources': [_source(e) for e in revisions], 'relevance': score}
+    candidates, invalid_times = [], 0
+    if not abstention and query['kind'] == 'dependencies':
+        latest = {}
+        for sequence, event in enumerate(events, 1):
+            for relation in event.get('relations', []):
+                if relation['predicate'] not in {'depends_on', 'imports', 'calls-name'}:
+                    continue
+                key = (event['subject']['id'], relation['predicate'], relation['target']['id'])
+                latest[key] = sequence, event, relation
+        live_edges = [record for record in latest.values()
+                      if active(record[1]['subject']['id']) and active(record[2]['target']['id'])]
+        # Resolve targets before selecting edges, including matching active
+        # entities with no incoming edge. Absence of an edge cannot resolve a
+        # name ambiguity. Explicit --entity is the literal disambiguator.
+        target_terms = _terms(_incoming_target(question) or '')
+        def target_match(subject):
+            if entity is not None:
+                return subject['id'] == entity
+            available = _terms(subject['id'] + ' ' + (subject.get('label') or ''))
+            return bool(target_terms) and target_terms <= available
+        target_ids = {identity for identity, state in current.items()
+                      if state['active'] and target_match(state['assertion']['subject'])}
+        for _, _, relation in live_edges:
+            target = relation['target']
+            if target['id'] not in current and target_match(target):
+                target_ids.add(target['id'])
+        if len(target_ids) > 1:
+            abstention = 'ambiguous-dependency-target'
+        for sequence, event, relation in live_edges:
+            if abstention or relation['target']['id'] not in target_ids:
+                continue
+            target = relation['target']
+            # The identity is already resolved. Optional per-occurrence labels
+            # must not erase other edges to that same target.
+            score = 1000 if entity is not None else len(target_terms)
+            if score:
+                revisions = [current[x]['revision'] for x in (event['subject']['id'], target['id'])
+                             if x in current and current[x]['action']]
+                candidates.append(fact(sequence, event, 'dependency',
+                    {'from': event['subject']['id'], 'predicate': relation['predicate'], 'to': target['id']}, score,
+                    status=relation.get('epistemic_status') or event['epistemic_status'], revisions=revisions))
+    elif not abstention:
+        for sequence, event in enumerate(events, 1):
+            subject, payload = event['subject'], event['payload']
+            if query['kind'] == 'changes':
+                if event['event_type'] != 'change.observed':
+                    continue
+                paths = payload.get('changed_files')
+                if not isinstance(paths, list) or not all(isinstance(p, str) for p in paths):
+                    continue
+                score = match(subject, ' '.join(paths))
+                if not score:
+                    continue
+                try:
+                    timestamp = _instant(event['timestamp'])
+                except (ValueError, OverflowError):
+                    invalid_times += 1
+                    continue
+                if query['since'] and timestamp < _instant(query['since']) or query['until'] and timestamp > _instant(query['until']):
+                    continue
+                candidates.append(fact(sequence, event, 'change', {'id': subject['id'], 'paths': paths,
+                    'baseTree': payload.get('base_tree'), 'candidateTree': payload.get('candidate_tree'),
+                    'pathCoverage': payload.get('changed_files_coverage', {'status': 'legacy-unspecified'})}, score))
+                continue
+            state = current.get(subject['id'])
+            if not state or not state['active'] or state['assertion']['event_id'] != event['event_id']:
+                continue
+            score = match(subject)
+            if not score:
+                continue
+            fields = {'id': subject['id'], 'kind': subject['kind'], 'label': subject.get('label')}
+            if query['kind'] == 'why':
+                reason_field = next((f for f in ('why', 'reason') if isinstance(payload.get(f), str) and payload[f].strip()), None)
+                if reason_field is None:
+                    continue
+                fields.update(reasonField=reason_field, reason=payload[reason_field])
+            revisions = [state['revision']] if state['action'] else []
+            candidates.append(fact(sequence, event, query['kind'], fields, score, revisions=revisions))
+    candidates.sort(key=lambda item: (-item['relevance'], -item['sequence'], _wire(item['fields'])))
+    facts = candidates[:limit]
+    if not facts:
+        abstention = abstention or ('unusable-recorded-timestamps' if invalid_times else 'insufficient-cited-records')
+    packet = {'schema_version': 'memory-question-context-1', 'question': query,
+              'anchor': {'eventCount': len(events), 'eventHead': events[-1]['event_hash'] if events else None,
+                         'journalSha256': journal_digest},
+              'facts': copy.deepcopy(facts),
+              'coverage': {'method': 'deterministic lexical lookup in validated journal',
+                           'scope': 'recorded incoming relations' if query['kind'] == 'dependencies' else
+                                    'recorded change events' if query['kind'] == 'changes' else 'current active assertions',
+                           'matches': len(candidates), 'omitted': max(0, len(candidates)-limit),
+                           'unusableTimestamps': invalid_times, 'semanticCompleteness': 'unknown'},
+              'abstention': abstention, 'authority': _AUTHORITY}
+    packet['context_id'] = 'dwqctx_' + _digest(packet)
+    if len(_wire(packet)) > MAX_PACKET_BYTES:
+        raise ContinuityError('question context exceeds its byte bound; select a narrower query')
+    return packet
+
+
+def answer_question(repo, question, **options):
+    packet = question_context(repo, question, **options)
+    # Every answer part references one complete immutable ContextPack fact.
+    # Presentation is extractive; a model never creates factual answer text.
+    answer = {'schema_version': 'memory-question-answer-1', 'status': 'abstained' if packet['abstention'] else 'cited-records',
+              'context': packet, 'parts': [{'factIndex': i, 'source': copy.deepcopy(f['source'])} for i, f in enumerate(packet['facts'])],
+              'assurance': 'none', 'actions': [], 'questionStored': False}
+    answer['answer_id'] = 'dwanswer_' + _digest(answer)
+    return answer
+
+
+def render_answer(answer):
+    packet = answer['context']
+    lines = [tr('Recorded project memory', 'Mémoire du projet enregistrée')]
+    if answer['status'] == 'abstained':
+        lines.append(tr('Insufficient sources to answer this question.', 'Sources insuffisantes pour répondre à cette question.'))
+        lines.append(packet['abstention'])
+    for part in answer['parts']:
+        fact = packet['facts'][part['factIndex']]
+        fields = fact['fields']
+        # JSON quoting keeps text supplied by a project visibly data, including
+        # newlines, terminal controls and instruction-shaped labels/reasons.
+        quoted = json.dumps(fields, ensure_ascii=False, sort_keys=True)
+        quoted = ''.join(f'\\u{ord(c):04x}' if unicodedata.category(c).startswith('C') or unicodedata.category(c) in {'Zl', 'Zp'} else c for c in quoted)
+        lines.append(f"- [{fact['epistemicStatus']}] {quoted}")
+        source = fact['source']
+        lines.append(f"  {source['eventId']} sha256:{source['eventHash']}")
+        for revision in fact['applicabilitySources']:
+            lines.append(f"  applicability: {revision['eventId']} sha256:{revision['eventHash']}")
+    if packet['coverage']['omitted']:
+        lines.append(tr('Additional matching records omitted: ', 'Autres enregistrements correspondants omis : ') + str(packet['coverage']['omitted']))
+    lines.append(tr('Recorded assertions only; semantic completeness and current applicability remain unknown. No new Proof.',
+                    'Assertions enregistrées seulement ; exhaustivité sémantique et applicabilité actuelle inconnues. Aucune nouvelle Proof.'))
+    return '\n'.join(lines) + '\n'
+
+
+def question_cli(argv):
+    parser = argparse.ArgumentParser(prog='dw ask', description=tr('Ask local project memory with exact sources or abstention.',
+        'Interroger la mémoire locale avec des sources exactes ou une abstention.'))
+    parser.add_argument('question', nargs='+')
+    parser.add_argument('--repo', default='.')
+    parser.add_argument('--kind', choices=('auto','why','dependencies','changes','memory'), default='auto',
+                        help=tr('Auto abstains on unknown forms; memory retains every label word for lexical lookup.',
+                                'Auto refuse les formes inconnues ; memory conserve tous les mots du libellé recherché.'))
+    parser.add_argument('--entity', help=tr(
+        'Select an identity; reason/change/memory queries still match every term. Use Why? for identity alone.',
+        'Choisir une identité ; raison/changement/mémoire conservent tous les termes. Utiliser Pourquoi ? pour l’identité seule.'))
+    parser.add_argument('--since')
+    parser.add_argument('--until')
+    parser.add_argument('--limit', type=int, default=12)
+    parser.add_argument('--json', action='store_true')
+    args = parser.parse_args(argv)
+    try:
+        result = answer_question(args.repo, ' '.join(args.question), kind=args.kind, entity=args.entity,
+                                 since=args.since, until=args.until, limit=args.limit)
+    except (ValueError, OSError, RuntimeError) as exc:
+        print(tr('Memory question rejected: ', 'Question mémoire refusée : ') + _display(str(exc), limit=500), file=sys.stderr)
+        return 2
+    print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else render_answer(result), end='\n' if args.json else '')
+    return 0

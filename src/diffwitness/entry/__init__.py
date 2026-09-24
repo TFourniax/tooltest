@@ -32,7 +32,7 @@ def __getattr__(name: str):
 _PUBLIC_COMMANDS = {
     "init", "setup", "status", "view", "language", "protect", "explain", "portal", "doctor", "engine", "guard",
     "gate", "prove", "core", "debt", "health", "repay", "recheck", "ledger", "plan",
-    "state", "objective", "decision", "invariant", "failed-approach", "relation", "context", "task",
+    "state", "objective", "decision", "invariant", "failed-approach", "relation", "context", "task", "ask",
     "envelope", "verify", "note", "ide-hook",
 }
 
@@ -367,6 +367,9 @@ def _main(argv: list[str] | None = None) -> int:
     if args[0] == "context":
         from ..continuity_context_command import context_command_cli
         return context_command_cli(args[1:])
+    if args[0] == "ask":
+        from ..continuity_questions import question_cli
+        return question_cli(args[1:])
     if args[0] in {"state", "objective", "decision", "invariant", "failed-approach"}:
         from ..continuity_cli import decision_cli, failed_approach_cli, invariant_cli, objective_cli, state_cli
 
