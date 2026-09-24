@@ -239,3 +239,18 @@ class MemoryQuestionTests(unittest.TestCase):
                     self.assertEqual(run.stdout,'')
         self.assertEqual(self.paths.events.read_bytes() if self.paths.events.exists() else None,before)
         self.assertFalse(self.paths.state.exists())
+
+    def test_relative_constraints_are_checked_for_every_question_kind(self):
+        self.record('MOD-AUTH','auth',kind='component',event_type='component.observed',
+                    payload={'why':'Recorded authentication boundary'})
+        self.record('MOD-UI','interface',kind='component',event_type='component.observed',relations=[
+            {'predicate':'depends_on','target':{'id':'MOD-AUTH','kind':'component'},'epistemic_status':'INFERRED'}])
+        for question in ('Why auth recently?', 'Pourquoi auth récemment ?',
+                         'What depends on auth this week?',
+                         'Qu’est-ce qui dépend de auth cette semaine ?',
+                         'Remember auth as of Monday?'):
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained')
+                self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
