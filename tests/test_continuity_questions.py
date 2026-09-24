@@ -824,3 +824,61 @@ class MemoryQuestionTests(unittest.TestCase):
         literal=answer_question(self.repo,'auth and please remember billing',kind='memory',entity='AUTH')
         self.assertEqual(literal['status'],'cited-records')
         self.assert_sources(literal)
+
+    def test_non_iso_hyphenated_dates_never_become_path_terms(self):
+        phrases=('09-21-2026','21-09-2026','09-21-26','21-09-26')
+        self.record('DATE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace('-','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            for options in ({},{'until':'2027-01-01'}):
+                with self.subTest(phrase=phrase,options=options):
+                    result=answer_question(self.repo,'What changed in auth '+phrase+'?',**options)
+                    self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                    self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_abbreviated_month_dates_never_become_path_terms(self):
+        phrases=('Sept 21','Sep 21','Sep. 21','21 Sep 2026','Jan 12','Feb 2',
+                 'janv. 12','févr. 2','avr. 3','juil. 4','déc. 5','Sep21')
+        self.record('MONTH-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            with self.subTest(phrase=phrase):
+                result=answer_question(self.repo,'What changed in auth '+phrase+'?')
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_named_zone_clocks_never_become_path_terms(self):
+        phrases=('12 EST','12 PST','12 EDT','12 PDT','12 CET','12 CEST','12 JST',
+                 '12 IST','12 AEST','12 NZDT','12 Europe/Paris','12+0200')
+        self.record('ZONE-OLD','auth change',kind='change',event_type='change.observed',
+                    timestamp='2025-09-21T08:00:00Z',
+                    payload={'changed_files':['auth/'+p.replace(' ','/')+'/service.py' for p in phrases]})
+        for phrase in phrases:
+            with self.subTest(phrase=phrase):
+                result=answer_question(self.repo,'What changed in auth '+phrase+'?')
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],'ambiguous-time-filter')
+
+    def test_adjacent_period_question_clauses_preserve_dotted_names(self):
+        self.record('AUTH','auth why pourquoi billing what changed in remember please memory',
+                    payload={'why':'Synthetic all-term reason'})
+        for question,reason in [
+            ('Why auth.Why billing?','multiple-question-clauses'),
+            ('Pourquoi auth.Pourquoi billing ?','multiple-question-clauses'),
+            ('Remember auth.Remember billing?','multiple-question-clauses'),
+            ('Why auth.What changed in billing?','mixed-question-intents'),
+            ('Why auth.Please remember billing?','unsupported-compound-memory-clause'),
+        ]:
+            with self.subTest(question=question):
+                result=answer_question(self.repo,question)
+                self.assertEqual(result['status'],'abstained');self.assertEqual(result['parts'],[])
+                self.assertEqual(result['context']['abstention'],reason)
+        for index,label in enumerate(('System.Memory','foo.memory.py','Python 3.14','Node 24.1.0')):
+            identity='DOT-'+str(index)
+            self.record(identity,label,payload={'why':'Dotted name reason'})
+            result=answer_question(self.repo,'Why '+label+'?')
+            self.assertEqual(result['status'],'cited-records')
+            self.assertEqual([f['fields']['id'] for f in result['context']['facts']],[identity])
+            self.assert_sources(result)
