@@ -173,6 +173,47 @@ class BundledRepeatableSyncTests(unittest.TestCase):
         self.assertEqual(len(results), 8)
         self.assertEqual(len(set(results)), 1)
 
+    def test_record_left_empty_by_an_interrupted_sync_does_not_block_later_syncs(self) -> None:
+        from diffwitness import idleproof_sidecar
+
+        snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T10:00:00.000000Z"}
+        directory = idleproof_sidecar._portal_snapshot_times_dir(self.repo)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / snapshot["snapshotId"]).write_bytes(b"")  # killed between create and write
+        self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], snapshot["generatedAt"])
+        later = {**snapshot, "generatedAt": "2026-09-26T11:00:00.000000Z"}
+        self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, later)["generatedAt"], snapshot["generatedAt"])
+        self.assertEqual(sorted(item.name for item in directory.iterdir()), [snapshot["snapshotId"]])
+
+    def test_failed_write_leaves_no_record_behind(self) -> None:
+        from diffwitness import idleproof_sidecar
+
+        snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T10:00:00.000000Z"}
+        directory = idleproof_sidecar._portal_snapshot_times_dir(self.repo)
+        real_fdopen = os.fdopen
+
+        def failing_fdopen(*args, **kwargs):
+            real_fdopen(*args, **kwargs).close()
+            raise OSError(28, "no space left on device")
+
+        failures = {
+            "write aside": [patch.object(Path, "write_text", side_effect=OSError(28, "no space left on device"))],
+            "no hard links": [patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")), patch.object(idleproof_sidecar.os, "fdopen", side_effect=failing_fdopen)],
+        }
+        for name, patches in failures.items():
+            with self.subTest(name):
+                for active in patches:
+                    active.start()
+                try:
+                    with self.assertRaises(OSError):
+                        idleproof_sidecar._stable_generated_at(self.repo, snapshot)
+                finally:
+                    for active in patches:
+                        active.stop()
+                self.assertEqual(list(directory.iterdir()), [])
+                self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], snapshot["generatedAt"])
+                (directory / snapshot["snapshotId"]).unlink()
+
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]
         state = self.repo / ".git" / "diffwitness"

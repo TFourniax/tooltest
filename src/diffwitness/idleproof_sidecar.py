@@ -119,33 +119,83 @@ def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]
     The snapshot identity excludes ``generatedAt``, but Portal compares the complete body of a
     retransmission. A rebuilt snapshot with unchanged content therefore reuses the time it was
     first generated, so a repeated sync (or a retry after a lost acknowledgement) is a duplicate.
-    The first time is fixed by an exclusive create of one file per snapshot identity before sending,
-    so concurrent syncs of the same snapshot all read back the same time.
+    The first time is fixed before sending by publishing one complete file per snapshot identity
+    (written aside, then hard-linked into place, which fails if another sync won), so concurrent
+    syncs all read back the same time and an interrupted sync never leaves a partial record.
     """
     directory = _portal_snapshot_times_dir(repo)
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / str(snapshot["snapshotId"])
+    for _ in range(3):
+        recorded = _claim_snapshot_time(path, str(snapshot["generatedAt"]))
+        if recorded is None:
+            records = sorted((item for item in directory.iterdir() if not item.name.startswith(".")), key=lambda item: item.stat().st_mtime)
+            for stale in records[:-_MAX_SNAPSHOT_TIMES]:
+                try:
+                    stale.unlink()
+                except OSError:
+                    pass
+            return snapshot
+        if recorded:
+            return {**snapshot, "generatedAt": recorded}
+        _reclaim_empty_snapshot_time(path)
+    raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
+
+
+def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
+    """Publish ``generated_at`` for ``path``: None when this call won, else the recorded text."""
+    pending = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.tmp")
     try:
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except FileExistsError:
-        for _ in range(50):
-            try:
-                recorded = path.read_text(encoding="utf-8").strip()
-            except OSError:
-                recorded = ""
-            if recorded:
-                return {**snapshot, "generatedAt": recorded}
-            time.sleep(0.02)  # the creator writes right after the exclusive create
-        raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(str(snapshot["generatedAt"]))
-    records = sorted(directory.iterdir(), key=lambda item: item.stat().st_mtime)
-    for stale in records[:-_MAX_SNAPSHOT_TIMES]:
+        pending.write_text(generated_at, encoding="utf-8")
         try:
-            stale.unlink()
-        except OSError:
+            os.link(pending, path)
+            return None
+        except FileExistsError:
             pass
-    return snapshot
+        except OSError:
+            # No hard links on this file system: exclusive create, removed again if the write fails.
+            try:
+                fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            except FileExistsError:
+                pass
+            else:
+                try:
+                    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                        handle.write(generated_at)
+                except BaseException:
+                    path.unlink(missing_ok=True)
+                    raise
+                return None
+    finally:
+        pending.unlink(missing_ok=True)
+    for _ in range(50):
+        try:
+            recorded = path.read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            return ""
+        except OSError:
+            recorded = ""
+        if recorded:
+            return recorded
+        time.sleep(0.02)  # only an exclusive-create writer can be between create and write
+    return ""
+
+
+def _reclaim_empty_snapshot_time(path: Path) -> None:
+    """Remove a record left empty by an interrupted sync, keeping any record that is not empty."""
+    moved = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.reclaim")
+    try:
+        os.replace(path, moved)
+    except OSError:  # already reclaimed, or held open elsewhere: the next attempt re-reads it
+        return
+    try:
+        if moved.read_text(encoding="utf-8").strip():
+            try:
+                os.link(moved, path)
+            except OSError:
+                pass
+    finally:
+        moved.unlink(missing_ok=True)
 
 
 def _portal_token_path(repo: Path) -> Path:
