@@ -47,6 +47,24 @@ class PortalTransportResolutionTests(unittest.TestCase):
             self.assertEqual(_resolve_portal_transport(), (None, None))
 
 
+class WindowsSharedDirectoryResolutionTests(unittest.TestCase):
+    def test_idleproof_cmd_is_found_next_to_the_bundled_exe(self) -> None:
+        from diffwitness import portal_proxy
+
+        with tempfile.TemporaryDirectory() as tmp:
+            shared = Path(tmp)
+            bundled = shared / "idleproof.exe"
+            bundled.write_text(BUNDLED, encoding="utf-8")
+            npm = shared / "idleproof.cmd"
+            npm.write_text(NPM, encoding="utf-8")
+            for item in (bundled, npm):
+                item.chmod(item.stat().st_mode | stat.S_IXUSR)
+            with patch.object(portal_proxy.os, "name", "nt"), patch.dict(os.environ, {"PATH": tmp, "PATHEXT": ".COM;.EXE;.BAT;.CMD"}):
+                self.assertEqual(portal_proxy._resolve_portal_transport(), ("idleproof", str(npm)))
+                npm.unlink()
+                self.assertEqual(portal_proxy._resolve_portal_transport(), ("bundled", str(bundled)))
+
+
 class PortalDelegationTests(unittest.TestCase):
     def run_cli(self, repo: Path, argv: list[str], transport: tuple[str | None, str | None]):
         err = io.StringIO()
@@ -268,6 +286,24 @@ class BundledRepeatableSyncTests(unittest.TestCase):
                 with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, "empty or incomplete"):
                     idleproof_sidecar._stable_generated_at(self.repo, snapshot)
             self.assertEqual(record.read_text(encoding="utf-8"), "2026-09-26T09:5")
+
+    def test_records_pruned_concurrently_do_not_abort_a_sync(self) -> None:
+        from diffwitness import idleproof_sidecar
+
+        directory = idleproof_sidecar._portal_snapshot_times_dir(self.repo)
+        directory.mkdir(parents=True, exist_ok=True)
+        vanished = directory / "ipsnap_ffffffffffffffffffffffff"
+        vanished.write_text("2026-09-26T09:00:00.000000Z", encoding="utf-8")
+        real_stat = Path.stat
+
+        def stat_after_concurrent_prune(path, *args, **kwargs):
+            if path == vanished:
+                path.unlink(missing_ok=True)  # another sync pruned it after iterdir()
+            return real_stat(path, *args, **kwargs)
+
+        snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T10:00:00.000000Z"}
+        with patch.object(idleproof_sidecar, "_MAX_SNAPSHOT_TIMES", 1), patch.object(Path, "stat", stat_after_concurrent_prune):
+            self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], snapshot["generatedAt"])
 
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]

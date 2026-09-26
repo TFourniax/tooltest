@@ -129,8 +129,16 @@ def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]
     for _ in range(3):
         recorded = _claim_snapshot_time(path, str(snapshot["generatedAt"]))
         if recorded is None:
-            records = sorted((item for item in directory.iterdir() if not item.name.startswith(".")), key=lambda item: item.stat().st_mtime)
-            for stale in records[:-_MAX_SNAPSHOT_TIMES]:
+            records = []
+            for item in directory.iterdir():
+                if item.name.startswith("."):
+                    continue
+                try:
+                    records.append((item.stat().st_mtime, item))
+                except FileNotFoundError:
+                    continue  # pruned meanwhile by a concurrent sync
+            records.sort(key=lambda entry: entry[0])
+            for _, stale in records[:-_MAX_SNAPSHOT_TIMES]:
                 try:
                     stale.unlink()
                 except OSError:

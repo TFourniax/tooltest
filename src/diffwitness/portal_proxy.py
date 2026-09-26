@@ -108,14 +108,31 @@ def _resolve_portal_transport() -> tuple[str | None, str | None]:
     bundled: str | None = None
     directories = [item for item in os.environ.get("PATH", "").split(os.pathsep) if item] or [None]
     for directory in directories:
-        candidate = shutil.which("idleproof", path=directory) if directory else shutil.which("idleproof")
-        if not candidate:
-            continue
-        if _is_bundled_entry(candidate):
-            bundled = bundled or candidate
-            continue
-        return "idleproof", candidate
+        for candidate in _idleproof_candidates(directory):
+            if _is_bundled_entry(candidate):
+                bundled = bundled or candidate
+                continue
+            return "idleproof", candidate
     return ("bundled", bundled) if bundled else (None, None)
+
+
+def _idleproof_candidates(directory: str | None) -> list[str]:
+    """Every ``idleproof`` executable in one PATH directory.
+
+    On Windows the wheel's ``idleproof.exe`` and npm's ``idleproof.cmd`` can share a directory, and
+    a plain lookup returns only the first ``PATHEXT`` match, so each suffix is examined.
+    """
+    if os.name == "nt":
+        suffixes = [item for item in os.environ.get("PATHEXT", ".COM;.EXE;.BAT;.CMD").split(";") if item]
+        names = [f"idleproof{suffix.lower()}" for suffix in suffixes]
+    else:
+        names = ["idleproof"]
+    found: list[str] = []
+    for name in names:
+        candidate = shutil.which(name, path=directory) if directory else shutil.which(name)
+        if candidate and candidate not in found:
+            found.append(candidate)
+    return found
 
 
 def _enrollment_owner(repo: Path) -> str | None:
