@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -251,6 +252,23 @@ class BundledRepeatableSyncTests(unittest.TestCase):
                     with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, code):
                         idleproof_sidecar.portal_sync(self.repo)
 
+    def test_truncated_record_is_never_reused(self) -> None:
+        from diffwitness import idleproof_sidecar
+
+        snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T10:00:00.000000Z"}
+        directory = idleproof_sidecar._portal_snapshot_times_dir(self.repo)
+        directory.mkdir(parents=True, exist_ok=True)
+        record = directory / snapshot["snapshotId"]
+        record.write_text("2026-09-26T09:5", encoding="utf-8")  # power lost mid-write
+        self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], snapshot["generatedAt"])
+        self.assertEqual(record.read_text(encoding="utf-8"), snapshot["generatedAt"])
+        if os.name != "nt":
+            record.write_text("2026-09-26T09:5", encoding="utf-8")
+            with patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")):
+                with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, "empty or incomplete"):
+                    idleproof_sidecar._stable_generated_at(self.repo, snapshot)
+            self.assertEqual(record.read_text(encoding="utf-8"), "2026-09-26T09:5")
+
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]
         state = self.repo / ".git" / "diffwitness"
@@ -320,3 +338,35 @@ class BundledEntryDelegationTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         proxy.assert_not_called()
         bundled.assert_called_once()
+
+
+class WindowsShimLaunchTests(unittest.TestCase):
+    """An npm ``.cmd`` shim receives every forwarded argument verbatim, metacharacters included."""
+
+    ARGS = ["portal", "configure", "--endpoint", "https://portal.example.test/ingest?a=1&b=2", "x|y", "100%", "%PATH%", 'say "hi"', "^caret", "(p)", "sp ace", "trail\\", "!bang", "semi;colon"]
+
+    def test_arguments_are_quoted_and_escaped_for_cmd(self) -> None:
+        from diffwitness import portal_proxy
+
+        with patch.object(portal_proxy.os, "name", "nt"), patch.dict(os.environ, {"COMSPEC": "C:\\Windows\\System32\\cmd.exe"}):
+            line = portal_proxy._launch_command("C:\\npm\\idleproof.cmd", ["a&b", "%PATH%"])
+            self.assertEqual(portal_proxy._launch_command("C:\\py\\idleproof.exe", ["a&b"]), ["C:\\py\\idleproof.exe", "a&b"])
+        self.assertTrue(line.startswith('"C:\\Windows\\System32\\cmd.exe" /d /s /c "'))
+        self.assertNotIn(" a&b", line)
+        self.assertIn("^^^&", line)
+        self.assertIn("^^^%PATH^^^%", line)
+
+    @unittest.skipUnless(os.name == "nt" and shutil.which("node"), "real Windows cmd.exe and an npm-style shim")
+    def test_npm_style_shim_receives_arguments_verbatim(self) -> None:
+        from diffwitness import portal_proxy
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            out = root / "argv.json"
+            (root / "echo.js").write_text(f"require('fs').writeFileSync({json.dumps(str(out))}, JSON.stringify(process.argv.slice(2)))\n", encoding="utf-8")
+            shim = root / "idleproof.cmd"
+            shim.write_text('@ECHO off\r\nnode "%~dp0\\echo.js" %*\r\n', encoding="utf-8")
+            proc = subprocess.run(portal_proxy._launch_command(str(shim), self.ARGS), check=False)
+            self.assertEqual(proc.returncode, 0)
+            self.assertEqual(json.loads(out.read_text(encoding="utf-8")), self.ARGS)
+

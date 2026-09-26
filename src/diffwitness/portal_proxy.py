@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -66,6 +67,34 @@ def _is_bundled_entry(executable: str) -> bool:
             return _BUNDLED_MARKER in handle.read(4_000_000)
     except OSError:
         return False
+
+
+_CMD_METACHARACTERS = re.compile(r'([()\][%!^"`<>&|;, *?])')
+
+
+def _windows_argument(value: str) -> str:
+    # Quoting that CommandLineToArgvW reads back verbatim (backslashes doubled before a quote).
+    value = re.sub(r'(\\*)"', r'\1\1\\"', value)
+    value = re.sub(r"(\\*)$", r"\1\1", value)
+    return f'"{value}"'
+
+
+def _launch_command(executable: str, args: list[str]) -> list[str] | str:
+    """How to start the IdleProof CLI with ``args`` reaching it verbatim.
+
+    On Windows an npm or pnpm install is a ``.cmd`` shim, which only ``cmd.exe`` can run and which
+    passes its arguments on through ``%*`` (a second ``cmd.exe`` parse). Every argument is therefore
+    quoted and its metacharacters escaped for both parses, so an ``&``, ``|`` or ``%`` in an endpoint,
+    path or forwarded command is data, never a command separator or a variable.
+    """
+    if os.name != "nt" or os.path.splitext(executable)[1].lower() not in {".cmd", ".bat"}:
+        return [executable, *args]
+
+    def escape(text: str) -> str:
+        return _CMD_METACHARACTERS.sub(r"^\1", text)
+
+    line = " ".join([escape(executable), *(escape(escape(_windows_argument(arg))) for arg in args)])
+    return f'"{os.environ.get("COMSPEC", "cmd.exe")}" /d /s /c "{line}"'
 
 
 def _resolve_portal_transport() -> tuple[str | None, str | None]:
@@ -180,7 +209,7 @@ def portal_cli(argv: list[str]) -> int:
 
     try:
         proc = subprocess.run(
-            [executable, "portal", *forwarded],
+            _launch_command(executable, ["portal", *forwarded]),
             cwd=Path.cwd(),
             check=False,
         )

@@ -248,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
     # of `dw portal`; `integration` commands, used by `dw setup`, stay in-process. Without an IdleProof
     # CLI, the bundled integration answers as before.
     if args[:1] != ["integration"]:
-        from .portal_proxy import _ALLOWED, _resolve_portal_transport, portal_cli
+        from .portal_proxy import _ALLOWED, _launch_command, _resolve_portal_transport, portal_cli
 
         kind, executable = _resolve_portal_transport()
         if kind == "idleproof" and executable:
@@ -256,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
                 return portal_cli(args[1:])
             import subprocess
 
-            return subprocess.run([executable, *args], check=False).returncode
+            return subprocess.run(_launch_command(executable, list(args)), check=False).returncode
     # Sidecar functions resolve these collaborators from their module globals at call time. Keep
     # the established implementation and install only bounded public-entry compatibility shims.
     _sidecar.build_portal_snapshot = build_portal_snapshot

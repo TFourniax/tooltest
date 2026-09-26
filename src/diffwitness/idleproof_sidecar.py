@@ -140,9 +140,23 @@ def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]
             return {**snapshot, "generatedAt": recorded}
         if not _records_published_whole(directory):
             # Here an empty record may belong to a live, slow writer: it is never reclaimed.
-            raise IdleProofSidecarError(f"Portal snapshot time record {path} is empty; if no other sync is running, delete it and retry")
-        _reclaim_empty_snapshot_time(path)
+            raise IdleProofSidecarError(f"Portal snapshot time record {path} is empty or incomplete; if no other sync is running, delete it and retry")
+        _reclaim_incomplete_snapshot_time(path)
     raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
+
+
+_GENERATED_AT = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{6})?Z")
+
+
+def _complete_generated_at(text: str) -> bool:
+    """A record is reusable only as a whole UTC instant as ``_now`` writes it, never a partial one."""
+    if not _GENERATED_AT.fullmatch(text):
+        return False
+    try:
+        datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
 
 
 def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
@@ -185,7 +199,7 @@ def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
             return ""
         except OSError:
             recorded = ""
-        if recorded:
+        if _complete_generated_at(recorded):
             return recorded
         time.sleep(0.02)  # only an exclusive-create writer can be between create and write
     return ""
@@ -208,8 +222,8 @@ def _records_published_whole(directory: Path) -> bool:
         linked.unlink(missing_ok=True)
 
 
-def _reclaim_empty_snapshot_time(path: Path) -> None:
-    """Remove a record left empty by an interrupted sync, keeping any record that is not empty.
+def _reclaim_incomplete_snapshot_time(path: Path) -> None:
+    """Remove a record left empty or partial by an interrupted sync, keeping any complete record.
 
     Only called where records are published whole, so an empty record has no live writer.
     """
@@ -219,7 +233,7 @@ def _reclaim_empty_snapshot_time(path: Path) -> None:
     except OSError:  # already reclaimed, or held open elsewhere: the next attempt re-reads it
         return
     try:
-        if moved.read_text(encoding="utf-8").strip():
+        if _complete_generated_at(moved.read_text(encoding="utf-8").strip()):
             try:
                 os.link(moved, path)
             except OSError:
