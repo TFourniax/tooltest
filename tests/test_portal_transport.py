@@ -173,3 +173,37 @@ class ExplainPrerequisiteTests(unittest.TestCase):
         message = str(caught.exception)
         for expected in ("dw setup", "dw guard", "idleproof run", "idleproof receipt", "Portal"):
             self.assertIn(expected, message)
+
+
+class BundledEntryDelegationTests(unittest.TestCase):
+    """`idleproof portal …` typed by the user reaches the IdleProof CLI even when this wheel's
+    console script comes first on PATH; integration commands stay in-process."""
+
+    def run_entry(self, argv: list[str], transport: tuple[str | None, str | None]):
+        from diffwitness import idleproof_entry
+
+        with (
+            patch("diffwitness.portal_proxy._resolve_portal_transport", return_value=transport),
+            patch("diffwitness.portal_proxy.portal_cli", return_value=0) as proxy,
+            patch.object(idleproof_entry._sidecar, "main", return_value=0) as bundled,
+        ):
+            rc = idleproof_entry.main(argv)
+        return rc, proxy, bundled
+
+    def test_portal_commands_are_forwarded_to_the_idleproof_cli(self) -> None:
+        rc, proxy, bundled = self.run_entry(["portal", "identity", "--json"], ("idleproof", "/npm/bin/idleproof"))
+        self.assertEqual(rc, 0)
+        proxy.assert_called_once_with(["identity", "--json"])
+        bundled.assert_not_called()
+
+    def test_without_an_idleproof_cli_the_bundled_integration_answers_without_recursion(self) -> None:
+        rc, proxy, bundled = self.run_entry(["portal", "sync"], ("bundled", "/venv/bin/idleproof"))
+        self.assertEqual(rc, 0)
+        proxy.assert_not_called()
+        bundled.assert_called_once()
+
+    def test_integration_commands_used_by_setup_stay_in_process(self) -> None:
+        rc, proxy, bundled = self.run_entry(["integration", "status"], ("idleproof", "/npm/bin/idleproof"))
+        self.assertEqual(rc, 0)
+        proxy.assert_not_called()
+        bundled.assert_called_once()
