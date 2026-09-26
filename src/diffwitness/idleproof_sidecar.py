@@ -138,6 +138,9 @@ def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]
             return snapshot
         if recorded:
             return {**snapshot, "generatedAt": recorded}
+        if not _records_published_whole(directory):
+            # Here an empty record may belong to a live, slow writer: it is never reclaimed.
+            raise IdleProofSidecarError(f"Portal snapshot time record {path} is empty; if no other sync is running, delete it and retry")
         _reclaim_empty_snapshot_time(path)
     raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
 
@@ -153,6 +156,13 @@ def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
         except FileExistsError:
             pass
         except OSError:
+            if os.name == "nt":
+                # No hard links (e.g. FAT): a Windows rename never replaces an existing record.
+                try:
+                    os.rename(pending, path)
+                    return None
+                except FileExistsError:
+                    pass
             # No hard links on this file system: exclusive create, removed again if the write fails.
             try:
                 fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -181,8 +191,28 @@ def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
     return ""
 
 
+def _records_published_whole(directory: Path) -> bool:
+    """True when records only ever appear complete here (hard link, or a Windows rename)."""
+    if os.name == "nt":
+        return True
+    probe = directory / f".probe.{os.getpid()}.{secrets.token_hex(4)}"
+    linked = probe.with_name(f"{probe.name}.link")
+    try:
+        probe.write_bytes(b"")
+        os.link(probe, linked)
+        return True
+    except OSError:
+        return False
+    finally:
+        probe.unlink(missing_ok=True)
+        linked.unlink(missing_ok=True)
+
+
 def _reclaim_empty_snapshot_time(path: Path) -> None:
-    """Remove a record left empty by an interrupted sync, keeping any record that is not empty."""
+    """Remove a record left empty by an interrupted sync, keeping any record that is not empty.
+
+    Only called where records are published whole, so an empty record has no live writer.
+    """
     moved = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.reclaim")
     try:
         os.replace(path, moved)

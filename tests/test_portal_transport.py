@@ -198,7 +198,11 @@ class BundledRepeatableSyncTests(unittest.TestCase):
 
         failures = {
             "write aside": [patch.object(Path, "write_text", side_effect=OSError(28, "no space left on device"))],
-            "no hard links": [patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")), patch.object(idleproof_sidecar.os, "fdopen", side_effect=failing_fdopen)],
+            "no hard links": [
+                patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")),
+                patch.object(idleproof_sidecar.os, "fdopen", side_effect=failing_fdopen),  # POSIX fallback
+                patch.object(idleproof_sidecar.os, "rename", side_effect=OSError(28, "no space left on device")),  # Windows fallback
+            ],
         }
         for name, patches in failures.items():
             with self.subTest(name):
@@ -213,6 +217,28 @@ class BundledRepeatableSyncTests(unittest.TestCase):
                 self.assertEqual(list(directory.iterdir()), [])
                 self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], snapshot["generatedAt"])
                 (directory / snapshot["snapshotId"]).unlink()
+
+    @unittest.skipIf(os.name == "nt", "POSIX exclusive-create fallback")
+    def test_slow_live_writer_without_hard_links_is_never_reclaimed(self) -> None:
+        import threading
+
+        from diffwitness import idleproof_sidecar
+
+        snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T11:00:00.000000Z"}
+        directory = idleproof_sidecar._portal_snapshot_times_dir(self.repo)
+        directory.mkdir(parents=True, exist_ok=True)
+        record = directory / snapshot["snapshotId"]
+        record.write_bytes(b"")  # a live writer holds the record between create and write
+        writer = threading.Timer(1.5, lambda: record.write_text("2026-09-26T10:00:00.000000Z", encoding="utf-8"))
+        writer.start()
+        try:
+            with patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")):
+                with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, "is empty"):
+                    idleproof_sidecar._stable_generated_at(self.repo, snapshot)
+        finally:
+            writer.join()
+        self.assertEqual(record.read_text(encoding="utf-8"), "2026-09-26T10:00:00.000000Z")
+        self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], "2026-09-26T10:00:00.000000Z")
 
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]
