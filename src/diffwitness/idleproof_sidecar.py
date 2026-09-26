@@ -871,6 +871,19 @@ def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
     token = _resolve_portal_token(repo, config)
     snapshot = _stable_generated_at(repo, snapshot)
     status, payload = _post_snapshot(endpoint, token, snapshot)
+    error = payload.get("error") if isinstance(payload.get("error"), Mapping) else {}
+    if status == 409 and error.get("code") == "SNAPSHOT_CONFLICT":
+        # Portal verifies the snapshot id as the hash of everything but generatedAt, so a conflict
+        # means it already holds this exact content under another first time (for example one whose
+        # local record was pruned). Nothing is lost; the differing body itself stays refused.
+        return {
+            "schema": "idleproof.portal-sync.v1",
+            "status": "held-by-portal",
+            "snapshotId": snapshot["snapshotId"],
+            "codeUploaded": False,
+            "rawPromptUploaded": False,
+            "rawDiffUploaded": False,
+        }
     if status not in {200, 202} or payload.get("schema") != ACK_SCHEMA or payload.get("status") not in {"accepted", "duplicate"}:
         code = ((payload.get("error") or {}).get("code") if isinstance(payload.get("error"), Mapping) else None) or f"HTTP_{status}"
         message = ((payload.get("error") or {}).get("message") if isinstance(payload.get("error"), Mapping) else None) or "Portal rejected the snapshot"
@@ -994,6 +1007,8 @@ def _print_result(value: Mapping[str, Any], *, as_json: bool, quiet: bool = Fals
             print(f"Local project id: {value.get('localProjectId')}")
     elif schema == "idleproof.portal-sync.v1":
         print(f"Portal sync: {value.get('status')} · {value.get('snapshotId')}")
+        if value.get("status") == "held-by-portal":
+            print("Portal already holds this exact content from an earlier sync; nothing new was stored.")
         print("Privacy: no source code, raw prompt, or raw diff uploaded.")
     elif schema == LOCAL_PROJECT_SCHEMA:
         print(value.get("localId"))

@@ -240,6 +240,21 @@ class BundledRepeatableSyncTests(unittest.TestCase):
         self.assertEqual(record.read_text(encoding="utf-8"), "2026-09-26T10:00:00.000000Z")
         self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], "2026-09-26T10:00:00.000000Z")
 
+    def test_conflict_after_a_pruned_time_record_reports_the_content_as_held(self) -> None:
+        from diffwitness import idleproof_sidecar
+
+        def post(status, code):
+            return lambda _endpoint, _token, _snapshot: (status, {"error": {"code": code, "message": "x"}})
+
+        with patch.dict(os.environ, {"DW_TEST_TOKEN": "ipd_abcdefghijklmnopqrstuvwxyz012345"}):
+            with patch.object(idleproof_sidecar, "_post_snapshot", side_effect=post(409, "SNAPSHOT_CONFLICT")):
+                result = idleproof_sidecar.portal_sync(self.repo)
+            self.assertEqual(result["status"], "held-by-portal")
+            for status, code in ((409, "OTHER_CONFLICT"), (400, "SNAPSHOT_CONFLICT")):
+                with patch.object(idleproof_sidecar, "_post_snapshot", side_effect=post(status, code)):
+                    with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, code):
+                        idleproof_sidecar.portal_sync(self.repo)
+
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]
         state = self.repo / ".git" / "diffwitness"
