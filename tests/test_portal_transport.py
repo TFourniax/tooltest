@@ -339,6 +339,31 @@ class BundledEntryDelegationTests(unittest.TestCase):
         proxy.assert_not_called()
         bundled.assert_called_once()
 
+    def test_global_options_before_the_subcommand_keep_the_same_dispatch(self) -> None:
+        from diffwitness import idleproof_entry
+
+        with patch.object(idleproof_entry.os, "chdir") as chdir:
+            rc, proxy, bundled = self.run_entry(["--repo", "/work/r", "portal", "identity", "--json"], ("idleproof", "/npm/bin/idleproof"))
+        self.assertEqual(rc, 0)
+        proxy.assert_called_once_with(["identity", "--json"])
+        chdir.assert_called_once_with("/work/r")
+        bundled.assert_not_called()
+        for argv in (["--repo", "/work/r", "integration", "status"], ["--repo=/work/r", "integration", "status"], ["--repo"]):
+            with self.subTest(argv=argv):
+                rc, proxy, bundled = self.run_entry(argv, ("idleproof", "/npm/bin/idleproof"))
+                proxy.assert_not_called()
+                bundled.assert_called_once_with(argv)
+        completed = subprocess.CompletedProcess(["idleproof"], 0)
+        with (
+            patch("diffwitness.portal_proxy._resolve_portal_transport", return_value=("idleproof", "/npm/bin/idleproof")),
+            patch("subprocess.run", return_value=completed) as run,
+            patch.object(idleproof_entry._sidecar, "main", return_value=0) as bundled,
+        ):
+            self.assertEqual(idleproof_entry.main(["--repo=/work/r", "run", "--", "git", "status"]), 0)
+        self.assertEqual(run.call_args.args[0], ["/npm/bin/idleproof", "run", "--", "git", "status"])
+        self.assertEqual(run.call_args.kwargs["cwd"], "/work/r")
+        bundled.assert_not_called()
+
 
 class WindowsShimLaunchTests(unittest.TestCase):
     """An npm ``.cmd`` shim receives every forwarded argument verbatim, metacharacters included."""
