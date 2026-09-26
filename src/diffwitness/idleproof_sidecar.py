@@ -11,6 +11,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -105,8 +106,8 @@ def _assurance_path(repo: Path) -> Path:
     return _state_dir(repo) / "assurance.json"
 
 
-def _portal_snapshot_times_path(repo: Path) -> Path:
-    return _state_dir(repo) / "portal-snapshot-times.json"
+def _portal_snapshot_times_dir(repo: Path) -> Path:
+    return _state_dir(repo) / "portal-snapshot-times"
 
 
 _MAX_SNAPSHOT_TIMES = 1024
@@ -117,20 +118,33 @@ def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]
 
     The snapshot identity excludes ``generatedAt``, but Portal compares the complete body of a
     retransmission. A rebuilt snapshot with unchanged content therefore reuses the time it was
-    first generated, so a repeated sync (or a retry after a lost acknowledgement) is a duplicate
-    rather than a conflicting body under the same identity. Recorded before sending; bounded.
+    first generated, so a repeated sync (or a retry after a lost acknowledgement) is a duplicate.
+    The first time is fixed by an exclusive create of one file per snapshot identity before sending,
+    so concurrent syncs of the same snapshot all read back the same time.
     """
-    path = _portal_snapshot_times_path(repo)
-    entries = [
-        item
-        for item in (_read_json(path).get("entries") or [])
-        if isinstance(item, Mapping) and isinstance(item.get("snapshotId"), str) and isinstance(item.get("generatedAt"), str)
-    ]
-    for item in entries:
-        if item["snapshotId"] == snapshot["snapshotId"]:
-            return {**snapshot, "generatedAt": item["generatedAt"]}
-    entries.append({"snapshotId": snapshot["snapshotId"], "generatedAt": snapshot["generatedAt"]})
-    _write_json(path, {"schema": "idleproof.portal-snapshot-times.v1", "entries": entries[-_MAX_SNAPSHOT_TIMES:]})
+    directory = _portal_snapshot_times_dir(repo)
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / str(snapshot["snapshotId"])
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        for _ in range(50):
+            try:
+                recorded = path.read_text(encoding="utf-8").strip()
+            except OSError:
+                recorded = ""
+            if recorded:
+                return {**snapshot, "generatedAt": recorded}
+            time.sleep(0.02)  # the creator writes right after the exclusive create
+        raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(str(snapshot["generatedAt"]))
+    records = sorted(directory.iterdir(), key=lambda item: item.stat().st_mtime)
+    for stale in records[:-_MAX_SNAPSHOT_TIMES]:
+        try:
+            stale.unlink()
+        except OSError:
+            pass
     return snapshot
 
 

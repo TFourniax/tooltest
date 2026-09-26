@@ -152,6 +152,27 @@ class BundledRepeatableSyncTests(unittest.TestCase):
         self.assertEqual(len(bodies), 4)
         self.assertTrue(all(body == bodies[0] for body in bodies))
 
+    def test_concurrent_first_syncs_of_one_snapshot_share_one_time(self) -> None:
+        import threading
+
+        from diffwitness import idleproof_sidecar
+
+        results: list[str] = []
+        barrier = threading.Barrier(8)
+
+        def first_sync(index: int) -> None:
+            barrier.wait()
+            snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": f"2026-09-26T10:00:0{index}.000000Z"}
+            results.append(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"])
+
+        threads = [threading.Thread(target=first_sync, args=(index,)) for index in range(8)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual(len(results), 8)
+        self.assertEqual(len(set(results)), 1)
+
     def test_new_content_gets_a_new_identity_and_time(self) -> None:
         first = self.sync_bodies(["accepted"])[0]
         state = self.repo / ".git" / "diffwitness"
