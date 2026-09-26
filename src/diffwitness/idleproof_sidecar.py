@@ -11,6 +11,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -103,6 +104,150 @@ def _portal_config_path(repo: Path) -> Path:
 
 def _assurance_path(repo: Path) -> Path:
     return _state_dir(repo) / "assurance.json"
+
+
+def _portal_snapshot_times_dir(repo: Path) -> Path:
+    return _state_dir(repo) / "portal-snapshot-times"
+
+
+_MAX_SNAPSHOT_TIMES = 1024
+
+
+def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Resend an unchanged snapshot byte-for-byte.
+
+    The snapshot identity excludes ``generatedAt``, but Portal compares the complete body of a
+    retransmission. A rebuilt snapshot with unchanged content therefore reuses the time it was
+    first generated, so a repeated sync (or a retry after a lost acknowledgement) is a duplicate.
+    The first time is fixed before sending by publishing one complete file per snapshot identity
+    (written aside, then hard-linked into place, which fails if another sync won), so concurrent
+    syncs all read back the same time and an interrupted sync never leaves a partial record.
+    """
+    directory = _portal_snapshot_times_dir(repo)
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / str(snapshot["snapshotId"])
+    for _ in range(3):
+        recorded = _claim_snapshot_time(path, str(snapshot["generatedAt"]))
+        if recorded is None:
+            records = []
+            for item in directory.iterdir():
+                if item.name.startswith("."):
+                    continue
+                try:
+                    records.append((item.stat().st_mtime, item))
+                except FileNotFoundError:
+                    continue  # pruned meanwhile by a concurrent sync
+            records.sort(key=lambda entry: entry[0])
+            for _, stale in records[:-_MAX_SNAPSHOT_TIMES]:
+                try:
+                    stale.unlink()
+                except OSError:
+                    pass
+            return snapshot
+        if recorded:
+            return {**snapshot, "generatedAt": recorded}
+        if not _records_published_whole(directory):
+            # Here an empty record may belong to a live, slow writer: it is never reclaimed.
+            raise IdleProofSidecarError(f"Portal snapshot time record {path} is empty or incomplete; if no other sync is running, delete it and retry")
+        _reclaim_incomplete_snapshot_time(path)
+    raise IdleProofSidecarError("Portal snapshot time record is unreadable; retry the sync")
+
+
+_GENERATED_AT = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{6})?Z")
+
+
+def _complete_generated_at(text: str) -> bool:
+    """A record is reusable only as a whole UTC instant as ``_now`` writes it, never a partial one."""
+    if not _GENERATED_AT.fullmatch(text):
+        return False
+    try:
+        datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
+
+
+def _claim_snapshot_time(path: Path, generated_at: str) -> str | None:
+    """Publish ``generated_at`` for ``path``: None when this call won, else the recorded text."""
+    pending = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.tmp")
+    try:
+        pending.write_text(generated_at, encoding="utf-8")
+        try:
+            os.link(pending, path)
+            return None
+        except FileExistsError:
+            pass
+        except OSError:
+            if os.name == "nt":
+                # No hard links (e.g. FAT): a Windows rename never replaces an existing record.
+                try:
+                    os.rename(pending, path)
+                    return None
+                except FileExistsError:
+                    pass
+            # No hard links on this file system: exclusive create, removed again if the write fails.
+            try:
+                fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            except FileExistsError:
+                pass
+            else:
+                try:
+                    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                        handle.write(generated_at)
+                except BaseException:
+                    path.unlink(missing_ok=True)
+                    raise
+                return None
+    finally:
+        pending.unlink(missing_ok=True)
+    for _ in range(50):
+        try:
+            recorded = path.read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            return ""
+        except OSError:
+            recorded = ""
+        if _complete_generated_at(recorded):
+            return recorded
+        time.sleep(0.02)  # only an exclusive-create writer can be between create and write
+    return ""
+
+
+def _records_published_whole(directory: Path) -> bool:
+    """True when records only ever appear complete here (hard link, or a Windows rename)."""
+    if os.name == "nt":
+        return True
+    probe = directory / f".probe.{os.getpid()}.{secrets.token_hex(4)}"
+    linked = probe.with_name(f"{probe.name}.link")
+    try:
+        probe.write_bytes(b"")
+        os.link(probe, linked)
+        return True
+    except OSError:
+        return False
+    finally:
+        probe.unlink(missing_ok=True)
+        linked.unlink(missing_ok=True)
+
+
+def _reclaim_incomplete_snapshot_time(path: Path) -> None:
+    """Remove a record left empty or partial by an interrupted sync, keeping any complete record.
+
+    Only called where records are published whole, so an empty record has no live writer.
+    """
+    moved = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.reclaim")
+    try:
+        os.replace(path, moved)
+    except OSError:  # already reclaimed, or held open elsewhere: the next attempt re-reads it
+        return
+    try:
+        if _complete_generated_at(moved.read_text(encoding="utf-8").strip()):
+            try:
+                os.link(moved, path)
+            except OSError:
+                pass
+    finally:
+        moved.unlink(missing_ok=True)
 
 
 def _portal_token_path(repo: Path) -> Path:
@@ -746,7 +891,21 @@ def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
             "rawDiffUploaded": False,
         }
     token = _resolve_portal_token(repo, config)
+    snapshot = _stable_generated_at(repo, snapshot)
     status, payload = _post_snapshot(endpoint, token, snapshot)
+    error = payload.get("error") if isinstance(payload.get("error"), Mapping) else {}
+    if status == 409 and error.get("code") == "SNAPSHOT_CONFLICT":
+        # Portal verifies the snapshot id as the hash of everything but generatedAt, so a conflict
+        # means it already holds this exact content under another first time (for example one whose
+        # local record was pruned). Nothing is lost; the differing body itself stays refused.
+        return {
+            "schema": "idleproof.portal-sync.v1",
+            "status": "held-by-portal",
+            "snapshotId": snapshot["snapshotId"],
+            "codeUploaded": False,
+            "rawPromptUploaded": False,
+            "rawDiffUploaded": False,
+        }
     if status not in {200, 202} or payload.get("schema") != ACK_SCHEMA or payload.get("status") not in {"accepted", "duplicate"}:
         code = ((payload.get("error") or {}).get("code") if isinstance(payload.get("error"), Mapping) else None) or f"HTTP_{status}"
         message = ((payload.get("error") or {}).get("message") if isinstance(payload.get("error"), Mapping) else None) or "Portal rejected the snapshot"
@@ -870,6 +1029,8 @@ def _print_result(value: Mapping[str, Any], *, as_json: bool, quiet: bool = Fals
             print(f"Local project id: {value.get('localProjectId')}")
     elif schema == "idleproof.portal-sync.v1":
         print(f"Portal sync: {value.get('status')} · {value.get('snapshotId')}")
+        if value.get("status") == "held-by-portal":
+            print("Portal already holds this exact content from an earlier sync; nothing new was stored.")
         print("Privacy: no source code, raw prompt, or raw diff uploaded.")
     elif schema == LOCAL_PROJECT_SCHEMA:
         print(value.get("localId"))
