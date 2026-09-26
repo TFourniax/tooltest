@@ -220,8 +220,6 @@ class BundledRepeatableSyncTests(unittest.TestCase):
 
     @unittest.skipIf(os.name == "nt", "POSIX exclusive-create fallback")
     def test_slow_live_writer_without_hard_links_is_never_reclaimed(self) -> None:
-        import threading
-
         from diffwitness import idleproof_sidecar
 
         snapshot = {"snapshotId": "ipsnap_0123456789abcdef01234567", "generatedAt": "2026-09-26T11:00:00.000000Z"}
@@ -229,15 +227,13 @@ class BundledRepeatableSyncTests(unittest.TestCase):
         directory.mkdir(parents=True, exist_ok=True)
         record = directory / snapshot["snapshotId"]
         record.write_bytes(b"")  # a live writer holds the record between create and write
-        writer = threading.Timer(1.5, lambda: record.write_text("2026-09-26T10:00:00.000000Z", encoding="utf-8"))
-        writer.start()
-        try:
-            with patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")):
-                with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, "is empty"):
-                    idleproof_sidecar._stable_generated_at(self.repo, snapshot)
-        finally:
-            writer.join()
-        self.assertEqual(record.read_text(encoding="utf-8"), "2026-09-26T10:00:00.000000Z")
+        inode = record.stat().st_ino
+        with patch.object(idleproof_sidecar.os, "link", side_effect=OSError(95, "not supported")):
+            with self.assertRaisesRegex(idleproof_sidecar.IdleProofSidecarError, "is empty"):
+                idleproof_sidecar._stable_generated_at(self.repo, snapshot)
+        self.assertEqual(record.stat().st_ino, inode)  # the writer's record was neither replaced nor removed
+        self.assertEqual(record.read_bytes(), b"")
+        record.write_text("2026-09-26T10:00:00.000000Z", encoding="utf-8")  # the slow writer finishes
         self.assertEqual(idleproof_sidecar._stable_generated_at(self.repo, snapshot)["generatedAt"], "2026-09-26T10:00:00.000000Z")
 
     def test_conflict_after_a_pruned_time_record_reports_the_content_as_held(self) -> None:
