@@ -92,7 +92,10 @@ def _guided(explanation: Mapping[str, Any]) -> str:
 def explain_ui_cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="dw explain",
-        description=tr("Explain the latest exact-bound DiffWitness change using the saved Guided/Technical view.", 'Expliquer la dernière modification exacte DiffWitness avec la vue Guided/Technical enregistrée.'),
+        description=tr(
+            "Explain the latest exact-bound change captured by DiffWitness (`dw setup` hooks or `dw guard`) using the saved Guided/Technical view. Tasks observed only by `idleproof run` are explained by IdleProof and Portal.",
+            "Expliquer la dernière modification exacte capturée par DiffWitness (hooks `dw setup` ou `dw guard`) avec la vue Guided/Technical enregistrée. Les tâches observées seulement par `idleproof run` sont expliquées par IdleProof et Portal.",
+        ),
     )
     parser.add_argument("--repo", default=".")
     parser.add_argument("--json", action="store_true")

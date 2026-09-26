@@ -71,7 +71,9 @@ class PortalProxyTests(unittest.TestCase):
             repo_patch,
             exclude_patch as ensure,
             patch("diffwitness.portal_proxy.build_portal_snapshot", return_value=snapshot) as build,
-            patch("diffwitness.portal_proxy.shutil.which", side_effect=AssertionError("snapshot must not resolve sidecar")),
+            # Without an IdleProof CLI the preview is built in-process: no executable is started.
+            patch("diffwitness.portal_proxy._resolve_portal_transport", return_value=("bundled", "/venv/bin/idleproof")),
+            patch("diffwitness.portal_proxy.subprocess.run", side_effect=AssertionError("snapshot must not start a process")),
             redirect_stdout(out),
         ):
             rc = portal_cli(["snapshot", "--json"])
@@ -86,7 +88,8 @@ class PortalProxyTests(unittest.TestCase):
         with (
             repo_patch,
             exclude_patch,
-            patch("diffwitness.portal_proxy.shutil.which", side_effect=AssertionError("snapshot must not resolve sidecar")),
+            patch("diffwitness.portal_proxy._resolve_portal_transport", return_value=("bundled", "/venv/bin/idleproof")),
+            patch("diffwitness.portal_proxy.subprocess.run", side_effect=AssertionError("snapshot must not start a process")),
             redirect_stderr(err),
         ):
             rc = portal_cli(["snapshot", "--upload"])

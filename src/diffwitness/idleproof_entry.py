@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import sys
+
 from pathlib import Path
 from typing import Any
 
@@ -238,7 +241,55 @@ def _public_parser():
     return parser
 
 
+def _split_global_options(args: list[str]) -> tuple[str | None | bool, list[str], list[str]]:
+    """Leading bundled global options: (repo, other globals, subcommand and its arguments).
+
+    ``repo`` is None when absent and False when ``--repo`` has no value (left to the parser to refuse).
+    """
+    repo: str | None | bool = None
+    passthrough: list[str] = []
+    index = 0
+    while index < len(args):
+        item = args[index]
+        if item == "--version":
+            passthrough.append(item)
+        elif item.startswith("--repo="):
+            repo = item.split("=", 1)[1] or False
+        elif item == "--repo":
+            if index + 1 >= len(args):
+                return False, passthrough, args[index + 1:]
+            repo = args[index + 1]
+            index += 1
+        else:
+            break
+        index += 1
+    return repo, passthrough, args[index:]
+
+
 def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    # This console script shares its name with the IdleProof CLI. When that CLI is installed, a
+    # command the user types (`idleproof run …`, `idleproof portal …`) reaches it even if this script
+    # comes first on PATH (an activated virtualenv, pipx). Portal commands keep the enrollment guards
+    # of `dw portal`; `integration` commands, used by `dw setup`, stay in-process. Without an IdleProof
+    # CLI, the bundled integration answers as before.
+    # The subcommand is read after the bundled parser's global options (`--repo R`, `--version`), so
+    # `idleproof --repo R portal sync` keeps the Portal guards and `--repo R integration …` stays here.
+    repo, passthrough, command = _split_global_options(args)
+    # `--version` is answered by the bundled parser, which prints the version before running any
+    # command (the IdleProof CLI has no such option): `idleproof --version portal sync` sends nothing.
+    if command[:1] != ["integration"] and repo is not False and "--version" not in passthrough:
+        from .portal_proxy import _ALLOWED, _launch_command, _resolve_portal_transport, portal_cli
+
+        kind, executable = _resolve_portal_transport()
+        if kind == "idleproof" and executable:
+            if len(command) >= 2 and command[0] == "portal" and command[1] in _ALLOWED:
+                if repo:
+                    os.chdir(repo)
+                return portal_cli(command[1:])
+            import subprocess
+
+            return subprocess.run(_launch_command(executable, command), cwd=repo or None, check=False).returncode
     # Sidecar functions resolve these collaborators from their module globals at call time. Keep
     # the established implementation and install only bounded public-entry compatibility shims.
     _sidecar.build_portal_snapshot = build_portal_snapshot
