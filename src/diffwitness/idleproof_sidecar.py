@@ -105,6 +105,35 @@ def _assurance_path(repo: Path) -> Path:
     return _state_dir(repo) / "assurance.json"
 
 
+def _portal_snapshot_times_path(repo: Path) -> Path:
+    return _state_dir(repo) / "portal-snapshot-times.json"
+
+
+_MAX_SNAPSHOT_TIMES = 1024
+
+
+def _stable_generated_at(repo: Path, snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Resend an unchanged snapshot byte-for-byte.
+
+    The snapshot identity excludes ``generatedAt``, but Portal compares the complete body of a
+    retransmission. A rebuilt snapshot with unchanged content therefore reuses the time it was
+    first generated, so a repeated sync (or a retry after a lost acknowledgement) is a duplicate
+    rather than a conflicting body under the same identity. Recorded before sending; bounded.
+    """
+    path = _portal_snapshot_times_path(repo)
+    entries = [
+        item
+        for item in (_read_json(path).get("entries") or [])
+        if isinstance(item, Mapping) and isinstance(item.get("snapshotId"), str) and isinstance(item.get("generatedAt"), str)
+    ]
+    for item in entries:
+        if item["snapshotId"] == snapshot["snapshotId"]:
+            return {**snapshot, "generatedAt": item["generatedAt"]}
+    entries.append({"snapshotId": snapshot["snapshotId"], "generatedAt": snapshot["generatedAt"]})
+    _write_json(path, {"schema": "idleproof.portal-snapshot-times.v1", "entries": entries[-_MAX_SNAPSHOT_TIMES:]})
+    return snapshot
+
+
 def _portal_token_path(repo: Path) -> Path:
     # Scoped ingest credentials are local secrets, not project content. Keeping this under .git
     # makes accidental source commits impossible while still allowing automatic future syncs.
@@ -746,6 +775,7 @@ def portal_sync(repo: Path, *, dry_run: bool = False) -> dict[str, Any]:
             "rawDiffUploaded": False,
         }
     token = _resolve_portal_token(repo, config)
+    snapshot = _stable_generated_at(repo, snapshot)
     status, payload = _post_snapshot(endpoint, token, snapshot)
     if status not in {200, 202} or payload.get("schema") != ACK_SCHEMA or payload.get("status") not in {"accepted", "duplicate"}:
         code = ((payload.get("error") or {}).get("code") if isinstance(payload.get("error"), Mapping) else None) or f"HTTP_{status}"

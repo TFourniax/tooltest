@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,55 @@ def _snapshot_cli(argv: list[str]) -> int:
     return 0
 
 
+# The bundled console script installed by this wheel carries this entry point; the IdleProof
+# package's own CLI does not. Content, not location, decides: both can share one bin directory.
+_BUNDLED_MARKER = b"diffwitness.idleproof_entry"
+
+
+def _is_bundled_entry(executable: str) -> bool:
+    try:
+        with open(executable, "rb") as handle:
+            return _BUNDLED_MARKER in handle.read(4_000_000)
+    except OSError:
+        return False
+
+
+def _resolve_portal_transport() -> tuple[str | None, str | None]:
+    """Pick the single Portal transport for this invocation.
+
+    The Alpha's nominal transport is the IdleProof CLI: it owns capture, receipts, the offline queue,
+    memory history pages and exact-change assurance. When it is installed, every ``dw portal``
+    command is delegated to it, so both tools use one enrollment. The integration bundled with this
+    wheel is used only when no IdleProof CLI is on PATH.
+    """
+    bundled: str | None = None
+    directories = [item for item in os.environ.get("PATH", "").split(os.pathsep) if item] or [None]
+    for directory in directories:
+        candidate = shutil.which("idleproof", path=directory) if directory else shutil.which("idleproof")
+        if not candidate:
+            continue
+        if _is_bundled_entry(candidate):
+            bundled = bundled or candidate
+            continue
+        return "idleproof", candidate
+    return ("bundled", bundled) if bundled else (None, None)
+
+
+def _enrollment_owner(repo: Path) -> str | None:
+    """Which transport wrote this repository's enrollment (both use .idleproof/portal.json)."""
+    try:
+        value = json.loads((repo / ".idleproof" / "portal.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(value, dict):
+        return None
+    if isinstance(value.get("token"), str):
+        return "idleproof"
+    if "tokenMode" in value or "tokenEnv" in value:
+        return "bundled"
+    return None
+
+
 def portal_cli(argv: list[str]) -> int:
     """Expose the bundled local Portal sidecar through the public ``dw`` product boundary.
 
@@ -75,6 +125,8 @@ def portal_cli(argv: list[str]) -> int:
             "  dw portal sync [--json]\n"
             "  dw portal assurance --envelope FILE [--json]\n"
             "  dw portal disconnect\n\n"
+            "When IdleProof is installed, these commands use IdleProof's Portal enrollment and delivery "
+            "(one enrollment per repository); otherwise the integration bundled with DiffWitness is used.\n\n"
             "Credentials are never accepted as command-line token values. ``--token-stdin`` stores "
             "the scoped device token only under local .git metadata; ``--token-env`` stores only "
             "the environment-variable name."
@@ -92,10 +144,33 @@ def portal_cli(argv: list[str]) -> int:
         print(f"dw portal: cannot prepare non-invasive local Git state: {exc}", file=sys.stderr)
         return 2
 
-    if command == "snapshot":
-        return _snapshot_cli(argv)
-
-    executable = shutil.which("idleproof")
+    repo = repo_root(".")
+    kind, executable = _resolve_portal_transport()
+    owner = _enrollment_owner(repo)
+    if kind == "idleproof":
+        if owner == "bundled" and command not in {"id", "identity", "configure", "disconnect"}:
+            print(
+                "dw portal: this repository was enrolled by the Portal integration bundled with DiffWitness. "
+                "IdleProof is installed, so `dw portal` now uses IdleProof's enrollment for this repository. "
+                "Run `dw portal id`, generate a credential for that ID in Portal, then "
+                "`dw portal configure --endpoint URL --token-stdin`. History already in Portal is kept; "
+                "nothing was sent.",
+                file=sys.stderr,
+            )
+            return 2
+        forwarded = ["identity" if command == "id" else command, *argv[1:]]
+    else:
+        if owner == "idleproof":
+            print(
+                "dw portal: this repository is enrolled through IdleProof, but no IdleProof CLI is on PATH. "
+                "Install IdleProof (or add it to PATH) so `dw portal` uses the same enrollment; "
+                "nothing was configured or sent.",
+                file=sys.stderr,
+            )
+            return 2
+        if command == "snapshot":
+            return _snapshot_cli(argv)
+        forwarded = argv
     if executable is None:
         print(
             "DiffWitness Portal integration is unavailable. Reinstall the matching DiffWitness wheel and retry.",
@@ -105,7 +180,7 @@ def portal_cli(argv: list[str]) -> int:
 
     try:
         proc = subprocess.run(
-            [executable, "portal", *argv],
+            [executable, "portal", *forwarded],
             cwd=Path.cwd(),
             check=False,
         )

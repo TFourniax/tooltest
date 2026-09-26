@@ -413,7 +413,12 @@ def load_current_explanation(repo: str | Path = ".") -> dict[str, Any]:
     root = repo_root(repo)
     explanation_path = git_metadata_path(root, "diffwitness/idleproof-explanation.json")
     if not explanation_path.is_file():
-        raise FileNotFoundError("No captured IdleProof explanation yet. Run a guarded/IDE task first.")
+        raise FileNotFoundError(
+            "No DiffWitness-captured change to explain yet. `dw explain` reads a change captured by "
+            "DiffWitness itself: a task run through `dw setup` (Claude/Codex/Cursor hooks) or "
+            "`dw guard -- <agent>`. A task observed only with `idleproof run` is explained by IdleProof "
+            "(`idleproof receipt`) and in Portal, not by `dw explain`."
+        )
     try:
         explanation = json.loads(explanation_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
