@@ -202,6 +202,20 @@ class BundledEntryDelegationTests(unittest.TestCase):
         proxy.assert_not_called()
         bundled.assert_called_once()
 
+    def test_other_commands_typed_by_the_user_reach_the_idleproof_cli(self) -> None:
+        from diffwitness import idleproof_entry
+
+        completed = subprocess.CompletedProcess(["idleproof"], 0)
+        with (
+            patch("diffwitness.portal_proxy._resolve_portal_transport", return_value=("idleproof", "/npm/bin/idleproof")),
+            patch("subprocess.run", return_value=completed) as run,
+            patch.object(idleproof_entry._sidecar, "main", return_value=0) as bundled,
+        ):
+            rc = idleproof_entry.main(["run", "--", "git", "status"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(run.call_args.args[0], ["/npm/bin/idleproof", "run", "--", "git", "status"])
+        bundled.assert_not_called()
+
     def test_integration_commands_used_by_setup_stay_in_process(self) -> None:
         rc, proxy, bundled = self.run_entry(["integration", "status"], ("idleproof", "/npm/bin/idleproof"))
         self.assertEqual(rc, 0)

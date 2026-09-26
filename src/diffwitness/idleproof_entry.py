@@ -242,14 +242,21 @@ def _public_parser():
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    # One Portal transport per repository: when the IdleProof CLI is installed, `idleproof portal …`
-    # typed by the user reaches it even if this bundled console script comes first on PATH (as with
-    # an activated virtualenv or pipx). Integration commands used by `dw setup` stay in-process.
-    if len(args) >= 2 and args[0] == "portal":
+    # This console script shares its name with the IdleProof CLI. When that CLI is installed, a
+    # command the user types (`idleproof run …`, `idleproof portal …`) reaches it even if this script
+    # comes first on PATH (an activated virtualenv, pipx). Portal commands keep the enrollment guards
+    # of `dw portal`; `integration` commands, used by `dw setup`, stay in-process. Without an IdleProof
+    # CLI, the bundled integration answers as before.
+    if args[:1] != ["integration"]:
         from .portal_proxy import _ALLOWED, _resolve_portal_transport, portal_cli
 
-        if args[1] in _ALLOWED and _resolve_portal_transport()[0] == "idleproof":
-            return portal_cli(args[1:])
+        kind, executable = _resolve_portal_transport()
+        if kind == "idleproof" and executable:
+            if len(args) >= 2 and args[0] == "portal" and args[1] in _ALLOWED:
+                return portal_cli(args[1:])
+            import subprocess
+
+            return subprocess.run([executable, *args], check=False).returncode
     # Sidecar functions resolve these collaborators from their module globals at call time. Keep
     # the established implementation and install only bounded public-entry compatibility shims.
     _sidecar.build_portal_snapshot = build_portal_snapshot
