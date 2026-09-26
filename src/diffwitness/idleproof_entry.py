@@ -276,7 +276,9 @@ def main(argv: list[str] | None = None) -> int:
     # The subcommand is read after the bundled parser's global options (`--repo R`, `--version`), so
     # `idleproof --repo R portal sync` keeps the Portal guards and `--repo R integration …` stays here.
     repo, passthrough, command = _split_global_options(args)
-    if command[:1] != ["integration"] and repo is not False:
+    # `--version` is answered by the bundled parser, which prints the version before running any
+    # command (the IdleProof CLI has no such option): `idleproof --version portal sync` sends nothing.
+    if command[:1] != ["integration"] and repo is not False and "--version" not in passthrough:
         from .portal_proxy import _ALLOWED, _launch_command, _resolve_portal_transport, portal_cli
 
         kind, executable = _resolve_portal_transport()
@@ -287,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
                 return portal_cli(command[1:])
             import subprocess
 
-            return subprocess.run(_launch_command(executable, [*passthrough, *command]), cwd=repo or None, check=False).returncode
+            return subprocess.run(_launch_command(executable, command), cwd=repo or None, check=False).returncode
     # Sidecar functions resolve these collaborators from their module globals at call time. Keep
     # the established implementation and install only bounded public-entry compatibility shims.
     _sidecar.build_portal_snapshot = build_portal_snapshot

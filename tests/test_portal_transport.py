@@ -348,7 +348,7 @@ class BundledEntryDelegationTests(unittest.TestCase):
         proxy.assert_called_once_with(["identity", "--json"])
         chdir.assert_called_once_with("/work/r")
         bundled.assert_not_called()
-        for argv in (["--repo", "/work/r", "integration", "status"], ["--repo=/work/r", "integration", "status"], ["--repo"]):
+        for argv in (["--repo", "/work/r", "integration", "status"], ["--repo=/work/r", "integration", "status"], ["--repo"], ["--version", "portal", "sync"], ["--repo", "/work/r", "--version", "run", "--", "x"]):
             with self.subTest(argv=argv):
                 rc, proxy, bundled = self.run_entry(argv, ("idleproof", "/npm/bin/idleproof"))
                 proxy.assert_not_called()
