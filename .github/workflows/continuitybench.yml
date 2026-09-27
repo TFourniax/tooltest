@@ -43,6 +43,32 @@ jobs:
           path: continuitybench.json
           if-no-files-found: error
           retention-days: 30
+      - name: Benchmark 100k-event longitudinal project with unchanged budgets
+        if: ${{ !cancelled() }}
+        run: >-
+          python scripts/continuity_bench.py
+          --events 100000
+          --batch-size 2000
+          --context-runs 7
+          --max-append-seconds 10
+          --max-verify-seconds 2
+          --max-rebuild-seconds 5
+          --max-context-cold-ms 1000
+          --max-context-hot-p95-ms 300
+          --json continuitybench-100k.json
+      - name: Diagnose 100k verification and rebuild separately
+        if: ${{ !cancelled() }}
+        run: python scripts/continuity_history_profile.py
+      - name: Preserve 100k acceptance and separate diagnostic
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: continuitybench-100k-and-profile
+          path: |
+            continuitybench-100k.json
+            continuity-100k-*.pstats
+          if-no-files-found: error
+          retention-days: 30
       - name: Qualify fixed FR/EN cited retrieval corpus
         if: ${{ !cancelled() }}
         run: python scripts/continuity_retrieval_bench.py --json continuity-retrieval.json
