@@ -29,14 +29,14 @@ def _setup_scope_path(cwd: Path) -> Path:
     return git_metadata_path(cwd, "diffwitness/setup-scope.json")
 
 
-def _persist_setup_scope(cwd: Path, adapters: Sequence[str], *, sidecar: str) -> None:
+def _persist_setup_scope(cwd: Path, adapters: Sequence[str], *, sidecar: str | None = None) -> None:
     """Pin the selected integration executable, not a future PATH/bundled substitute."""
     path = _setup_scope_path(cwd)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": _SETUP_SCOPE_SCHEMA,
         "adapters": list(dict.fromkeys(str(item) for item in adapters if str(item))),
-        "idleproofCommand": sidecar,
+        **({"idleproofCommand": sidecar} if sidecar is not None else {}),
     }
     staged = path.with_suffix(path.suffix + ".tmp")
     staged.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
