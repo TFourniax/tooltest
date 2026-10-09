@@ -5,6 +5,7 @@ from .language import tr
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,101 @@ def verification_readiness(repo: Path, config: dict | None = None) -> dict[str, 
     }
 
 
+_NODE_EVENTS = {
+    'claude': ('.claude/settings.local.json', ('SessionStart', 'UserPromptSubmit', 'Stop')),
+    'codex': ('.codex/hooks.json', ('SessionStart', 'UserPromptSubmit', 'Stop')),
+}
+
+
+def _node_sidecar_owner(repo: Path, scope: dict[str, Any]) -> tuple[list[str], str, Path] | None:
+    """Identify the exact npm sidecar chosen at setup; never trust PATH or an unrelated bundle.
+
+    Only the npm script that owns the installed hook runner is currently recognized. An
+    unrecognized Windows wrapper or a missing package is reported not-ready, not guessed.
+    """
+    executable = scope.get('idleproofCommand')
+    if not isinstance(executable, str) or not Path(executable).is_absolute():
+        return None
+    try:
+        selected = Path(executable).resolve(strict=True)
+    except (OSError, RuntimeError):
+        return None
+    if selected.name != 'idleproof.mjs' or selected.parent.name != 'bin':
+        return None
+    runner = selected.with_name('idleproof-hook.mjs')
+    if not runner.is_file():
+        return None
+    config = _read_object(repo / '.idleproof/diffwitness.json')
+    if config.get('schema') != 'diffwitness.integration-config.v1' or config.get('requireDiffWitness') is not True:
+        return None
+    adapters = config.get('adapters')
+    owner = config.get('diffWitnessCommand')
+    if not isinstance(adapters, list) or not adapters or any(name not in SUPPORTED_NATIVE_PROVIDERS for name in adapters):
+        return None
+    if not isinstance(owner, str) or not Path(owner).is_absolute():
+        return None
+    return list(dict.fromkeys(adapters)), owner, runner
+
+
+def _node_hook_present(repo: Path, adapter: str, runner: Path) -> bool:
+    """Statically check complete native hooks; never infer trust from a config file alone."""
+    if adapter == 'cursor':
+        hooks_path = repo / '.cursor/hooks.json'
+        config = _read_object(hooks_path)
+        events = ('sessionStart', 'beforeSubmitPrompt', 'stop')
+        cursor_runner = runner.parent.parent / 'src/cursor-hook-cli.mjs'
+        rule = repo / '.cursor/rules/idleproof-continuity.mdc'
+        if not cursor_runner.is_file() or not rule.is_file():
+            return False
+        try:
+            if '<!-- idleproof-continuity-local-v1 -->' not in rule.read_text(encoding='utf-8'):
+                return False
+        except OSError:
+            return False
+        target = cursor_runner
+    else:
+        meta = _NODE_EVENTS.get(adapter)
+        if not meta:
+            return False
+        path, events = meta
+        config = _read_object(repo / path)
+        target = runner
+
+    hooks = config.get('hooks') if isinstance(config.get('hooks'), dict) else {}
+    for event in events:
+        entries = hooks.get(event)
+        if not isinstance(entries, list):
+            return False
+        found = False
+        for entry in entries:
+            if adapter == 'cursor':
+                candidates = [entry] if isinstance(entry, dict) else []
+            else:
+                candidates = entry.get('hooks', []) if isinstance(entry, dict) else []
+            for candidate in candidates:
+                command = candidate.get('command') if isinstance(candidate, dict) else None
+                if not isinstance(command, str):
+                    continue
+                # The producer emits a quoted Node binary, quoted absolute runner,
+                # and one provider/event argument. No shell substitutions are accepted.
+                match = re.fullmatch(r'"([^"]+)"\s+"([^"]+)"\s+(\S+)', command)
+                if match is None or match.group(3) != (event if adapter == 'cursor' else adapter):
+                    continue
+                try:
+                    executable = Path(match.group(1))
+                    script = Path(match.group(2))
+                    found = executable.is_file() and script.resolve() == target.resolve()
+                except (OSError, RuntimeError):
+                    found = False
+                if found:
+                    break
+            if found:
+                break
+        if not found:
+            return False
+    return True
+
+
 def native_readiness(repo: Path) -> dict[str, Any]:
     # Inspect the recorded owner, never resolve a replacement through this CLI/PATH.
     from .idleproof_entry import _adapter_installed
@@ -54,19 +150,24 @@ def native_readiness(repo: Path) -> dict[str, Any]:
     scope = _read_object(git_metadata_path(repo, 'diffwitness/setup-scope.json'))
     installation = _read_object(repo / '.idleproof/integration.json')
     scoped = scope.get('adapters', []) if scope.get('schema') == 'diffwitness.setup-scope.v1' else []
-    installed_scope = installation.get('expectedAdapters', [])
-    configured = list(dict.fromkeys(
-        name for values in (scoped, installed_scope) if isinstance(values, list)
-        for name in values if isinstance(name, str) and name in SUPPORTED_NATIVE_PROVIDERS
-    ))
-    owner = installation.get('diffwitnessCommand')
-    owner = owner if isinstance(owner, str) and owner else None
+    npm = _node_sidecar_owner(repo, scope) if scope.get('schema') == 'diffwitness.setup-scope.v1' else None
+    if npm:
+        selected, owner, runner = npm
+        configured = [name for name in selected if name in scoped]
+    else:
+        installed_scope = installation.get('expectedAdapters', [])
+        configured = list(dict.fromkeys(
+            name for values in (scoped, installed_scope) if isinstance(values, list)
+            for name in values if isinstance(name, str) and name in SUPPORTED_NATIVE_PROVIDERS
+        ))
+        owner = installation.get('diffwitnessCommand')
+        owner = owner if isinstance(owner, str) and owner else None
     path = Path(owner) if owner else None
     executable = bool(path and path.is_absolute() and path.is_file() and (os.name == 'nt' or os.access(path, os.X_OK)))
     native = native_activation_summary(repo, configured)
     adapters = {}
     for name, observed in native['adapters'].items():
-        installed = bool(owner and _adapter_installed(repo, name, owner))
+        installed = (_node_hook_present(repo, name, runner) if npm else bool(owner and _adapter_installed(repo, name, owner)))
         usable = installed and executable and observed['observed']
         state = 'missing-hooks' if not installed else 'missing-executable' if not executable else 'awaiting-observation' if not observed['observed'] else 'usable'
         adapters[name] = {**observed, 'installed': installed, 'executableAvailable': executable,
