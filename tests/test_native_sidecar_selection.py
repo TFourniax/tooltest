@@ -63,7 +63,8 @@ class ExplicitSidecarSelectionTests(unittest.TestCase):
 
         def fake_status(command, cwd):
             self.assertEqual(command, selected)
-            self.assertEqual(cwd, self.repo)
+            # macOS /var -> /private/var and Windows 8.3 user paths name the same directory.
+            self.assertTrue(os.path.samefile(cwd, self.repo), (cwd, self.repo))
             return response
 
         with (
