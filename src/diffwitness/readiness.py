@@ -153,7 +153,8 @@ def native_readiness(repo: Path) -> dict[str, Any]:
     npm = _node_sidecar_owner(repo, scope) if scope.get('schema') == 'diffwitness.setup-scope.v1' else None
     if npm:
         selected, owner, runner = npm
-        configured = [name for name in selected if name in scoped]
+        configured = list(dict.fromkeys([*scoped, *selected]))
+        # An incomplete/mismatched adapter scope is a missing hook, not a smaller healthy project.
     else:
         installed_scope = installation.get('expectedAdapters', [])
         configured = list(dict.fromkeys(
@@ -167,7 +168,7 @@ def native_readiness(repo: Path) -> dict[str, Any]:
     native = native_activation_summary(repo, configured)
     adapters = {}
     for name, observed in native['adapters'].items():
-        installed = (_node_hook_present(repo, name, runner) if npm else bool(owner and _adapter_installed(repo, name, owner)))
+        installed = (name in selected and _node_hook_present(repo, name, runner) if npm else bool(owner and _adapter_installed(repo, name, owner)))
         usable = installed and executable and observed['observed']
         state = 'missing-hooks' if not installed else 'missing-executable' if not executable else 'awaiting-observation' if not observed['observed'] else 'usable'
         adapters[name] = {**observed, 'installed': installed, 'executableAvailable': executable,
