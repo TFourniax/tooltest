@@ -72,9 +72,9 @@ def state_cli(argv: list[str]) -> int:
         description=tr('Inspect, import, sync, or rebuild the reconstructible Project State projection.', 'Examiner, importer, synchroniser ou reconstruire l’état du projet.'),
     )
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("structure", help="Capture/read a bounded structural snapshot; use dw state structure --help.")
     selected_extraction = bool(argv and argv[0] == "extract")
     if not selected_extraction:
+        sub.add_parser("structure", help="Capture/read a bounded structural snapshot; use dw state structure --help.")
         contract = sub.add_parser("contract", help=tr("Show the versioned Project Memory contract.", "Afficher le contrat versionné de Project Memory."))
         contract.add_argument("--json", action="store_true")
     extract = sub.add_parser("extract", help=tr("Extract source-bound facts from a bounded stdin batch.", "Extraire les faits d’un lot borné de sources sur l’entrée standard."))
