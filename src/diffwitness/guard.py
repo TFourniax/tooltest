@@ -162,7 +162,7 @@ def _sync_idleproof_assurance(repo: Path, envelope_path: Path) -> None:
         return
     try:
         proc = subprocess.run(
-            [executable, "portal", "assurance", "--envelope", str(envelope_path), "--quiet"],
+            [executable, "portal", "assurance", "--envelope", str(envelope_path), "--source", "ide", "--quiet"],
             cwd=repo,
             check=False,
             timeout=15,

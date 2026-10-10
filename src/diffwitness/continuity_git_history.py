@@ -23,14 +23,16 @@ MAX_TRAVERSAL_BYTES = 16 * 1024 * 1024
 MAX_CURSOR_OFFSET = 1000000
 
 
-def _git(repo: Path, *args: str, limit: int, deadline: float, missing_ok: tuple[int, ...] = ()) -> bytes | None:
+def _git(repo: Path, *args: str, limit: int, deadline: float, missing_ok: tuple[int, ...] = (), input_bytes: bytes | None = None) -> bytes | None:
+    if input_bytes is not None and len(input_bytes)>4096:
+        raise ContinuityError('Git plumbing input exceeds its bounded pipe request')
     remaining = min(15.0, deadline - time.monotonic())
     if remaining <= 0:
         raise ContinuityError('Git history page exceeded its time budget; retry a smaller page')
     env = {**os.environ, 'GIT_NO_LAZY_FETCH':'1', 'GIT_TERMINAL_PROMPT':'0', 'GIT_OPTIONAL_LOCKS':'0'}
     expired = threading.Event()
     with subprocess.Popen(['git', '--no-replace-objects', '--no-pager', *args], cwd=repo, env=env,
-                          stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as child:
+                          stdin=subprocess.PIPE if input_bytes is not None else subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as child:
         def expire():
             expired.set()
             try:
@@ -41,6 +43,9 @@ def _git(repo: Path, *args: str, limit: int, deadline: float, missing_ok: tuple[
         timer.daemon = True
         timer.start()
         try:
+            if input_bytes is not None:
+                child.stdin.write(input_bytes)
+                child.stdin.close()
             data = child.stdout.read(limit + 1)
             if len(data) > limit:
                 child.kill()

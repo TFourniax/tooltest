@@ -27,17 +27,15 @@ def installed_version(distribution: str) -> str | None:
         return None
 
 
-def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str]) -> FileExtraction:
+def captured_syntax_tree(content: bytes, spec: tuple[str, str, str, str]):
+    """The bounded parser shared by extraction and source-description views."""
     language, provider, package, entrypoint = spec
-    source = dict(path=relative, language=language, provider=provider,
-                  source_sha256=hashlib.sha256(content).hexdigest(), module=relative)
-    empty = FileExtraction(**source, parsed=False)
     if len(content) > MAX_SOURCE_FILE_BYTES:
-        return empty
+        return None
     try:
         content.decode('utf-8', errors='strict')
         if any(installed_version(name) != PINNED[name] for name in ('tree-sitter', provider)):
-            return empty
+            return None
         runtime = importlib.import_module('tree_sitter')
         grammar = importlib.import_module(package)
         # 0.25.2 retains the native timeout API. Its deprecated callback
@@ -50,9 +48,9 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
         deadline = time.monotonic() + MAX_PARSE_SECONDS
         tree = parser.parse(content)
         if tree is None or tree.root_node.has_error or time.monotonic() >= deadline:
-            return empty
+            return None
     except (ImportError, AttributeError, OSError, UnicodeError, ValueError, TypeError, RecursionError):
-        return empty
+        return None
 
     # Count named syntax nodes before retaining facts; malformed/error-recovered
     # trees never supply a partially successful result.
@@ -61,8 +59,20 @@ def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str
         node = pending.pop()
         nodes.append(node)
         if len(nodes) > MAX_NODES:
-            return empty
+            return None
         pending.extend(reversed(node.named_children))
+    return tree, nodes
+
+
+def extract_syntax(relative: str, content: bytes, spec: tuple[str, str, str, str]) -> FileExtraction:
+    language, provider, _, _ = spec
+    source = dict(path=relative, language=language, provider=provider,
+                  source_sha256=hashlib.sha256(content).hexdigest(), module=relative)
+    empty = FileExtraction(**source, parsed=False)
+    captured = captured_syntax_tree(content, spec)
+    if captured is None:
+        return empty
+    tree, nodes = captured
     starts = [0] + [match.end() for match in re.finditer(b'\r\n|\r|\n', content)]
 
     def text(node):
