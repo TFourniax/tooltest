@@ -167,6 +167,13 @@ def tree_inventory(root, tree):
 def linked(info):
     return stat.S_ISLNK(info.st_mode) or bool(getattr(info, 'st_file_attributes', 0) & 1024)
 
+def source_stamp(info):
+    # CPython 3.12+ Windows lstat uses creation time for ctime while fstat can
+    # return metadata change time (python/cpython#157671). Compare birthtime
+    # across these APIs, retaining the actual fstat ctime check during reading.
+    origin = getattr(info, 'st_birthtime_ns', info.st_ctime_ns) if os.name == 'nt' else info.st_ctime_ns
+    return [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, origin]
+
 def work_inventory(root, selection):
     rows, stack = [], [('', root)]
     visited = 0
@@ -192,7 +199,7 @@ def work_inventory(root, selection):
                         stack.append((rel + '/', Path(e.path)))
                 else:
                     rows.append({'path': rel, 'mode': '100644' if stat.S_ISREG(info.st_mode) and not linked(info) else 'link-or-special', 'bytes': info.st_size,
-                                 'stamp': [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns]})
+                                 'stamp': source_stamp(info)})
                 if len(rows) >= MAX_INVENTORY:
                     return sorted(rows, key=lambda x:x['path']), False
     return sorted(rows, key=lambda x:x['path']), True
@@ -248,12 +255,12 @@ def work_bytes(root, item):
             raise ValueError('opened worktree handle escaped project')
     with os.fdopen(fd, 'rb') as handle:
         before = os.fstat(handle.fileno())
-        expected = [before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns]
+        expected = source_stamp(before)
         if expected != item['stamp'] or not stat.S_ISREG(before.st_mode):
             raise ValueError('worktree changed during capture; restart the scan')
         data = handle.read(MAX_SOURCE_FILE_BYTES + 1)
         after = os.fstat(handle.fileno())
-        if expected != [after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns]:
+        if expected != source_stamp(after) or before.st_ctime_ns != after.st_ctime_ns:
             raise ValueError('worktree changed during capture; restart the scan')
     return data
 

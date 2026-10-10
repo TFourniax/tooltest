@@ -4,11 +4,21 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from diffwitness.structure_scan import capture, page, step, storage, load, source_lines, lock
+from diffwitness.structure_scan import capture, page, step, storage, load, source_lines, lock, source_stamp
 
 class ProjectStructureScanTests(unittest.TestCase):
+    def test_windows_path_and_handle_creation_time_semantics_match(self):
+        path_stat=SimpleNamespace(st_dev=7,st_ino=101,st_size=9,st_mtime_ns=20,st_ctime_ns=10,st_birthtime_ns=10)
+        handle_stat=SimpleNamespace(**{**vars(path_stat),'st_ctime_ns':30})
+        with patch('diffwitness.structure_scan.os.name','nt'):
+            self.assertEqual(source_stamp(path_stat),source_stamp(handle_stat))
+            handle_stat.st_ino=102
+            self.assertNotEqual(source_stamp(path_stat),source_stamp(handle_stat))
+            handle_stat.st_ino=101;handle_stat.st_mtime_ns=21
+            self.assertNotEqual(source_stamp(path_stat),source_stamp(handle_stat))
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(prefix='dw-scan-fixture-')
         self.root=Path(self.temp.name).resolve()
