@@ -29,16 +29,41 @@ def _setup_scope_path(cwd: Path) -> Path:
     return git_metadata_path(cwd, "diffwitness/setup-scope.json")
 
 
-def _persist_setup_scope(cwd: Path, adapters: Sequence[str]) -> None:
+def _persist_setup_scope(cwd: Path, adapters: Sequence[str], *, sidecar: str | None = None) -> None:
+    """Pin the selected integration executable, not a future PATH/bundled substitute."""
     path = _setup_scope_path(cwd)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": _SETUP_SCOPE_SCHEMA,
         "adapters": list(dict.fromkeys(str(item) for item in adapters if str(item))),
+        **({"idleproofCommand": sidecar} if sidecar is not None else {}),
     }
-    staged = path.with_suffix(".json.tmp")
+    staged = path.with_suffix(path.suffix + ".tmp")
     staged.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     staged.replace(path)
+
+
+def _recorded_sidecar(cwd: Path) -> str | None:
+    """Use the exact prior installer for status/repair/removal; fail closed on damage."""
+    path = _setup_scope_path(cwd)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError) as exc:
+        raise SetupError("DiffWitness recorded integration selection is unreadable; use --idleproof-command explicitly.") from exc
+    if not isinstance(data, dict) or data.get("schema") != _SETUP_SCOPE_SCHEMA:
+        raise SetupError("DiffWitness recorded integration selection has an unsupported schema.")
+    command = data.get("idleproofCommand")
+    if command is None:
+        return None  # older setups retained their existing bundled behavior
+    if not isinstance(command, str) or not Path(command).is_absolute():
+        raise SetupError("DiffWitness recorded integration executable is invalid; use --idleproof-command explicitly.")
+    return command
+
+
+def _selected_sidecar(cwd: Path, explicit: str | None) -> str:
+    return _idleproof_executable(explicit if explicit is not None else _recorded_sidecar(cwd))
 
 
 def _clear_setup_scope(cwd: Path) -> None:
@@ -193,7 +218,7 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
         ensure_local_integration_excludes(cwd)
     except LocalGitStateError as exc:
         raise SetupError(f"cannot prepare non-invasive local Git state: {exc}") from exc
-    command = _idleproof_executable(idleproof_command)
+    command = _selected_sidecar(cwd, idleproof_command)
     _run_sidecar(
         command,
         [
@@ -213,13 +238,13 @@ def setup_install(*, cwd: Path, agent: str, idleproof_command: str | None = None
     # A fresh/repaired installation must prove liveness again. Never carry an old provider
     # observation across a reinstall and accidentally claim Codex trust is still active.
     clear_native_activation(cwd)
-    _persist_setup_scope(cwd, status.get("expectedAdapters") or [])
+    _persist_setup_scope(cwd, status.get("expectedAdapters") or [], sidecar=command)
     return _with_readiness(cwd, status)
 
 
 def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
     cwd = _git_project(cwd)
-    command = _idleproof_executable(idleproof_command)
+    command = _selected_sidecar(cwd, idleproof_command)
     proc = _run_sidecar(
         command,
         ["integration", "uninstall"],
@@ -239,7 +264,7 @@ def setup_uninstall(*, cwd: Path, idleproof_command: str | None = None) -> dict:
 
 def setup_status(*, cwd: Path, idleproof_command: str | None = None) -> dict:
     cwd = _git_project(cwd)
-    command = _idleproof_executable(idleproof_command)
+    command = _selected_sidecar(cwd, idleproof_command)
     status = _status(command, cwd)
     return {**_with_readiness(cwd, status), "sidecar": command}
 

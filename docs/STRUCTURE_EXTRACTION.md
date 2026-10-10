@@ -272,3 +272,7 @@ INFERRED. Native250ms and source/node bounds are unchanged; no second parser.
 Other grammar adapters retain actual import positions; member/raw-target details
 remain null until implemented. Code route/SQL-string/technology canonicalization,
 full consumer citation coverage and longitudinal identity remain separate work.
+
+## Initial global inventory
+
+The separate [captured snapshot API](STRUCTURE_SNAPSHOTS.md) owns safe repository admission and resumable paging. The byte transport documented above keeps its existing contract and hook budgets.

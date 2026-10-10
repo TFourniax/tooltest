@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://diffwitness.dev/schema/structure-page-1.schema.json",
+  "title": "Captured structural page, not Proof",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "pageSchema",
+    "snapshotId",
+    "source",
+    "tree",
+    "baseTree",
+    "selection",
+    "profile",
+    "capturedAt",
+    "state",
+    "position",
+    "consistency",
+    "coverage",
+    "authority",
+    "proof",
+    "runtimeGraph",
+    "resultSha256",
+    "triage",
+    "offset",
+    "files",
+    "nextCursor"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "structure-snapshot-1"
+    },
+    "pageSchema": {
+      "const": "structure-page-1"
+    },
+    "state": {
+      "const": "complete"
+    },
+    "authority": {
+      "const": "OBSERVED"
+    },
+    "proof": {
+      "const": "UNKNOWN"
+    },
+    "runtimeGraph": {
+      "const": false
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^dwscan_[a-f0-9]{64}$"
+    },
+    "resultSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source": {
+      "enum": [
+        "HEAD",
+        "WORKTREE"
+      ]
+    },
+    "tree": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "baseTree": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consistency": {
+      "type": "string"
+    },
+    "position": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20000
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20000
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "inventory",
+        "providers",
+        "python",
+        "limits"
+      ]
+    },
+    "selection": {
+      "type": "object",
+      "required": [
+        "documents",
+        "ci",
+        "maxFiles"
+      ],
+      "properties": {
+        "documents": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "ci": {
+          "type": "boolean"
+        },
+        "maxFiles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "inventoryEntries",
+        "inventoryComplete",
+        "eligible",
+        "read",
+        "capturedSources",
+        "statuses",
+        "reasons",
+        "complete",
+        "limits"
+      ]
+    },
+    "files": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "mode",
+          "bytes",
+          "role",
+          "roleAuthority",
+          "eligible",
+          "status"
+        ],
+        "properties": {
+          "roleAuthority": {
+            "const": "INFERRED"
+          },
+          "status": {
+            "enum": [
+              "parsed",
+              "unparsed",
+              "unsupported",
+              "excluded",
+              "omitted",
+              "error"
+            ]
+          }
+        }
+      }
+    },
+    "triage": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "nextCursor": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^dwscan_[a-f0-9]{64}:[0-9]+$"
+    }
+  },
+  "additionalProperties": false,
+  "description": "JSON shape is only one gate. Cross-page identity, hashes, authority, exact-path IDs, cursor offsets and coverage arithmetic are enforced by the consumer; see STRUCTURE_SNAPSHOTS.md."
+}

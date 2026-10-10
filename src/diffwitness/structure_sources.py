@@ -13,6 +13,26 @@ SNAPSHOT_VERSION = "git-tree-blobs-1"
 _EXCLUDED_DIRS = {".git", ".venv", "venv", "node_modules", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache", "__pycache__"}
 
 
+def decode_blob_batch(raw: bytes, selected: list[tuple[str, bytes, int]]):
+    """Validate the existing immutable Git-blob protocol, usable with bounded readers."""
+    stream=io.BytesIO(raw)
+    result=[]
+    for relative,expected_oid,expected_size in selected:
+        header=stream.readline().rstrip(b'\n').split()
+        if header != [expected_oid,b'blob',str(expected_size).encode('ascii')]:
+            raise ValueError('Git source blob does not match the captured tree manifest')
+        content=stream.read(expected_size)
+        if len(content)!=expected_size or stream.read(1)!=b'\n':
+            raise ValueError('Git source blob response is truncated')
+        algorithm={40:'sha1',64:'sha256'}.get(len(expected_oid))
+        if algorithm is None or hashlib.new(algorithm,b'blob '+str(expected_size).encode('ascii')+b'\0'+content).hexdigest().encode('ascii')!=expected_oid:
+            raise ValueError('Git source blob content does not match its object identity')
+        result.append((relative,content))
+    if stream.read(1):
+        raise ValueError('Git source blob response has unexpected trailing bytes')
+    return result
+
+
 def git_bytes(*args, **kwargs) -> bytes:
     """Late-bound access to the existing shared Git byte reader."""
     from .gitops import git_bytes as read_git_bytes
@@ -64,20 +84,7 @@ def tree_sources(repo: Path, tree: str, *, suffixes: tuple[str, ...], max_files:
     result = []
     if selected:
         request = b"".join(oid + b"\n" for _, oid, _ in selected)
-        stream = io.BytesIO(git_bytes(repo, "cat-file", "--batch", input_bytes=request))
-        for relative, expected_oid, expected_size in selected:
-            header = stream.readline().rstrip(b"\n").split()
-            if header != [expected_oid, b"blob", str(expected_size).encode("ascii")]:
-                raise ValueError("Git source blob does not match the captured tree manifest")
-            content = stream.read(expected_size)
-            if len(content) != expected_size or stream.read(1) != b"\n":
-                raise ValueError("Git source blob response is truncated")
-            algorithm = {40: "sha1", 64: "sha256"}.get(len(expected_oid))
-            if algorithm is None or hashlib.new(algorithm, b"blob " + str(expected_size).encode("ascii") + b"\0" + content).hexdigest().encode("ascii") != expected_oid:
-                raise ValueError("Git source blob content does not match its object identity")
-            result.append((relative, content))
-        if stream.read(1):
-            raise ValueError("Git source blob response has unexpected trailing bytes")
+        result = decode_blob_batch(git_bytes(repo, "cat-file", "--batch", input_bytes=request),selected)
     coverage["files"] = len(result)
     coverage["truncated"] = coverage["omittedByLimit"] > 0
     coverage["complete"] = not any(coverage[key] for key in ("oversized", "unsupportedPaths", "unsupportedModes", "omittedByLimit"))

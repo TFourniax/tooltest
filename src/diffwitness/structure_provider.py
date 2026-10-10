@@ -48,11 +48,16 @@ def _structure_index_needs_refresh(root: Path, conn: sqlite3.Connection) -> bool
 
 
 def _syntax_import_component(relative: str, target: str, components: dict[str, str]) -> str | None:
+    matches = _syntax_import_matches(relative, target, components)
+    return next(iter(matches)) if len(matches) == 1 else None
+
+
+def _syntax_import_matches(relative: str, target: str, components: dict[str, str]) -> set[str]:
     if not target.startswith('.') or '\\' in target or ':' in target:
-        return None
+        return set()
     base = posixpath.normpath(posixpath.join(posixpath.dirname(relative), target))
     if base == '..' or base.startswith('../') or base.startswith('/'):
-        return None
+        return set()
     candidates = [base]
     suffixes = ('.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts')
     if posixpath.splitext(base)[1] not in suffixes:
@@ -60,7 +65,17 @@ def _syntax_import_component(relative: str, target: str, components: dict[str, s
         candidates += [base + '/index' + suffix for suffix in suffixes]
     matches = {components[path] for path in candidates
                if path in components and posixpath.splitext(path)[1] in suffixes}
-    return next(iter(matches)) if len(matches) == 1 else None
+    return matches
+
+
+def resolve_import_reference(path: str, language: str, target: str,
+                             components: dict[str, str], modules: dict) -> tuple[str | None, str]:
+    """Shared conservative resolver for captured structural views; never runtime evidence."""
+    matches = (modules.get((language, target), set()) if language == 'python' else
+               _syntax_import_matches(path, target, components)
+               if language in {'javascript', 'typescript'} else set())
+    return (next(iter(matches)), 'unique-static-candidate') if len(matches) == 1 else (
+        None, 'ambiguous' if matches else 'unresolved')
 
 
 def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_files: int = 2000) -> dict:
@@ -106,10 +121,7 @@ def refresh_structure_index(repo: str | Path, *, conn: sqlite3.Connection, max_f
     for item in extracted:
         source = components[item.path]
         for imported in item.imports:
-            matches = modules.get((item.language, imported.target), set())
-            target = (next(iter(matches)) if item.language == 'python' and len(matches) == 1 else
-                      _syntax_import_component(item.path, imported.target, components)
-                      if item.language in {'javascript', 'typescript'} else None)
+            target, _ = resolve_import_reference(item.path, item.language, imported.target, components, modules)
             authority = 'INFERRED' if target else imported.epistemic_status
             kind = "component" if target else "module-reference"
             target = target or f"module:{imported.target}"
